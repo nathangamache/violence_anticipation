@@ -1,0 +1,542 @@
+[
+  {
+    "video_id": "Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.8149688243865967,
+    "max_score": 0.8207740783691406,
+    "mean_score_during_violence": 0.8138613104820251,
+    "mean_score_before_violence": 0.8167276978492737,
+    "n_frames": 44,
+    "n_violent_frames": 27
+  },
+  {
+    "video_id": "Casino.Royale.2006__#00-50-05_00-51-16_label_B1-B2-B6",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 21,
+    "n_violent_frames": 13
+  },
+  {
+    "video_id": "Shoplifting027_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 27,
+    "n_violent_frames": 27
+  },
+  {
+    "video_id": "v=Y1hxr1MWLjM__#1_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.32585033774375916,
+    "max_score": 0.4000163972377777,
+    "mean_score_during_violence": 0.32585033774375916,
+    "mean_score_before_violence": 0,
+    "n_frames": 49,
+    "n_violent_frames": 49
+  },
+  {
+    "video_id": "Bullet.in.the.Head.1990__#00-17-20_00-18-55_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.7494328022003174,
+    "max_score": 0.7691143155097961,
+    "mean_score_during_violence": 0.7512860298156738,
+    "mean_score_before_violence": 0.7454795241355896,
+    "n_frames": 47,
+    "n_violent_frames": 32
+  },
+  {
+    "video_id": "Saving.Private.Ryan.1998__#02-23-00_02-23-28_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 24,
+    "n_violent_frames": 7
+  },
+  {
+    "video_id": "v=3xWiBCIxjIk__#1_label_B4-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 11,
+    "n_violent_frames": 2
+  },
+  {
+    "video_id": "v=lpkL0Y1MhA8__#1_label_B4-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 12,
+    "n_violent_frames": 3
+  },
+  {
+    "video_id": "Shoplifting004_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.37868523597717285,
+    "max_score": 0.4613375663757324,
+    "mean_score_during_violence": 0.37868523597717285,
+    "mean_score_before_violence": 0,
+    "n_frames": 61,
+    "n_violent_frames": 61
+  },
+  {
+    "video_id": "RoadAccidents016_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.6586727499961853,
+    "max_score": 0.6624097228050232,
+    "mean_score_during_violence": 0.6586727499961853,
+    "mean_score_before_violence": 0,
+    "n_frames": 42,
+    "n_violent_frames": 42
+  },
+  {
+    "video_id": "Shoplifting031_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 13,
+    "n_violent_frames": 13
+  },
+  {
+    "video_id": "Burglary061_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 5,
+    "n_violent_frames": 4
+  },
+  {
+    "video_id": "Explosion002_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.35047468543052673,
+    "max_score": 0.36863577365875244,
+    "mean_score_during_violence": 0.35047468543052673,
+    "mean_score_before_violence": 0,
+    "n_frames": 36,
+    "n_violent_frames": 36
+  },
+  {
+    "video_id": "Salt.2010__#00-17-40_00-18-16_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5293685793876648,
+    "max_score": 0.667055606842041,
+    "mean_score_during_violence": 0.5293685793876648,
+    "mean_score_before_violence": 0,
+    "n_frames": 41,
+    "n_violent_frames": 41
+  },
+  {
+    "video_id": "v=UYFR-XbyZQc__#00-01-19_00-02-42_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 19,
+    "n_violent_frames": 2
+  },
+  {
+    "video_id": "Young.And.Dangerous.I.1996__#0-20-50_0-22-15_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.6802247166633606,
+    "max_score": 0.8169440031051636,
+    "mean_score_during_violence": 0.6802247166633606,
+    "mean_score_before_violence": 0,
+    "n_frames": 409,
+    "n_violent_frames": 409
+  },
+  {
+    "video_id": "Skyfall.2012__#00-06-10_00-06-25_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 11,
+    "n_violent_frames": 11
+  },
+  {
+    "video_id": "Sin.City.2005__#01-19-08_01-19-23_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 11,
+    "n_violent_frames": 11
+  },
+  {
+    "video_id": "Fury.2014__#00-07-30_00-07-58_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 12,
+    "n_violent_frames": 11
+  },
+  {
+    "video_id": "v=SMy2_qNO2Y0__#00-01-50_00-03-13_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 5,
+    "n_violent_frames": 4
+  },
+  {
+    "video_id": "v=yy-KIWDcBr4__#00-16-10_00-17-19_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 13,
+    "n_violent_frames": 10
+  },
+  {
+    "video_id": "RoadAccidents020_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.654784083366394,
+    "max_score": 0.6578560471534729,
+    "mean_score_during_violence": 0.654784083366394,
+    "mean_score_before_violence": 0,
+    "n_frames": 46,
+    "n_violent_frames": 46
+  },
+  {
+    "video_id": "Rush.Hour.3.2007.BluRay__#00-40-56_00-41-52_label_B2-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.707433819770813,
+    "max_score": 0.7498587965965271,
+    "mean_score_during_violence": 0.707433819770813,
+    "mean_score_before_violence": 0,
+    "n_frames": 41,
+    "n_violent_frames": 41
+  },
+  {
+    "video_id": "Quantum.Of.Solace.2008__#01-30-26_01-30-42_label_B2-B1-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 16,
+    "n_violent_frames": 11
+  },
+  {
+    "video_id": "v=Lt9M_tSij_4__#00-00-00_00-04-24_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 1,
+    "n_violent_frames": 1
+  },
+  {
+    "video_id": "Stealing036_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.7044991254806519,
+    "max_score": 0.7134488821029663,
+    "mean_score_during_violence": 0.7044991254806519,
+    "mean_score_before_violence": 0,
+    "n_frames": 60,
+    "n_violent_frames": 60
+  },
+  {
+    "video_id": "v=p7kvQ4OpDgU__#1_label_B4-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 24,
+    "n_violent_frames": 17
+  },
+  {
+    "video_id": "Bullet.in.the.Head.1990__#01-45-21_01-46-20_label_B2-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.780704915523529,
+    "max_score": 0.7944929599761963,
+    "mean_score_during_violence": 0.780704915523529,
+    "mean_score_before_violence": 0,
+    "n_frames": 44,
+    "n_violent_frames": 44
+  },
+  {
+    "video_id": "Burglary018_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 28,
+    "n_violent_frames": 28
+  },
+  {
+    "video_id": "v=fQQzg2VfJME__#1_label_B4-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 13,
+    "n_violent_frames": 5
+  },
+  {
+    "video_id": "Shooting002_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.6503854393959045,
+    "max_score": 0.6608338952064514,
+    "mean_score_during_violence": 0.6503854393959045,
+    "mean_score_before_violence": 0,
+    "n_frames": 50,
+    "n_violent_frames": 50
+  },
+  {
+    "video_id": "Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "source": "xd_violence",
+    "mean_score": 0.8075899481773376,
+    "max_score": 0.8076625466346741,
+    "mean_score_during_violence": 0.8075899481773376,
+    "mean_score_before_violence": 0,
+    "n_frames": 31,
+    "n_violent_frames": 31
+  },
+  {
+    "video_id": "RoadAccidents021_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 7,
+    "n_violent_frames": 6
+  },
+  {
+    "video_id": "Brick.Mansions.2014__#00-41-25_00-42-36_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.8360720872879028,
+    "max_score": 0.8385120034217834,
+    "mean_score_during_violence": 0.8360720872879028,
+    "mean_score_before_violence": 0,
+    "n_frames": 46,
+    "n_violent_frames": 46
+  },
+  {
+    "video_id": "Skyfall.2012__#01-20-05_01-20-20_label_B1-B2-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 17,
+    "n_violent_frames": 10
+  },
+  {
+    "video_id": "Mission.Impossible.II.2000__#01-46-20_01-47-11_label_B2-B6-0",
+    "source": "xd_violence",
+    "mean_score": 0.7786338329315186,
+    "max_score": 0.7786340117454529,
+    "mean_score_during_violence": 0.7786340117454529,
+    "mean_score_before_violence": 0.7786340117454529,
+    "n_frames": 30,
+    "n_violent_frames": 10
+  },
+  {
+    "video_id": "v=TOEVc-pOEwM__#00-08-40_00-10-40_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 12,
+    "n_violent_frames": 7
+  },
+  {
+    "video_id": "Mission.Impossible.III.2006__#00-19-56_00-20-26_label_B2-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 22,
+    "n_violent_frames": 3
+  },
+  {
+    "video_id": "Skyfall.2012__#00-03-22_00-03-40_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 17,
+    "n_violent_frames": 17
+  },
+  {
+    "video_id": "v=7rDRFFSUrPI__#00-01-50_00-02-32_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.30295810103416443,
+    "max_score": 0.3138827979564667,
+    "mean_score_during_violence": 0.30295810103416443,
+    "mean_score_before_violence": 0,
+    "n_frames": 33,
+    "n_violent_frames": 33
+  },
+  {
+    "video_id": "v=uBXprlsmd18__#00-06-10_00-07-19_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 4,
+    "n_violent_frames": 4
+  },
+  {
+    "video_id": "Sin.City.2005__#0-32-00_0-32-16_label_B2-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 17,
+    "n_violent_frames": 17
+  },
+  {
+    "video_id": "Braveheart.1995__#02-05-34_02-06-40_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.8195646405220032,
+    "max_score": 0.8400576114654541,
+    "mean_score_during_violence": 0.81456059217453,
+    "mean_score_before_violence": 0.8390249013900757,
+    "n_frames": 44,
+    "n_violent_frames": 35
+  },
+  {
+    "video_id": "Shoplifting029_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.22158260643482208,
+    "max_score": 0.24195614457130432,
+    "mean_score_during_violence": 0.22158260643482208,
+    "mean_score_before_violence": 0,
+    "n_frames": 58,
+    "n_violent_frames": 58
+  },
+  {
+    "video_id": "Shooting033_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.7284272909164429,
+    "max_score": 0.7630326151847839,
+    "mean_score_during_violence": 0.7284272909164429,
+    "mean_score_before_violence": 0,
+    "n_frames": 51,
+    "n_violent_frames": 51
+  },
+  {
+    "video_id": "v=ntaXjnpusxM__#1_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 7,
+    "n_violent_frames": 7
+  },
+  {
+    "video_id": "Desperado.1995__#01-14-11_01-17-28_label_B2-G-0",
+    "source": "xd_violence",
+    "mean_score": 0.8189299702644348,
+    "max_score": 0.8196229934692383,
+    "mean_score_during_violence": 0.8192604184150696,
+    "mean_score_before_violence": 0.8165510892868042,
+    "n_frames": 41,
+    "n_violent_frames": 36
+  },
+  {
+    "video_id": "Taken.Extended.Cut.2008__#00-33-51_00-34-03_label_B1-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 11,
+    "n_violent_frames": 11
+  },
+  {
+    "video_id": "Shoplifting033_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.11567337065935135,
+    "max_score": 0.11777323484420776,
+    "mean_score_during_violence": 0.11567337065935135,
+    "mean_score_before_violence": 0,
+    "n_frames": 45,
+    "n_violent_frames": 45
+  },
+  {
+    "video_id": "v=v-Plzx73K68__#1_label_B4-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0,
+    "n_frames": 20,
+    "n_violent_frames": 20
+  },
+  {
+    "video_id": "Explosion020_x264",
+    "source": "ucf_crime",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 19,
+    "n_violent_frames": 4
+  },
+  {
+    "video_id": "v=D1eP4Bn4hDQ__#00-09-20_00-10-45_label_B6-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 10,
+    "n_violent_frames": 9
+  },
+  {
+    "video_id": "v=5Ftl4nOSytc__#1_label_G-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 4,
+    "n_violent_frames": 1
+  },
+  {
+    "video_id": "Taken.3.2014__#00-03-58_00-04-16_label_B2-0-0",
+    "source": "xd_violence",
+    "mean_score": 0.5,
+    "max_score": 0.5,
+    "mean_score_during_violence": 0.5,
+    "mean_score_before_violence": 0.5,
+    "n_frames": 21,
+    "n_violent_frames": 11
+  }
+]

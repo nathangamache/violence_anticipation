@@ -1,0 +1,117 @@
+2026-03-02 18:51:37,276 [INFO] ViolenceAnticipation: Starting Violence Anticipation Pipeline...
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation:   RTSP URL:        rtsp://127.0.0.1:8554/macbook
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation:   Sample FPS:      1.0
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation:   Sequence length: 32 frames
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation:   Alert threshold: 0.5
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation:   Alert cooldown:  30.0s
+2026-03-02 18:51:37,277 [INFO] ViolenceAnticipation: Loading LSTM model on cuda:1...
+2026-03-02 18:51:37,292 [INFO] ViolenceAnticipation: Loading Qwen2.5-VL on cuda:0...
+2026-03-02 18:51:37,898 [INFO] ViolenceAnticipation: LSTM model loaded successfully.
+2026-03-02 18:51:39,295 [INFO] ViolenceAnticipation: Connecting to RTSP stream: rtsp://127.0.0.1:8554/macbook
+2026-03-02 18:51:39,297 [INFO] ViolenceAnticipation: Pipeline running. Press Ctrl+C to stop.
+2026-03-02 18:51:40,878 [INFO] ViolenceAnticipation: Stream opened. Native FPS: 30.0
+2026-03-02 18:51:47,309 [INFO] ViolenceAnticipation: Qwen2.5-VL loaded successfully.
+2026-03-02 18:51:51,421 [INFO] ViolenceAnticipation: [Embedder] Processed 10 frames, last took 0.21s, embed_queue=1
+2026-03-02 18:52:01,122 [INFO] ViolenceAnticipation: [Embedder] Processed 20 frames, last took 0.45s, embed_queue=1
+2026-03-02 18:52:09,324 [INFO] ViolenceAnticipation: [Stats] frame_q=0 | embed_q=0 | captured=28 | embedded=28 | inferences=0 | alerts=0
+2026-03-02 18:52:11,176 [INFO] ViolenceAnticipation: [Embedder] Processed 30 frames, last took 0.33s, embed_queue=1
+2026-03-02 18:52:13,314 [INFO] ViolenceAnticipation: [LSTM] frame=000975 | score=0.2116 | alert=🟢 no  | inference=102.7ms
+2026-03-02 18:52:14,182 [INFO] ViolenceAnticipation: [LSTM] frame=001006 | score=0.2133 | alert=🟢 no  | inference=2.1ms
+2026-03-02 18:52:15,114 [INFO] ViolenceAnticipation: [LSTM] frame=001036 | score=0.2134 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:16,104 [INFO] ViolenceAnticipation: [LSTM] frame=001067 | score=0.2141 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:17,195 [INFO] ViolenceAnticipation: [LSTM] frame=001097 | score=0.2142 | alert=🟢 no  | inference=2.0ms
+2026-03-02 18:52:18,211 [INFO] ViolenceAnticipation: [LSTM] frame=001128 | score=0.2139 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:52:19,208 [INFO] ViolenceAnticipation: [LSTM] frame=001158 | score=0.2143 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:52:20,209 [INFO] ViolenceAnticipation: [LSTM] frame=001189 | score=0.2157 | alert=🟢 no  | inference=2.1ms
+2026-03-02 18:52:21,164 [INFO] ViolenceAnticipation: [Embedder] Processed 40 frames, last took 0.17s, embed_queue=1
+2026-03-02 18:52:21,167 [INFO] ViolenceAnticipation: [LSTM] frame=001219 | score=0.2166 | alert=🟢 no  | inference=2.2ms
+2026-03-02 18:52:22,175 [INFO] ViolenceAnticipation: [LSTM] frame=001250 | score=0.2181 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:52:23,261 [INFO] ViolenceAnticipation: [LSTM] frame=001280 | score=0.2179 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:24,259 [INFO] ViolenceAnticipation: [LSTM] frame=001311 | score=0.2181 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:25,242 [INFO] ViolenceAnticipation: [LSTM] frame=001342 | score=0.2190 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:26,274 [INFO] ViolenceAnticipation: [LSTM] frame=001372 | score=0.2178 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:27,256 [INFO] ViolenceAnticipation: [LSTM] frame=001403 | score=0.2173 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:28,349 [INFO] ViolenceAnticipation: [LSTM] frame=001433 | score=0.2172 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:29,319 [INFO] ViolenceAnticipation: [LSTM] frame=001464 | score=0.2188 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:30,510 [INFO] ViolenceAnticipation: [LSTM] frame=001495 | score=0.2219 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:31,449 [INFO] ViolenceAnticipation: [Embedder] Processed 50 frames, last took 0.23s, embed_queue=1
+2026-03-02 18:52:31,451 [INFO] ViolenceAnticipation: [LSTM] frame=001526 | score=0.2244 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:32,420 [INFO] ViolenceAnticipation: [LSTM] frame=001556 | score=0.2254 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:33,450 [INFO] ViolenceAnticipation: [LSTM] frame=001587 | score=0.2260 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:34,407 [INFO] ViolenceAnticipation: [LSTM] frame=001617 | score=0.2284 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:35,921 [INFO] ViolenceAnticipation: [LSTM] frame=001647 | score=0.2295 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:36,796 [INFO] ViolenceAnticipation: [LSTM] frame=001677 | score=0.2306 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:37,701 [INFO] ViolenceAnticipation: [LSTM] frame=001708 | score=0.2336 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:38,750 [INFO] ViolenceAnticipation: [LSTM] frame=001738 | score=0.2352 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:39,352 [INFO] ViolenceAnticipation: [Stats] frame_q=0 | embed_q=0 | captured=58 | embedded=57 | inferences=26 | alerts=0
+2026-03-02 18:52:39,642 [INFO] ViolenceAnticipation: [LSTM] frame=001769 | score=0.2392 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:40,817 [INFO] ViolenceAnticipation: [LSTM] frame=001799 | score=0.2418 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:41,322 [INFO] ViolenceAnticipation: [Capture] 60 sampled, 1769 dropped, queue=1
+2026-03-02 18:52:41,705 [INFO] ViolenceAnticipation: [Embedder] Processed 60 frames, last took 0.38s, embed_queue=1
+2026-03-02 18:52:41,707 [INFO] ViolenceAnticipation: [LSTM] frame=001829 | score=0.2486 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:42,499 [INFO] ViolenceAnticipation: [LSTM] frame=001860 | score=0.2589 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:43,688 [INFO] ViolenceAnticipation: [LSTM] frame=001890 | score=0.2694 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:44,697 [INFO] ViolenceAnticipation: [LSTM] frame=001920 | score=0.2801 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:45,740 [INFO] ViolenceAnticipation: [LSTM] frame=001950 | score=0.2923 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:52:46,937 [INFO] ViolenceAnticipation: [LSTM] frame=001981 | score=0.3052 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:47,831 [INFO] ViolenceAnticipation: [LSTM] frame=002011 | score=0.3162 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:49,020 [INFO] ViolenceAnticipation: [LSTM] frame=002042 | score=0.3320 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:49,997 [INFO] ViolenceAnticipation: [LSTM] frame=002072 | score=0.3465 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:51,038 [INFO] ViolenceAnticipation: [LSTM] frame=002103 | score=0.3601 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:52,045 [INFO] ViolenceAnticipation: [Embedder] Processed 70 frames, last took 0.57s, embed_queue=1
+2026-03-02 18:52:52,047 [INFO] ViolenceAnticipation: [LSTM] frame=002133 | score=0.3698 | alert=🟢 no  | inference=2.2ms
+2026-03-02 18:52:53,063 [INFO] ViolenceAnticipation: [LSTM] frame=002164 | score=0.3828 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:54,074 [INFO] ViolenceAnticipation: [LSTM] frame=002195 | score=0.3966 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:55,056 [INFO] ViolenceAnticipation: [LSTM] frame=002225 | score=0.4082 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:52:56,092 [INFO] ViolenceAnticipation: [LSTM] frame=002256 | score=0.4268 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:52:56,999 [INFO] ViolenceAnticipation: [LSTM] frame=002287 | score=0.4445 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:52:58,044 [INFO] ViolenceAnticipation: [LSTM] frame=002317 | score=0.4588 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:52:59,145 [INFO] ViolenceAnticipation: [LSTM] frame=002348 | score=0.4673 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:53:00,126 [INFO] ViolenceAnticipation: [LSTM] frame=002378 | score=0.4747 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:53:01,186 [INFO] ViolenceAnticipation: [LSTM] frame=002409 | score=0.4793 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:53:02,102 [INFO] ViolenceAnticipation: [Embedder] Processed 80 frames, last took 0.41s, embed_queue=1
+2026-03-02 18:53:02,104 [INFO] ViolenceAnticipation: [LSTM] frame=002439 | score=0.4800 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:53:03,147 [INFO] ViolenceAnticipation: [LSTM] frame=002469 | score=0.4794 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:53:04,134 [INFO] ViolenceAnticipation: [LSTM] frame=002500 | score=0.4787 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:53:05,143 [INFO] ViolenceAnticipation: [LSTM] frame=002531 | score=0.4790 | alert=🟢 no  | inference=1.9ms
+2026-03-02 18:53:06,142 [INFO] ViolenceAnticipation: [LSTM] frame=002562 | score=0.4842 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:53:07,156 [INFO] ViolenceAnticipation: [LSTM] frame=002593 | score=0.4886 | alert=🟢 no  | inference=1.8ms
+2026-03-02 18:53:08,127 [INFO] ViolenceAnticipation: [LSTM] frame=002624 | score=0.4971 | alert=🟢 no  | inference=2.0ms
+2026-03-02 18:53:09,186 [INFO] ViolenceAnticipation: [LSTM] frame=002655 | score=0.5059 | alert=🔴 YES | inference=1.8ms
+2026-03-02 18:53:09,186 [WARNING] ViolenceAnticipation: 
+============================================================
+  ⚠️  VIOLENCE ANTICIPATED
+  Score:      0.5059
+  Time:       2026-03-02 18:53:08
+  Frame:      2655
+============================================================
+2026-03-02 18:53:09,380 [INFO] ViolenceAnticipation: [Stats] frame_q=0 | embed_q=0 | captured=87 | embedded=87 | inferences=56 | alerts=1
+2026-03-02 18:53:10,246 [INFO] ViolenceAnticipation: [LSTM] frame=002685 | score=0.5144 | alert=🔴 YES | inference=1.8ms
+2026-03-02 18:53:11,165 [INFO] ViolenceAnticipation: [LSTM] frame=002716 | score=0.5248 | alert=🔴 YES | inference=1.8ms
+2026-03-02 18:53:12,158 [INFO] ViolenceAnticipation: [Embedder] Processed 90 frames, last took 0.25s, embed_queue=1
+2026-03-02 18:53:12,160 [INFO] ViolenceAnticipation: [LSTM] frame=002746 | score=0.5334 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:13,181 [INFO] ViolenceAnticipation: [LSTM] frame=002777 | score=0.5402 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:14,213 [INFO] ViolenceAnticipation: [LSTM] frame=002807 | score=0.5401 | alert=🔴 YES | inference=1.8ms
+2026-03-02 18:53:15,188 [INFO] ViolenceAnticipation: [LSTM] frame=002838 | score=0.5331 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:16,253 [INFO] ViolenceAnticipation: [LSTM] frame=002868 | score=0.5232 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:17,307 [INFO] ViolenceAnticipation: [LSTM] frame=002899 | score=0.5175 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:18,250 [INFO] ViolenceAnticipation: [LSTM] frame=002930 | score=0.5059 | alert=🔴 YES | inference=1.7ms
+2026-03-02 18:53:19,419 [INFO] ViolenceAnticipation: [LSTM] frame=002960 | score=0.4958 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:53:20,484 [INFO] ViolenceAnticipation: [LSTM] frame=002991 | score=0.4894 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:21,553 [INFO] ViolenceAnticipation: [LSTM] frame=003021 | score=0.4759 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:53:22,464 [INFO] ViolenceAnticipation: [Embedder] Processed 100 frames, last took 0.39s, embed_queue=1
+2026-03-02 18:53:22,466 [INFO] ViolenceAnticipation: [LSTM] frame=003051 | score=0.4642 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:23,565 [INFO] ViolenceAnticipation: [LSTM] frame=003081 | score=0.4551 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:53:24,635 [INFO] ViolenceAnticipation: [LSTM] frame=003112 | score=0.4467 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:25,698 [INFO] ViolenceAnticipation: [LSTM] frame=003142 | score=0.4351 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:26,690 [INFO] ViolenceAnticipation: [LSTM] frame=003173 | score=0.4209 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:27,674 [INFO] ViolenceAnticipation: [LSTM] frame=003203 | score=0.4088 | alert=🟢 no  | inference=1.7ms
+2026-03-02 18:53:28,250 [INFO] ViolenceAnticipation: Interrupt received, stopping...
+2026-03-02 18:53:28,250 [INFO] ViolenceAnticipation: Shutting down pipeline...
+2026-03-02 18:53:28,253 [INFO] ViolenceAnticipation: [Capture] Thread stopped.
+2026-03-02 18:53:28,646 [INFO] ViolenceAnticipation: [Embedder] Thread stopped.
+2026-03-02 18:53:28,648 [INFO] ViolenceAnticipation: [LSTM] frame=003233 | score=0.3950 | alert=🟢 no  | inference=1.6ms
+2026-03-02 18:53:28,648 [INFO] ViolenceAnticipation: [LSTM] Thread stopped. Inferences: 75, Alerts: 1
+2026-03-02 18:53:28,648 [INFO] ViolenceAnticipation: Total alerts fired: 1
+2026-03-02 18:53:28,648 [INFO] ViolenceAnticipation:   2026-03-02 18:53:08 | score=0.5059 | frame=2655
+2026-03-02 18:53:28,648 [INFO] ViolenceAnticipation: Pipeline stopped.

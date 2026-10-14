@@ -1,0 +1,65 @@
+{
+  "jsonl_root": "data/processed/vlm_labels",
+  "labels_dir": "data/processed/labels_future_h10",
+  "out_dir": "results/vlm_eval_future_h10",
+  "gt_thresh": 0.5,
+  "num_thresholds": 101,
+  "min_samples_per_video": 5,
+  "counts": {
+    "jsonl_files": 1721,
+    "records_seen": 78236,
+    "pairs_used_total": 62580,
+    "skip_no_label": 0,
+    "skip_oob_t": 0,
+    "skip_parse_failed": 44,
+    "skip_no_score": 15612
+  },
+  "global_metrics_all_pairs": {
+    "roc_auc": 0.6720815784360159,
+    "pr_auc": 0.2059805939376826,
+    "best_threshold_by_f1": 0.51,
+    "best_f1": 0.3241351544857025,
+    "best_precision": 0.24282352941176472,
+    "best_recall": 0.4873178629249865,
+    "n_samples": 62580,
+    "pos_rate_gt": 0.11844039629274529
+  },
+  "global_baselines": {
+    "always_pos_precision": 0.11844039629274529,
+    "always_pos_recall": 1.0,
+    "always_pos_f1": 0.21179563378671848,
+    "always_neg_precision": 0.0,
+    "always_neg_recall": 0.0,
+    "always_neg_f1": 0.0
+  },
+  "best_minus_always_pos_f1": 0.11233952069898404,
+  "warning_best_is_all_positive_baseline": false,
+  "per_source_all_pairs": {
+    "ucf_crime": {
+      "n_pairs": 28406,
+      "pos_rate": 0.09314933464760966,
+      "roc_auc": 0.48375054429984554,
+      "pr_auc": 0.09125865462739446
+    },
+    "xd_violence": {
+      "n_pairs": 34174,
+      "pos_rate": 0.13946274945865278,
+      "roc_auc": 0.7756087556798542,
+      "pr_auc": 0.3270685333693094
+    }
+  },
+  "video_aggregates_valid_only": {
+    "n_videos_total": 1696,
+    "n_videos_valid_for_video_aggs": 154,
+    "mean_f1_valid": 0.44551163157569246,
+    "mean_precision_valid": 0.7239583707172172,
+    "mean_recall_valid": 0.37819191740768454,
+    "mean_roc_auc_valid": 0.5656988483920371,
+    "mean_pr_auc_valid": 0.8170783442257161
+  },
+  "notes": [
+    "Global metrics/plots are computed on ALL usable (score,gt) pairs (no per-video filtering).",
+    "Per-video CSV still includes ALL videos. Many videos may have NaN AUC if their GT is single-class.",
+    "Always-positive baseline is included to detect when 'best F1' is just class-imbalance gaming."
+  ]
+}

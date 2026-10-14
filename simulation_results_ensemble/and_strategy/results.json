@@ -1,0 +1,14 @@
+{
+  "strategy": "and",
+  "simple_threshold": 0.6,
+  "temporal_threshold": 0.388,
+  "roc_auc": 0.8396230115636242,
+  "pr_auc": 0.17605078557454862,
+  "precision": 0.1977401129943503,
+  "recall": 0.3141831238779174,
+  "f1": 0.24271844660194175,
+  "n_violence_events": 13,
+  "n_detected_events": 10,
+  "n_false_alarms": 81,
+  "avg_lead_time_sec": 17.6
+}

@@ -1,0 +1,42 @@
+# --- Secrets (never commit) ---
+.env
+.env.*
+youtube_cookies.txt
+*cookies*.txt
+
+# --- Environments / caches ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.locks/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Symlinks to external storage (data + pretrained models live outside the repo) ---
+/data
+/models
+
+# --- Model weights and checkpoints (too large for git; regenerate or store elsewhere) ---
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+checkpoints/
+best_checkpoints/
+lora_finetuned/
+lora_finetuned_v2/
+
+# --- Extracted features / arrays / media ---
+*.npz
+*.npy
+*.mp4
+*.avi
+*.mkv
+*.webm
+*.wav
+*.part
+*.ytdl
+simulation_data/

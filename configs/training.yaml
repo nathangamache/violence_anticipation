@@ -1,0 +1,25 @@
+training:
+  epochs: 60
+  batch_size: 1
+  lr: 0.0001
+  weight_decay: 0.005
+
+  anticipation_window_sec: 30.0
+  anticipation_weight_factor: 1.5
+
+  bin_thresh: 0.5
+  lambda_mse: 0.25
+  lambda_bce: 1.0
+  pos_class_weight: 1.2
+
+  spam_penalty_lambda: 0.8
+  spam_penalty_margin: 0.35
+  low_target_eps: 0.02
+
+  early_stopping:
+    enabled: true
+    patience: 7
+    metric: "roc_auc"
+    min_delta: 0.001
+
+  window: 60

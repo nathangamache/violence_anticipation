@@ -1,0 +1,4 @@
+ap,model,auc
+nan,LR_xd_to_ucf,nan
+nan,LSTM_xd_to_ucf,nan
+nan,LDA_calibrated_xd_to_ucf,nan

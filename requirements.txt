@@ -1,0 +1,12 @@
+# Core
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.37.0
+accelerate>=0.26.0
+
+# Vision / Stream
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Optional: for RTSP streams with auth or unusual codecs
+# av>=10.0.0  (PyAV — more robust alternative to cv2 for RTSP)

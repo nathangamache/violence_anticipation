@@ -1,0 +1,12 @@
+{
+  "threshold": 0.7,
+  "roc_auc": 0.7303935469381004,
+  "pr_auc": 0.12021690461353807,
+  "precision": 0.19377162629757785,
+  "recall": 0.20107719928186715,
+  "f1": 0.1973568281938326,
+  "n_violence_events": 13,
+  "n_detected_events": 13,
+  "n_false_alarms": 144,
+  "avg_lead_time_sec": 18.636363636363637
+}

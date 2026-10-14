@@ -1,0 +1,20 @@
+model:
+  # ⚙ Node vector: cx, cy + VideoMAE (768)
+  node_dim: 770
+
+  # ⚙ Audio: Mel spectrogram mean vector
+  audio_dim: 128
+
+  # ⚙ CLIP scene embedding
+  scene_dim: 512
+
+  # ⚙ Hidden representation for transformer
+  hidden_dim: 256
+
+  # ⚙ Number of graph attention layers
+  graph_layers: 4
+  graph_heads: 4
+
+  # ⚙ Temporal transformer stack
+  temporal_layers: 4
+  temporal_heads: 8

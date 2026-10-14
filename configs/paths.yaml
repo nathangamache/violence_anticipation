@@ -1,0 +1,12 @@
+paths:
+  raw_videos: data/raw_videos
+  processed: data/processed
+
+  # Under processed:
+  graphs: data/processed/graphs
+  labels: data/processed/labels
+  tracks: data/processed/tracks
+  scenes: data/processed/scenes
+  actions: data/processed/actions
+  audio: data/processed/audio
+

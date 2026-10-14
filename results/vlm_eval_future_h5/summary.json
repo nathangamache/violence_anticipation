@@ -1,0 +1,65 @@
+{
+  "jsonl_root": "data/processed/vlm_labels",
+  "labels_dir": "data/processed/labels_future_h5",
+  "out_dir": "results/vlm_eval_future_h5",
+  "gt_thresh": 0.5,
+  "num_thresholds": 101,
+  "min_samples_per_video": 5,
+  "counts": {
+    "jsonl_files": 1721,
+    "records_seen": 78236,
+    "pairs_used_total": 62580,
+    "skip_no_label": 0,
+    "skip_oob_t": 0,
+    "skip_parse_failed": 44,
+    "skip_no_score": 15612
+  },
+  "global_metrics_all_pairs": {
+    "roc_auc": 0.6770205305010408,
+    "pr_auc": 0.20164561881395393,
+    "best_threshold_by_f1": 0.51,
+    "best_f1": 0.319945365190506,
+    "best_precision": 0.23616806722689077,
+    "best_recall": 0.4958362738179252,
+    "n_samples": 62580,
+    "pos_rate_gt": 0.11321508469159476
+  },
+  "global_baselines": {
+    "always_pos_precision": 0.11321508469159476,
+    "always_pos_recall": 1.0,
+    "always_pos_f1": 0.2034019952630446,
+    "always_neg_precision": 0.0,
+    "always_neg_recall": 0.0,
+    "always_neg_f1": 0.0
+  },
+  "best_minus_always_pos_f1": 0.1165433699274614,
+  "warning_best_is_all_positive_baseline": false,
+  "per_source_all_pairs": {
+    "ucf_crime": {
+      "n_pairs": 28406,
+      "pos_rate": 0.08646060691403225,
+      "roc_auc": 0.48982643269128184,
+      "pr_auc": 0.08595129532756121
+    },
+    "xd_violence": {
+      "n_pairs": 34174,
+      "pos_rate": 0.13545385380698777,
+      "roc_auc": 0.7761325629979365,
+      "pr_auc": 0.3201751204301629
+    }
+  },
+  "video_aggregates_valid_only": {
+    "n_videos_total": 1696,
+    "n_videos_valid_for_video_aggs": 177,
+    "mean_f1_valid": 0.45679141288745073,
+    "mean_precision_valid": 0.7027978569217126,
+    "mean_recall_valid": 0.40003154161197085,
+    "mean_roc_auc_valid": 0.5763809677901419,
+    "mean_pr_auc_valid": 0.7916136474521674
+  },
+  "notes": [
+    "Global metrics/plots are computed on ALL usable (score,gt) pairs (no per-video filtering).",
+    "Per-video CSV still includes ALL videos. Many videos may have NaN AUC if their GT is single-class.",
+    "Always-positive baseline is included to detect when 'best F1' is just class-imbalance gaming."
+  ]
+}
