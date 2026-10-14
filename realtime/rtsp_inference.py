@@ -512,7 +512,7 @@ class LSTMInference(threading.Thread):
             log.info(
                 f"[LSTM] frame={ef.frame_idx:06d} | "
                 f"score={score:.4f} | "
-                f"alert={'🔴 YES' if is_alert else '🟢 no '} | "
+                f"alert={'YES' if is_alert else 'no '} | "
                 f"inference={inference_ms:.1f}ms"
             )
 
@@ -550,7 +550,7 @@ class AlertHandler:
         ts = datetime.fromtimestamp(pred.timestamp).strftime("%Y-%m-%d %H:%M:%S")
         log.warning(
             f"\n{'='*60}\n"
-            f"  ⚠️  VIOLENCE ANTICIPATED\n"
+            f"  WARNING: VIOLENCE ANTICIPATED\n"
             f"  Score:      {pred.score:.4f}\n"
             f"  Time:       {ts}\n"
             f"  Frame:      {pred.frame_idx}\n"

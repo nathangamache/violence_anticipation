@@ -338,12 +338,12 @@ def main():
     
     total = train_stats['n_videos'] + val_stats['n_videos'] + test_stats['n_videos']
     if total == 0:
-        print("\n❌ No videos loaded! Check:")
+        print("\nERROR: No videos loaded! Check:")
         print("   1. File extensions (.npz vs .npy)")
         print("   2. Directory structure matches classifier")
         print("   3. Video names in index match filenames")
     else:
-        print(f"\n✓ Loaded {total} videos successfully!")
+        print(f"\nOK: Loaded {total} videos successfully!")
         print("\nYou can now run training with:")
         print(f"  python train_student_v2.py --embeddings_dir {args.embeddings_dir} --labels_dir {args.labels_dir} ...")
 

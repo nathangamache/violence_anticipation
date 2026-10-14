@@ -782,7 +782,7 @@ class Trainer:
         print(f"PR-AUC Gap (val - test):  {pr_gap:.4f}")
         
         if roc_gap > 0.15:
-            print("⚠️  WARNING: Large generalization gap detected!")
+            print("WARNING: Large generalization gap detected!")
             print("   Consider: more regularization, data augmentation, or checking for domain shift")
         
         return results
@@ -824,7 +824,7 @@ def per_source_analysis(results: Dict, split_name: str = 'test'):
         
         if len(np.unique(y_true)) < 2:
             print(f"\n{source} ({n_samples} samples, {pos_rate:.1%} positive):")
-            print(f"  ⚠️ Only one class present, cannot compute ROC-AUC")
+            print(f"  WARNING: Only one class present, cannot compute ROC-AUC")
             continue
         
         roc_auc = roc_auc_score(y_true, y_scores)

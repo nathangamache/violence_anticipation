@@ -17,7 +17,7 @@ This README covers everything you need to run, train, evaluate, and develop the 
 
 ---
 
-# 🔥 1. Project Structure
+# 1. Project Structure
 ```bash
 violence_anticipation/
 │
@@ -58,7 +58,7 @@ violence_anticipation/
 
 ---
 
-# ⚙️ 2. Installation
+# 2. Installation
 
 ## Install PyTorch (CUDA recommended)
 ```bash
@@ -74,7 +74,7 @@ pip install transformers timm einops
 
 ---
 
-# 🎬 3. Dataset Preparation
+# 3. Dataset Preparation
 Place your raw videos here:
 
 ```bash
@@ -96,7 +96,7 @@ metadata.json
 
 ---
 
-# 🔧 4. Preprocessing (tracking → features → graphs → labels)
+# 4. Preprocessing (tracking → features → graphs → labels)
 Run the full preprocessing script:
 
 ```bash
@@ -124,7 +124,7 @@ Each video becomes:
 
 ---
 
-# 🧠 5. Model Architecture Overview
+# 5. Model Architecture Overview
 ```bash
 Video → YOLO → DeepSORT
                     ↘ per-person crops → VideoMAE → action embeddings
@@ -150,7 +150,7 @@ frame = avg(nodes) + scene + audio
 
 ---
 
-# 🎓 6. Training the Model
+# 6. Training the Model
 ```bash
 python training/train.py
 ```
@@ -168,7 +168,7 @@ configs/training.yaml
 
 ---
 
-# 📈 7. Evaluating (AUC + Time-To-Detection)
+# 7. Evaluating (AUC + Time-To-Detection)
 Evaluation is automatically part of training, but you can call it manually:
 
 ```python
@@ -181,7 +181,7 @@ Metrics:
 
 ---
 
-# 🛠 8. Running Realtime Prediction (Webcam or RTSP)
+# 8. Running Realtime Prediction (Webcam or RTSP)
 ```bash
 python realtime/pipeline.py
 ```
@@ -205,7 +205,7 @@ Output:
 
 ---
 
-# 🚀 9. Benchmarking (FPS, model speed)
+# 9. Benchmarking (FPS, model speed)
 ```bash
 python scripts/benchmark.py
 ```
@@ -219,12 +219,12 @@ Total FPS:     7.20
 
 ---
 
-# 👀 10. Visualizing Graphs
+# 10. Visualizing Graphs
 ```bash
 python scripts/visualize_graphs.py
 ```
 
-# 📤 11. Export ONNX Model
+# 11. Export ONNX Model
 ```bash
 python scripts/export_trace_graph.py
 ```
@@ -237,7 +237,7 @@ Suitable for:
 
 ---
 
-# 🧪 12. Running Tests
+# 12. Running Tests
 Run all tests:
 ```bash
 pytest -q
@@ -252,7 +252,7 @@ Tests cover:
 
 ---
 
-# 📦 13. Installing Everything (Full Dependency List)
+# 13. Installing Everything (Full Dependency List)
 ```bash
 pip install \
     ultralytics \
@@ -274,7 +274,7 @@ pip install \
 
 ---
 
-# 🧭 14. Roadmap
+# 14. Roadmap
 - Add multi-resolution tracking
 - Improve long-range anticipation (60–120 seconds)
 - Add LLM fusion for human-activity semantics
@@ -282,7 +282,7 @@ pip install \
 
 ---
 
-# 🙌 15. Contributing
+# 15. Contributing
 All code is modular — simply update any part of:
 - core/model.py
 - core/extractors.py

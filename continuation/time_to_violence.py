@@ -408,10 +408,10 @@ def demo():
 
         tier_icon = {
             AlertState.CLEAR:    "      ",
-            AlertState.WATCH:    "👁 WATCH",
-            AlertState.ALERT:    "⚠ ALERT",
-            AlertState.IMMINENT: "🔴 IMMNT",
-            AlertState.ACTIVE:   "🚨 ACTIV",
+            AlertState.WATCH:    "WATCH",
+            AlertState.ALERT:    "ALERT",
+            AlertState.IMMINENT: "IMMNT",
+            AlertState.ACTIVE:   "ACTIV",
         }[alert.tier]
 
         print(f"{t:3d}s  {raw:>6.3f}  {alert.score:>6.3f}  {tier_icon:<10}  "

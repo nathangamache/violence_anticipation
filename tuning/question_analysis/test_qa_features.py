@@ -510,13 +510,13 @@ def main():
     print("\n" + "="*70)
     test_auc = summary['logistic_test_auc']
     if test_auc > 0.80:
-        print("✅ EXCELLENT: QA features are highly discriminative!")
+        print("EXCELLENT: QA features are highly discriminative!")
     elif test_auc > 0.70:
-        print("✅ GOOD: QA features show promise.")
+        print("GOOD: QA features show promise.")
     elif test_auc > 0.60:
-        print("⚠️  MODERATE: Some signal, but may need augmentation.")
+        print("MODERATE: Some signal, but may need augmentation.")
     else:
-        print("❌ WEAK: QA features don't discriminate well.")
+        print("WEAK: QA features don't discriminate well.")
     print("="*70)
     
     print(f"\nOutputs: {output_dir}")

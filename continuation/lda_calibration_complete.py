@@ -267,8 +267,8 @@ def print_period_summary(means, title):
         print(f"    {period:<14}: {v:.3f}  {bar}")
 
     v_high, ant_rise = pattern_correct(means)
-    print(f"    Violence highest: {'✓' if v_high else '✗'}")
-    print(f"    Anticipation rises: {'✓' if ant_rise else '✗'}")
+    print(f"    Violence highest: {'OK' if v_high else 'FAIL'}")
+    print(f"    Anticipation rises: {'OK' if ant_rise else 'FAIL'}")
 
 
 # ──────────────────────────────────────────────
@@ -369,8 +369,8 @@ def main():
             f"  {means.get('anticipation', float('nan')):>8.3f}"
             f"  {means.get('violence', float('nan')):>8.3f}"
             f"  {means.get('post', float('nan')):>6.3f}"
-            f"  {'✓' if v_high else '✗':>4}"
-            f"  {'✓' if ant_rise else '✗':>4}"
+            f"  {'OK' if v_high else 'FAIL':>4}"
+            f"  {'OK' if ant_rise else 'FAIL':>4}"
         )
 
     print()
