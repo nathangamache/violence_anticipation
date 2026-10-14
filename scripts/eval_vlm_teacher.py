@@ -1,19 +1,8 @@
 #!/usr/bin/env python3
-"""
-Evaluate VLM teacher violence scores (JSONL) against GT labels (.npy).
+"""Evaluate VLM teacher violence scores (JSONL) against GT labels (.npy).
 
-CHANGES (per your request):
-1) Global metrics + plots are computed on ALL usable pairs (no "valid video only" filtering).
-2) Adds always-positive baseline (and always-negative) to summary + prints.
-3) Keeps per-video CSV for ALL videos (even if NaN AUC, too few samples, etc.).
-4) Per-video aggregates are reported separately and can exclude degenerate videos, but DO NOT affect global.
-
-Outputs (--out_dir):
-- summary.json
-- per_video.csv
-- f1_vs_threshold.png
-- pr_curve.png
-- roc_curve.png
+Global metrics and plots use all usable (score, gt) pairs; per-video aggregates skip degenerate videos.
+Outputs in --out_dir: summary.json, per_video.csv, f1_vs_threshold.png, pr_curve.png, roc_curve.png.
 """
 
 import argparse
@@ -84,9 +73,7 @@ def find_jsonl_files(root: str) -> List[str]:
 
 
 def _auc_safe(y: np.ndarray, s: np.ndarray) -> Tuple[float, float]:
-    """
-    Returns (roc_auc, pr_auc) or (nan, nan) if invalid.
-    """
+    """(roc_auc, pr_auc), or NaNs when y is empty or single-class."""
     if y.size == 0:
         return float("nan"), float("nan")
     if np.unique(y).size < 2:
@@ -95,15 +82,11 @@ def _auc_safe(y: np.ndarray, s: np.ndarray) -> Tuple[float, float]:
 
 
 def compute_baselines(pos_rate: float) -> Dict[str, float]:
-    """
-    Always-positive and always-negative baselines in F1/P/R terms.
-    """
-    # always positive: precision=pos_rate, recall=1 (if pos_rate>0), f1=2pr/(p+r)
+    """Precision/recall/F1 of always-positive and always-negative predictors."""
     ap_prec = float(pos_rate)
     ap_rec = 1.0 if pos_rate > 0 else 0.0
     ap_f1 = (2 * ap_prec * ap_rec / (ap_prec + ap_rec)) if (ap_prec + ap_rec) > 0 else 0.0
 
-    # always negative: precision=0, recall=0, f1=0
     an_prec = 0.0
     an_rec = 0.0
     an_f1 = 0.0
@@ -135,13 +118,11 @@ def main():
     if not jsonl_files:
         raise RuntimeError(f"No .jsonl files found under {args.jsonl_root}")
 
-    # Global collections
     global_scores: List[float] = []
     global_gts: List[int] = []
     global_sources: List[str] = []
     global_vids: List[str] = []
 
-    # Per-video collections
     per_vid_scores: Dict[str, List[float]] = {}
     per_vid_gts: Dict[str, List[int]] = {}
     per_vid_source: Dict[str, str] = {}
@@ -179,7 +160,6 @@ def main():
                 n_skip_no_score += 1
                 continue
 
-            # Load labels if needed
             lp2 = os.path.join(args.labels_dir, f"{vid_id}.npy")
             if label_arr is None or lp2 != label_path:
                 if not os.path.exists(lp2):
@@ -212,7 +192,6 @@ def main():
     scores_all = np.asarray(global_scores, dtype=np.float32)
     gts_all = np.asarray(global_gts, dtype=np.int32)
 
-    # ---- GLOBAL metrics on ALL usable pairs
     pos_rate = float(np.mean(gts_all)) if gts_all.size else float("nan")
     baselines = compute_baselines(pos_rate)
 
@@ -234,7 +213,6 @@ def main():
     best_p = float(precs[best_idx])
     best_r = float(recs[best_idx])
 
-    # Plot F1 sweep
     plt.figure()
     plt.plot(thresholds, f1s)
     plt.axvline(best_th)
@@ -245,7 +223,6 @@ def main():
     plt.savefig(os.path.join(args.out_dir, "f1_vs_threshold.png"), dpi=200)
     plt.close()
 
-    # PR and ROC curves (only if both classes exist globally)
     if np.unique(gts_all).size == 2:
         precision, recall, _ = precision_recall_curve(gts_all, scores_all)
         fpr, tpr, _ = roc_curve(gts_all, scores_all)
@@ -270,7 +247,6 @@ def main():
         plt.savefig(os.path.join(args.out_dir, "roc_curve.png"), dpi=200)
         plt.close()
 
-    # ---- PER-VIDEO metrics at GLOBAL best_th (still write ALL videos)
     per_rows = []
     for vid_id, s_list in per_vid_scores.items():
         y_list = per_vid_gts.get(vid_id, [])
@@ -286,7 +262,6 @@ def main():
 
         roc_v, pr_v = _auc_safe(y, s)
 
-        # Mark "usable for per-video aggregates" (NOT used for global!)
         invalid_reasons = []
         if n_samples < args.min_samples_per_video:
             invalid_reasons.append("too_few_samples")
@@ -315,7 +290,6 @@ def main():
 
     per_rows.sort(key=lambda r: (r["valid_for_video_aggs"], r["f1_at_best_th"] if np.isfinite(r["f1_at_best_th"]) else -1.0), reverse=True)
 
-    # Write CSV (ensure invalid_reasons is properly quoted)
     per_csv = os.path.join(args.out_dir, "per_video.csv")
     fieldnames = list(per_rows[0].keys()) if per_rows else ["vid_id"]
     with open(per_csv, "w", newline="") as f:
@@ -324,7 +298,6 @@ def main():
         for row in per_rows:
             w.writerow(row)
 
-    # Per-video aggregates (ONLY videos with both classes + enough samples)
     valid_rows = [r for r in per_rows if r["valid_for_video_aggs"] == 1]
 
     def _mean_or_nan(vals):
@@ -341,7 +314,6 @@ def main():
         "mean_pr_auc_valid": _mean_or_nan([r["pr_auc"] for r in valid_rows]),
     }
 
-    # Per-source global metrics (nice sanity check)
     per_source = {}
     for src in sorted(set(global_sources)):
         mask = np.asarray([s == src for s in global_sources], dtype=bool)
@@ -356,7 +328,6 @@ def main():
             "pr_auc": pr_s,
         }
 
-    # Summary / warnings
     baseline_f1 = baselines["always_pos_f1"]
     baseline_gap = float(best_f1 - baseline_f1)
     looks_like_allpos = (best_th <= 1e-9) and (abs(baseline_gap) <= 1e-3)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Fine-tune VideoMAE-base on the downloaded Kinetics violence classes."""
 import os, json, torch, cv2
 import numpy as np
 from tqdm import tqdm
@@ -8,9 +9,6 @@ from transformers import (
 )
 from torch.utils.data import Dataset, DataLoader
 
-# ======================================================
-# CONFIG
-# ======================================================
 BASE = os.path.expanduser("~/projects/violence_anticipation/data")
 VIDEO_DIR = f"{BASE}/raw_videos/kinetics/videos"
 META = f"{BASE}/metadata/kinetics.json"
@@ -28,9 +26,6 @@ SAMPLING = 2
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# ======================================================
-# LOAD METADATA + CLASS MAP
-# ======================================================
 with open(META, "r") as f:
     metadata = json.load(f)
 
@@ -39,9 +34,6 @@ label_to_id = {name: i for i, name in enumerate(classes)}
 id_to_label = {i: name for name, i in label_to_id.items()}
 
 
-# ======================================================
-# DATASET
-# ======================================================
 class KineticsViolenceDataset(Dataset):
     def __init__(self, video_dir, metadata):
         self.video_dir = video_dir
@@ -83,9 +75,6 @@ class KineticsViolenceDataset(Dataset):
         return inputs["pixel_values"][0], torch.tensor(label)
 
 
-# ======================================================
-# TRAINING
-# ======================================================
 def train():
     dataset = KineticsViolenceDataset(VIDEO_DIR, metadata)
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)

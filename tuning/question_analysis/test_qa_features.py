@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-"""
-Quick Test: VLM Question Features Discriminative Power
-
-Tests the QA-based feature extraction on a small sample to see
-if the features actually discriminate violence from non-violence.
-
-This version loads frames DIRECTLY FROM VIDEO FILES - no need for
-pre-extracted frame images.
+"""Quick probe of VLM yes/no question features on sampled violence vs non-violence frames.
 
 Usage:
-    python test_qa_features.py \
-        --videos_dir data/videos \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --n_samples 50 \
-        --device cuda:0
+    python test_qa_features.py --videos_dir data/videos --embeddings_dir data/processed/vlm_emb \
+        --labels_dir data/processed/labels_multih --n_samples 50 --device cuda:0
 """
 
 import argparse
@@ -37,10 +26,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-
-# ==============================================================================
-# Question Bank
-# ==============================================================================
 
 VIOLENCE_QUESTIONS = [
     {"id": "physical_contact", "question": "Is there physical contact between two or more people in this image?", "weight": 2.0},
@@ -71,22 +56,14 @@ VIOLENCE_QUESTIONS = [
 ]
 
 
-# ==============================================================================
-# Video Frame Loading
-# ==============================================================================
-
 def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
-    """Find video file for a given video name."""
-    
     extensions = ['.mp4', '.avi', '.mkv', '.mov', '.webm', '.MP4', '.AVI']
     
-    # Try direct match
     for ext in extensions:
         path = videos_dir / f"{video_name}{ext}"
         if path.exists():
             return path
     
-    # Try in subdirectories
     for subdir in ['', 'xd_violence', 'ucf_crime', 'XD_Violence', 'UCF_Crime', 'videos']:
         base = videos_dir / subdir if subdir else videos_dir
         if not base.exists():
@@ -97,7 +74,6 @@ def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
             if path.exists():
                 return path
         
-        # Recursive glob
         matches = list(base.glob(f"**/{video_name}.*"))
         for m in matches:
             if m.suffix.lower() in [e.lower() for e in extensions]:
@@ -107,8 +83,6 @@ def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
 
 
 def extract_frame_from_video(video_path: Path, frame_idx: int) -> Optional[Image.Image]:
-    """Extract a single frame from a video file."""
-    
     cap = cv2.VideoCapture(str(video_path))
     
     if not cap.isOpened():
@@ -117,7 +91,7 @@ def extract_frame_from_video(video_path: Path, frame_idx: int) -> Optional[Image
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     
-    # If frame_idx seems like seconds (labels at 1 FPS), convert
+    # Indices past the end are assumed to be seconds (labels at 1 FPS).
     if frame_idx < total_frames:
         actual_frame = frame_idx
     else:
@@ -137,7 +111,6 @@ def extract_frame_from_video(video_path: Path, frame_idx: int) -> Optional[Image
 
 
 def get_video_info(video_path: Path) -> Dict:
-    """Get video metadata."""
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
         return {}
@@ -149,10 +122,6 @@ def get_video_info(video_path: Path) -> Dict:
     cap.release()
     return info
 
-
-# ==============================================================================
-# VLM Extractor
-# ==============================================================================
 
 class SimpleVLMExtractor:
     """VLM-based question answering for violence detection."""
@@ -233,10 +202,6 @@ class SimpleVLMExtractor:
         return np.array(features, dtype=np.float32), raw_answers
 
 
-# ==============================================================================
-# Sample Selection
-# ==============================================================================
-
 def sample_frames(
     videos_dir: Path,
     embeddings_dir: Path,
@@ -257,7 +222,6 @@ def sample_frames(
     for emb_path in tqdm(emb_files, desc="Finding videos"):
         video_name = emb_path.stem
         
-        # Source filter
         if source_filter:
             is_xd = '__#' in video_name or video_name.startswith('v=')
             is_ucf = '_x264' in video_name
@@ -266,21 +230,18 @@ def sample_frames(
             if source_filter == "ucf_crime" and not is_ucf:
                 continue
         
-        # Find video file
         video_path = find_video_file(video_name, videos_dir)
         if video_path is None:
             continue
         
         videos_found += 1
         
-        # Find labels
         label_path = labels_dir / f"{video_name}.npy"
         if not label_path.exists():
             label_path = labels_dir / f"{video_name}.npz"
         if not label_path.exists():
             continue
         
-        # Load labels
         if label_path.suffix == ".npz":
             label_data = np.load(label_path)
             labels = label_data.get("labels", label_data.get("arr_0", None))
@@ -324,13 +285,7 @@ def sample_frames(
     return violence_samples, nonviolence_samples
 
 
-# ==============================================================================
-# Analysis
-# ==============================================================================
-
 def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndarray, output_dir: Path):
-    """Analyze discriminative power."""
-    
     output_dir.mkdir(parents=True, exist_ok=True)
     feature_names = [q["id"] for q in VIOLENCE_QUESTIONS]
     weights = np.array([q["weight"] for q in VIOLENCE_QUESTIONS])
@@ -352,7 +307,6 @@ def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndar
         marker = "***" if abs(d) > 0.2 else "**" if abs(d) > 0.1 else ""
         print(f"{feature_names[idx]:<30} {violence_means[idx]:>10.3f} {nonviolence_means[idx]:>10.3f} {d:>+10.3f} {marker}")
     
-    # Per-feature AUC
     all_features = np.vstack([violence_features, nonviolence_features])
     all_labels = np.array([1]*len(violence_features) + [0]*len(nonviolence_features))
     
@@ -369,7 +323,6 @@ def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndar
     for idx in sorted_auc_idx[:10]:
         print(f"  {feature_names[idx]:<30} {feature_aucs[idx]:.3f}")
     
-    # Logistic regression
     n = len(all_labels)
     idx = np.random.permutation(n)
     train_idx, test_idx = idx[:int(0.7*n)], idx[int(0.7*n):]
@@ -386,7 +339,6 @@ def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndar
     print(f"  Test AUC:  {test_auc:.4f}")
     print(f"  Test Acc:  {test_acc:.4f}")
     
-    # Weighted score
     pos_weights = np.maximum(weights, 0)
     pos_weights /= pos_weights.sum() + 1e-8
     neg_weights = np.maximum(-weights, 0)
@@ -401,17 +353,14 @@ def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndar
     print(f"  Violence mean:     {violence_scores.mean():.3f} ± {violence_scores.std():.3f}")
     print(f"  Non-violence mean: {nonviolence_scores.mean():.3f} ± {nonviolence_scores.std():.3f}")
     
-    # Plots
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # Score distribution
     axes[0].hist(violence_scores, bins=15, alpha=0.6, label='Violence', color='red')
     axes[0].hist(nonviolence_scores, bins=15, alpha=0.6, label='Non-violence', color='blue')
     axes[0].set_xlabel('Weighted Score')
     axes[0].set_title(f'Score Distribution (AUC={weighted_auc:.3f})')
     axes[0].legend()
     
-    # Feature AUCs
     colors = ['green' if a > 0.6 else 'orange' if a > 0.55 else 'gray' for a in np.array(feature_aucs)[sorted_auc_idx]]
     axes[1].barh(range(len(feature_aucs)), np.array(feature_aucs)[sorted_auc_idx], color=colors, alpha=0.7)
     axes[1].set_yticks(range(len(feature_aucs)))
@@ -434,10 +383,6 @@ def analyze_results(violence_features: np.ndarray, nonviolence_features: np.ndar
     }
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--videos_dir', type=str, required=True)
@@ -453,7 +398,6 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Sample
     print("="*70)
     print("SAMPLING FRAMES")
     print("="*70)
@@ -467,13 +411,11 @@ def main():
         print("\nERROR: No samples found! Check --videos_dir path.")
         return
     
-    # Load VLM
     print("\n" + "="*70)
     print("LOADING VLM")
     print("="*70)
     extractor = SimpleVLMExtractor(args.model, args.device)
     
-    # Extract
     print("\n" + "="*70)
     print("EXTRACTING QA FEATURES")
     print("="*70)
@@ -497,16 +439,13 @@ def main():
     violence_features = np.stack(violence_features)
     nonviolence_features = np.stack(nonviolence_features)
     
-    # Save
     np.savez(output_dir / 'features.npz', violence=violence_features, nonviolence=nonviolence_features)
     
-    # Analyze
     summary = analyze_results(violence_features, nonviolence_features, output_dir)
     
     with open(output_dir / 'summary.json', 'w') as f:
         json.dump(summary, f, indent=2)
     
-    # Interpretation
     print("\n" + "="*70)
     test_auc = summary['logistic_test_auc']
     if test_auc > 0.80:

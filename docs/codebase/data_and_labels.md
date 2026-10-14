@@ -480,7 +480,7 @@ So almost all >= 30 s examples are in train; val/test can not measure 30 s antic
 
 ## 11. Known issues (data side), most severe first
 
-1. **XD metadata onset bug** (`setup/build_xdviolence_metadata.py` lines 66-100): 260 clips with a
+1. **XD metadata onset bug** (`setup/build_xdviolence_metadata.py` lines 56-86): 260 clips with a
    `#HH-MM-SS` timestamp lose all annotated frames after `f - clip_start_frame`; 14 annotation ids
    end with `.mp4` and never match. Result: 274/500 violent clips labelled 0, 11 with a wrong onset.
    Affects `metadata/xd_violence.json`, `windowed/xd_violence`, `processed/{tracks,actions,scenes,graphs,labels}`
@@ -543,3 +543,12 @@ Key recipes:
 * Misalignment impact: compare `(y.max(1) > 0)[:len(t)]` vs `(y.max(1) > 0)[t]` per video.
 * Audio presence: `ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 <file>`;
   loudness: `ffmpeg -t 30 -i <file> -af volumedetect -vn -f null -`.
+
+## Notes moved from code comments
+
+* XD segment units with `--xd_units auto` (`build_labels_temporal_only.py::segments_to_frame_pairs`,
+  `build_multihorizon_labels.py::xd_segments_to_seconds`): if the largest segment end is <= 1.0 the
+  values are treated as fractions of the clip; else if `max_end * fps <= 1.25 * total_frames` they are
+  seconds; otherwise raw frame indices. Non-positive fps falls back to 25.
+* `build_labels_temporal_only.py --ignore_during_event` applies only to `--task anticipation` on UCF/XD
+  and overrides `--include_during_event`: in-event steps get `--ignore_value` (-1) even if they were positive.

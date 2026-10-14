@@ -28,7 +28,7 @@ Data lives outside the repo at `data -> data/`.
 | Kinetics-700 | `data/raw_videos/kinetics/` | 863 MB, 700 clips | 10 s clips from violence-adjacent classes (e.g. slapping, wrestling) | `data/metadata/kinetics.json`. `event_frame` is set to mid-clip (synthetic onset), so these clips cannot teach anticipation. |
 | YouTube curation | `data/anticipation_curation/` | 92 videos | Built by `curate_anticipation_dataset.py` (yt-dlp search on road rage, bodycam, confrontations, then VLM onset labelling) | `candidates.json`: 97 candidates, 92 downloaded, 47 VLM-flagged violent, 34 with an anticipation window, **28 with ≥30 s** (median window 70 s). Labels come from the VLM and **are not human-verified**. |
 
-`experiments/xd_violence_investigation.py:397` suggests Hockey Fight, VIRAT or CCTV-Fight "which have more pre-event frames". **Hockey Fight does not**: its clips are about 1–2 s. Of those three, only CCTV-Fights is a valid suggestion.
+`experiments/xd_violence_investigation.py:333` suggests Hockey Fight, VIRAT or CCTV-Fight "which have more pre-event frames". **Hockey Fight does not**: its clips are about 1–2 s. Of those three, only CCTV-Fights is a valid suggestion.
 
 ---
 

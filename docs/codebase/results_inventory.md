@@ -407,7 +407,7 @@ This set has C1/C2/C3/C5 problems, so use it only to show continuity with old re
 | Contrastive projected embeddings | `results/contrastive_results/projected_emb/xd_violence/*.npz`, `outputs/contrastive_v3/projected_emb/xd_violence/*.npz` | 772 files each, `emb [E,256] float16`, about 22 MB | Projection heads were trained on the train index only, but with C1 labels |
 | Test-set projected embeddings | `outputs/contrastive_v1/test_projected.npz` | `embeddings [6781,256]`, `labels`, `scores` | |
 | Saved score traces | `final/high_sensitivity/scores.npy` [47,310], `final/smoothing_sweep/scores.npy` [47,310], `final/clean_smoothing_sweep/scores.npy` [14,052], `final/late_fusion_*/predictions.npz` | float32 | Align with the corresponding `simulation_data/*.npz` |
-| Real-world probe clip | `probe_clip_01_embeddings.npy` [197,3584] float32, `probe_clip_01_scores.npy` [197] | | Hand ground truth in `continuation/lda_calibration_complete.py` docstring: 0–6 s safe, 7–36 s anticipation, 37–45 s violence, 46 s+ post |
+| Real-world probe clip | `probe_clip_01_embeddings.npy` [197,3584] float32, `probe_clip_01_scores.npy` [197] | | Hand ground truth in `YT_LABELS` of `continuation/lda_calibration_complete.py`: 0–6 s safe, 7–36 s anticipation, 37–45 s violence, 46 s+ post |
 | Zero-shot teacher per-video scores | `results/vlm_eval*/per_video.csv` | CSV | Baseline reference |
 | Pretrained YOLO | `yolov8n.pt`, `yolov8m-pose.pt` | 6.5 / 53 MB | For person and pose features |
 

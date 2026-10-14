@@ -1,22 +1,8 @@
-"""
-xd_violence_investigation.py
-=============================
-Deep investigation into the XD-Violence dataset structure to understand
-what we are actually training on and why generalization is hard.
-
-Key questions:
-  1. How many videos have genuine pre-violence windows (10+ frames before first violent frame)?
-  2. What is the class balance across videos?
-  3. How long are violent vs. non-violent segments?
-  4. Are there systematic temporal patterns (violence always at the end)?
-  5. What does the embedding distribution look like in violent vs. pre-violent vs. neutral?
-  6. Which videos would be best for anticipation training?
+"""Inventory pre-violence windows, violence position bias and embedding separation per label class.
 
 Usage:
-    python xd_violence_investigation.py \
-        --embeddings data/processed/vlm_emb \
-        --labels data/processed/labels_multih \
-        --output_dir results/xd_investigation
+    python xd_violence_investigation.py --embeddings data/processed/vlm_emb \
+        --labels data/processed/labels_multih --output_dir results/xd_investigation
 """
 
 import argparse
@@ -28,10 +14,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-
-# ──────────────────────────────────────────────
-# Data loading
-# ──────────────────────────────────────────────
 
 def load_all_videos(emb_dir: Path, labels_dir: Path, max_videos: int = 1000):
     videos = []
@@ -61,19 +43,11 @@ def load_all_videos(emb_dir: Path, labels_dir: Path, max_videos: int = 1000):
     return videos
 
 
-# ──────────────────────────────────────────────
-# Pre-violence window analysis
-# ──────────────────────────────────────────────
-
 def analyze_pre_violence_windows(video: Dict, min_previolence_frames: int = 5) -> Dict:
-    """
-    For a video, find the first violent frame and measure the pre-violence window.
-    Also identifies any 'recovery' windows after violence ends.
-    """
+    """Per-video violence onset/offset, segment count and pre-violence window length."""
     labels = video["labels"]
     n = len(labels)
 
-    # Find first and last violent frame
     violent_frames = np.where(labels == 1)[0]
     if len(violent_frames) == 0:
         return {
@@ -93,16 +67,12 @@ def analyze_pre_violence_windows(video: Dict, min_previolence_frames: int = 5) -
     first_violent = int(violent_frames[0])
     last_violent = int(violent_frames[-1])
 
-    # Check for gaps in violence (multiple violence segments)
-    # Find transitions: 0→1 (violence starts) and 1→0 (violence ends)
     transitions_start = [i for i in range(1, n) if labels[i] == 1 and labels[i - 1] == 0]
     transitions_end = [i for i in range(1, n) if labels[i] == 0 and labels[i - 1] == 1]
     n_violence_segments = len(transitions_start) + (1 if labels[0] == 1 else 0)
 
-    # Pre-violence window = number of frames before first violent frame
-    previolence_window = first_violent  # frames 0..first_violent-1
+    previolence_window = first_violent
 
-    # Post-violence window = frames after last violent frame
     postviolence_window = n - last_violent - 1
 
     return {
@@ -122,19 +92,12 @@ def analyze_pre_violence_windows(video: Dict, min_previolence_frames: int = 5) -
     }
 
 
-# ──────────────────────────────────────────────
-# Embedding distribution analysis
-# ──────────────────────────────────────────────
-
 def analyze_embedding_distribution(videos: List[Dict]) -> Dict:
-    """
-    Separate embeddings into violent, pre-violent (window before first event),
-    and neutral (no violence) and compute statistics on each.
-    """
-    neutral_embs = []      # from videos with no violence
-    previolent_embs = []   # frames before first violent frame
-    violent_embs = []      # frames labeled violent
-    postviolent_embs = []  # frames after violence ends
+    """Embedding stats for neutral (no-violence videos), pre-violent, violent and post-violent frames, plus pairwise Cohen's d."""
+    neutral_embs = []
+    previolent_embs = []
+    violent_embs = []
+    postviolent_embs = []
 
     for v in videos:
         labels = v["labels"]
@@ -167,11 +130,10 @@ def analyze_embedding_distribution(videos: List[Dict]) -> Dict:
             "n_frames": len(combined),
             "mean_norm": float(np.linalg.norm(combined, axis=1).mean()),
             "std_norm": float(np.linalg.norm(combined, axis=1).std()),
-            "dim_mean": combined.mean(axis=0),  # for pairwise comparisons
+            "dim_mean": combined.mean(axis=0),
             "dim_std": combined.std(axis=0),
         }
 
-    # Compute pairwise Cohen's d between conditions
     def cohens_d(a_mean, a_std, b_mean, b_std):
         pooled = np.sqrt((a_std ** 2 + b_std ** 2) / 2) + 1e-8
         return float(np.abs(a_mean - b_mean).mean() / pooled.mean())
@@ -189,20 +151,14 @@ def analyze_embedding_distribution(videos: List[Dict]) -> Dict:
     return stats, comparisons
 
 
-# ──────────────────────────────────────────────
-# Temporal pattern analysis
-# ──────────────────────────────────────────────
-
 def analyze_temporal_patterns(windows: List[Dict]) -> Dict:
-    """
-    Ask: is violence always at the end of videos? Beginning? Random position?
-    """
+    """Where violence starts and ends within violent videos (normalized 0-1) and its share of frames."""
     violent_videos = [w for w in windows if w["has_violence"]]
     if not violent_videos:
         return {}
 
     n_frames_list = [w["n_frames"] for w in violent_videos]
-    start_positions = [w["violence_start"] / w["n_frames"] for w in violent_videos]  # normalized 0-1
+    start_positions = [w["violence_start"] / w["n_frames"] for w in violent_videos]
     end_positions = [w["violence_end"] / w["n_frames"] for w in violent_videos]
     violence_fractions = [w["violence_fraction"] for w in violent_videos]
     previolence_fractions = [w["previolence_window"] / w["n_frames"] for w in violent_videos]
@@ -232,23 +188,12 @@ def analyze_temporal_patterns(windows: List[Dict]) -> Dict:
     }
 
 
-# ──────────────────────────────────────────────
-# Anticipation-ready video identification
-# ──────────────────────────────────────────────
-
 def identify_best_anticipation_videos(windows: List[Dict], min_previolence: int = 10) -> List[Dict]:
-    """
-    Find videos with the most useful pre-violence context for anticipation training.
-    Ranked by pre-violence window length.
-    """
+    """Usable videos with at least min_previolence pre-violence frames, longest window first."""
     good = [w for w in windows if w.get("usable_for_anticipation") and w["previolence_window"] >= min_previolence]
     good.sort(key=lambda w: w["previolence_window"], reverse=True)
     return good
 
-
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()
@@ -274,7 +219,6 @@ def main():
         print("No videos loaded. Check paths.")
         return
 
-    # ── Pre-violence window analysis ──────────
     print("\n[1] Pre-Violence Window Analysis")
     windows = [analyze_pre_violence_windows(v, args.min_previolence) for v in videos]
 
@@ -299,7 +243,6 @@ def main():
             count = sum(1 for p in previolence_lengths if p >= t)
             print(f"    >= {t:3d} frames: {count:4d}  ({100*count/len(violent_windows):.1f}%)")
 
-    # ── Videos best for anticipation ─────────
     print(f"\n[2] Best Videos for Anticipation Training (>= {args.min_previolence} pre-violence frames)")
     best = identify_best_anticipation_videos(windows, args.min_previolence)
     print(f"  Found {len(best)} usable videos")
@@ -310,7 +253,6 @@ def main():
         for w in best[:20]:
             print(f"  {w['name']:<40} {w['previolence_window']:>16}   {w['n_frames']:>12}  {w['violence_fraction']*100:>10.1f}%")
 
-    # Save best video list
     best_list_path = args.output_dir / "best_anticipation_videos.txt"
     with open(best_list_path, "w") as f:
         f.write("# Videos with sufficient pre-violence context for anticipation training\n")
@@ -320,7 +262,6 @@ def main():
             f.write(f"{w['name']}\t{w['previolence_window']}\t{w['n_frames']}\t{w['violence_fraction']*100:.1f}\n")
     print(f"\n  Best video list saved to {best_list_path}")
 
-    # ── Temporal patterns ────────────────────
     print("\n[3] Temporal Patterns")
     temporal = analyze_temporal_patterns(windows)
     if temporal:
@@ -334,7 +275,6 @@ def main():
         pvf = temporal["previolence_fraction"]
         print(f"    Mean: {pvf['mean']:.2f}  Median: {pvf['median']:.2f}")
 
-        # Interpretation
         if vsp["mean"] > 0.7:
             print(f"\n  FINDING: Violence is strongly end-biased (mean position {vsp['mean']:.2f})")
             print(f"  This means models can learn 'predict violence toward end of video'")
@@ -344,7 +284,6 @@ def main():
         else:
             print(f"\n  FINDING: Violence is roughly uniform (mean position {vsp['mean']:.2f})")
 
-    # ── Embedding distribution ────────────────
     print("\n[4] Embedding Distribution by Temporal Context")
     emb_stats, comparisons = analyze_embedding_distribution(videos)
     for name, s in emb_stats.items():
@@ -358,7 +297,6 @@ def main():
             interpretation = "small" if d < 0.2 else "medium" if d < 0.5 else "large"
             print(f"    {pair:<30} d={d:.4f}  ({interpretation})")
 
-        # Key finding
         prv_vio = comparisons.get("previolent_vs_violent", None)
         neu_vio = comparisons.get("neutral_vs_violent", None)
         if prv_vio and neu_vio:
@@ -369,7 +307,6 @@ def main():
                 print(f"\n  FINDING: Pre-violent embeddings are similar to neutral.")
                 print(f"  This suggests limited pre-violence signal in current embeddings — prompting may help.")
 
-    # ── Class balance per video ───────────────
     print("\n[5] Class Balance Distribution")
     viol_fracs = [w["violence_fraction"] for w in windows if w["has_violence"]]
     if viol_fracs:
@@ -380,7 +317,6 @@ def main():
             bar = "█" * (count // max(1, len(viol_fracs) // 20))
             print(f"    {bins[i]:.1f}-{bins[i+1]:.1f}: {count:4d} videos  {bar}")
 
-    # ── Summary and recommendations ──────────
     print("\n" + "=" * 65)
     print("SUMMARY & RECOMMENDATIONS")
     print("=" * 65)
@@ -401,7 +337,6 @@ def main():
     else:
         print("  OK: Sufficient anticipation data. Focus on preventing shortcut learning.")
 
-    # Save full stats
     import json
     stats_out = {
         "n_videos": total,

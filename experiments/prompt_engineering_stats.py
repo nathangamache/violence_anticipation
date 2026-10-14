@@ -1,25 +1,9 @@
-"""
-prompt_engineering_stats.py
-============================
-Explores prompt variations for Qwen2.5-VL to extract richer pre-violence statistics.
-The core hypothesis: current prompts describe violence/non-violence in binary terms,
-but pre-violence cues (tension, body language, proxemics, verbal aggression) may
-require targeted prompts to surface in embeddings.
-
-This script:
-  1. Defines a library of candidate prompt strategies
-  2. Runs each prompt on a small set of reference frames (violent, pre-violent, neutral)
-  3. Computes embedding separation statistics (Cohen's d, LDA separability, cosine similarity)
-  4. Ranks prompts by how well they separate classes in embedding space
+"""Rank Qwen2.5-VL prompt variants by how well their embeddings separate violent from non-violent frames.
 
 Usage:
-    python prompt_engineering_stats.py \
-        --frames_dir data/probe_frames \
-        --vlm_model /path/to/Qwen2.5-VL \
-        --output results/prompt_engineering.csv
-
-Note: Requires GPU with Qwen2.5-VL loaded. For offline analysis on pre-extracted
-embeddings, use --offline mode with --embeddings.
+    python prompt_engineering_stats.py --mode list
+    python prompt_engineering_stats.py --mode offline --embeddings data/processed/vlm_emb --labels data/processed/labels_multih
+    python prompt_engineering_stats.py --mode online --frames_dir data/probe_frames --vlm_model /path/to/Qwen2.5-VL
 """
 
 import argparse
@@ -37,18 +21,12 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore")
 
 
-# ──────────────────────────────────────────────
-# Prompt Library
-# ──────────────────────────────────────────────
-
 PROMPT_LIBRARY: Dict[str, str] = {
-    # --- Baseline / current approach ---
     "binary_violence": (
         "Describe whether violence is occurring in this scene. "
         "Rate the severity: none, mild, moderate, severe."
     ),
 
-    # --- Pre-violence behavioral cues ---
     "body_language": (
         "Analyze the body language of all people in this scene. "
         "Focus on: posture (tense/relaxed), personal space violations, "
@@ -81,7 +59,6 @@ PROMPT_LIBRARY: Dict[str, str] = {
         "Describe the overall social tension level."
     ),
 
-    # --- Scene/environment context ---
     "environment_risk": (
         "Describe the environment and its risk factors. "
         "Location type, time indicators (night/day), crowd density, "
@@ -94,7 +71,6 @@ PROMPT_LIBRARY: Dict[str, str] = {
         "Is there a focal point of tension? Describe what people are focused on."
     ),
 
-    # --- Anticipatory / predictive prompts ---
     "pre_event_prediction": (
         "Based solely on what you observe in this frame — body language, spacing, "
         "emotional state, object positions — rate the probability that a physical "
@@ -116,7 +92,6 @@ PROMPT_LIBRARY: Dict[str, str] = {
         "(5) exits/escape routes visible."
     ),
 
-    # --- Structured output prompts ---
     "structured_risk": (
         "Analyze this surveillance frame and respond in this exact format:\n"
         "PEOPLE_COUNT: <number>\n"
@@ -136,7 +111,6 @@ PROMPT_LIBRARY: Dict[str, str] = {
         "Then give an overall threat assessment."
     ),
 
-    # --- Contrastive prompts ---
     "normal_vs_abnormal": (
         "Describe what would be normal vs. abnormal behavior in this context. "
         "Does what you see match normal behavior for this setting? "
@@ -155,10 +129,6 @@ PROMPT_LIBRARY: Dict[str, str] = {
 }
 
 
-# ──────────────────────────────────────────────
-# Offline analysis (on pre-extracted embeddings)
-# ──────────────────────────────────────────────
-
 def cohens_d_overall(group_a: np.ndarray, group_b: np.ndarray) -> float:
     """Mean Cohen's d across all dimensions."""
     mu_a, mu_b = group_a.mean(axis=0), group_b.mean(axis=0)
@@ -169,11 +139,7 @@ def cohens_d_overall(group_a: np.ndarray, group_b: np.ndarray) -> float:
 
 
 def lda_separation(X: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
-    """
-    LDA on (X, y). Returns:
-      - Fisher ratio (between-class / within-class variance on LDA projection)
-      - AUC of LDA score as a binary classifier
-    """
+    """Fisher ratio and AUC of the 1-D LDA projection (fit and scored on the same X)."""
     if len(np.unique(y)) < 2:
         return 0.0, 0.5
     lda = LinearDiscriminantAnalysis(n_components=1)
@@ -188,10 +154,7 @@ def lda_separation(X: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
 
 
 def analyze_embedding_set(embeddings: np.ndarray, labels: np.ndarray, prompt_name: str) -> Dict:
-    """
-    Given a set of embeddings with labels (0=non-violent, 1=violent/pre-violent),
-    compute separation statistics.
-    """
+    """Separation stats for embeddings with labels 0=non-violent, 1=violent or pre-violent."""
     v_idx = labels == 1
     nv_idx = labels == 0
 
@@ -204,7 +167,6 @@ def analyze_embedding_set(embeddings: np.ndarray, labels: np.ndarray, prompt_nam
     cd = cohens_d_overall(v_emb, nv_emb)
     fisher, lda_auc = lda_separation(embeddings, labels)
 
-    # Top-k discriminative dimensions
     mu_v = v_emb.mean(axis=0)
     mu_nv = nv_emb.mean(axis=0)
     pooled_std = np.sqrt((v_emb.std(axis=0) ** 2 + nv_emb.std(axis=0) ** 2) / 2) + 1e-8
@@ -223,14 +185,9 @@ def analyze_embedding_set(embeddings: np.ndarray, labels: np.ndarray, prompt_nam
 
 
 def run_offline_analysis(embeddings_dir: Path, labels_dir: Path, output_path: Path):
-    """
-    Offline mode: analyzes pre-computed embeddings from different prompt runs.
-    Expects subdirectories named after each prompt under embeddings_dir.
-    Falls back to single directory if no subdirectories found.
-    """
+    """Score each prompt-named subdirectory of embeddings_dir, or embeddings_dir itself if there are none."""
     print("\n[Offline Mode] Analyzing pre-computed embeddings")
 
-    # Check if we have prompt-subdirectories or a flat structure
     subdirs = [d for d in embeddings_dir.iterdir() if d.is_dir() and d.name in PROMPT_LIBRARY]
 
     if subdirs:
@@ -247,7 +204,6 @@ def run_offline_analysis(embeddings_dir: Path, labels_dir: Path, output_path: Pa
             results.append(stats)
             print(f"  {prompt_name:30s} LDA AUC={stats['lda_auc']:.3f}  Cohen d={stats['cohen_d_mean']:.3f}")
     else:
-        # Flat structure: analyze existing embeddings with current prompt only
         print("No prompt subdirectories found. Analyzing existing embeddings as 'current_prompt'.")
         pairs = load_pairs_from_dir(embeddings_dir, labels_dir, max_videos=200)
         if not pairs:
@@ -259,7 +215,6 @@ def run_offline_analysis(embeddings_dir: Path, labels_dir: Path, output_path: Pa
         results = [stats]
         print(f"  current_prompt  LDA AUC={stats['lda_auc']:.3f}  Cohen d={stats['cohen_d_mean']:.3f}")
 
-        # Show which dimensions are most discriminative
         v_emb = X[y == 1]
         nv_emb = X[y == 0]
         mu_v = v_emb.mean(axis=0)
@@ -271,7 +226,6 @@ def run_offline_analysis(embeddings_dir: Path, labels_dir: Path, output_path: Pa
         for dim in top_dims:
             print(f"    dim {dim:4d}: d={per_dim_d[dim]:.3f}  V={mu_v[dim]:.4f}  NV={mu_nv[dim]:.4f}")
 
-    # Save results
     import csv
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if results:
@@ -305,10 +259,6 @@ def load_pairs_from_dir(emb_dir, labels_dir, max_videos=200):
     return pairs
 
 
-# ──────────────────────────────────────────────
-# Online mode: runs prompts live against VLM
-# ──────────────────────────────────────────────
-
 def run_online_analysis(
     frames_dir: Path,
     vlm_model_path: str,
@@ -316,14 +266,9 @@ def run_online_analysis(
     prompts: Optional[List[str]] = None,
     device: str = "cuda:0",
 ):
-    """
-    Runs each prompt in PROMPT_LIBRARY against a set of probe frames.
-    Extracts embeddings and computes separation statistics.
+    """Embed probe frames with each prompt and score class separation.
 
-    frames_dir should contain:
-      frames_dir/violent/     *.jpg frames from violent events
-      frames_dir/previolent/  *.jpg frames from pre-violence windows
-      frames_dir/neutral/     *.jpg frames from calm scenes
+    frames_dir holds violent/, previolent/ and neutral/ image folders; previolent frames count as positive.
     """
     try:
         from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -342,7 +287,6 @@ def run_online_analysis(
     processor = AutoProcessor.from_pretrained(vlm_model_path)
     model.eval()
 
-    # Load probe frames
     categories = {"violent": 1, "previolent": 0.5, "neutral": 0}
     frames_by_cat = {}
     for cat, _ in categories.items():
@@ -365,7 +309,7 @@ def run_online_analysis(
             if cat not in frames_by_cat:
                 continue
             label = 1 if label_val > 0 else 0
-            for frame_path in frames_by_cat[cat][:20]:  # limit to 20 per category
+            for frame_path in frames_by_cat[cat][:20]:
                 try:
                     from PIL import Image
                     img = Image.open(frame_path).convert("RGB")
@@ -405,13 +349,11 @@ def run_online_analysis(
         results.append(stats)
         print(f"  LDA AUC={stats['lda_auc']:.3f}  Cohen d={stats['cohen_d_mean']:.3f}  n={len(y)}")
 
-        # Save embeddings for this prompt
         prompt_out = output_dir / prompt_name
         prompt_out.mkdir(parents=True, exist_ok=True)
         np.save(prompt_out / "embeddings.npy", X)
         np.save(prompt_out / "labels.npy", y)
 
-    # Rank and print summary
     results.sort(key=lambda r: r["lda_auc"], reverse=True)
     print("\n" + "=" * 60)
     print("PROMPT RANKING BY LDA AUC (best separating prompts)")
@@ -432,10 +374,6 @@ def run_online_analysis(
     return results
 
 
-# ──────────────────────────────────────────────
-# Print the full prompt library (no GPU needed)
-# ──────────────────────────────────────────────
-
 def print_prompt_library():
     print("\n" + "=" * 70)
     print("PROMPT LIBRARY")
@@ -455,10 +393,6 @@ def print_prompt_library():
             for line in PROMPT_LIBRARY[k].split("\n"):
                 print(f"    {line}")
 
-
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()

@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
+"""Download violence-related Kinetics-700 clips with yt-dlp and record them in metadata/kinetics.json."""
 import os, json, subprocess, pandas as pd
 from tqdm import tqdm
-
-# ============================================================
-# CONFIG
-# ============================================================
 
 BASE = os.path.expanduser("~/projects/violence_anticipation/data")
 KINETICS_DIR = f"{BASE}/raw_videos/kinetics"
@@ -21,7 +18,6 @@ if USE_VAL:
 OUT_DIR = f"{KINETICS_DIR}/videos"
 META_OUT = f"{BASE}/metadata/kinetics.json"
 
-# Violence-relevant classes
 TARGET_CLASSES = {
     "punching person",
     "kicking",
@@ -43,9 +39,6 @@ TARGET_CLASSES = {
     "shoving"
 }
 
-# ============================================================
-# UTILS
-# ============================================================
 
 def safe_mkdir(p):
     if not os.path.exists(p):
@@ -74,18 +67,13 @@ def download_clip(youtube_id, start, end, out_path):
     except Exception:
         return False
 
-# ============================================================
-# MAIN
-# ============================================================
 
 def main():
     safe_mkdir(KINETICS_DIR)
     safe_mkdir(OUT_DIR)
 
-    # Final metadata output
     metadata = {}
 
-    # Load existing metadata if present (resume)
     if os.path.exists(META_OUT):
         with open(META_OUT, "r") as f:
             metadata = json.load(f)
@@ -96,12 +84,10 @@ def main():
 
         df.columns = [c.lower() for c in df.columns]
 
-        # Validate CSV header
         for col in ["label", "youtube_id", "time_start", "time_end"]:
             if col not in df.columns:
                 raise ValueError(f"Missing column '{col}' in {csv_path}")
 
-        # Filter by violence-related classes
         df = df[df["label"].isin(TARGET_CLASSES)]
         print(f"[KINETICS] {len(df)} relevant clips found in this file.")
 
@@ -114,7 +100,6 @@ def main():
             clip_id = f"{youtube_id}_{int(start)}_{int(end)}"
             out_file = f"{OUT_DIR}/{clip_id}.mp4"
 
-            # Skip if exists in metadata OR file already present
             if clip_id in metadata and os.path.exists(out_file):
                 continue
 
@@ -128,7 +113,6 @@ def main():
                     "source": "kinetics700"
                 }
 
-    # Save final metadata
     with open(META_OUT, "w") as f:
         json.dump(metadata, f, indent=4)
 

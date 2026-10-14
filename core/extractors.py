@@ -14,18 +14,12 @@ from ultralytics import YOLO
 
 from core.utils import get_device
 
-# ==============================================================
-# DEVICE / GLOBAL CONFIG
-# ==============================================================
-
 _DEVICE = get_device()
 torch.set_grad_enabled(False)
 
-# How densely to process frames
-FRAME_STRIDE = 4      # process 1 in every 4 frames for tracks + actions
-SCENE_STRIDE = 16     # process 1 in every 16 frames for scene CLIP
+FRAME_STRIDE = 4      # tracks and VideoMAE actions
+SCENE_STRIDE = 16     # CLIP scene
 
-# Audio availability (for live mode)
 try:
     import sounddevice as sd
     _AUDIO_AVAILABLE = True
@@ -34,16 +28,10 @@ except Exception:
     _AUDIO_AVAILABLE = False
 
 
-# ==============================================================
-# MODEL LOADING (GLOBAL)
-# ==============================================================
-
 print("[Load] YOLO + VideoMAE + CLIP (no DeepSORT)")
 
-# --- YOLO person detector ---
 _yolo_model = YOLO("yolov8n.pt")
 
-# --- VideoMAE action encoder ---
 _VIDEOMAE_NAME = "MCG-NJU/videomae-base"
 _video_mae = VideoMAEModel.from_pretrained(_VIDEOMAE_NAME).to(_DEVICE)
 _video_mae.half()
@@ -52,20 +40,12 @@ _video_mae.eval()
 _video_mae_extractor = VideoMAEImageProcessor.from_pretrained(_VIDEOMAE_NAME)
 _VMAE_NUM_FRAMES = getattr(_video_mae.config, "num_frames", 16)
 
-# --- CLIP scene encoder ---
 _clip_model, _clip_preprocess = clip.load("ViT-B/16", device=_DEVICE)
 _clip_model.eval()
 
 
-# ==============================================================
-# HELPER FUNCTIONS
-# ==============================================================
-
 def crop_bbox(frame: np.ndarray, bbox: Any) -> np.ndarray | None:
-    """
-    Crop a bounding box [x1, y1, x2, y2] from a BGR frame.
-    Returns None if the crop is invalid/empty.
-    """
+    """Crop [x1, y1, x2, y2] from a frame, clipped to its bounds; None if empty."""
     if bbox is None:
         return None
     x1, y1, x2, y2 = map(int, bbox)
@@ -82,21 +62,17 @@ def crop_bbox(frame: np.ndarray, bbox: Any) -> np.ndarray | None:
 
 
 def _video_mae_embed_from_pil_frames(frames: List[Image.Image]) -> np.ndarray:
-    """
-    Given a list of PIL frames (length >= 1), run VideoMAE and return
-    a single 768-D embedding (mean pooled over tokens).
-    """
+    """Mean-pooled 768-d VideoMAE embedding of a clip padded/truncated to _VMAE_NUM_FRAMES frames."""
     if len(frames) == 0:
         return np.zeros((768,), dtype=np.float32)
 
-    # Ensure we have exactly _VMAE_NUM_FRAMES frames by repeating last frame
     if len(frames) < _VMAE_NUM_FRAMES:
         frames = frames + [frames[-1]] * (_VMAE_NUM_FRAMES - len(frames))
     else:
         frames = frames[:_VMAE_NUM_FRAMES]
 
     inputs = _video_mae_extractor(frames, return_tensors="pt")
-    pixel_values = inputs["pixel_values"].to(_DEVICE).half()  # (1, 3, T, H, W)
+    pixel_values = inputs["pixel_values"].to(_DEVICE).half()  # (1, T, 3, H, W)
 
     with torch.no_grad():
         outputs = _video_mae(pixel_values)
@@ -106,23 +82,8 @@ def _video_mae_embed_from_pil_frames(frames: List[Image.Image]) -> np.ndarray:
     return emb.cpu().numpy().astype(np.float32)
 
 
-# ==============================================================
-# OFFLINE: TRACK EXTRACTION (YOLO ONLY)
-# ==============================================================
-
 def extract_tracks(video_path: str) -> List[List[Dict[str, Any]]]:
-    """
-    Run YOLO person detection on the video with FRAME_STRIDE.
-    Returns:
-        tracks_by_frame: list over processed frames.
-        Each element is a list of:
-            { "track_id": int, "bbox": [x1, y1, x2, y2] }
-
-    NOTE:
-    We do NOT maintain track IDs across frames here. Each frame's
-    people are enumerated 0..N-1. This is enough for building per-frame
-    graphs in the current pipeline.
-    """
+    """YOLO person boxes every FRAME_STRIDE frames; track_id is the per-frame detection index, not a real track."""
     cap = cv2.VideoCapture(video_path)
     tracks_by_frame: List[List[Dict[str, Any]]] = []
 
@@ -151,29 +112,12 @@ def extract_tracks(video_path: str) -> List[List[Dict[str, Any]]]:
     return tracks_by_frame
 
 
-# ==============================================================
-# OFFLINE: ACTION FEATURES (VideoMAE)
-# ==============================================================
-
 def extract_actions(video_path: str, tracks_by_frame: List[List[Dict[str, Any]]]) -> List[Dict[int, np.ndarray]]:
-    """
-    For each processed frame (matching extract_tracks output), encode
-    each person's crop with VideoMAE.
-
-    Args:
-        video_path: path to .mp4 file.
-        tracks_by_frame: list over processed frames, each a list of
-                         {track_id, bbox}.
-
-    Returns:
-        actions_by_frame: list over frames, each a dict:
-            { track_id -> 768-D np.ndarray }
-    """
+    """768-d VideoMAE embedding per person crop, for each frame returned by extract_tracks."""
     cap = cv2.VideoCapture(video_path)
     actions_by_frame: List[Dict[int, np.ndarray]] = []
 
     for t, persons in enumerate(tracks_by_frame):
-        # Map back to original frame index: 0, FRAME_STRIDE, 2*FRAME_STRIDE, ...
         raw_frame_idx = t * FRAME_STRIDE
         cap.set(cv2.CAP_PROP_POS_FRAMES, raw_frame_idx)
         ret, frame = cap.read()
@@ -199,8 +143,7 @@ def extract_actions(video_path: str, tracks_by_frame: List[List[Dict[str, Any]]]
             rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
             pil_img = Image.fromarray(rgb)
 
-            # For now we don't build real temporal windows;
-            # we feed replicated single-frame clips to VideoMAE.
+            # A single crop replicated into a static clip: VideoMAE gets no temporal context.
             frames_list = [pil_img] * _VMAE_NUM_FRAMES
             feat = _video_mae_embed_from_pil_frames(frames_list)
             frame_actions[person["track_id"]] = feat
@@ -211,18 +154,8 @@ def extract_actions(video_path: str, tracks_by_frame: List[List[Dict[str, Any]]]
     return actions_by_frame
 
 
-# ==============================================================
-# OFFLINE: SCENE FEATURES (CLIP)
-# ==============================================================
-
 def extract_scene(video_path: str) -> np.ndarray:
-    """
-    Extract a single global CLIP scene embedding for the whole video
-    by sampling frames with SCENE_STRIDE and averaging the features.
-
-    Returns:
-        scene_vec: (512,) np.ndarray
-    """
+    """Mean 512-d CLIP embedding over every SCENE_STRIDE-th frame of the whole video."""
     cap = cv2.VideoCapture(video_path)
     feats: List[np.ndarray] = []
     frame_idx = 0
@@ -256,24 +189,12 @@ def extract_scene(video_path: str) -> np.ndarray:
     return feats_arr.mean(axis=0).astype(np.float32)
 
 
-# ==============================================================
-# OFFLINE: AUDIO PLACEHOLDER
-# ==============================================================
-
 def extract_audio_placeholder(dim: int = 64) -> np.ndarray:
-    """
-    For now, we are not doing heavy audio processing offline.
-    Return a fixed-size zero vector as a placeholder.
-    """
     return np.zeros((dim,), dtype=np.float32)
 
 
-# (Optional) Real audio extractor using ffmpeg + librosa, if needed later.
 def extract_audio_from_file(video_path: str, sr: int = 16000) -> np.ndarray:
-    """
-    Extract audio from an MP4 using ffmpeg (no sounddevice required).
-    Returns a mean mel-spectrogram vector.
-    """
+    """Time-mean mel spectrogram of the video's audio track, decoded with ffmpeg."""
     tmp_wav = "/tmp/va_temp_audio.wav"
     cmd = [
         "ffmpeg",
@@ -292,16 +213,8 @@ def extract_audio_from_file(video_path: str, sr: int = 16000) -> np.ndarray:
     return mel.mean(axis=1).astype(np.float32)
 
 
-# ==============================================================
-# REALTIME: LIVE VERSIONS FOR WEBCAM / RTSP
-# ==============================================================
-
 def live_track(frame: np.ndarray) -> List[Dict[str, Any]]:
-    """
-    Live person detection on a single frame.
-    Returns a list of {track_id, bbox} for that frame.
-    (track_id is per-frame only, not stable across time).
-    """
+    """YOLO person boxes for one frame; track_id is not stable across frames."""
     results = _yolo_model(frame)[0]
     persons = []
 
@@ -314,10 +227,6 @@ def live_track(frame: np.ndarray) -> List[Dict[str, Any]]:
 
 
 def live_actions(frame: np.ndarray, tracks: List[Dict[str, Any]]) -> Dict[int, np.ndarray]:
-    """
-    Live action features for one frame.
-    Uses replicated single-frame clips as input to VideoMAE.
-    """
     frame_actions: Dict[int, np.ndarray] = {}
 
     if not tracks:
@@ -343,9 +252,6 @@ def live_actions(frame: np.ndarray, tracks: List[Dict[str, Any]]) -> Dict[int, n
 
 
 def live_scene(frame: np.ndarray) -> np.ndarray:
-    """
-    Live CLIP scene embedding for a single frame.
-    """
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(rgb)
 
@@ -357,10 +263,7 @@ def live_scene(frame: np.ndarray) -> np.ndarray:
 
 
 def live_audio(seconds: float = 0.3, sr: int = 16000, dim: int = 64) -> np.ndarray:
-    """
-    Live audio embedding.
-    If no audio device / PortAudio is available, returns zeros.
-    """
+    """Mel-mean microphone embedding, or zeros when sounddevice/PortAudio is unavailable."""
     if not _AUDIO_AVAILABLE:
         return np.zeros((dim,), dtype=np.float32)
 

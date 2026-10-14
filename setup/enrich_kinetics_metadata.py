@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Add fps, total_frames, a synthetic midpoint event_frame and label=1 to metadata/kinetics.json in place."""
 import os
 import json
 import cv2
@@ -41,23 +42,16 @@ def main():
             bad += 1
             continue
 
-        # --- Enrich metadata ---
         info["fps"] = float(fps)
         info["total_frames"] = int(total_frames)
 
-        # Synthetic “event” in the middle of the clip
         event_frame = max(0, min(total_frames - 1, total_frames // 2))
         info["event_frame"] = int(event_frame)
-
-        # All Kinetics subset clips are violent actions → label = 1
         info["label"] = 1
-
-        # Make sure source matches folder name used by preprocess_all
-        info["source"] = "kinetics"
+        info["source"] = "kinetics"  # must match the raw_videos/<source> folder name
 
         updated += 1
 
-    # Write back enriched metadata
     with open(KIN_META, "w") as f:
         json.dump(meta, f, indent=4)
 

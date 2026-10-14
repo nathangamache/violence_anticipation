@@ -46,8 +46,8 @@ Every modality has its own row clock, and fusion pairs rows by index. These cloc
 
 | Stream | Where | Row *i* corresponds to | Notes |
 |---|---|---|---|
-| Graph / labels | `data/processed/graphs/<vid>.npy` (object array of dicts with `frame_idx, nodes, adj, scene, audio`), `data/processed/labels_multih/<vid>.npy` `[T,7]` | time `((i+0.5)/T)·duration` (`map_t_to_raw_frame` in `scripts/build_multihorizon_labels.py:133`) | T varies per video. Measured seconds per row: median 0.68, range 0.04 to 360 s. **Not 1 Hz.** |
-| VLM embeddings | `data/processed/vlm_emb/xd_violence/<vid>.npz` (`emb [N,3584] f16`, `t`, `raw_frame_idx`) | graph step `t = 5·i`, frame `round(((t+0.5)/T)·total_frames)` (`scripts/vlm_label_dataset.py:658-691`) | N = `len(range(0,T,5))`. Measured seconds per row: median 3.17, range 0.21 to 756 s. |
+| Graph / labels | `data/processed/graphs/<vid>.npy` (object array of dicts with `frame_idx, nodes, adj, scene, audio`), `data/processed/labels_multih/<vid>.npy` `[T,7]` | time `((i+0.5)/T)·duration` (`map_t_to_raw_frame` in `scripts/build_multihorizon_labels.py:123`) | T varies per video. Measured seconds per row: median 0.68, range 0.04 to 360 s. **Not 1 Hz.** |
+| VLM embeddings | `data/processed/vlm_emb/xd_violence/<vid>.npz` (`emb [N,3584] f16`, `t`, `raw_frame_idx`) | graph step `t = 5·i`, frame `round(((t+0.5)/T)·total_frames)` (`scripts/vlm_label_dataset.py:552-583`) | N = `len(range(0,T,5))`. Measured seconds per row: median 3.17, range 0.21 to 756 s. |
 | Audio (this area) | `data/processed/audio_features/xd_violence/<vid>.npz` (`features [T,91]`) | **seconds [i, i+1)** from t=0 | T rows are forced to equal the graph length. Rows past the end of the audio are all zero. |
 | Pose (this area) | `data/processed/pose_features/xd_violence/<vid>.npz` (`features [N,540]`, `frame_indices`) | **second 5·i** (`frame_idx = int(5·i·fps)`, clamped to the last frame) | N = `len(range(0,T,5))`, the same count as VLM but on a different clock. |
 | Optical flow (this area) | `data/processed/optical_flow/xd_violence/<vid>.npz` (`features [F-1,22]`, `frame_indices`) | video frame `i+1`: the flow between frames i and i+1 at native fps, usually 24 | 2,240,502 rows in total. This is the only stream that keeps exact frame indices. |
@@ -84,7 +84,7 @@ Consequences measured on disk:
 | `sim/build_flow_sim.py` | Builds the flow "simulation" that matches the 8-hr VLM sim. **Broken** (section 4.3). | Yes → `simulation_data/xd_violence_8hr_flow_sim{,_fused}.npz` |
 | `scripts/late_fusion.py` | Trains per-modality models (shells out to the trainer), late-fuses scores, grid-searches weights | Yes → `final/late_fusion_matched`, `final/late_fusion_max`. `final/late_fusion_optimization` is empty. |
 | `yolov8m-pose.pt` (53 MB) | Ultralytics pose weights, used only by `pose_feature_extraction.py` (default `--model yolov8m-pose.pt`, resolved relative to the working directory) | Yes |
-| `yolov8n.pt` (6.5 MB) | Ultralytics person detector, used by `core/extractors.py:44` (graph tracks, every 4th frame, no tracking IDs) and `experiments/exp1_person_detection.py` | Yes |
+| `yolov8n.pt` (6.5 MB) | Ultralytics person detector, used by `core/extractors.py:33` (graph tracks, every 4th frame, no tracking IDs) and `experiments/exp1_person_detection.py` | Yes |
 | `core/extractors.py: extract_audio_placeholder` | Writes a **64-d zero vector** as the "audio" of every graph | `data/processed/audio/*.npy`: all 1,798 files are zeros (verified). `graph['audio']` is also zeros. |
 
 Environment, as installed in `.venv`: ultralytics 8.3.228, torchaudio 2.5.1+cu121, opencv 4.12, librosa 0.11.
@@ -128,7 +128,6 @@ Environment, as installed in `.venv`: ultralytics 8.3.228, torchaudio 2.5.1+cu12
   ```
   The script fully loads every graph `.npy` (about 2 MB of pickled dicts each) just to read `len(graph)`.
 - **Small problems:**
-  - The docstring references the non-existent `scripts/audio_feature_extraction_gpu.py`.
   - `_compute_zcr` is dead code, and the `json` and `subprocess` imports are unused.
   - Every feature calls `.item()`, which forces a GPU sync per feature (slow).
 
@@ -186,7 +185,6 @@ Raw keypoints (17×3 per person) are **not saved**. If no person is detected, th
       --output_dir data/processed/pose_features --source_filter xd_violence \
       --every_t 5 --device cuda:0 [--rank R --world_size W]
   ```
-  The docstring's `--graphs_dir data/graphs` is wrong.
 - **On disk:** `data/processed/pose_features/xd_violence/`, 798 files, 5.6 MB, 47,312 rows.
   - 26 files are empty (T=0).
   - 58.5 % of rows have ≥ 1 person; mean 1.69 persons; maximum 10.
@@ -502,7 +500,7 @@ Stronger pretrained audio and pose encoders, on a correct clock, are needed befo
 15. Audio:
     - `rms_max == rms_mean` and `zcr_std = 0`.
     - Silent, short, error and padding windows all produce the same zero vector.
-    - Docstring names a non-existent script; dead `_compute_zcr`.
+    - Dead `_compute_zcr`.
 16. Flow:
     - The RAFT path is mis-normalised.
     - `--method` is not propagated to workers.

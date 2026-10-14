@@ -1,30 +1,6 @@
-"""
-lda_calibration_complete.py
-============================
-Completes the LDA calibration experiment that was left unfinished.
+"""Compare LDA calibration and CORAL strategies on the hand-labelled YouTube clip probe_clip_01.
 
-Last session confirmed:
-  - Training LDA: violent mean=+2.85, non-violent mean=-3.34, separation=6.19
-  - YouTube mean on LDA axis: -5.13 (far outside both training classes)
-  - Relative ordering within YouTube was partially correct, but absolute shift
-    made all frames score as non-violent
-
-This script:
-  1. Runs the original LDA calibration (z-score shift to training distribution)
-  2. Tests three additional calibration strategies
-  3. Runs a proper domain adaptation experiment (CORAL covariance alignment)
-  4. Evaluates all strategies on the YouTube video with known ground truth
-
-YouTube ground truth (probe_clip_01):
-  0-6s   = safe/neutral
-  7-36s  = anticipation (confrontation building)
-  37-45s = violence
-  46+s   = post-violence (people dispersing)
-
-Usage:
-    python lda_calibration_complete.py \
-        --yt_embeddings probe_clip_01_embeddings.npy \
-        --train_data simulation_data/xd_violence_vlm_clean_t02.npz
+Usage: python continuation/lda_calibration_complete.py [--yt_embeddings NPY] [--train_data NPZ] [--output TXT]
 """
 
 import argparse
@@ -46,10 +22,7 @@ except ImportError:
     print("sklearn not available — some methods will be skipped")
 
 
-# ──────────────────────────────────────────────
-# YouTube ground truth
-# ──────────────────────────────────────────────
-
+# Hand labels for probe_clip_01 in seconds, end inclusive (period_means slices end-exclusive, dropping each last second).
 YT_LABELS = {
     "safe":        (0, 6),
     "anticipation": (7, 36),
@@ -68,7 +41,6 @@ def get_yt_period(t):
         return "post"
 
 def period_means(scores):
-    """Return mean score for each of the 4 YouTube periods."""
     out = {}
     for period, (start, end) in YT_LABELS.items():
         end_idx = end if end is not None else len(scores)
@@ -77,10 +49,7 @@ def period_means(scores):
     return out
 
 def pattern_correct(means):
-    """
-    Ideal pattern: violence > anticipation > safe, post < violence.
-    Returns (violence_highest, anticipation_rises).
-    """
+    """Return (violence above safe and post, anticipation above safe)."""
     violence_highest = (
         means["violence"] > means["safe"] and
         means["violence"] > means["post"]
@@ -89,12 +58,8 @@ def pattern_correct(means):
     return violence_highest, anticipation_rises
 
 
-# ──────────────────────────────────────────────
-# Calibration methods
-# ──────────────────────────────────────────────
-
 def method_raw_lda(train_emb, train_labels, yt_emb):
-    """LDA projection with no calibration — the baseline that failed."""
+    """Uncalibrated LDA projection through a sigmoid (baseline)."""
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(train_emb, train_labels).flatten()
     yt_lda = lda.transform(yt_emb).flatten()
@@ -108,15 +73,11 @@ def method_raw_lda(train_emb, train_labels, yt_emb):
 
 
 def method_zscore_calibration(train_emb, train_labels, yt_emb):
-    """
-    Z-score the YouTube LDA projection to match training distribution,
-    then apply sigmoid. This is the approach proposed at end of last session.
-    """
+    """Shift and scale the YouTube LDA projection to the training mean/std, then sigmoid."""
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(train_emb, train_labels).flatten()
     yt_lda = lda.transform(yt_emb).flatten()
 
-    # Shift YouTube to have same mean and std as training LDA scores
     yt_calibrated = (
         (yt_lda - yt_lda.mean()) / (yt_lda.std() + 1e-8)
         * X_lda.std() + X_lda.mean()
@@ -131,21 +92,15 @@ def method_zscore_calibration(train_emb, train_labels, yt_emb):
 
 
 def method_percentile_matching(train_emb, train_labels, yt_emb, n_bins=20):
-    """
-    Match YouTube LDA percentiles to training LDA percentiles
-    (histogram equalization on the 1-D LDA projection).
-    More robust than z-score when distributions are non-Gaussian.
-    """
+    """Map YouTube LDA percentiles onto training percentiles (1-D histogram matching), then sigmoid."""
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(train_emb, train_labels).flatten()
     yt_lda = lda.transform(yt_emb).flatten()
 
-    # Build mapping: YouTube percentile → training percentile
     percentiles = np.linspace(0, 100, n_bins + 1)
     train_pctls = np.percentile(X_lda, percentiles)
     yt_pctls = np.percentile(yt_lda, percentiles)
 
-    # Map each YouTube LDA score to its training equivalent
     yt_calibrated = np.interp(yt_lda, yt_pctls, train_pctls)
 
     v_mean = X_lda[train_labels == 1].mean()
@@ -157,37 +112,17 @@ def method_percentile_matching(train_emb, train_labels, yt_emb, n_bins=20):
 
 
 def method_coral(train_emb, train_labels, yt_emb, n_dims=256):
-    """
-    CORAL (CORrelation ALignment) domain adaptation.
-    Aligns the covariance structure of YouTube embeddings to training embeddings
-    before applying LDA + LR.
-
-    This goes further than LDA calibration — it operates in the full
-    embedding space before any dimensionality reduction.
-
-    Steps:
-      1. Whiten YouTube embeddings (remove its covariance)
-      2. Re-color with training covariance
-      3. Apply LDA + sigmoid on the aligned embeddings
-
-    Uses top n_dims PCA components for tractability (full 3584-dim covariance
-    is expensive to invert).
-    """
+    """CORAL: re-color YouTube embeddings with the training covariance in an n_dims PCA subspace, then LDA + sigmoid."""
     from sklearn.decomposition import PCA
 
-    # PCA for tractability
     pca = PCA(n_components=n_dims, random_state=42)
     train_pca = pca.fit_transform(train_emb).astype(np.float64)
     yt_pca = pca.transform(yt_emb).astype(np.float64)
 
-    # Training covariance
-    C_src = np.cov(train_pca.T) + np.eye(n_dims) * 1e-4  # regularize
+    C_src = np.cov(train_pca.T) + np.eye(n_dims) * 1e-4
 
-    # YouTube covariance
     C_tgt = np.cov(yt_pca.T) + np.eye(n_dims) * 1e-4
 
-    # CORAL transform: align YouTube to training
-    # yt_aligned = yt_pca @ C_tgt^{-1/2} @ C_src^{1/2}
     from numpy.linalg import eigh
 
     def matrix_sqrt(C):
@@ -207,7 +142,6 @@ def method_coral(train_emb, train_labels, yt_emb, n_dims=256):
     yt_aligned = (yt_pca @ A).astype(np.float32)
     train_pca_f = train_pca.astype(np.float32)
 
-    # LDA + sigmoid on aligned features
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(train_pca_f, train_labels).flatten()
     yt_lda = lda.transform(yt_aligned).flatten()
@@ -221,31 +155,16 @@ def method_coral(train_emb, train_labels, yt_emb, n_dims=256):
 
 
 def method_relative_within_video(train_emb, train_labels, yt_emb):
-    """
-    Instead of absolute calibration, score each frame relative to the
-    video's own distribution. This sidesteps cross-domain shift entirely
-    by asking 'is this frame more violent-looking than typical frames
-    in this same video?'
-
-    Uses the LDA direction from training, but normalizes the YouTube
-    scores by the YouTube video's own mean and std — centering around 0.5.
-    """
+    """Standardize the YouTube LDA projection by the clip's own mean/std, sidestepping the absolute domain shift."""
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(train_emb, train_labels).flatten()
     yt_lda = lda.transform(yt_emb).flatten()
 
-    # Within-video normalization
     yt_norm = (yt_lda - yt_lda.mean()) / (yt_lda.std() + 1e-8)
 
-    # Map to [0, 1] via sigmoid around 0
-    # Frames above the video's mean LDA score get probability > 0.5
     scores = 1.0 / (1.0 + np.exp(-yt_norm))
     return scores, yt_norm
 
-
-# ──────────────────────────────────────────────
-# Display helpers
-# ──────────────────────────────────────────────
 
 def print_score_timeline(scores, title, n_seconds=None):
     n = n_seconds or len(scores)
@@ -271,10 +190,6 @@ def print_period_summary(means, title):
     print(f"    Anticipation rises: {'OK' if ant_rise else 'FAIL'}")
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--yt_embeddings", type=Path, default=Path("probe_clip_01_embeddings.npy"))
@@ -288,7 +203,6 @@ def main():
     print("LDA CALIBRATION — COMPLETE EXPERIMENT")
     print("=" * 65)
 
-    # Load data
     if not args.yt_embeddings.exists():
         print(f"ERROR: YouTube embeddings not found at {args.yt_embeddings}")
         return
@@ -307,7 +221,6 @@ def main():
 
     results_log = []
 
-    # ── Method 0: Raw LDA (baseline from last session) ──
     print("\n" + "─" * 55)
     print("[M0] Raw LDA (no calibration) — baseline")
     scores, X_lda, yt_lda, lda = method_raw_lda(train_emb, train_labels, yt_emb)
@@ -316,7 +229,6 @@ def main():
     print_period_summary(means, "Period means")
     results_log.append(("Raw LDA", means))
 
-    # ── Method 1: Z-score calibration ───────────────────
     print("\n" + "─" * 55)
     print("[M1] Z-score calibration (shift YouTube → training distribution)")
     scores, yt_cal = method_zscore_calibration(train_emb, train_labels, yt_emb)
@@ -325,7 +237,6 @@ def main():
     print_period_summary(means, "Period means")
     results_log.append(("Z-score calibration", means))
 
-    # ── Method 2: Percentile matching ───────────────────
     print("\n" + "─" * 55)
     print("[M2] Percentile matching (histogram equalization on LDA axis)")
     scores, yt_cal = method_percentile_matching(train_emb, train_labels, yt_emb)
@@ -334,7 +245,6 @@ def main():
     print_period_summary(means, "Period means")
     results_log.append(("Percentile matching", means))
 
-    # ── Method 3: CORAL domain adaptation ───────────────
     print("\n" + "─" * 55)
     print("[M3] CORAL domain adaptation (covariance alignment, top-256 PCA dims)")
     try:
@@ -346,7 +256,6 @@ def main():
     except Exception as e:
         print(f"  CORAL failed: {e}")
 
-    # ── Method 4: Relative within-video ─────────────────
     print("\n" + "─" * 55)
     print("[M4] Relative scoring (within-video normalization)")
     scores, _ = method_relative_within_video(train_emb, train_labels, yt_emb)
@@ -355,7 +264,6 @@ def main():
     print_period_summary(means, "Period means")
     results_log.append(("Relative (within-video)", means))
 
-    # ── Summary ──────────────────────────────────────────
     print("\n" + "=" * 65)
     print("SUMMARY: CALIBRATION COMPARISON")
     print("=" * 65)
@@ -378,7 +286,6 @@ def main():
     print("       A>S = anticipation scores higher than safe")
     print()
 
-    # Find best method
     def score_method(means):
         s = 0
         if means["violence"] > means["safe"]: s += 2
@@ -391,7 +298,6 @@ def main():
     best = ranked[0]
     print(f"  Best method: {best[0]}")
 
-    # Save text log
     with open(args.output, "w") as f:
         f.write("LDA Calibration Experiment Results\n")
         f.write("=" * 65 + "\n\n")

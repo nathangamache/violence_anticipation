@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
+"""Shuffle train_index.json 80/20: overwrites it with the train part and writes val_index.json."""
 import json
 import random
 import os
 
-# -------------------------------------------------------------------
-# Config
-# -------------------------------------------------------------------
-IN_PATH = "train_index.json"      # existing full index
-TRAIN_OUT = "train_index.json"    # will be overwritten with 80%
-VAL_OUT = "val_index.json"        # new file with 20%
+IN_PATH = "train_index.json"
+TRAIN_OUT = "train_index.json"
+VAL_OUT = "val_index.json"
 
 TRAIN_FRAC = 0.8
-SEED = 42                         # for reproducibility
+SEED = 42
 
 
 def main():

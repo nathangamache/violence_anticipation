@@ -1,8 +1,6 @@
-"""
-Inspect a .pt/.pth checkpoint and infer the LSTM architecture from weight shapes.
+"""Infer the LSTM architecture of a .pt/.pth checkpoint from its weight shapes.
 
-Usage:
-    python inspect_checkpoint.py /path/to/best_temporal_model.pt
+Usage: python inspect_checkpoint.py /path/to/best_temporal_model.pt
 """
 
 import sys
@@ -16,7 +14,6 @@ def infer_architecture(state_dict: dict):
 
     print("\n── Inferred architecture ──────────────────────────")
     try:
-        # Support both naming conventions
         if "frame_encoder.0.weight" in state_dict:
             fe_key = "frame_encoder.0.weight"
         elif "feature_extractor.net.0.weight" in state_dict:

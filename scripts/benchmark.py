@@ -28,9 +28,6 @@ def benchmark(video_path="sample.mp4", frames=50):
         if not ret:
             break
 
-        # ------------------------------
-        # Extractor timing
-        # ------------------------------
         t0 = time.time()
 
         tracks = live_track(frame)
@@ -42,9 +39,6 @@ def benchmark(video_path="sample.mp4", frames=50):
 
         t1 = time.time()
 
-        # ------------------------------
-        # Model timing
-        # ------------------------------
         seq_cuda = [{
             "nodes": torch.tensor(graph["nodes"]).cuda(),
             "edges": torch.tensor(graph["edges"]).cuda(),
@@ -62,7 +56,6 @@ def benchmark(video_path="sample.mp4", frames=50):
 
     cap.release()
 
-    # Compute means
     ex_mean = np.mean(extractor_times)
     mo_mean = np.mean(model_times)
 

@@ -1,39 +1,13 @@
 #!/usr/bin/env python3
-"""
-Fuse VLM Embeddings with Pose Features for Violence Anticipation
-
-This script combines:
-1. VLM embeddings (3584 dims) - semantic scene understanding
-2. Pose features (~350 dims) - body language and motion
-
-Fusion strategies:
-- concat: Simple concatenation [vlm; pose]
-- concat_norm: Normalize each modality before concatenation
-- weighted: Weighted concatenation with learned or fixed weights
+"""Early fusion of VLM embeddings with pose features (concat, concat_norm or weighted).
 
 Usage:
-    # Build fused embeddings directory (for training)
     python scripts/build_fused_features.py \
-        --mode build_embeddings \
-        --vlm_dir data/processed/vlm_emb \
-        --pose_dir data/processed/pose_features \
-        --output_dir data/processed/fused_features \
-        --source_filter xd_violence
-
-    # Build fused simulation file (for evaluation)
-    python scripts/build_fused_features.py \
-        --mode build_simulation \
-        --vlm_sim simulation_data/xd_violence_8hr_sim.npz \
-        --pose_dir data/processed/pose_features \
-        --output simulation_data/xd_violence_8hr_fused.npz
-
-    # Check separability of fused features
-    python scripts/build_fused_features.py \
-        --mode check_separability \
-        --vlm_dir data/processed/vlm_emb \
-        --pose_dir data/processed/pose_features \
-        --labels_dir data/processed/labels_multih \
-        --source_filter xd_violence
+        --mode {build_embeddings,build_simulation,build_simulation_from_videos,check_separability} \
+        --vlm_dir data/processed/vlm_emb --pose_dir data/processed/pose_features \
+        --labels_dir data/processed/labels_multih --source_filter xd_violence \
+        [--output_dir data/processed/fused_features | --output simulation_data/<name>.npz] \
+        [--vlm_sim simulation_data/<vlm_sim>.npz  (build_simulation only)]
 """
 
 import argparse
@@ -48,7 +22,6 @@ from tqdm import tqdm
 
 
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
@@ -59,7 +32,6 @@ def classify_video_source(video_id: str) -> str:
 
 
 def load_vlm_embedding(vlm_path: Path) -> Optional[np.ndarray]:
-    """Load VLM embedding from file."""
     try:
         if vlm_path.suffix == '.npz':
             data = np.load(vlm_path)
@@ -80,7 +52,6 @@ def load_vlm_embedding(vlm_path: Path) -> Optional[np.ndarray]:
 
 
 def load_pose_features(pose_path: Path) -> Optional[np.ndarray]:
-    """Load pose features from file."""
     try:
         data = np.load(pose_path)
         features = data.get('features', data.get('arr_0'))
@@ -95,7 +66,6 @@ def find_file_in_subdirs(base_dir: Path, video_name: str, extensions: List[str])
     """Find a file in base_dir or its subdirectories."""
     source = classify_video_source(video_name)
     
-    # Try source subdirectory first
     for subdir in [source, 'xd_violence', 'ucf_crime', '']:
         for ext in extensions:
             if subdir:
@@ -108,14 +78,7 @@ def find_file_in_subdirs(base_dir: Path, video_name: str, extensions: List[str])
 
 
 def normalize_features(features: np.ndarray, eps: float = 1e-8) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Normalize features to zero mean and unit variance.
-    
-    Returns:
-        normalized: Normalized features
-        mean: Mean used for normalization
-        std: Std used for normalization
-    """
+    """Normalize features to zero mean and unit variance; returns (normalized, mean, std)."""
     mean = features.mean(axis=0, keepdims=True)
     std = features.std(axis=0, keepdims=True) + eps
     normalized = (features - mean) / std
@@ -128,12 +91,7 @@ def align_features(
     vlm_times: Optional[np.ndarray] = None,
     pose_times: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Align VLM and pose features by length.
-    
-    If they have different lengths, truncate to the shorter one.
-    More sophisticated alignment could use timestamps if available.
-    """
+    """Truncate both streams to the shorter length (the *_times arguments are unused)."""
     min_len = min(len(vlm_features), len(pose_features))
     return vlm_features[:min_len], pose_features[:min_len]
 
@@ -145,34 +103,18 @@ def fuse_features(
     vlm_weight: float = 1.0,
     pose_weight: float = 1.0,
 ) -> np.ndarray:
-    """
-    Fuse VLM embeddings with pose features.
-    
-    Args:
-        vlm_features: [T, vlm_dim] VLM embeddings
-        pose_features: [T, pose_dim] Pose features
-        strategy: Fusion strategy ('concat', 'concat_norm', 'weighted')
-        vlm_weight: Weight for VLM features (for 'weighted' strategy)
-        pose_weight: Weight for pose features (for 'weighted' strategy)
-    
-    Returns:
-        fused: [T, vlm_dim + pose_dim] Fused features
-    """
-    # Align lengths
+    """Fuse [T, vlm_dim] and [T, pose_dim] features into [T, vlm_dim + pose_dim]."""
     vlm_features, pose_features = align_features(vlm_features, pose_features)
     
     if strategy == 'concat':
-        # Simple concatenation
         return np.concatenate([vlm_features, pose_features], axis=1)
     
     elif strategy == 'concat_norm':
-        # Normalize each modality before concatenation
         vlm_norm, _, _ = normalize_features(vlm_features)
         pose_norm, _, _ = normalize_features(pose_features)
         return np.concatenate([vlm_norm, pose_norm], axis=1)
     
     elif strategy == 'weighted':
-        # Weighted concatenation (scale each modality)
         vlm_norm, _, _ = normalize_features(vlm_features)
         pose_norm, _, _ = normalize_features(pose_features)
         return np.concatenate([vlm_norm * vlm_weight, pose_norm * pose_weight], axis=1)
@@ -189,28 +131,19 @@ def build_fused_embeddings(
     strategy: str = 'concat_norm',
     skip_existing: bool = True,
 ):
-    """
-    Build fused embeddings for all videos.
-    
-    Creates files matching the structure expected by train_temporal_model.py
-    """
+    """Write per-video fused embeddings in the layout train_temporal_model.py reads."""
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Find all VLM embedding files
     vlm_files = []
     for ext in ['*.npz', '*.npy']:
         vlm_files.extend(vlm_dir.rglob(ext))
     
     print(f"Found {len(vlm_files)} VLM embedding files")
     
-    # Track statistics
     processed = 0
     skipped = 0
     errors = 0
     no_pose = 0
-    
-    # Compute global pose statistics for normalization (optional)
-    # For now, we normalize per-video
     
     for vlm_path in tqdm(vlm_files, desc="Building fused embeddings"):
         video_name = vlm_path.stem
@@ -219,7 +152,6 @@ def build_fused_embeddings(
         if source_filter and source != source_filter:
             continue
         
-        # Output path
         out_subdir = output_dir / source
         out_subdir.mkdir(exist_ok=True)
         out_path = out_subdir / f"{video_name}.npz"
@@ -228,18 +160,14 @@ def build_fused_embeddings(
             skipped += 1
             continue
         
-        # Load VLM embedding
         vlm_features = load_vlm_embedding(vlm_path)
         if vlm_features is None:
             errors += 1
             continue
         
-        # Find and load pose features
         pose_path = find_file_in_subdirs(pose_dir, video_name, ['.npz', '.npy'])
         if pose_path is None:
             no_pose += 1
-            # Option: Save VLM-only with zero-padded pose features
-            # For now, skip
             continue
         
         pose_features = load_pose_features(pose_path)
@@ -247,14 +175,12 @@ def build_fused_embeddings(
             errors += 1
             continue
         
-        # Fuse
         try:
             fused = fuse_features(vlm_features, pose_features, strategy=strategy)
             
-            # Save
             np.savez_compressed(
                 out_path,
-                emb=fused.astype(np.float16),  # Save as float16 to save space
+                emb=fused.astype(np.float16),
                 vlm_dim=vlm_features.shape[1],
                 pose_dim=pose_features.shape[1],
                 strategy=strategy,
@@ -271,7 +197,6 @@ def build_fused_embeddings(
     print(f"  No pose features: {no_pose}")
     print(f"  Errors: {errors}")
     
-    # Save metadata
     metadata = {
         'strategy': strategy,
         'vlm_dir': str(vlm_dir),
@@ -291,12 +216,7 @@ def build_fused_simulation(
     output_path: Path,
     strategy: str = 'concat_norm',
 ):
-    """
-    Build a fused simulation file for evaluation.
-    
-    The simulation file contains concatenated embeddings from multiple videos.
-    We need to identify which videos are in the simulation and fuse their features.
-    """
+    """Fuse pose features into an existing VLM simulation file, per video via its boundaries."""
     print(f"Loading VLM simulation from {vlm_sim_path}...")
     vlm_sim = np.load(vlm_sim_path)
     
@@ -309,19 +229,16 @@ def build_fused_simulation(
     print(f"VLM simulation shape: {vlm_embeddings.shape}")
     print(f"Labels shape: {anticipation_labels.shape}")
     
-    # Check if simulation has video boundaries
     if 'video_boundaries' in vlm_sim.keys():
         video_boundaries = vlm_sim['video_boundaries']
         video_names = vlm_sim.get('video_names', None)
         print(f"Found {len(video_boundaries)} video boundaries")
     else:
-        # Need to infer or handle differently
         print("Warning: No video boundaries in simulation file")
         print("Will attempt to match by loading pose features for same videos")
         video_boundaries = None
         video_names = None
     
-    # If we have video boundaries and names, fuse per-video
     if video_boundaries is not None and video_names is not None:
         fused_embeddings = []
         current_pos = 0
@@ -330,22 +247,18 @@ def build_fused_simulation(
             vid_name = str(vid_name)
             start, end = boundary
             
-            # Get VLM embeddings for this video
             vlm_chunk = vlm_embeddings[start:end]
             
-            # Find pose features
             pose_path = find_file_in_subdirs(pose_dir, vid_name, ['.npz', '.npy'])
             
             if pose_path is not None:
                 pose_features = load_pose_features(pose_path)
                 if pose_features is not None:
-                    # Fuse
                     fused_chunk = fuse_features(vlm_chunk, pose_features, strategy=strategy)
                     fused_embeddings.append(fused_chunk)
                     continue
             
-            # No pose features - pad with zeros
-            pose_dim = 350  # Approximate, will be fixed later
+            pose_dim = 350  # approximate; real pose features are 540-d
             pose_zeros = np.zeros((len(vlm_chunk), pose_dim), dtype=np.float32)
             fused_chunk = fuse_features(vlm_chunk, pose_zeros, strategy='concat')
             fused_embeddings.append(fused_chunk)
@@ -353,12 +266,8 @@ def build_fused_simulation(
         fused_embeddings = np.vstack(fused_embeddings)
     
     else:
-        # No boundaries - try to match overall length
-        # This is a fallback and may not work well
         print("Attempting direct pose feature loading...")
         
-        # Try to find pose features that match the video names in metadata
-        # For now, just create zero-padded version
         pose_dim = 350
         pose_zeros = np.zeros((len(vlm_embeddings), pose_dim), dtype=np.float32)
         
@@ -367,7 +276,6 @@ def build_fused_simulation(
         
         print("Warning: Using zero-padded pose features (no video boundaries)")
     
-    # Ensure labels match
     min_len = min(len(fused_embeddings), len(anticipation_labels))
     fused_embeddings = fused_embeddings[:min_len]
     frame_labels = frame_labels[:min_len]
@@ -375,7 +283,6 @@ def build_fused_simulation(
     
     print(f"Fused embeddings shape: {fused_embeddings.shape}")
     
-    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         output_path,
@@ -404,17 +311,10 @@ def build_fused_simulation_from_videos(
     horizon_sec: float = 30.0,
     max_videos: Optional[int] = None,
 ):
-    """
-    Build a fused simulation from individual video files.
-    
-    This is more flexible than build_fused_simulation as it doesn't require
-    an existing simulation file.
-    """
-    # Find all videos
+    """Build a fused simulation directly from per-video VLM, pose and label files."""
     if video_list:
         video_names = video_list
     else:
-        # Find from VLM directory
         vlm_files = list(vlm_dir.rglob('*.npz')) + list(vlm_dir.rglob('*.npy'))
         video_names = [f.stem for f in vlm_files]
     
@@ -436,7 +336,6 @@ def build_fused_simulation_from_videos(
     horizon_frames = int(horizon_sec * fps)
     
     for vid_name in tqdm(video_names, desc="Loading videos"):
-        # Load VLM
         vlm_path = find_file_in_subdirs(vlm_dir, vid_name, ['.npz', '.npy'])
         if vlm_path is None:
             continue
@@ -445,7 +344,6 @@ def build_fused_simulation_from_videos(
         if vlm_features is None:
             continue
         
-        # Load pose
         pose_path = find_file_in_subdirs(pose_dir, vid_name, ['.npz', '.npy'])
         if pose_path is None:
             continue
@@ -454,7 +352,6 @@ def build_fused_simulation_from_videos(
         if pose_features is None:
             continue
         
-        # Load labels
         label_path = find_file_in_subdirs(labels_dir, vid_name, ['.npy', '.npz'])
         if label_path is None:
             continue
@@ -472,7 +369,6 @@ def build_fused_simulation_from_videos(
         except:
             continue
         
-        # Align all three
         min_len = min(len(vlm_features), len(pose_features), len(labels))
         vlm_features = vlm_features[:min_len]
         pose_features = pose_features[:min_len]
@@ -481,16 +377,13 @@ def build_fused_simulation_from_videos(
         if min_len == 0:
             continue
         
-        # Fuse
         fused = fuse_features(vlm_features, pose_features, strategy=strategy)
         
-        # Create anticipation labels
         anticipation_labels = np.zeros_like(labels)
         for t in range(len(labels)):
             future_end = min(t + horizon_frames, len(labels))
             anticipation_labels[t] = labels[t:future_end].max()
         
-        # Track boundaries
         start = current_pos
         end = current_pos + len(fused)
         video_boundaries.append([start, end])
@@ -504,7 +397,6 @@ def build_fused_simulation_from_videos(
     if not all_embeddings:
         raise RuntimeError("No valid videos found!")
     
-    # Concatenate
     embeddings = np.vstack(all_embeddings)
     frame_labels = np.concatenate(all_frame_labels)
     anticipation_labels = np.concatenate(all_anticipation_labels)
@@ -517,7 +409,6 @@ def build_fused_simulation_from_videos(
     print(f"  Violence frames: {frame_labels.sum():.0f} ({frame_labels.mean()*100:.2f}%)")
     print(f"  Anticipation frames: {anticipation_labels.sum():.0f} ({anticipation_labels.mean()*100:.2f}%)")
     
-    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         output_path,
@@ -542,12 +433,9 @@ def check_separability(
     max_videos: int = 100,
     strategy: str = 'concat_norm',
 ):
-    """
-    Check feature separability for VLM, pose, and fused features.
-    """
+    """Check feature separability for VLM, pose, and fused features."""
     print("Checking feature separability...")
     
-    # Find videos
     vlm_files = list(vlm_dir.rglob('*.npz')) + list(vlm_dir.rglob('*.npy'))
     video_names = [f.stem for f in vlm_files]
     
@@ -561,7 +449,6 @@ def check_separability(
     fused_violent, fused_nonviolent = [], []
     
     for vid_name in tqdm(video_names, desc="Loading"):
-        # Load VLM
         vlm_path = find_file_in_subdirs(vlm_dir, vid_name, ['.npz', '.npy'])
         if vlm_path is None:
             continue
@@ -569,7 +456,6 @@ def check_separability(
         if vlm_features is None:
             continue
         
-        # Load pose
         pose_path = find_file_in_subdirs(pose_dir, vid_name, ['.npz', '.npy'])
         if pose_path is None:
             continue
@@ -577,7 +463,6 @@ def check_separability(
         if pose_features is None:
             continue
         
-        # Load labels
         label_path = find_file_in_subdirs(labels_dir, vid_name, ['.npy', '.npz'])
         if label_path is None:
             continue
@@ -595,16 +480,13 @@ def check_separability(
         except:
             continue
         
-        # Align
         min_len = min(len(vlm_features), len(pose_features), len(labels))
         vlm_features = vlm_features[:min_len]
         pose_features = pose_features[:min_len]
         labels = labels[:min_len]
         
-        # Fuse
         fused = fuse_features(vlm_features, pose_features, strategy=strategy)
         
-        # Split by label
         violent_mask = labels > 0
         
         if violent_mask.sum() > 0:
@@ -617,7 +499,6 @@ def check_separability(
             pose_nonviolent.append(pose_features[~violent_mask])
             fused_nonviolent.append(fused[~violent_mask])
     
-    # Concatenate
     def compute_metrics(violent, nonviolent, name):
         if not violent or not nonviolent:
             print(f"\n{name}: Insufficient data")
@@ -652,7 +533,6 @@ def main():
     parser.add_argument('--mode', type=str, required=True,
                         choices=['build_embeddings', 'build_simulation', 'build_simulation_from_videos', 'check_separability'])
     
-    # Paths
     parser.add_argument('--vlm_dir', type=str, default='data/processed/vlm_emb')
     parser.add_argument('--vlm_sim', type=str, default=None)
     parser.add_argument('--pose_dir', type=str, default='data/processed/pose_features')
@@ -660,7 +540,6 @@ def main():
     parser.add_argument('--output_dir', type=str, default='data/processed/fused_features')
     parser.add_argument('--output', type=str, default=None)
     
-    # Options
     parser.add_argument('--source_filter', type=str, default=None,
                         choices=['xd_violence', 'ucf_crime'])
     parser.add_argument('--strategy', type=str, default='concat_norm',

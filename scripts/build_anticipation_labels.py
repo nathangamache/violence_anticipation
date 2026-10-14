@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Binary "violence now or within --horizon_sec" labels from risk labels (threshold, then future-OR)."""
 import argparse, os, json
 import numpy as np
 from pathlib import Path
@@ -40,18 +41,16 @@ def main():
         fps = float(info.get("fps", 25.0))
         total_frames = int(info.get("total_frames", 0))
 
-        # seconds per timestep
         if fps > 0 and total_frames > 0:
             clip_sec = total_frames / fps
             dt = clip_sec / T
         else:
-            dt = 1.0  # fallback (won't be great, but won't crash)
+            dt = 1.0
 
-        H = int(np.ceil(args.horizon_sec / max(dt, 1e-6)))  # steps ahead
+        H = int(np.ceil(args.horizon_sec / max(dt, 1e-6)))
 
         y_bin = (y >= args.gt_thresh).astype(np.int32)
 
-        # future OR label: y_future[t] = max(y_bin[t : t+H+1])
         y_future = np.zeros_like(y_bin, dtype=np.int32)
         for t in range(T):
             y_future[t] = int(y_bin[t : min(T, t + H + 1)].max())

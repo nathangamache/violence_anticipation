@@ -34,11 +34,11 @@ Claims marked **(inferred)** are reasoned but not directly verified.
 
 | Path | Size / shape | What it is | Status |
 |---|---|---|---|
-| `realtime/rtsp_inference.py` | 720 lines | Threaded live pipeline: RTSP, then Qwen2.5-VL embeddings (GPU0), then BiLSTM (GPU1), then alerts | Works. Has the skew bugs in Section 6 |
-| `realtime/inspect_checkpoint.py` | 85 lines | CLI: prints a checkpoint's weight shapes and infers LSTM dims | Works (CPU) |
-| `realtime/pipeline.py` | 159 lines | Legacy per-frame YOLO/VideoMAE/CLIP graph to `ViolenceTransformer` + Qwen2.5-3B text LLM fusion | Broken / dead |
+| `realtime/rtsp_inference.py` | 635 lines | Threaded live pipeline: RTSP, then Qwen2.5-VL embeddings (GPU0), then BiLSTM (GPU1), then alerts | Works. Has the skew bugs in Section 6 |
+| `realtime/inspect_checkpoint.py` | 82 lines | CLI: prints a checkpoint's weight shapes and infers LSTM dims | Works (CPU) |
+| `realtime/pipeline.py` | 136 lines | Legacy per-frame YOLO/VideoMAE/CLIP graph to `ViolenceTransformer` + Qwen2.5-3B text LLM fusion | Broken / dead |
 | `realtime/__init__.py` | empty | package marker | |
-| `scripts/analyze_youtube.py` | 750 lines | Offline: yt-dlp download, then 1 fps frames, QwenTeacher embeddings, temporal LSTM scores, plot | Works. Has the skew bugs in Section 6 |
+| `scripts/analyze_youtube.py` | 634 lines | Offline: yt-dlp download, then 1 fps frames, QwenTeacher embeddings, temporal LSTM scores, plot | Works. Has the skew bugs in Section 6 |
 | `inference_20260226_225311.log` | 1000 lines | 14-min live RTSP session log (written by rtsp_inference.py) | Evidence |
 | `inference_20260302_185137.log` | 117 lines | 1m51s live RTSP session log | Evidence |
 | `logs/inference_20260226_151941.log` | 32 lines | First live attempt. Never connected (auth URL on port 554) | Evidence |
@@ -82,7 +82,7 @@ Data containers: `Frame(image BGR ndarray, timestamp, frame_idx)`, `EmbeddedFram
 `Prediction(score, is_alert, timestamp, frame_idx, lead_time_budget)`. `frame_idx` counts *native* stream frames, so it advances
 about 30 per sample at 30 fps.
 
-`ViolenceLSTM` (lines 84-156) has the same parameter names and shapes as `TemporalViolenceModel` in `training/train_temporal_model.py`:
+`ViolenceLSTM` (lines 63-127) has the same parameter names and shapes as `TemporalViolenceModel` in `training/train_temporal_model.py`:
 
 - `frame_encoder`: Linear(3584 to 256), LN, act, Dropout, Linear(256 to 256), LN, act, Dropout
 - `lstm`: BiLSTM with hidden 128, 2 layers
@@ -104,7 +104,7 @@ outputs logits). See Section 6.
     --fps 1.0 --sequence_length 30 --threshold 0.5 --alert_cooldown 30 --frame_size 448 --snapshot_dir snapshots
 ```
 
-CLI flags (`parse_args`, line 677):
+CLI flags (`parse_args`, line 592):
 
 | Flag | Required | Default |
 |---|---|---|
@@ -120,7 +120,7 @@ CLI flags (`parse_args`, line 677):
 
 Requirements:
 
-- **Two CUDA devices.** `cuda:0` and `cuda:1` are hard-coded at lines 602 and 611. The LSTM is tiny and could share GPU0.
+- **Two CUDA devices.** `cuda:0` and `cuda:1` are hard-coded at lines 523 and 531. The LSTM is tiny and could share GPU0.
 - **Qwen2.5-VL-7B-Instruct weights.** Local copy: `models/Qwen2.5-VL-7B-Instruct` (repo symlink `models/`).
   It is loaded with `dtype=torch.float16, device_map="cuda:0", trust_remote_code=True`. The `dtype=` kwarg needs a recent transformers
   (4.57.5 is installed); older versions only knew `torch_dtype` (inferred from the transformers changelog).
@@ -145,7 +145,7 @@ NOT compatible:
 
 - Fused, audio and projected checkpoints (`frame_encoder.0.weight` input dims 4124, 3606, 3675, 91, 256) fail with a size-mismatch error.
 - **The root-level MLPs (`anticipation_mlp.pt`, `ucf_crime_mlp.pt`, `best_synthetic_anticipation.pt`, ...) have `net.*` keys.**
-  Because of `load_state_dict(strict=False)` (line 464) they load with *zero* matching keys and **silently run a randomly
+  Because of `load_state_dict(strict=False)` (line 403) they load with *zero* matching keys and **silently run a randomly
   initialised LSTM**.
 
 The live logs do not record which checkpoint was used. `outputs/outputs_temporal/best_temporal_model.pt` is the most likely one,
@@ -154,7 +154,7 @@ since it is the analyze_youtube default and was the newest 3584-d model at the t
 ### 2.3 Outputs
 
 - stdout plus `inference_<YYYYmmdd_HHMMSS>.log` in the **current working directory**. The FileHandler is created at module import
-  (line 39), so merely importing the module creates a log file. That is why logs sit in the repo root.
+  (line 34), so merely importing the module creates a log file. That is why logs sit in the repo root.
 - One `[LSTM] frame=NNNNNN | score=0.xxxx | alert=YES/no | inference=X.Xms` line per inference. (Older logs used emoji markers instead
   of YES/no. The code was de-emojified on 2026-10-14.)
 - An alert banner, with `[Stats]` every 30 s and `[Capture]` every 60 samples.
@@ -164,7 +164,7 @@ since it is the analyze_youtube default and was the newest 3584-d model at the t
 
 ## 3. `scripts/analyze_youtube.py`: offline YouTube / file analysis
 
-Pipeline (`main`, line 611):
+Pipeline (`main`, line 514):
 
 1. `--url`: `download_youtube_video()` (yt-dlp Python API). It prefers MP4 at 720p or below with the android/web player clients. It
    limits the download to the first `--max-duration` seconds (default 300) for long or live videos, using ffmpeg as an external
@@ -220,7 +220,7 @@ Why it cannot work:
 - `ViolenceTransformer()` is never given a checkpoint, so its weights are random. `LLMFusionHead` is also untrained (weights [0.7, 0.3]).
 - `build_live_graph` returns `nodes` as a *list of dicts* and numpy `scene`/`audio`. `ViolenceTransformer.forward` calls `f["nodes"].to(device)`,
   which raises AttributeError. The model returns `[T]` logits, so `.item()` would fail for T > 1 anyway.
-- `graph_to_text(latest_graph)` passes a dict where `core/graph.py:220` expects a list (`graph_seq[-max_frames:]`), which raises TypeError.
+- `graph_to_text(latest_graph)` passes a dict where `core/graph.py:161` expects a list (`graph_seq[-max_frames:]`), which raises TypeError.
 - `live_audio` returns 128-d (librosa default n_mels) when a mic exists, but the model's `audio_dim` is 64.
 - `LLMEmbedder._extract_number` regexes the *whole decoded text including the prompt*. The prompt ends in "(0.0-1.0):", so if the LLM
   emits no number the score becomes **1.0**.
@@ -241,7 +241,7 @@ Treat `realtime/pipeline.py`, `scripts/benchmark.py` and `tests/test_realtime_gr
 
 Output for `outputs/outputs_temporal/best_temporal_model.pt`: input 3584, encoder 256, hidden 128, bidirectional, 2 layers, attention.
 
-Limitation: shapes cannot reveal activation functions. The header comment in rtsp_inference.py ("Confirmed architecture from
+Limitation: shapes cannot reveal activation functions. The former header comment in rtsp_inference.py ("Confirmed architecture from
 inspect_checkpoint.py ... ReLU") is how the ReLU/GELU mismatch slipped in (inferred). The script also ignores `args`, `val_metrics`
 and `test_metrics` in the checkpoint.
 
@@ -269,7 +269,7 @@ Consequences:
    the model is a detection-plus-anticipation hybrid, not a pure 30 s-ahead predictor.
 2. The embedding recipes differ, so live and YouTube embeddings fall outside the training distribution. The continuation scripts
    independently found this: YouTube embeddings sit at an LDA score of -5.13 against training class means of +2.85 and -3.34, and
-   2141 of 3584 dims have Cohen's d > 0.5 (docstrings of `continuation/lda_calibration_complete.py` and `continuation/domain_adaptation.py`).
+   2141 of 3584 dims have Cohen's d > 0.5 (recorded in former docstrings of `continuation/lda_calibration_complete.py` and `continuation/domain_adaptation.py`; this doc is now the record).
 3. **Any new model must ship its own feature extractor and use identical code at train and serve time**: the same function, prompt,
    pooling, frame rate and window length.
 
@@ -323,7 +323,7 @@ Takeaways:
 
 ### 7.3 YouTube video `probe_clip_01` (the only deployment-style run with ground truth)
 
-Ground truth, from the docstring of `continuation/lda_calibration_complete.py`: 0-6 s safe, 7-36 s anticipation, 37-45 s violence,
+Ground truth, from `YT_LABELS` in `continuation/lda_calibration_complete.py`: 0-6 s safe, 7-36 s anticipation, 37-45 s violence,
 46 s onward post-violence (people dispersing).
 
 `probe_clip_01_scores.npy` has 197 frames at nominal 1 fps from `outputs/outputs_temporal/best_temporal_model.pt` (provenance verified).
@@ -464,7 +464,7 @@ onnx==1.19.1
 4. `--sequence_length` defaults to 32, while the checkpoints were trained with 30.
 5. `load_state_dict(strict=False)` means an incompatible checkpoint whose keys do not overlap (the root-level `*_mlp.pt` files) runs
    with **random weights and no error**.
-6. **Alert snapshots are never saved.** `alert_callback(pred)` is called without the frame (line 524), and `EmbeddedFrame` does not carry
+6. **Alert snapshots are never saved.** `alert_callback(pred)` is called without the frame (line 459), and `EmbeddedFrame` does not carry
    the image. `snapshots/` is empty.
 7. `lead_time_budget` is hard-wired to `alert_cooldown` and is not a prediction.
 8. The log FileHandler is created at import time in the CWD, so importing the module (tests, notebooks) litters log files.
@@ -496,3 +496,8 @@ onnx==1.19.1
   Without ground truth, the existing logs cannot answer the false-alarm question.
 - Evaluate on held-out *videos*, at the deployment sampling rate, with lead-time metrics (time of first alert before onset) and
   false alarms per hour on long negative footage. `probe_clip_01` plus `test_video.mp4` can serve as smoke tests. They are not a benchmark.
+
+## Notes moved from code comments
+
+- `scripts/analyze_youtube.py` `generate_embeddings()`: the `batch_size` and `use_project_extractor` arguments are accepted but
+  ignored. Frames are always embedded one at a time, and the QwenTeacher path is chosen by an `isinstance` check on the model.

@@ -1,33 +1,14 @@
 #!/usr/bin/env python3
 """
-LoRA Fine-tuning Pipeline for Violence Detection (V3 - Stability Fixed)
-
-Key Fixes:
-1. Use BF16 instead of FP16 for better numerical stability
-2. Proper chat template formatting for Qwen2.5-VL
-3. Skip corrupted/problematic samples
-4. Loss scaling and gradient checking
-5. Suppress noisy warnings
-6. Multi-GPU / multi-worker support
+LoRA fine-tuning of Qwen2.5-VL as a yes/no violence VQA (V3 - Stability Fixed).
 
 Usage:
-    # Single GPU with logging
-    screen -dmS lora_train bash -c 'python tuning/lora_finetune_vlm.py \
-        --mode train \
-        --videos_dir data/raw_videos/xd_violence/videos \
-        --labels_dir data/processed/labels_multih \
-        --embeddings_dir data/processed/vlm_emb \
-        --output_dir ./lora_finetuned \
-        --source_filter xd_violence \
-        --device cuda:0 \
-        --log_file logs/lora_train.log \
-        2>&1 | tee logs/lora_train_full.log'
+    python tuning/lora_finetune_vlm.py --mode train \
+        --videos_dir data/raw_videos/xd_violence/videos --labels_dir data/processed/labels_multih \
+        --embeddings_dir data/processed/vlm_emb --output_dir ./lora_finetuned \
+        --source_filter xd_violence --device cuda:0 --log_file logs/lora_train.log
 
-    # Multi-GPU training (2 GPUs)
-    # Terminal 1:
-    python tuning/lora_finetune_vlm.py --mode train ... --device cuda:0 --worker_id 0 --num_workers 2
-    # Terminal 2:
-    python tuning/lora_finetune_vlm.py --mode train ... --device cuda:1 --worker_id 1 --num_workers 2
+    Multi-GPU: one process per GPU with --device cuda:K --worker_id K --num_workers N.
 """
 
 import argparse
@@ -59,10 +40,8 @@ from PIL import Image
 import cv2
 from tqdm import tqdm
 
-# Suppress cv2 warnings about video metadata
 cv2.setLogLevel(0)
 
-# LoRA / PEFT imports
 try:
     from peft import LoraConfig, get_peft_model, TaskType, PeftModel
     PEFT_AVAILABLE = True
@@ -71,13 +50,7 @@ except ImportError:
     print("Warning: PEFT not installed. Install with: pip install peft")
 
 
-# ==============================================================================
-# Logging Setup
-# ==============================================================================
-
 def setup_logging(log_file: Optional[str] = None, worker_id: int = 0):
-    """Setup logging to file and console."""
-    
     handlers = [logging.StreamHandler(sys.stdout)]
     
     if log_file:
@@ -96,65 +69,48 @@ def setup_logging(log_file: Optional[str] = None, worker_id: int = 0):
         force=True,
     )
     
-    # Reduce noise from other loggers
     logging.getLogger("transformers").setLevel(logging.WARNING)
     logging.getLogger("PIL").setLevel(logging.WARNING)
     
     return logging.getLogger(__name__)
 
 
-# ==============================================================================
-# Configuration
-# ==============================================================================
-
 @dataclass
 class TrainingConfig:
-    """Training configuration."""
     model_name: str = "Qwen/Qwen2.5-VL-7B-Instruct"
     
-    # LoRA settings - increased capacity
-    lora_r: int = 16  # Increased for more capacity
+    lora_r: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.05
     lora_target_modules: List[str] = None
     
-    # Training
-    epochs: int = 5  # More epochs
+    epochs: int = 5
     batch_size: int = 1
-    gradient_accumulation_steps: int = 8  # Smaller for more frequent updates
-    learning_rate: float = 1e-4  # Slightly higher
+    gradient_accumulation_steps: int = 8
+    learning_rate: float = 1e-4
     warmup_ratio: float = 0.1
     weight_decay: float = 0.01
-    max_grad_norm: float = 1.0  # Standard clipping
+    max_grad_norm: float = 1.0
     
-    # Data
-    max_samples_per_class: int = 2000  # Reduced for faster iteration
+    max_samples_per_class: int = 2000
     val_split: float = 0.1
-    image_size: int = 336  # Slightly smaller
+    image_size: int = 336
     
-    # System
     device: str = "cuda:0"
-    use_bf16: bool = True  # BF16 is more stable than FP16
+    use_bf16: bool = True  # more stable than FP16
     
-    # Workers
     worker_id: int = 0
     num_workers: int = 1
     
     def __post_init__(self):
         if self.lora_target_modules is None:
-            # Target all attention and MLP projections
             self.lora_target_modules = [
-                "q_proj", "k_proj", "v_proj", "o_proj",  # Attention
-                "gate_proj", "up_proj", "down_proj",      # MLP
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj", "down_proj",
             ]
 
 
-# ==============================================================================
-# Dataset
-# ==============================================================================
-
 def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
-    """Find video file."""
     extensions = ['.mp4', '.avi', '.mkv', '.mov', '.webm', '.MP4', '.AVI']
     
     for ext in extensions:
@@ -174,7 +130,6 @@ def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
 
 
 def extract_frame(video_path: Path, frame_idx: int, target_size: int = 336) -> Optional[Image.Image]:
-    """Extract a single frame from video with error handling."""
     try:
         cap = cv2.VideoCapture(str(video_path))
         if not cap.isOpened():
@@ -183,7 +138,7 @@ def extract_frame(video_path: Path, frame_idx: int, target_size: int = 336) -> O
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         
-        # Convert label index to frame index
+        # label index is treated as seconds (known misalignment, see docs/codebase/vlm_and_llm.md)
         actual_frame = min(int(frame_idx * fps), total_frames - 1)
         actual_frame = max(0, actual_frame)
         
@@ -194,7 +149,6 @@ def extract_frame(video_path: Path, frame_idx: int, target_size: int = 336) -> O
         if not ret or frame is None:
             return None
         
-        # Check for valid frame
         if frame.size == 0 or frame.shape[0] == 0 or frame.shape[1] == 0:
             return None
         
@@ -222,11 +176,9 @@ class ViolenceDataset(Dataset):
         self.image_size = image_size
         self.logger = logger
         
-        # Pre-filter invalid samples
         self._validate_samples()
     
     def _validate_samples(self):
-        """Remove invalid samples."""
         valid = []
         for s in self.samples:
             if Path(s['video_path']).exists():
@@ -253,7 +205,6 @@ class ViolenceDataset(Dataset):
         if image is None:
             return None
         
-        # Simple Yes/No target
         target = "Yes" if sample['label'] == 1 else "No"
         
         return {
@@ -278,7 +229,6 @@ def collate_fn_simple(batch, processor, device):
             target = sample['target']
             label = sample['label']
             
-            # Create the prompt (user turn only)
             user_messages = [
                 {
                     "role": "user",
@@ -289,17 +239,14 @@ def collate_fn_simple(batch, processor, device):
                 },
             ]
             
-            # Get the prompt text (without response)
             prompt_text = processor.apply_chat_template(
                 user_messages,
                 tokenize=False,
-                add_generation_prompt=True,  # Add the assistant prompt marker
+                add_generation_prompt=True,
             )
             
-            # Full text with response
             full_text = prompt_text + target
             
-            # Process the full text
             inputs = processor(
                 text=[full_text],
                 images=[image],
@@ -317,14 +264,11 @@ def collate_fn_simple(batch, processor, device):
             
             prompt_length = prompt_inputs['input_ids'].shape[1]
             
-            # Create labels - mask everything before the response
             input_ids = inputs['input_ids']
             labels = input_ids.clone()
             
-            # Set all tokens before response to -100 (ignored in loss)
             labels[:, :prompt_length] = -100
             
-            # Also mask padding if any
             if hasattr(processor, 'tokenizer') and processor.tokenizer.pad_token_id is not None:
                 labels[input_ids == processor.tokenizer.pad_token_id] = -100
             
@@ -337,7 +281,6 @@ def collate_fn_simple(batch, processor, device):
                 'class_label': label,
             })
         
-        # Stack results
         return {
             'input_ids': torch.cat([r['input_ids'] for r in results], dim=0),
             'attention_mask': torch.cat([r['attention_mask'] for r in results], dim=0),
@@ -369,7 +312,6 @@ def prepare_dataset(
     
     emb_files = sorted(list(embeddings_dir.rglob("*.npz")))
     
-    # Filter by source
     if source_filter:
         filtered = []
         for emb_path in emb_files:
@@ -382,7 +324,6 @@ def prepare_dataset(
                 filtered.append(emb_path)
         emb_files = filtered
     
-    # Split among workers
     if num_workers > 1:
         emb_files = [f for i, f in enumerate(emb_files) if i % num_workers == worker_id]
     
@@ -415,11 +356,9 @@ def prepare_dataset(
         except Exception:
             continue
         
-        # Sample frames
         violence_idx = np.where(labels == 1)[0]
         nonviolence_idx = np.where(labels == 0)[0]
         
-        # Limit per video
         max_per_video = 20
         if len(violence_idx) > max_per_video:
             violence_idx = np.random.choice(violence_idx, max_per_video, replace=False)
@@ -445,7 +384,6 @@ def prepare_dataset(
     if logger:
         logger.info(f"Found {len(violence_samples)} violence, {len(nonviolence_samples)} non-violence")
     
-    # Balance and limit
     random.seed(42 + worker_id)
     
     if len(violence_samples) > max_samples_per_class:
@@ -453,11 +391,9 @@ def prepare_dataset(
     if len(nonviolence_samples) > max_samples_per_class:
         nonviolence_samples = random.sample(nonviolence_samples, max_samples_per_class)
     
-    # Combine and shuffle
     all_samples = violence_samples + nonviolence_samples
     random.shuffle(all_samples)
     
-    # Split
     n_val = int(len(all_samples) * 0.1)
     val_samples = all_samples[:n_val]
     train_samples = all_samples[n_val:]
@@ -468,10 +404,6 @@ def prepare_dataset(
     return train_samples, val_samples
 
 
-# ==============================================================================
-# Model Setup
-# ==============================================================================
-
 def setup_model_and_lora(config: TrainingConfig, logger):
     """Load model and apply LoRA with stability settings."""
     
@@ -479,7 +411,6 @@ def setup_model_and_lora(config: TrainingConfig, logger):
     
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
     
-    # Use BF16 for better stability
     dtype = torch.bfloat16 if config.use_bf16 and torch.cuda.is_bf16_supported() else torch.float16
     logger.info(f"Using dtype: {dtype}")
     
@@ -496,7 +427,6 @@ def setup_model_and_lora(config: TrainingConfig, logger):
         use_fast=False,  # Use slow processor for consistency
     )
     
-    # Ensure padding is set correctly
     processor.tokenizer.padding_side = 'left'
     if processor.tokenizer.pad_token is None:
         processor.tokenizer.pad_token = processor.tokenizer.eos_token
@@ -508,7 +438,6 @@ def setup_model_and_lora(config: TrainingConfig, logger):
     # Prepare model for training BEFORE applying LoRA
     model.enable_input_require_grads()
     
-    # Conservative LoRA config
     lora_config = LoraConfig(
         r=config.lora_r,
         lora_alpha=config.lora_alpha,
@@ -521,10 +450,8 @@ def setup_model_and_lora(config: TrainingConfig, logger):
     
     model = get_peft_model(model, lora_config)
     
-    # Ensure model is in training mode
     model.train()
     
-    # Verify LoRA parameters require grad
     trainable_params = 0
     all_params = 0
     for name, param in model.named_parameters():
@@ -542,10 +469,6 @@ def setup_model_and_lora(config: TrainingConfig, logger):
     
     return model, processor
 
-
-# ==============================================================================
-# Training
-# ==============================================================================
 
 def train_epoch(
     model,
@@ -576,7 +499,6 @@ def train_epoch(
             continue
         
         try:
-            # Move to device
             input_ids = batch['input_ids'].to(config.device)
             attention_mask = batch['attention_mask'].to(config.device)
             labels = batch['labels'].to(config.device)
@@ -589,7 +511,7 @@ def train_epoch(
             if image_grid_thw is not None:
                 image_grid_thw = image_grid_thw.to(config.device)
             
-            # Forward pass (no autocast - causes gradient issues with PEFT)
+            # no autocast: it causes gradient issues with PEFT
             outputs = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
@@ -599,7 +521,6 @@ def train_epoch(
             )
             loss = outputs.loss
             
-            # Check for bad loss
             if torch.isnan(loss) or torch.isinf(loss) or loss.item() > 100:
                 nan_count += 1
                 if nan_count <= 10:
@@ -607,30 +528,24 @@ def train_epoch(
                 optimizer.zero_grad()
                 continue
             
-            # Scale loss
             loss = loss / config.gradient_accumulation_steps
             
-            # Backward
             loss.backward()
             
             accumulated_loss += loss.item()
             
-            # Update step
             if (step + 1) % config.gradient_accumulation_steps == 0:
-                # Clip gradients
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     model.parameters(), 
                     config.max_grad_norm
                 )
                 
-                # Skip if gradients are bad
                 if torch.isnan(grad_norm) or torch.isinf(grad_norm):
                     nan_count += 1
                     optimizer.zero_grad()
                     accumulated_loss = 0.0
                     continue
                 
-                # Step
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad()
@@ -639,7 +554,6 @@ def train_epoch(
                 valid_steps += 1
                 accumulated_loss = 0.0
             
-            # Update progress
             if valid_steps > 0:
                 pbar.set_postfix({
                     'loss': f"{total_loss/valid_steps:.4f}",
@@ -665,7 +579,7 @@ def train_epoch(
 
 @torch.no_grad()
 def evaluate(model, dataloader, processor, config: TrainingConfig, logger):
-    """Evaluate model."""
+    """Yes/no accuracy via generate (known bug: input_ids already end with the target answer)."""
     
     model.eval()
     correct = 0
@@ -691,7 +605,6 @@ def evaluate(model, dataloader, processor, config: TrainingConfig, logger):
             if image_grid_thw is not None:
                 image_grid_thw = image_grid_thw.to(config.device)
             
-            # Generate (no autocast needed for inference with no_grad)
             outputs = model.generate(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
@@ -727,13 +640,10 @@ def train(
     output_dir: Path,
     logger,
 ):
-    """Full training loop."""
-    
     output_dir.mkdir(parents=True, exist_ok=True)
     
     model, processor = setup_model_and_lora(config, logger)
     
-    # Datasets
     train_dataset = ViolenceDataset(train_samples, processor, config.image_size, logger)
     val_dataset = ViolenceDataset(val_samples, processor, config.image_size, logger)
     
@@ -753,7 +663,6 @@ def train(
         collate_fn=lambda b: collate_fn_simple(b, processor, config.device),
     )
     
-    # Optimizer - use 8-bit Adam for stability
     try:
         import bitsandbytes as bnb
         optimizer = bnb.optim.AdamW8bit(
@@ -771,7 +680,6 @@ def train(
         )
         logger.info("Using standard AdamW")
     
-    # Scheduler
     total_steps = (len(train_loader) * config.epochs) // config.gradient_accumulation_steps
     warmup_steps = int(total_steps * config.warmup_ratio)
     
@@ -781,7 +689,6 @@ def train(
         eta_min=config.learning_rate / 10,
     )
     
-    # Training
     best_acc = 0
     history = {'train_loss': [], 'val_acc': []}
     
@@ -803,10 +710,8 @@ def train(
             processor.save_pretrained(output_dir / 'best_model')
             logger.info(f"Saved best model (acc={best_acc:.4f})")
         
-        # Checkpoint
         model.save_pretrained(output_dir / f'checkpoint_epoch{epoch+1}')
     
-    # Final save
     model.save_pretrained(output_dir / 'final_model')
     processor.save_pretrained(output_dir / 'final_model')
     
@@ -818,45 +723,34 @@ def train(
     return model, processor
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--mode', type=str, default='train', choices=['train', 'extract'])
     
-    # Paths
     parser.add_argument('--videos_dir', type=str, required=True)
     parser.add_argument('--labels_dir', type=str, default=None)
     parser.add_argument('--embeddings_dir', type=str, default=None)
     parser.add_argument('--output_dir', type=str, default='./lora_finetuned')
     parser.add_argument('--checkpoint', type=str, default=None)
     
-    # Model
     parser.add_argument('--model_name', type=str, default='Qwen/Qwen2.5-VL-7B-Instruct')
     
-    # LoRA
     parser.add_argument('--lora_r', type=int, default=8)
     parser.add_argument('--lora_alpha', type=int, default=16)
     
-    # Training
     parser.add_argument('--epochs', type=int, default=3)
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--gradient_accumulation_steps', type=int, default=16)
     parser.add_argument('--learning_rate', type=float, default=5e-5)
     parser.add_argument('--max_samples_per_class', type=int, default=2000)
     
-    # System
     parser.add_argument('--device', type=str, default='cuda:0')
     parser.add_argument('--source_filter', type=str, default=None, choices=['xd_violence', 'ucf_crime'])
     
-    # Parallel
     parser.add_argument('--worker_id', type=int, default=0)
     parser.add_argument('--num_workers', type=int, default=1)
     
-    # Logging
     parser.add_argument('--log_file', type=str, default=None)
     
     args = parser.parse_args()

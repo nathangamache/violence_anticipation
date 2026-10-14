@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""One 768-d VideoMAE-base embedding per Kinetics clip from uniformly sampled frames."""
 import os
 import json
 import cv2
@@ -10,10 +11,6 @@ import torch
 from transformers import VideoMAEModel, VideoMAEImageProcessor
 
 
-# ============================================================
-# CONFIG
-# ============================================================
-
 BASE = os.path.expanduser("~/projects/violence_anticipation/data")
 
 KIN_META = f"{BASE}/metadata/kinetics.json"
@@ -23,10 +20,6 @@ OUT_DIR  = f"{BASE}/processed/kinetics_actions"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_grad_enabled(False)
 
-
-# ============================================================
-# MODEL LOADING
-# ============================================================
 
 print("[Kinetics] Loading VideoMAE model (base) for feature extraction...")
 
@@ -39,20 +32,12 @@ feature_extractor = VideoMAEImageProcessor.from_pretrained(VIDEOMAE_NAME)
 VMAE_NUM_FRAMES = getattr(videomae.config, "num_frames", 16)
 
 
-# ============================================================
-# UTILS
-# ============================================================
-
 def safe_mkdir(p: str):
     if not os.path.exists(p):
         os.makedirs(p)
 
 
 def _embed_clip_from_frames(frames: list[Image.Image]) -> np.ndarray:
-    """
-    Given a list of PIL frames (>= 1), run VideoMAE and return a single
-    768-D embedding.
-    """
     if len(frames) == 0:
         return np.zeros((768,), dtype=np.float32)
 
@@ -71,10 +56,6 @@ def _embed_clip_from_frames(frames: list[Image.Image]) -> np.ndarray:
     return emb.cpu().numpy().astype(np.float32)
 
 
-# ============================================================
-# MAIN
-# ============================================================
-
 def preprocess_kinetics_for_videomae():
     safe_mkdir(OUT_DIR)
 
@@ -90,7 +71,6 @@ def preprocess_kinetics_for_videomae():
     for clip_id in tqdm(keys, desc="Kinetics VideoMAE features"):
         out_path = os.path.join(OUT_DIR, f"{clip_id}.npy")
         if os.path.exists(out_path):
-            # Already processed → skip
             continue
 
         vid_path = os.path.join(KIN_RAW, f"{clip_id}.mp4")
@@ -106,7 +86,6 @@ def preprocess_kinetics_for_videomae():
             print(f"[Skip] No frames in: {vid_path}")
             continue
 
-        # Uniformly sample frames across the clip
         num_samples = min(VMAE_NUM_FRAMES, total_frames)
         indices = np.linspace(0, total_frames - 1, num_samples).astype(int)
 

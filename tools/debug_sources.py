@@ -12,7 +12,6 @@ def extract_video_name(item):
     return str(item)
 
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from its ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
@@ -21,7 +20,6 @@ def classify_video_source(video_id: str) -> str:
         return 'xd_violence'
     return 'unknown'
 
-# Load train index
 with open('train_index.json') as f:
     train_items = json.load(f)
 
@@ -32,7 +30,6 @@ for item in train_items[:5]:
     source = classify_video_source(name)
     print(f"  {name[:60]}... -> {source}")
 
-# Count sources
 source_counts = Counter()
 for item in train_items:
     name = extract_video_name(item)

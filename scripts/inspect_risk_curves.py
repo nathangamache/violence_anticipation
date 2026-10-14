@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
-"""
-Quick inspection of ground-truth risk curves.
+"""Print and plot ground-truth risk curves to check that labels ramp up before the event.
 
-Use this to:
-- See how risk ramps up for:
-  * obvious violent clips
-  * slow-burn clips (late event_frame)
-  * non-violent clips
-- Make sure labels actually encode anticipation.
-
-Example:
+Usage:
   python -m scripts.inspect_risk_curves --data_root data --video_id RoadAccidents039_x264
   python -m scripts.inspect_risk_curves --data_root data --auto_samples
 """
@@ -38,7 +30,6 @@ def load_metadata(meta_dir):
 
 
 def pick_sample_videos(meta, k_pos_early=2, k_pos_late=2, k_neg=2):
-    """Heuristically pick some example clips."""
     pos_early = []
     pos_late = []
     negs = []
@@ -68,7 +59,6 @@ def pick_sample_videos(meta, k_pos_early=2, k_pos_late=2, k_neg=2):
 
 
 def plot_curve(vid_id, labels, info, out_dir):
-    """Plot risk curve if matplotlib is available; otherwise just print stats."""
     label = info.get("label", 0)
     total_frames = info.get("total_frames", len(labels))
     event_frame = info.get("event_frame", 0)

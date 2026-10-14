@@ -1,5 +1,3 @@
-# training/dataset.py
-
 import os
 import json
 from typing import List, Dict, Any
@@ -13,17 +11,10 @@ EDGE_DIM = 4  # last-dim of edge features we expect
 
 
 class GraphSequenceDataset(Dataset):
-    """
-    Loads per-video graph sequences and frame-level risk labels.
+    """Per-video graph sequences with frame-level risk labels.
 
-    Each item returns:
-        frames: List[Dict[str, torch.Tensor]]
-            Each frame dict has:
-                "nodes": [N, node_dim] float32
-                "edges": [N, N, EDGE_DIM] float32
-                "scene": [scene_dim] float32
-                "audio": [audio_dim] float32
-        labels: [T] float32
+    Items are (frames, labels[T]); each frame is a dict of float32 tensors: nodes [N, node_dim],
+    edges [N, N, EDGE_DIM], scene [scene_dim], audio [audio_dim].
     """
 
     def __init__(self, index_json: str, min_frames: int = 16):
@@ -49,7 +40,6 @@ class GraphSequenceDataset(Dataset):
                 graph_seq = np.load(gpath, allow_pickle=True)
                 labels = np.load(lpath)
 
-                # Make sure we can iterate frames
                 if isinstance(graph_seq, np.ndarray):
                     frames_raw = list(graph_seq)
                 else:
@@ -58,7 +48,6 @@ class GraphSequenceDataset(Dataset):
                 if len(frames_raw) == 0 or len(labels) == 0:
                     continue
 
-                # First valid frame for inferring dims
                 frame0 = frames_raw[0]
 
                 if self.node_dim is None:
@@ -68,12 +57,11 @@ class GraphSequenceDataset(Dataset):
                     print(f"[Dataset] Inferred dims: node={self.node_dim}, "
                           f"scene={self.scene_dim}, audio={self.audio_dim}")
 
-                # Compute usable length
                 T = min(len(frames_raw), len(labels))
                 if T < min_frames:
                     continue
 
-                # Sanity check: can we coerce the first frame?
+                # validate frame0 only; failures drop the item via the except below
                 _ = self._coerce_nodes(frame0.get("nodes", []))
                 _edges = self._coerce_edges(frame0.get("edges", None), num_nodes=_.shape[0])
                 _scene = self._coerce_vec(frame0.get("scene", None), self.scene_dim)
@@ -85,35 +73,27 @@ class GraphSequenceDataset(Dataset):
 
             except Exception as e:
                 continue
-                # Old / corrupted graph, just drop it from the dataset
-                #print(f"[Dataset] Skipping {gpath} due to error: {e}")
 
         if not self.items:
             raise RuntimeError("No valid items found in index")
 
         print(f"[Dataset] Final usable items: {len(self.items)}")
 
-    # ------------------------------------------------------------------ utils
-
     def _infer_node_dim(self, frame: Dict[str, Any]) -> int:
         nodes_raw = frame.get("nodes", [])
-        # nodes_raw can be:
-        #   - list of vectors
-        #   - dict track_id -> vector
-        #   - empty
+        # nodes_raw: list of vectors, dict track_id -> vector, or empty
         if isinstance(nodes_raw, dict):
             vals = list(nodes_raw.values())
             if not vals:
-                return 772  # fallback
+                return 772  # 4 bbox coords + 768-d action vector
             sample = vals[0]
         else:
             if not nodes_raw:
-                return 772  # fallback
+                return 772
             sample = nodes_raw[0]
 
         arr = np.asarray(sample, dtype=np.float32)
         if arr.ndim == 0:
-            # weird scalar, fallback
             return 772
         return int(arr.shape[-1])
 
@@ -126,9 +106,7 @@ class GraphSequenceDataset(Dataset):
         return int(arr.shape[-1])
 
     def _coerce_nodes(self, nodes_raw) -> np.ndarray:
-        """
-        Turn various node formats into [N, node_dim] float32.
-        """
+        """Turn various node formats into [N, node_dim] float32."""
         rows = []
 
         if isinstance(nodes_raw, dict):
@@ -151,7 +129,6 @@ class GraphSequenceDataset(Dataset):
 
         mat = np.stack(rows, axis=0)
 
-        # Pad or truncate to node_dim to keep model compatible
         d = mat.shape[-1]
         if d == self.node_dim:
             return mat.astype(np.float32)
@@ -164,15 +141,12 @@ class GraphSequenceDataset(Dataset):
             return np.concatenate([mat, pad], axis=-1)
 
     def _coerce_edges(self, edges_raw, num_nodes: int) -> np.ndarray:
-        """
-        Return [N, N, EDGE_DIM] float32.
-        """
+        """Return [N, N, EDGE_DIM] float32."""
         if edges_raw is None:
             return np.zeros((num_nodes, num_nodes, EDGE_DIM), dtype=np.float32)
 
         arr = np.asarray(edges_raw, dtype=np.float32)
         if arr.ndim == 2:
-            # adjacency -> broadcast into last dim
             arr = np.stack([arr] * EDGE_DIM, axis=-1)
         elif arr.ndim == 3 and arr.shape[-1] != EDGE_DIM:
             d = arr.shape[-1]
@@ -182,9 +156,7 @@ class GraphSequenceDataset(Dataset):
                 pad = np.zeros(arr.shape[:-1] + (EDGE_DIM - d,), dtype=np.float32)
                 arr = np.concatenate([arr, pad], axis=-1)
 
-        # Final sanity
         if arr.shape[0] != num_nodes or arr.shape[1] != num_nodes:
-            # Resize to match node count if needed
             arr = np.zeros((num_nodes, num_nodes, EDGE_DIM), dtype=np.float32)
 
         return arr.astype(np.float32)
@@ -200,8 +172,6 @@ class GraphSequenceDataset(Dataset):
             return arr[:dim]
         pad = np.zeros((dim - d,), dtype=np.float32)
         return np.concatenate([arr, pad], axis=0)
-
-    # ------------------------------------------------------------------ Dataset API
 
     def __len__(self) -> int:
         return len(self.items)
@@ -244,7 +214,4 @@ class GraphSequenceDataset(Dataset):
 
 
 def infer_dims(dataset: GraphSequenceDataset):
-    """
-    Helper used by training.train and training.evaluate.
-    """
     return dataset.node_dim, dataset.scene_dim, dataset.audio_dim

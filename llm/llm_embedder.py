@@ -5,14 +5,7 @@ import re
 
 
 class LLMEmbedder:
-    """
-    Wrapper for Qwen2.5 LLM (1.5B or 3B) to produce a violence-risk score
-    from a natural-language scene summary.
-
-    Example:
-        llm = LLMEmbedder("Qwen/Qwen2.5-3B-Instruct", device="cuda")
-        score = llm.predict_risk(summary_text)
-    """
+    """Qwen2.5 wrapper that scores violence risk in [0, 1] from a scene summary."""
 
     def __init__(
         self,
@@ -30,7 +23,6 @@ class LLMEmbedder:
             device_map=device,
         )
 
-        # Instruction tuned toward scalar risk outputs
         self.system_prompt = (
             "You analyze human interactions in video surveillance scenes and "
             "estimate the likelihood that physical violence will occur soon. "
@@ -45,7 +37,6 @@ class LLMEmbedder:
         )
 
     def _extract_number(self, text: str) -> float:
-        # Try to extract a number like 0.73, 1.0, etc.
         nums = re.findall(r"\d+\.\d+|\d+", text)
         if not nums:
             return 0.0
@@ -53,13 +44,9 @@ class LLMEmbedder:
             value = float(nums[-1])
         except ValueError:
             return 0.0
-        # clamp into [0,1]
         return max(0.0, min(1.0, value))
 
     def predict_risk(self, summary: str) -> float:
-        """
-        Run LLM and return a scalar violence risk score in [0,1].
-        """
         prompt = self.build_prompt(summary)
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 

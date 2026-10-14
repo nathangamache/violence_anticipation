@@ -1,21 +1,9 @@
-"""
-algorithm_variations.py
-========================
-Three alternative algorithms evaluated against the current LSTM baseline:
-
-  1. Transformer encoder — replaces LSTM with multi-head self-attention
-  2. Logistic Regression (primary, not just baseline) — with calibration,
-     temporal context features, and per-video evaluation
-  3. Sliding window aggregation — pools a window of frame-level LR scores
-     using mean, max, and percentile strategies
+"""Compare a Transformer encoder, logistic regression variants and sliding-window score pooling.
 
 Usage:
-    python algorithm_variations.py \
-        --embeddings data/processed/vlm_emb \
-        --labels data/processed/labels_multih \
-        --checkpoint outputs/outputs_temporal/best_temporal_model.pt
+    python algorithm_variations.py --embeddings data/processed/vlm_emb --labels data/processed/labels_multih
 
-Outputs: results/algorithm_comparison.csv  +  printed table
+Writes results/algorithm_comparison.csv and results/transformer_model.pt.
 """
 
 import argparse
@@ -33,10 +21,6 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 
-
-# ──────────────────────────────────────────────
-# Shared data helpers
-# ──────────────────────────────────────────────
 
 def load_video_pairs(vlm_dir: Path, labels_dir: Path, max_videos: int = 300):
     pairs = []
@@ -69,19 +53,8 @@ def flatten(pairs):
     return np.vstack([p[0] for p in pairs]), np.concatenate([p[1] for p in pairs])
 
 
-# ──────────────────────────────────────────────
-# 1. Transformer Encoder
-# ──────────────────────────────────────────────
-
 class TransformerViolenceModel(nn.Module):
-    """
-    Replaces the bidirectional LSTM with a Transformer encoder.
-    Architecture:
-      - Linear projection: input_dim → d_model
-      - Positional encoding (learnable)
-      - N × TransformerEncoderLayer (multi-head attention + FFN)
-      - CLS token pooling → classifier head
-    """
+    """Transformer encoder over a window of frame embeddings, pooled through a learnable CLS token."""
 
     def __init__(
         self,
@@ -98,20 +71,17 @@ class TransformerViolenceModel(nn.Module):
         self.seq_len = seq_len
         self.d_model = d_model
 
-        # Input projection
         self.input_proj = nn.Sequential(
             nn.Linear(input_dim, d_model),
             nn.LayerNorm(d_model),
         )
 
-        # Learnable positional encoding (seq_len + 1 for CLS token)
+        # +1 position for the CLS token
         self.pos_emb = nn.Embedding(seq_len + 1, d_model)
 
-        # CLS token
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
         nn.init.trunc_normal_(self.cls_token, std=0.02)
 
-        # Transformer encoder
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -121,7 +91,6 @@ class TransformerViolenceModel(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
 
-        # Classifier
         self.classifier = nn.Sequential(
             nn.Linear(d_model, 64),
             nn.ReLU(),
@@ -133,29 +102,23 @@ class TransformerViolenceModel(nn.Module):
         """x: (B, T, D)"""
         B, T, D = x.shape
 
-        # Project input
-        x = self.input_proj(x)  # (B, T, d_model)
+        x = self.input_proj(x)
 
-        # Prepend CLS token
-        cls = self.cls_token.expand(B, -1, -1)  # (B, 1, d_model)
+        cls = self.cls_token.expand(B, -1, -1)
         x = torch.cat([cls, x], dim=1)  # (B, T+1, d_model)
 
-        # Add positional encodings
         positions = torch.arange(T + 1, device=x.device).unsqueeze(0)
         x = x + self.pos_emb(positions)
 
-        # Transformer
-        out = self.transformer(x)  # (B, T+1, d_model)
+        out = self.transformer(x)
 
-        # CLS token output → classifier
-        cls_out = out[:, 0, :]  # (B, d_model)
+        cls_out = out[:, 0, :]
         return self.classifier(cls_out)  # (B, 1)
 
 
 def train_transformer(train_pairs, val_pairs, seq_len=30, epochs=30, lr=1e-3, device="cpu"):
     """Train the TransformerViolenceModel with early stopping."""
 
-    # Scaler fitted on train embeddings
     X_tr, _ = flatten(train_pairs)
     scaler = StandardScaler()
     scaler.fit(X_tr)
@@ -172,7 +135,6 @@ def train_transformer(train_pairs, val_pairs, seq_len=30, epochs=30, lr=1e-3, de
     X_train_seq, y_train_seq = make_sequences(train_pairs)
     X_val_seq, y_val_seq = make_sequences(val_pairs)
 
-    # Class weights
     pos = y_train_seq.sum()
     neg = len(y_train_seq) - pos
     pos_weight = torch.tensor([neg / (pos + 1e-6)], dtype=torch.float32, device=device)
@@ -204,7 +166,6 @@ def train_transformer(train_pairs, val_pairs, seq_len=30, epochs=30, lr=1e-3, de
             optimizer.step()
             epoch_loss += loss.item()
 
-        # Validation AUC
         model.eval()
         with torch.no_grad():
             scores = []
@@ -254,19 +215,8 @@ def eval_transformer(model, scaler, val_pairs, seq_len=30, device="cpu"):
     return auc, ap
 
 
-# ──────────────────────────────────────────────
-# 2. Logistic Regression as Primary Model
-# ──────────────────────────────────────────────
-
 def build_temporal_features(emb: np.ndarray, window: int = 10) -> np.ndarray:
-    """
-    Augment raw VLM embeddings with temporal context features:
-      - Frame embedding (3584-dim)
-      - Mean of last `window` frames (3584-dim)
-      - Std of last `window` frames (3584-dim)  [flattened to scalar per-dim]
-      - Delta (current − previous frame)
-    Total: 3584 * 4 = 14336 dims (large, so we also provide a PCA-reduced version)
-    """
+    """Concatenate each frame with its trailing-window mean, std and first difference (4*D dims)."""
     T, D = emb.shape
     feats = []
     for i in range(T):
@@ -280,10 +230,7 @@ def build_temporal_features(emb: np.ndarray, window: int = 10) -> np.ndarray:
 
 
 def eval_logistic_regression(train_pairs, val_pairs, use_temporal_features=False, window=10):
-    """
-    Logistic regression, optionally with temporal context features.
-    Includes probability calibration via CalibratedClassifierCV.
-    """
+    """Per-video mean AUC/AP of isotonic-calibrated LR, optionally on temporal features."""
     if use_temporal_features:
         print("    Building temporal features (may take a moment)...")
         train_feats = [(build_temporal_features(emb, window), lbl) for emb, lbl in train_pairs]
@@ -296,7 +243,6 @@ def eval_logistic_regression(train_pairs, val_pairs, use_temporal_features=False
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
 
-    # Base LR with calibration
     base_clf = LogisticRegression(max_iter=1000, C=1.0, class_weight="balanced", solver="saga")
     clf = CalibratedClassifierCV(base_clf, cv=3, method="isotonic")
     clf.fit(X_train_s, y_train)
@@ -316,18 +262,8 @@ def eval_logistic_regression(train_pairs, val_pairs, use_temporal_features=False
     return mean_auc, mean_ap, clf, scaler
 
 
-# ──────────────────────────────────────────────
-# 3. Sliding Window Aggregation
-# ──────────────────────────────────────────────
-
 def sliding_window_aggregate(scores: np.ndarray, window: int, strategy: str = "mean") -> np.ndarray:
-    """
-    Aggregate frame-level scores over a sliding window.
-      mean      — simple average
-      max       — maximum (sensitive, good for detecting any violence)
-      p75       — 75th percentile (robust to outliers)
-      ewm       — exponentially weighted mean (equivalent to EMA but framed as aggregation)
-    """
+    """Causal trailing-window pooling of scores: mean, max, p75 or ewm (unknown strategies use mean)."""
     out = np.empty_like(scores)
     for i in range(len(scores)):
         start = max(0, i - window + 1)
@@ -339,7 +275,6 @@ def sliding_window_aggregate(scores: np.ndarray, window: int, strategy: str = "m
         elif strategy == "p75":
             out[i] = np.percentile(window_scores, 75)
         elif strategy == "ewm":
-            # EWM within window
             alpha = 2 / (len(window_scores) + 1)
             v = window_scores[0]
             for s in window_scores[1:]:
@@ -351,9 +286,7 @@ def sliding_window_aggregate(scores: np.ndarray, window: int, strategy: str = "m
 
 
 def eval_sliding_window(train_pairs, val_pairs, windows=(5, 10, 20, 30), strategies=("mean", "max", "p75", "ewm")):
-    """
-    Train a base LR classifier, then evaluate AUC/AP at all window × strategy combos.
-    """
+    """Per-video AUC/AP of base LR scores for every window x strategy, plus the unpooled ("raw", 1) entry."""
     X_train, y_train = flatten(train_pairs)
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
@@ -362,7 +295,6 @@ def eval_sliding_window(train_pairs, val_pairs, windows=(5, 10, 20, 30), strateg
 
     results = {}
 
-    # Baseline: no aggregation
     aucs_raw = []
     for emb, lbl in val_pairs:
         scores = clf.predict_proba(scaler.transform(emb))[:, 1]
@@ -386,10 +318,6 @@ def eval_sliding_window(train_pairs, val_pairs, windows=(5, 10, 20, 30), strateg
 
     return results
 
-
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()
@@ -415,31 +343,26 @@ def main():
 
     all_results = []
 
-    # ── Baseline: plain LR ────────────────────
     print("\n[Baseline] Plain logistic regression")
     auc, ap, _, _ = eval_logistic_regression(train_pairs, val_pairs, use_temporal_features=False)
     print(f"  AUC: {auc:.4f}  AP: {ap:.4f}")
     all_results.append({"model": "LR (baseline)", "auc": auc, "ap": ap})
 
-    # ── 1. Transformer ────────────────────────
     print("\n[1] Transformer encoder")
     model, scaler, best_val_auc = train_transformer(train_pairs, val_pairs, device=str(device))
     t_auc, t_ap = eval_transformer(model, scaler, val_pairs, device=str(device))
     print(f"  AUC: {t_auc:.4f}  AP: {t_ap:.4f}  (best val during train: {best_val_auc:.4f})")
     all_results.append({"model": "Transformer", "auc": t_auc, "ap": t_ap})
 
-    # Save transformer checkpoint
     torch.save({"model": model, "scaler_mean": scaler.mean_, "scaler_scale": scaler.scale_},
                "results/transformer_model.pt")
     print("  Saved to results/transformer_model.pt")
 
-    # ── 2. LR as primary (with temporal features) ──
     print("\n[2] Logistic regression with temporal context features (window=10)")
     auc_t, ap_t, _, _ = eval_logistic_regression(train_pairs, val_pairs, use_temporal_features=True, window=10)
     print(f"  AUC: {auc_t:.4f}  AP: {ap_t:.4f}")
     all_results.append({"model": "LR + temporal features", "auc": auc_t, "ap": ap_t})
 
-    # ── 3. Sliding window aggregation ─────────
     print("\n[3] Sliding window aggregation")
     sw_results = eval_sliding_window(train_pairs, val_pairs)
     best_sw = max(sw_results.items(), key=lambda x: x[1][0] if not np.isnan(x[1][0]) else 0)
@@ -452,7 +375,6 @@ def main():
 
     print(f"\n  Best config: window={best_sw[0][1]}, strategy={best_sw[0][0]}, AUC={best_sw[1][0]:.4f}")
 
-    # ── Summary table ─────────────────────────
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
@@ -461,7 +383,6 @@ def main():
     for r in all_results:
         print(f"  {r['model']:<33} {r['auc']:>8.4f} {r['ap']:>8.4f}")
 
-    # ── Save CSV ──────────────────────────────
     import csv
     with open(args.output, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["model", "auc", "ap"])

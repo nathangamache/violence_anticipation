@@ -1,4 +1,4 @@
-# vlm/qwen_teacher.py
+"""Qwen2.5-VL teacher: JSON frame labelling, prompt library and image-token embeddings."""
 import json
 import re
 from dataclasses import dataclass, field
@@ -18,7 +18,6 @@ except Exception:
 def _best_effort_json_parse(text: str) -> Optional[Dict[str, Any]]:
     s = text.strip()
 
-    # prefer fenced ```json {..} ``` if present
     fence = re.search(r"```json\s*(\{.*?\})\s*```", s, flags=re.DOTALL | re.IGNORECASE)
     if fence:
         blob = fence.group(1).strip()
@@ -27,7 +26,6 @@ def _best_effort_json_parse(text: str) -> Optional[Dict[str, Any]]:
         except Exception:
             pass
 
-    # otherwise, find first balanced {...}
     m = re.search(r"\{", s)
     if not m:
         return None
@@ -51,7 +49,6 @@ def _best_effort_json_parse(text: str) -> Optional[Dict[str, Any]]:
     try:
         return json.loads(blob)
     except Exception:
-        # tiny repairs
         repaired = blob.replace("'", '"')
         repaired = re.sub(r",\s*}", "}", repaired)
         repaired = re.sub(r",\s*]", "]", repaired)
@@ -67,35 +64,29 @@ class FrameContext:
     t: int
     raw_frame_idx: int
     parsed: Dict[str, Any]
-    image: Optional[Image.Image] = None  # Optional: for multi-frame visual context
+    image: Optional[Image.Image] = None
     
     def to_text_summary(self, max_len: int = 300) -> str:
-        """Convert to a concise text summary for prompt injection."""
         parts = []
         
-        # Violence assessment
         violent = self.parsed.get("violent", {})
         if isinstance(violent, dict):
             label = violent.get("label", "unknown")
             score = violent.get("score", "?")
             parts.append(f"violence={label}({score})")
         
-        # People count
         pc = self.parsed.get("people_count")
         if pc is not None:
             parts.append(f"people={pc}")
         
-        # Actions (truncate if needed)
         actions = self.parsed.get("actions", [])
         if actions:
             parts.append(f"actions=[{','.join(actions[:3])}]")
         
-        # Weapons
         weapons = self.parsed.get("weapons", [])
         if weapons:
             parts.append(f"weapons=[{','.join(weapons[:3])}]")
         
-        # Scene
         scene = self.parsed.get("scene", [])
         if scene:
             parts.append(f"scene=[{','.join(scene[:3])}]")
@@ -106,31 +97,24 @@ class FrameContext:
 
 @dataclass
 class ContextWindow:
-    """
-    Sliding window of recent frame contexts.
-    Supports both text-based and multi-frame visual context.
-    """
-    max_frames: int = 3  # How many previous frames to remember
+    """Sliding window of recent frame contexts (text summaries and optional images)."""
+    max_frames: int = 3
     frames: List[FrameContext] = field(default_factory=list)
     
     def add(self, ctx: FrameContext):
-        """Add a new frame context, maintaining window size."""
         self.frames.append(ctx)
         if len(self.frames) > self.max_frames:
-            # Remove oldest, also clear its image to free memory
             old = self.frames.pop(0)
             if old.image is not None:
                 del old.image
     
     def clear(self):
-        """Clear all context (e.g., when starting a new video)."""
         for f in self.frames:
             if f.image is not None:
                 del f.image
         self.frames.clear()
     
     def get_text_context(self) -> Optional[str]:
-        """Get text summary of recent frames for prompt injection."""
         if not self.frames:
             return None
         
@@ -140,32 +124,17 @@ class ContextWindow:
         return "\n".join(lines)
     
     def get_images(self) -> List[Image.Image]:
-        """Get list of previous frame images (for multi-frame input)."""
         return [f.image for f in self.frames if f.image is not None]
     
     def latest(self) -> Optional[FrameContext]:
-        """Get the most recent frame context."""
         return self.frames[-1] if self.frames else None
 
 
-# ==============================================================================
-# Violence-Focused Prompts
-# ==============================================================================
-
 class ViolencePrompts:
-    """
-    Collection of violence-focused prompts for embedding extraction.
-    
-    These prompts guide the VLM's attention toward violence-relevant features,
-    resulting in embeddings that better separate violent from non-violent content.
-    """
+    """Prompt templates for violence-focused JSON labelling."""
     
     @staticmethod
     def embedding_focused() -> str:
-        """
-        Prompt optimized for embedding extraction.
-        Focuses the model's attention on violence-relevant visual features.
-        """
         return (
             "Analyze this security camera frame for signs of violence or pre-violence.\n"
             "Focus your attention on:\n"
@@ -191,10 +160,6 @@ class ViolencePrompts:
     
     @staticmethod
     def anticipation_focused() -> str:
-        """
-        Prompt focused on ANTICIPATING violence before it happens.
-        Emphasizes pre-violence indicators and escalation patterns.
-        """
         return (
             "You are a violence anticipation system. Analyze this frame for signs that "
             "violence MAY BE ABOUT TO OCCUR in the next 30 seconds.\n"
@@ -229,9 +194,6 @@ class ViolencePrompts:
     
     @staticmethod
     def detailed_violence() -> str:
-        """
-        Comprehensive violence analysis prompt with detailed categories.
-        """
         return (
             "Analyze this image as a security analyst looking for violence or threats.\n"
             "\n"
@@ -273,10 +235,6 @@ class ViolencePrompts:
     
     @staticmethod
     def minimal_violence() -> str:
-        """
-        Short, focused prompt for faster processing.
-        Still guides attention to violence but with less text.
-        """
         return (
             "Security camera analysis. Detect violence, aggression, or threats.\n"
             "Look for: fighting, weapons, aggressive postures, fleeing people, confrontations.\n"
@@ -292,9 +250,6 @@ class ViolencePrompts:
     
     @staticmethod
     def temporal_violence(context_text: Optional[str] = None) -> str:
-        """
-        Violence-focused prompt with temporal context awareness.
-        """
         base = (
             "You are analyzing video frames for violence anticipation.\n"
             "Your goal is to detect violence BEFORE or AS it happens.\n"
@@ -335,19 +290,8 @@ class ViolencePrompts:
         )
         return base
 
-    # ==========================================================================
-    # NEW: Multi-cue anticipation prompts for granular pre-violence detection
-    # ==========================================================================
-    
     @staticmethod
     def anticipation_multicue() -> str:
-        """
-        Multi-cue anticipation prompt that scores INDIVIDUAL pre-violence indicators.
-        
-        This produces structured scores for each escalation cue, enabling the model
-        to learn which combinations predict violence rather than relying on a single
-        binary label.
-        """
         return (
             "You are an expert violence anticipation system for surveillance video.\n"
             "Your task is to detect PRE-VIOLENCE CUES that appear BEFORE violence occurs.\n"
@@ -421,10 +365,6 @@ class ViolencePrompts:
     
     @staticmethod
     def anticipation_simple() -> str:
-        """
-        Simplified anticipation prompt with key escalation scores.
-        Faster than multicue but still captures essential pre-violence signals.
-        """
         return (
             "Analyze this surveillance frame for violence risk.\n"
             "\n"
@@ -454,10 +394,6 @@ class ViolencePrompts:
     
     @staticmethod
     def anticipation_behavioral() -> str:
-        """
-        Behavioral-focused prompt emphasizing body language and social dynamics.
-        Best for scenarios where physical violence cues are subtle.
-        """
         return (
             "You are a behavioral analyst examining surveillance footage.\n"
             "Focus on BODY LANGUAGE and SOCIAL DYNAMICS that precede violence.\n"
@@ -499,12 +435,6 @@ class ViolencePrompts:
     
     @staticmethod
     def anticipation_temporal(prev_scores: Optional[Dict[str, float]] = None) -> str:
-        """
-        Temporal-aware anticipation prompt that considers previous frame analysis.
-        
-        Args:
-            prev_scores: Dictionary of scores from previous frame analysis
-        """
         base = (
             "You are analyzing a video frame for violence anticipation.\n"
             "Consider CHANGES over time, not just the current state.\n"
@@ -534,10 +464,6 @@ class ViolencePrompts:
     
     @staticmethod
     def scene_context() -> str:
-        """
-        Scene context prompt to understand environment risk factors.
-        Run once at the start of a video to establish baseline.
-        """
         return (
             "Analyze this surveillance scene for environmental risk factors.\n"
             "\n"
@@ -564,20 +490,15 @@ class QwenTeacherConfig:
     temperature: float = 0.0
     top_p: float = 1.0
     dtype: str = "bfloat16"
-    device: Optional[str] = None     # "cuda:0"
+    device: Optional[str] = None
     attn_implementation: Optional[str] = "sdpa"  # "sdpa" or "eager" to avoid flash_attn
     use_fast_processor: bool = True  # set False to silence the fast-processor warning
     
-    # Context/memory settings
     context_mode: str = "both"       # "none", "text", "visual", "both"
-    context_window_size: int = 5     # Number of previous frames to remember
-    store_context_images: bool = False  # Whether to keep PIL images in memory
+    context_window_size: int = 5
+    store_context_images: bool = False
     
-    # Violence-focused prompt settings
-    prompt_mode: str = "violence_embedding"  # "default", "violence_embedding", "violence_anticipation", 
-                                             # "violence_detailed", "violence_minimal", "violence_temporal",
-                                             # "anticipation_multicue", "anticipation_simple", 
-                                             # "anticipation_behavioral", "scene_context"
+    prompt_mode: str = "violence_embedding"  # see QwenTeacher.get_prompt_for_mode
 
 
 class QwenTeacher:
@@ -595,11 +516,9 @@ class QwenTeacher:
             torch_dtype=dtype,
             trust_remote_code=True,
         )
-        # IMPORTANT: this prevents transformers from trying flash_attn_2
         if cfg.attn_implementation:
             kwargs["attn_implementation"] = cfg.attn_implementation
 
-        # Processor: allow opting out of "fast" behavior
         try:
             self.processor = AutoProcessor.from_pretrained(
                 cfg.model_id, trust_remote_code=True, use_fast=cfg.use_fast_processor
@@ -611,7 +530,6 @@ class QwenTeacher:
         self.model = AutoModelForVision2Seq.from_pretrained(cfg.model_id, **kwargs).to(self.device)
         self.model.eval()
         
-        # Initialize context window
         self.context = ContextWindow(max_frames=cfg.context_window_size)
 
     def reset_context(self):
@@ -642,7 +560,6 @@ class QwenTeacher:
 
     @staticmethod
     def context_aware_prompt(context_text: Optional[str] = None) -> str:
-        """Generate prompt with temporal context awareness."""
         base = (
             "You are analyzing video frames for violence detection.\n"
         )
@@ -681,15 +598,7 @@ class QwenTeacher:
         return base
 
     def get_prompt_for_mode(self, context_text: Optional[str] = None) -> str:
-        """
-        Get the appropriate prompt based on the configured prompt_mode.
-        
-        Args:
-            context_text: Optional context from previous frames
-            
-        Returns:
-            The prompt string to use
-        """
+        """Return the prompt for cfg.prompt_mode; unknown modes fall back to default_prompt."""
         mode = self.cfg.prompt_mode
         
         if mode == "default":
@@ -698,72 +607,50 @@ class QwenTeacher:
             return self.default_prompt()
         
         elif mode == "violence_embedding":
-            # Best for embedding extraction - focuses attention on violence features
             return ViolencePrompts.embedding_focused()
         
         elif mode == "violence_anticipation":
-            # Best for anticipation task - emphasizes pre-violence indicators
             return ViolencePrompts.anticipation_focused()
         
         elif mode == "violence_detailed":
-            # Most comprehensive analysis
             return ViolencePrompts.detailed_violence()
         
         elif mode == "violence_minimal":
-            # Fastest processing, still violence-focused
             return ViolencePrompts.minimal_violence()
         
         elif mode == "violence_temporal":
-            # Violence-focused with temporal context
             return ViolencePrompts.temporal_violence(context_text)
         
-        # NEW anticipation modes
         elif mode == "anticipation_multicue":
-            # Multi-cue scoring for granular pre-violence detection
             return ViolencePrompts.anticipation_multicue()
         
         elif mode == "anticipation_simple":
-            # Simplified anticipation with key scores
             return ViolencePrompts.anticipation_simple()
         
         elif mode == "anticipation_behavioral":
-            # Behavioral/body language focused
             return ViolencePrompts.anticipation_behavioral()
         
         elif mode == "scene_context":
-            # Scene analysis for baseline risk
             return ViolencePrompts.scene_context()
         
         else:
-            # Fallback to default
             return self.default_prompt()
 
     def _build_inputs(self, image: Image.Image, prompt: str, context_images: Optional[List[Image.Image]] = None):
-        """
-        Build model inputs, optionally including previous frame images.
-        
-        Args:
-            image: Current frame to analyze
-            prompt: Text prompt
-            context_images: Optional list of previous frame images for multi-frame context
-        """
         all_images = []
         content = []
         
-        # Add context images first (if using visual context mode)
         if context_images:
             for i, ctx_img in enumerate(context_images):
                 content.append({"type": "image", "image": ctx_img})
                 content.append({"type": "text", "text": f"[Previous frame {i+1}]"})
                 all_images.append(ctx_img)
         
-        # Add current image
         content.append({"type": "image", "image": image})
         if context_images:
             content.append({"type": "text", "text": "[Current frame to analyze]"})
         all_images.append(image)
         
-        # Add the main prompt
         content.append({"type": "text", "text": prompt})
         
         messages = [
@@ -780,15 +667,7 @@ class QwenTeacher:
         return inputs
 
     def _extract_embedding(self, inputs) -> Optional[np.ndarray]:
-        """
-        Image-conditioned embedding for Qwen2.5-VL.
-
-        Goal: DO NOT mean-pool over the entire sequence (prompt dominates).
-        Instead:
-        1) forward pass (no generation) w/ hidden states
-        2) pool ONLY vision/image token positions (best-effort)
-        3) L2-normalize for stability
-        """
+        """L2-normalised mean of last-layer hidden states at image-token positions only (a full-sequence mean is dominated by the prompt)."""
         with torch.no_grad():
             out = self.model(**inputs, output_hidden_states=True, return_dict=True, use_cache=False)
 
@@ -810,13 +689,11 @@ class QwenTeacher:
 
         pooled = None
 
-        # --- Try to pool ONLY vision/image token positions ---
         if input_ids is not None and tok is not None:
             ids = input_ids[0]
 
             cand_ids = set()
 
-            # common tokenizer/config attrs across VL implementations
             for a in ("image_token_id", "image_pad_token_id", "vision_token_id", "img_token_id"):
                 if hasattr(tok, a):
                     try: cand_ids.add(int(getattr(tok, a)))
@@ -826,7 +703,6 @@ class QwenTeacher:
                     try: cand_ids.add(int(getattr(self.model.config, a)))
                     except Exception: pass
 
-            # also sniff special tokens containing image/vision/img
             try:
                 specials = []
                 if getattr(tok, "additional_special_tokens", None):
@@ -846,22 +722,18 @@ class QwenTeacher:
             except Exception:
                 pass
 
-            # mask from candidate ids
             if cand_ids:
                 mask = torch.zeros_like(ids, dtype=torch.bool)
                 for cid in cand_ids:
                     mask |= (ids == cid)
 
-                # apply attention mask too (just in case)
                 if attn_mask is not None:
                     mask = mask & attn_mask[0].bool()
 
                 if mask.any():
                     pooled = hs[0][mask].mean(dim=0)
 
-        # --- Fallbacks ---
         if pooled is None:
-            # fallback 1: mean-pool only attended tokens
             if attn_mask is not None:
                 m = attn_mask[0].bool()
                 if m.any():
@@ -873,7 +745,6 @@ class QwenTeacher:
 
         pooled = pooled.float()
 
-        # L2 normalize -> stabilizes training + makes cosine checks meaningful
         pooled = pooled / (pooled.norm(p=2) + 1e-12)
 
         return pooled.detach().cpu().numpy().astype(np.float32)
@@ -887,21 +758,7 @@ class QwenTeacher:
         raw_frame_idx: Optional[int] = None,
         use_context: Optional[bool] = None,
     ) -> Union[Tuple[Optional[Dict[str, Any]], str], Tuple[Optional[Dict[str, Any]], str, Optional[np.ndarray]]]:
-        """
-        Analyze a single frame, optionally with temporal context.
-        
-        Args:
-            image: PIL Image of the current frame
-            prompt: Custom prompt (if None, uses configured prompt_mode)
-            return_embedding: Whether to return the embedding vector
-            t: Current timestep index (for context tracking)
-            raw_frame_idx: Raw frame index in the video (for context tracking)
-            use_context: Override cfg.context_mode (True=use context, False=don't)
-        
-        Returns:
-            (parsed_dict, raw_text) or (parsed_dict, raw_text, embedding)
-        """
-        # Determine whether to use context
+        """Return (parsed, raw_text) or (parsed, raw_text, emb); pushes to the context window when t and raw_frame_idx are set."""
         should_use_context = use_context if use_context is not None else (self.cfg.context_mode != "none")
         
         context_images = None
@@ -915,16 +772,14 @@ class QwenTeacher:
             
             if mode in ("visual", "both"):
                 context_images = self.context.get_images()
-                if not context_images:  # No images stored
+                if not context_images:
                     context_images = None
         
-        # Build prompt - use provided prompt or get from configured mode
         if prompt is not None:
             final_prompt = prompt
         else:
             final_prompt = self.get_prompt_for_mode(context_text)
         
-        # Build inputs (with optional multi-frame visual context)
         inputs = self._build_inputs(image, final_prompt, context_images)
 
         gen_kwargs = dict(
@@ -941,7 +796,6 @@ class QwenTeacher:
         decoded_tail = decoded.split("assistant")[-1].strip()
         parsed = _best_effort_json_parse(decoded_tail)
 
-        # Update context window if we have valid results and tracking info
         if parsed is not None and t is not None and raw_frame_idx is not None:
             ctx = FrameContext(
                 t=t,
@@ -962,27 +816,12 @@ class QwenTeacher:
         image: Image.Image,
         prompt: Optional[str] = None,
     ) -> Optional[np.ndarray]:
-        """
-        Extract only the embedding without generating text response.
-        
-        This is faster when you only need embeddings for training/inference.
-        Uses the configured prompt_mode to guide attention.
-        
-        Args:
-            image: PIL Image of the frame
-            prompt: Custom prompt (if None, uses configured prompt_mode)
-            
-        Returns:
-            Embedding vector as numpy array, or None if extraction failed
-        """
-        # Use provided prompt or get from configured mode
+        """Forward pass only (no generation); returns the image-token embedding."""
         if prompt is None:
             prompt = self.get_prompt_for_mode()
         
-        # Build inputs
         inputs = self._build_inputs(image, prompt)
         
-        # Extract embedding without generation
         return self._extract_embedding(inputs)
     
     def infer_batch_sequential(
@@ -992,21 +831,7 @@ class QwenTeacher:
         t_step: int = 1,
         return_embeddings: bool = False,
     ) -> List[Dict[str, Any]]:
-        """
-        Process a sequence of frames with context propagation.
-        
-        This maintains context across the batch, simulating sequential processing.
-        Useful for processing clips where you want temporal awareness.
-        
-        Args:
-            images: List of PIL Images in temporal order
-            start_t: Starting timestep index
-            t_step: Step between timesteps
-            return_embeddings: Whether to include embeddings in results
-        
-        Returns:
-            List of result dicts with 't', 'parsed', 'raw_text', and optionally 'embedding'
-        """
+        """Run infer_one over frames in order with a fresh context window (raw_frame_idx is approximated by t)."""
         self.reset_context()
         results = []
         
@@ -1018,7 +843,7 @@ class QwenTeacher:
                     img,
                     return_embedding=True,
                     t=t,
-                    raw_frame_idx=t,  # Approximate
+                    raw_frame_idx=t,
                 )
                 results.append({
                     "t": t,
@@ -1047,20 +872,7 @@ class QwenTeacher:
         prompt: Optional[str] = None,
         show_progress: bool = True,
     ) -> List[Optional[np.ndarray]]:
-        """
-        Extract embeddings for a batch of images (no text generation).
-        
-        This is the fastest way to get embeddings for many frames.
-        Uses the configured prompt_mode to guide attention toward violence features.
-        
-        Args:
-            images: List of PIL Images
-            prompt: Custom prompt (if None, uses configured prompt_mode)
-            show_progress: Whether to show progress bar
-            
-        Returns:
-            List of embedding vectors (or None for failed extractions)
-        """
+        """Sequential infer_embedding_only over images (not true batching)."""
         if prompt is None:
             prompt = self.get_prompt_for_mode()
         
@@ -1081,26 +893,10 @@ class QwenTeacher:
         return embeddings
 
 
-# ==============================================================================
-# Utility: Parse multi-cue output into feature vector
-# ==============================================================================
-
 def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
-    """
-    Convert anticipation_multicue output to a fixed-size feature vector.
-    
-    This extracts all the numeric scores into a vector that can be used
-    for training a classifier or as input to a downstream model.
-    
-    Args:
-        parsed: The parsed JSON from anticipation_multicue prompt
-        
-    Returns:
-        numpy array of shape (31,) with all scores
-    """
+    """Flatten anticipation_multicue JSON into a (31,) float32 vector."""
     features = []
     
-    # Confrontation (4 features)
     conf = parsed.get("confrontation", {})
     features.extend([
         conf.get("face_to_face", 0.0),
@@ -1109,7 +905,6 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         conf.get("verbal_argument", 0.0),
     ])
     
-    # Aggressive posture (5 features)
     agg = parsed.get("aggressive_posture", {})
     features.extend([
         agg.get("squared_shoulders", 0.0),
@@ -1119,7 +914,6 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         agg.get("leaning_forward_aggressive", 0.0),
     ])
     
-    # Movement patterns (5 features)
     mov = parsed.get("movement_patterns", {})
     features.extend([
         mov.get("advancing_on_someone", 0.0),
@@ -1129,7 +923,6 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         mov.get("cornering_someone", 0.0),
     ])
     
-    # Crowd dynamics (5 features)
     crowd = parsed.get("crowd_dynamics", {})
     features.extend([
         crowd.get("gathering_to_watch", 0.0),
@@ -1139,7 +932,6 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         crowd.get("two_groups_facing", 0.0),
     ])
     
-    # Preparation cues (4 features)
     prep = parsed.get("preparation_cues", {})
     features.extend([
         prep.get("removing_jacket", 0.0),
@@ -1148,7 +940,6 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         prep.get("reaching_for_object", 0.0),
     ])
     
-    # Active violence (7 features)
     viol = parsed.get("active_violence", {})
     features.extend([
         viol.get("pushing_shoving", 0.0),
@@ -1160,22 +951,13 @@ def multicue_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
         viol.get("people_fleeing", 0.0),
     ])
     
-    # Overall threat score (1 feature)
     features.append(parsed.get("overall_threat_score", 0.0))
     
     return np.array(features, dtype=np.float32)
 
 
 def simple_to_vector(parsed: Dict[str, Any]) -> np.ndarray:
-    """
-    Convert anticipation_simple output to a feature vector.
-    
-    Args:
-        parsed: The parsed JSON from anticipation_simple prompt
-        
-    Returns:
-        numpy array of shape (7,) with all scores
-    """
+    """Flatten anticipation_simple JSON into a (7,) float32 vector."""
     return np.array([
         parsed.get("confrontation_score", 0.0),
         parsed.get("aggressive_posture_score", 0.0),

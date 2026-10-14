@@ -1,18 +1,7 @@
 #!/usr/bin/env python3
-"""
-Anticipation-focused evaluation for ViolenceTransformer.
+"""Anticipation evaluation for ViolenceTransformer: frame MSE/ROC-AUC, TTD, false-alarm time, per-class AUC.
 
-Computes:
-- Global frame-level MSE + ROC-AUC (using PROBABILITIES)
-- Time-To-Detection (TTD) for violent clips (approximate, using metadata)
-- False-alarm duration for non-violent clips
-- Per-class frame-level ROC-AUC
-- Score percentile diagnostics (p50/p75/p90/p95/p99) for negative vs positive frames
-
-Key contract (NO MORE DOUBLE SIGMOID):
-- Model outputs LOGITS (we explicitly call return_logits=True)
-- Eval applies sigmoid ONCE to get probabilities in [0, 1]
-- Thresholds are interpreted in PROBABILITY space
+The model returns logits; sigmoid is applied once here, so --thresholds are probabilities.
 """
 
 import os
@@ -31,9 +20,6 @@ from core.model import ViolenceTransformer
 from core.utils import get_device
 
 
-# ---------------------------------------------------------------------
-# Metadata helpers
-# ---------------------------------------------------------------------
 def load_metadata(meta_dir: str):
     meta = {}
     for fname in ["xd_violence.json", "ucf_crime.json", "kinetics.json"]:
@@ -59,9 +45,6 @@ def infer_class_name(vid_id: str, meta_info: dict):
         return source or "unknown"
 
 
-# ---------------------------------------------------------------------
-# Dim inference (from dataset, NOT raw graphs)
-# ---------------------------------------------------------------------
 def infer_dims_from_dataset(dataset: GraphSequenceDataset):
     node_dim = None
     scene_dim = None
@@ -95,9 +78,6 @@ def infer_dims_from_dataset(dataset: GraphSequenceDataset):
     return node_dim, scene_dim, audio_dim
 
 
-# ---------------------------------------------------------------------
-# Score percentile diagnostics
-# ---------------------------------------------------------------------
 def _safe_percentiles(x: np.ndarray, ps=(50, 75, 90, 95, 99)):
     x = np.asarray(x, dtype=np.float32)
     x = x[np.isfinite(x)]
@@ -134,9 +114,6 @@ def print_frame_score_percentiles(scores: np.ndarray, targets: np.ndarray, bin_t
     print("================================================================\n")
 
 
-# ---------------------------------------------------------------------
-# Core evaluation
-# ---------------------------------------------------------------------
 def run_anticipation_eval(
     ckpt_path: str,
     index_path: str,
@@ -182,7 +159,7 @@ def run_anticipation_eval(
 
     thresholds = [float(t) for t in thresholds]
 
-    all_scores = []   # probs
+    all_scores = []
     all_targets = []
 
     stats = {
@@ -196,8 +173,8 @@ def run_anticipation_eval(
         for theta in thresholds
     }
 
-    per_class_scores = defaultdict(list)   # probs
-    per_class_targets = defaultdict(list)  # 0/1
+    per_class_scores = defaultdict(list)
+    per_class_targets = defaultdict(list)
 
     printed_predmode = False
 
@@ -228,8 +205,8 @@ def run_anticipation_eval(
             labels = labels.view(-1)
 
         with torch.no_grad():
-            logits = model(frames_cuda, return_logits=True).view(-1)   # [T]
-            probs = torch.sigmoid(logits)                              # [T] in (0,1)
+            logits = model(frames_cuda, return_logits=True).view(-1)
+            probs = torch.sigmoid(logits)
 
         T = min(probs.shape[0], labels.shape[0])
         if T == 0:
@@ -302,7 +279,7 @@ def run_anticipation_eval(
     if not all_scores:
         raise RuntimeError("[Eval] No valid sequences produced any predictions.")
 
-    scores = np.concatenate(all_scores, axis=0)   # probs in [0,1]
+    scores = np.concatenate(all_scores, axis=0)
     targets = np.concatenate(all_targets, axis=0)
 
     mse = float(np.mean((scores - targets) ** 2))

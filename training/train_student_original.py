@@ -1,22 +1,7 @@
 #!/usr/bin/env python3
-"""
-Train a small student head on VLM embeddings (+ optional structured JSONL fields)
-to predict frame-level labels aligned to graph timestep t.
+"""Train the multi-horizon student MLP on VLM embeddings + hashed JSONL fields, aligned to label timestep t.
 
-Supports:
-- detection labels (standard)
-- anticipation labels (requires --task anticipation --horizon_sec H and temporal segments for video stats)
-
-Inputs:
-- emb_root:   data/processed/vlm_emb/<source>/<vid_id>.npz with keys: t [N], emb [N,D]
-- jsonl_root: data/processed/vlm_labels/<source>/<vid_id>.jsonl with per-t info
-- labels_dir: <dir>/<vid_id>.npy with y[T]
-
-Outputs:
-- out_dir/metrics.json
-- out_dir/train_curve.png, out_dir/pr_curve.png, out_dir/roc_curve.png
-- out_dir/per_sample.csv
-- out_dir/per_video_val.csv, out_dir/per_video_test.csv
+Inputs: emb_root/<source>/<vid>.npz (t, emb), jsonl_root/<source>/<vid>.jsonl, labels_dir/<vid>.npy [T,K].
 """
 
 import argparse
@@ -37,9 +22,6 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 
 
-# ============================================================
-# Metrics (no sklearn)
-# ============================================================
 def roc_auc_score_np(y_true: np.ndarray, y_score: np.ndarray) -> float:
     y_true = y_true.astype(np.int32)
     if len(y_true) == 0 or y_true.min() == y_true.max():
@@ -85,7 +67,6 @@ def metrics_at_threshold(y_true: np.ndarray, y_score: np.ndarray, th: float) -> 
     recall = tp / (tp + fn + 1e-12)
     f1 = (2 * precision * recall) / (precision + recall + 1e-12)
 
-    # extras for threshold selection
     tpr = recall
     fpr = fp / (fp + tn + 1e-12)
     denom = math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn) + 1e-12)
@@ -114,19 +95,13 @@ def sweep_thresholds(
     th_min: float = 0.0,
     th_max: float = 0.999,
 ) -> List[dict]:
-    """
-    Threshold sweep over a configurable range.
-
-    IMPORTANT:
-    Keep th_max < 1.0. Sweeping to 1.0 creates a degenerate operating point
-    where sigmoid probs almost never reach 1.0, so the model can "choose" silence.
-    """
+    """Metrics at evenly spaced thresholds in [th_min, th_max]."""
     out: List[dict] = []
 
     lo = float(max(0.0, min(1.0, th_min)))
     hi = float(max(0.0, min(1.0, th_max)))
 
-    # hard clamp: never include 1.0
+    # Never include 1.0: sigmoid probs almost never reach it, so it degenerates to "never alert".
     hi = min(hi, 1.0 - 1e-6)
     if hi <= lo:
         hi = min(1.0 - 1e-6, lo + 1e-3)
@@ -139,24 +114,15 @@ def sweep_thresholds(
 def select_threshold_from_sweep(sweep: List[dict], mode: str,
                                 precision_floor: float = 0.0,
                                 f_beta: float = 1.0) -> dict:
-    """
-    mode:
-      - f1: maximize F1
-      - youden: maximize (TPR - FPR)
-      - mcc: maximize MCC
-      - precision_floor: maximize recall with precision >= floor (else maximize precision)
-      - fbeta: maximize F_beta (beta<1 => precision-heavy)
-    """
+    """Best sweep row by f1/youden/mcc/fbeta, or max recall at precision >= floor; ties -> higher threshold."""
     mode = (mode or "f1").lower()
 
     if mode == "precision_floor":
         pf = float(max(0.0, min(1.0, precision_floor)))
         candidates = [m for m in sweep if m["precision"] >= pf]
         if candidates:
-            # maximize recall; tie-break to higher threshold (more conservative)
             best = max(candidates, key=lambda d: (d["recall"], d["threshold"]))
             return best
-        # If nothing hits the precision floor, take the best precision available
         return max(sweep, key=lambda d: (d["precision"], d["recall"], d["threshold"]))
 
     if mode == "fbeta":
@@ -192,12 +158,10 @@ def baselines(y_true: np.ndarray) -> dict:
     y_true = y_true.astype(np.int32)
     p = float(y_true.mean()) if len(y_true) else 0.0
 
-    # always positive
     ap_prec = p
     ap_rec = 1.0
     ap_f1 = (2 * ap_prec * ap_rec) / (ap_prec + ap_rec + 1e-12)
 
-    # always negative
     an_prec = 0.0
     an_rec = 0.0
     an_f1 = 0.0
@@ -237,7 +201,7 @@ def evaluate_probs(
 
     b = baselines(y_true01)
     best_minus_ap = float(best["f1"] - b["always_pos_f1"])
-    warn_baseline = (best_minus_ap < 0.01)  # basically same as always-positive
+    warn_baseline = (best_minus_ap < 0.01)
 
     summary = dict(
         roc_auc=float(roc),
@@ -253,9 +217,6 @@ def evaluate_probs(
 
     return summary, b, best, sweep, warn_baseline
 
-# ============================================================
-# Text hashing for JSONL fields
-# ============================================================
 _token_re = re.compile(r"[a-z0-9]+")
 
 
@@ -282,9 +243,6 @@ def tokenize_notes(s: str) -> List[str]:
     return _token_re.findall(s)[:40]
 
 
-# ============================================================
-# JSONL parsing
-# ============================================================
 def parse_jsonl_to_tmap(jsonl_path: Path) -> Dict[int, dict]:
     tmap: Dict[int, dict] = {}
     if not jsonl_path.exists():
@@ -336,9 +294,6 @@ def as_list(x) -> List[str]:
     return []
 
 
-# ============================================================
-# Dataset building
-# ============================================================
 def iter_npz_files(emb_root: Path) -> List[Tuple[str, str, Path]]:
     out = []
     for p in emb_root.rglob("*.npz"):
@@ -352,7 +307,7 @@ def iter_npz_files(emb_root: Path) -> List[Tuple[str, str, Path]]:
 class FlatSamples(Dataset):
     def __init__(self, X: np.ndarray, y: np.ndarray):
         self.X = X
-        self.y = y  # [N, K] float, with -1 ignored
+        self.y = y  # [N, K], -1 = ignore
 
     def __len__(self): return self.X.shape[0]
 
@@ -392,13 +347,7 @@ def make_splits(video_ids: List[str], seed: int, val_frac: float, test_frac: flo
     return train, val, test
 
 def split_group_id(vid_id: str, source: str, mode: str) -> str:
-    """
-    mode:
-      - vid:        use full vid_id (current behavior)
-      - movie:      strip segment suffix like '__#...'
-      - source_vid: prefix with source to avoid collisions across datasets
-      - source_movie: source + movie-level base
-    """
+    """Split grouping key: 'movie' strips the '__#' segment suffix, 'source_*' prefixes the dataset source."""
     vid_id = str(vid_id)
     source = str(source)
     base = vid_id.split("__#", 1)[0] if "__#" in vid_id else vid_id
@@ -414,9 +363,6 @@ def split_group_id(vid_id: str, source: str, mode: str) -> str:
         return f"{source}/{base}"
     return vid_id
 
-# ============================================================
-# Metadata + temporal segments for anticipation video stats
-# ============================================================
 def load_metadata(meta_dir: str) -> Dict[str, dict]:
     meta = {}
     for fname in ["xd_violence.json", "ucf_crime.json", "kinetics.json"]:
@@ -474,7 +420,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
     if not path or not os.path.exists(path):
         return segs
 
-    # JSON
     if path.lower().endswith(".json"):
         with open(path, "r") as f:
             data = json.load(f)
@@ -502,7 +447,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
                         segs[kk] = out
         return segs
 
-    # text / CSV-ish
     float_re = re.compile(r"-?\d+(?:\.\d+)?")
     with open(path, "r", errors="ignore") as f:
         for line in f:
@@ -526,11 +470,10 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
 
 
 def map_t_to_raw_frame(t: int, T: int, total_frames: int) -> int:
-    # If labels are per-frame and match raw frames, treat t as the raw frame index.
+    """Label timestep -> raw frame: identity when T == total_frames, else proportional."""
     if total_frames > 0 and T == total_frames:
         return max(0, min(total_frames - 1, int(t)))
 
-    # Otherwise fall back to proportional mapping (graph-timeline -> raw frames).
     if total_frames <= 0:
         return max(0, int(t))
 
@@ -545,9 +488,7 @@ def xd_segments_to_start_seconds(
     total_frames: int,
     units: str = "auto",
 ) -> List[float]:
-    """
-    Convert XD temporal segment starts to seconds using the same heuristics as label builder.
-    """
+    """XD segment starts in seconds, using the label builder's units='auto' heuristic."""
     if not segs:
         return []
     if fps <= 0:
@@ -591,7 +532,7 @@ def ucf_segments_to_start_seconds(segs: List[Tuple[int, int]], fps: float) -> Li
     return sorted([float(s) / fps for (s, _e) in segs])
 
 def pairs_to_alert_times(pairs, *, threshold, T, total_frames, fps, min_consecutive=2):
-    # pairs: list[(t, prob)] sorted by t
+    # pairs: [(t, prob)] sorted by t
     alert_times = []
     run = 0
     first_t_in_run = None
@@ -604,7 +545,6 @@ def pairs_to_alert_times(pairs, *, threshold, T, total_frames, fps, min_consecut
             if run == min_consecutive:
                 rf = map_t_to_raw_frame(first_t_in_run, T, total_frames)
                 alert_times.append(float(rf) / fps)
-                # after we fire once, keep scanning but reset (prevents spamming)
                 run = 0
                 first_t_in_run = None
         else:
@@ -630,20 +570,7 @@ def compute_anticipation_video_stats(
     min_consecutive: int = 1,
     consecutive_t_gap: int = 1,
 ) -> dict:
-    """
-    Video-level anticipation alarm evaluation.
-
-    We classify the FIRST alert in each video relative to the next segment start s:
-
-      window = [s - horizon_sec, s + grace_sec]
-
-      - early_false: first_alert < s - horizon_sec
-      - first_in_window: first_alert in window
-      - late_or_miss: no alerts, or first_alert > s + grace_sec, or alert after last segment start
-
-    We also track whether ANY alert ever happened, and whether ANY alert landed in-window
-    (even if the first one was early).
-    """
+    """First-alert video stats vs. onset s: early_false, in [s - horizon, s + grace], or late_or_miss."""
     lead_times = []
 
     n_videos = len(vids)
@@ -665,7 +592,6 @@ def compute_anticipation_video_stats(
     horizon_sec = float(max(0.0, horizon_sec))
 
     for vid in vids:
-        # --- meta lookup ---
         info = meta.get(vid, None)
         if info is None:
             for k in _alias_keys(vid):
@@ -680,7 +606,6 @@ def compute_anticipation_video_stats(
         fps = float(info.get("fps", 25.0) or 25.0)
         total_frames = int(info.get("total_frames", 0) or 0)
 
-        # --- label file gives us T ---
         y_path = labels_dir / f"{vid}.npy"
         if not y_path.exists():
             found = None
@@ -699,7 +624,6 @@ def compute_anticipation_video_stats(
         T, K_file = y_arr.shape
         if T <= 0 or total_frames <= 0 or fps <= 0:
             continue
-        # ---- label-derived positive window for this horizon column ----
         if label_col < 0 or label_col >= K_file:
             raise SystemExit(f"label_col {label_col} out of range for y shape {y_arr.shape} in {y_path}")
 
@@ -708,7 +632,6 @@ def compute_anticipation_video_stats(
         pos_ts = np.where((yk > 0.5) & valid)[0]
         has_pos_window = (len(pos_ts) > 0)
 
-        # --- segment starts in seconds ---
         starts_sec: List[float] = []
         if source == "ucf_crime":
             segs = None
@@ -729,35 +652,26 @@ def compute_anticipation_video_stats(
                 starts_sec = xd_segments_to_start_seconds(segs, fps=fps, total_frames=total_frames, units=xd_units)
 
         if not starts_sec:
-            # Fallback: use labels to estimate the segment start for this horizon.
-            # If the first positive label marks ~ (start - horizon), then start ≈ t_pos0 + horizon.
+            # No annotation: first positive label ~ start - horizon, so start ~= t_pos0 + horizon.
             if has_pos_window:
                 t0 = int(pos_ts[0])
                 t0_sec = float(map_t_to_raw_frame(t0, T, total_frames)) / fps
                 start_est = t0_sec + float(horizon_sec)
 
-                # Clamp to video duration (avoids goofy starts for very short videos)
                 duration_sec = float(total_frames) / fps
                 start_est = max(0.0, min(start_est, duration_sec))
 
                 starts_sec = [start_est]
             else:
-                # No positive window => treat as negative video for this horizon
                 starts_sec = []
 
         if not starts_sec:
-            # Negative video: any alert is a false alarm
             n_neg_videos += 1
-
-            # We'll compute alert_times below, but if there are alerts -> false alarm
-            # If no alerts -> true silent
-            # We'll handle after alert_times computed.
             pass
         else:
             starts_sec = sorted(starts_sec)
             n_with_segments += 1
 
-        # --- predicted alert times from sampled points ---
         pairs = probs_by_vid_t.get(vid, [])
         if not pairs:
             for k in _alias_keys(vid):
@@ -793,7 +707,7 @@ def compute_anticipation_video_stats(
                     last_t = t
 
                     if (not triggered_this_run) and (run >= K_req):
-                        # Trigger at the Kth confirming timestep (realistic online behavior)
+                        # Fire at the Kth confirming point, as an online system would.
                         rf = map_t_to_raw_frame(t, T, total_frames)
                         alert_times.append(float(rf) / fps)
                         triggered_this_run = True
@@ -804,7 +718,6 @@ def compute_anticipation_video_stats(
 
         alert_times.sort()
         
-        # ---- negatives: no start window known/derived for this horizon ----
         if not starts_sec:
             if len(alert_times) > 0:
                 n_neg_false_alarm += 1
@@ -812,19 +725,16 @@ def compute_anticipation_video_stats(
                 n_neg_true_silent += 1
             continue
         
-        # --- ANY alert ever happened in this video? ---
         if len(alert_times) > 0:
             n_any_alert += 1
 
-        # Anchor alert time to the earliest segment start that is not more than grace_sec before it.
-        # This correctly treats alerts in (s, s+grace] as belonging to segment s.
+        # Anchor to the earliest onset s with a <= s + grace, so alerts in (s, s + grace] still count for s.
         def anchor_start_for(a: float) -> Optional[float]:
             for s in starts_sec:
                 if a <= s + grace_sec:
                     return s
             return None
 
-        # --- ANY alert in-window? (even if first was early) ---
         any_in_window = False
         for a in alert_times:
             s = anchor_start_for(a)
@@ -838,7 +748,6 @@ def compute_anticipation_video_stats(
         if any_in_window:
             n_any_alert_in_window += 1
 
-        # --- classify FIRST alert (this is the “punish early” part) ---
         if not alert_times:
             n_first_late_or_miss += 1
             continue
@@ -846,7 +755,6 @@ def compute_anticipation_video_stats(
         a0 = alert_times[0]
         s0 = anchor_start_for(a0)
         if s0 is None:
-            # first alert occurs after all segment starts -> treat as late for anticipation
             n_first_late_or_miss += 1
             continue
 
@@ -857,7 +765,6 @@ def compute_anticipation_video_stats(
             n_first_early_false += 1
         elif w0 <= a0 <= w1:
             n_first_in_window += 1
-            # lead time: clamp at >=0 (if grace allows alert slightly after start)
             lead = max(0.0, float(s0 - a0))
             lead_times.append(lead)
         else:
@@ -900,7 +807,6 @@ def compute_anticipation_video_stats(
         first_alert_in_window_rate=first_in_window_rate,
         early_false_rate=early_false_rate,
 
-        # utility is computed outside (so you can vary penalty without changing stats)
         lead_time_mean_sec=float(np.mean(lead_times)) if len(lead_times) else float("nan"),
         lead_time_median_sec=float(np.median(lead_times)) if len(lead_times) else float("nan"),
         lead_time_p10_sec=q(0.10),
@@ -930,11 +836,7 @@ def parse_horizons(s: str) -> List[float]:
     return hs
 
 def infer_t_stride_frames(ts: np.ndarray, vids: np.ndarray) -> int:
-    """
-    Infer the typical spacing of timestep indices `t` within each video.
-    If embeddings are extracted every N frames, `t` will usually jump by N.
-    Returns a robust median stride (>=1). If it can't infer, returns 1.
-    """
+    """Median per-video spacing of `t` (embeddings every N frames -> N); 1 if it cannot be inferred."""
     if ts is None or vids is None or len(ts) < 2:
         return 1
 
@@ -961,9 +863,7 @@ def infer_t_stride_frames(ts: np.ndarray, vids: np.ndarray) -> int:
 
 
 def sanitize_for_json(x):
-    """
-    Convert NaN/Inf to None recursively so metrics.json is strict-JSON-safe.
-    """
+    """Recursively replace NaN/Inf with None so metrics.json is strict JSON."""
     if isinstance(x, dict):
         return {k: sanitize_for_json(v) for k, v in x.items()}
     if isinstance(x, list):
@@ -987,31 +887,22 @@ def apply_ema_by_video(
     ts: np.ndarray,
     alpha: float,
 ) -> np.ndarray:
-    """
-    Apply EMA smoothing within each video, ordered by timestep t.
-    probs: [N] array aligned with vids/ts
-    vids:  [N] video ids aligned with probs
-    ts:    [N] timesteps aligned with probs
-    alpha: EMA alpha; 0 disables (returns probs unchanged)
-    """
+    """Causal per-video EMA ordered by t: s = alpha*s_prev + (1-alpha)*p, so higher alpha smooths more; 0 disables."""
     if probs is None:
         return probs
     a = float(alpha or 0.0)
     if a <= 0.0 or len(probs) <= 1:
         return probs
-    # clamp: keep stable and avoid alpha==1
     a = max(0.0, min(a, 0.999999))
 
     out = probs.astype(np.float32, copy=True)
 
-    # group indices by vid
     by_vid = {}
     for i in range(len(out)):
         v = str(vids[i])
         by_vid.setdefault(v, []).append(i)
 
     for v, idxs in by_vid.items():
-        # sort indices by timestep
         idxs.sort(key=lambda i: int(ts[i]))
 
         s = float(out[idxs[0]])
@@ -1023,9 +914,6 @@ def apply_ema_by_video(
 
     return out
 
-# ============================================================
-# Main
-# ============================================================
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--emb_root", default="data/processed/vlm_emb")
@@ -1065,27 +953,22 @@ def main():
                 choices=["vid", "movie", "source_vid", "source_movie"],
                 help="How to group samples for train/val/test splitting. source_movie is safest.")
 
-    # ---- ranking/generalization helpers ----
     ap.add_argument("--label_smooth", type=float, default=0.0,
                     help="Label smoothing for BCE targets (0 disables). Try 0.01–0.05.")
     ap.add_argument("--video_balance", action="store_true",
                     help="Use WeightedRandomSampler so each video contributes roughly equally during training.")
 
-    # ---- training stability / ranking quality ----
     ap.add_argument("--grad_clip", type=float, default=1.0, help="Clip grad norm (0 disables).")
 
-    # ---- imbalance control (PR-AUC is ranking-sensitive) ----
     ap.add_argument("--pos_weight_power", type=float, default=0.5,
                     help="Use (n_neg/n_pos)^power for BCE pos_weight. 1.0=old behavior, 0.5=sqrt (recommended).")
     ap.add_argument("--pos_weight_cap", type=float, default=20.0,
                     help="Hard cap for pos_weight to stop rare horizons from dominating.")
 
-    # ---- multi-horizon loss balancing ----
     ap.add_argument("--loss_balance", default="inv_sqrt_pos_weight",
                     choices=["none", "inv_pos_weight", "inv_sqrt_pos_weight"],
                     help="Reweight per-horizon loss so rare horizons don't dominate.")
 
-    # ---- input normalization ----
     ap.add_argument("--normalize_inputs", action="store_true",
                     help="Z-score normalize features using TRAIN mean/std (recommended).")
 
@@ -1107,7 +990,6 @@ def main():
     ap.add_argument("--min_consecutive", type=int, default=1,
                     help="Require K consecutive sampled timesteps >= threshold to trigger an alert (1 disables).")
 
-    # --- stride-aware consecutive logic ---
     ap.add_argument("--t_stride", type=int, default=0,
                     help="Frame stride between embedding timesteps t. 0=auto-infer from npz 't' values (recommended).")
 
@@ -1134,7 +1016,6 @@ def main():
     horizons = parse_horizons(args.horizons_sec)
     K = len(horizons)
 
-    # pick the column used for threshold selection/eval
     if args.select_horizon_sec not in horizons:
         raise SystemExit(f"--select_horizon_sec {args.select_horizon_sec} must be in --horizons_sec {horizons}")
     sel_k = horizons.index(args.select_horizon_sec)
@@ -1153,7 +1034,6 @@ def main():
     ucf_segments = parse_ucf_temporal(args.ucf_temporal_file)
     xd_segments = parse_xd_temporal(args.xd_temporal_file)
 
-    # Build features
     X_list: List[np.ndarray] = []
     y_list: List[np.ndarray] = []
     vid_ids: List[str] = []
@@ -1195,9 +1075,9 @@ def main():
             t = int(t_arr[i])
             if t < 0 or t >= T:
                 continue
-            gt_vec = y_arr[t]  # shape [K], values 0/1 or -1
+            gt_vec = y_arr[t]  # [K] in {0, 1, -1}
             if np.all(gt_vec < 0):
-                continue  # totally ignored timestep
+                continue
             rec = tmap.get(t, {})
 
             feats = [np.asarray(emb[i], dtype=np.float32)]
@@ -1245,22 +1125,19 @@ def main():
     sources_arr = np.asarray(sources, dtype=object)
     t_arr_all = np.asarray(t_list, dtype=np.int32)
     
-    # --- infer stride and auto-config consecutive gap ---
     inferred_stride = infer_t_stride_frames(t_arr_all, vid_ids_arr)
     t_stride_used = int(args.t_stride) if int(args.t_stride) > 0 else int(inferred_stride)
     t_stride_used = max(1, t_stride_used)
 
-    # If user specifies gap in embedding-steps, translate to raw t gap using stride.
     if int(args.consecutive_gap_steps) > 0:
         args.consecutive_t_gap = int(args.consecutive_gap_steps) * t_stride_used
 
-    # Otherwise auto-pick a sane default for raw t gap.
     if int(args.consecutive_t_gap) <= 0:
         args.consecutive_t_gap = t_stride_used
 
     print(f"[Stride] inferred_t_stride={inferred_stride} | using_t_stride={t_stride_used} | consecutive_t_gap={args.consecutive_t_gap}")
 
-    # group-level split (prevents correlated clips leaking across splits)
+    # Group-level split so clips of one movie never straddle splits (leakage).
     group_ids = [split_group_id(v, s, args.split_group) for v, s in zip(vid_ids, sources)]
     uniq_groups = sorted(set(group_ids))
 
@@ -1273,12 +1150,10 @@ def main():
         elif g in test_groups:
             split[i] = "test"
 
-    # For reporting / video-stats functions that expect "vids", keep both:
     train_vids = set([vid_ids[i] for i in range(len(vid_ids)) if split[i] == "train"])
     val_vids   = set([vid_ids[i] for i in range(len(vid_ids)) if split[i] == "val"])
     test_vids  = set([vid_ids[i] for i in range(len(vid_ids)) if split[i] == "test"])
 
-    # Save split manifest so you can prove no overlap
     with (out_dir / "splits_manifest.json").open("w") as f:
         json.dump({
             "split_group_mode": args.split_group,
@@ -1299,7 +1174,6 @@ def main():
     X_va, y_va = X[va_mask], y[va_mask]
     X_te, y_te = X[te_mask], y[te_mask]
     
-    # ---- feature normalization (TRAIN-only) ----
     if args.normalize_inputs:
         x_mu = X_tr.mean(axis=0, keepdims=True).astype(np.float32)
         x_sig = X_tr.std(axis=0, keepdims=True).astype(np.float32)
@@ -1308,7 +1182,6 @@ def main():
         X_va = ((X_va - x_mu) / x_sig).astype(np.float32)
         X_te = ((X_te - x_mu) / x_sig).astype(np.float32)
 
-    # loss weighting: softened + capped pos_weight improves PR-AUC ranking stability
     pos_weight_vec = np.ones((K,), dtype=np.float32)
 
     for k in range(K):
@@ -1339,7 +1212,6 @@ def main():
     pos_weight_t = torch.tensor(pos_weight_vec, device=device)
     crit = nn.BCEWithLogitsLoss(pos_weight=pos_weight_t, reduction="none")
 
-    # ---- horizon loss weights (stops rare horizons from dominating) ----
     if args.loss_balance == "inv_pos_weight":
         h_w = 1.0 / (pos_weight_vec + 1e-12)
     elif args.loss_balance == "inv_sqrt_pos_weight":
@@ -1355,7 +1227,6 @@ def main():
     test_ds  = FlatSamples(X_te, y_te)
 
     if args.video_balance:
-        # Each sample weight = 1 / (#samples in that video) so long videos don't dominate.
         tr_vids = vid_ids_arr[tr_mask]
         c = Counter([str(v) for v in tr_vids])
         w = np.array([1.0 / max(1, c[str(v)]) for v in tr_vids], dtype=np.float32)
@@ -1397,18 +1268,17 @@ def main():
             yb = yb.to(device, non_blocking=True)
 
             opt.zero_grad(set_to_none=True)
-            logits = model(xb)  # [B, K]
-            mask = (yb >= 0.0).float()          # [B, K]
-            yb01 = torch.clamp(yb, 0.0, 1.0)    # convert -1 -> 0 just so BCE is defined
+            logits = model(xb)
+            mask = (yb >= 0.0).float()
+            yb01 = torch.clamp(yb, 0.0, 1.0)    # -1 -> 0 only so BCE is defined; masked out below
 
-            # label smoothing (only affects non-ignored via mask later)
             eps = float(args.label_smooth or 0.0)
             if eps > 0.0:
                 eps = max(0.0, min(eps, 0.2))
                 yb01 = yb01 * (1.0 - eps) + 0.5 * eps
 
             loss_mat = crit(logits, yb01)       # [B, K]
-            loss_mat = loss_mat * horizon_w_t   # [B, K] broadcast horizon weights
+            loss_mat = loss_mat * horizon_w_t
             loss = (loss_mat * mask).sum() / (mask.sum() + 1e-12)
             loss.backward()
 
@@ -1423,13 +1293,11 @@ def main():
 
         tr_loss = total_loss / max(1, n)
 
-        # val eval (oracle curve stats) — selected horizon only
         yv, lv, pv = run_loader(val_loader)
 
         yv_k = yv[:, sel_k]
         pv_k_raw = pv[:, sel_k]
 
-        # EMA per-video on VAL split (decision-head fusion)
         pv_k = apply_ema_by_video(
             pv_k_raw,
             vid_ids_arr[va_mask],
@@ -1469,7 +1337,6 @@ def main():
             f"val_best_f1={val_summary['best_f1']:.4f} (oracle_f1_th={val_summary['best_threshold']:.2f})"
         )
 
-    # load best checkpoint by VAL PR-AUC
     if best_path.exists():
         try:
             ckpt = torch.load(best_path, map_location="cpu", weights_only=True)
@@ -1477,7 +1344,6 @@ def main():
             ckpt = torch.load(best_path, map_location="cpu")
         model.load_state_dict(ckpt["model"])
 
-    # final eval (selected horizon only)
     yv, lv, pv = run_loader(val_loader)
     yt, lt, pt = run_loader(test_loader)
 
@@ -1489,7 +1355,6 @@ def main():
     pt_k_raw = pt[:, sel_k]
     te_keep = (yt_k >= 0.0)
 
-    # EMA per-video on VAL/TEST (decision-head fusion)
     pv_k = apply_ema_by_video(
         pv_k_raw,
         vid_ids_arr[va_mask],
@@ -1509,7 +1374,6 @@ def main():
     yt_true = (yt_k[te_keep] > 0.5).astype(np.int32)
     pt_use  = pt_k[te_keep]
 
-    # Group probs by vid for anticipation stats + per-video CSVs
     def probs_by_vid(mask: np.ndarray, probs_local: np.ndarray) -> Dict[str, List[Tuple[int, float]]]:
         idx = np.where(mask)[0]
         out: Dict[str, List[Tuple[int, float]]] = {}
@@ -1517,15 +1381,13 @@ def main():
             vid = str(vid_ids_arr[global_i])
             t = int(t_arr_all[global_i])
             out.setdefault(vid, []).append((t, float(probs_local[local_i])))
-        # sort within each vid by time
         for k in out:
             out[k].sort(key=lambda x: x[0])
         return out
 
-    pv_by_vid = probs_by_vid(va_mask, pv_k)   # <-- smoothed
-    pt_by_vid = probs_by_vid(te_mask, pt_k)   # <-- smoothed
+    pv_by_vid = probs_by_vid(va_mask, pv_k)
+    pt_by_vid = probs_by_vid(te_mask, pt_k)
 
-    # VAL oracle metrics (for reference)
     val_oracle, val_base, val_best, val_sweep, warn_val_baseline = evaluate_probs(        
         yv_true,
         pv_use,
@@ -1547,14 +1409,12 @@ def main():
         f_beta=args.f_beta,
     )
 
-    # Choose operating threshold using VAL only
     if args.threshold_select == "video_utility" and args.task == "anticipation" and args.select_horizon_sec > 0:
         best_val_threshold = 0.5
         best_score = -1e9
         best_val_video_stats = None
         fallback_info = None
 
-        # Build a threshold grid that NEVER includes 1.0
         lo = float(max(0.0, min(1.0, args.sweep_th_min)))
         hi = float(max(0.0, min(1.0, args.sweep_th_max)))
         hi = min(hi, 1.0 - 1e-6)
@@ -1610,7 +1470,7 @@ def main():
                 early = float(st.get("early_false_rate", 0.0))
                 neg_fa = float(st.get("neg_false_alarm_rate", 0.0))
 
-                # Treat "miss" as: no in-window alert happened at all
+                # miss = no in-window alert at all (not based on the first alert)
                 late_or_miss_rate = 1.0 - any_in
 
                 score = (
@@ -1639,8 +1499,7 @@ def main():
                     int(st.get("n_neg_false_alarm", 0)),
                 ])
 
-                # Prefer non-degenerate behavior (i.e., thresholds that actually alert at least once),
-                # then prefer higher threshold if tie (more conservative).
+                # Ties: prefer thresholds that alert at least once, then the higher threshold.
                 deg = (int(st.get("n_any_alert_anytime", 0)) == 0)
                 best_deg = (
                     best_val_video_stats is not None
@@ -1657,9 +1516,9 @@ def main():
                     best_val_threshold = float(th)
                     best_val_video_stats = st
 
-        # If video_utility "wins" by choosing silence (no alerts), fallback to VAL oracle F1 threshold.
+        # Utility can be maximized by never alerting; fall back to the VAL oracle F1 threshold.
         if best_val_video_stats is not None and int(best_val_video_stats.get("n_any_alert_anytime", 0)) == 0:
-            fb_th = float(val_best["threshold"])  # VAL oracle (F1) threshold
+            fb_th = float(val_best["threshold"])
             fallback_info = {
                 "reason": "degenerate_no_alerts_from_video_utility",
                 "fallback_mode": "f1_oracle_val",
@@ -1669,7 +1528,6 @@ def main():
             }
             best_val_threshold = fb_th
 
-            # Recompute stats so reported stats match the actually-used threshold
             best_val_video_stats = compute_anticipation_video_stats(
                 split_name="val",
                 vids=sorted(list(val_vids)),
@@ -1716,7 +1574,6 @@ def main():
         )
         best_val_threshold = float(val_sel_best["threshold"])
 
-    # Leakage-free metrics at chosen threshold
     val_at_valth = metrics_at_threshold(yv_true, pv_use, best_val_threshold)
     test_at_valth = metrics_at_threshold(yt_true, pt_use, best_val_threshold)
     val_at_valth["roc_auc"] = float(roc_auc_score_np(yv_true, pv_use))
@@ -1724,7 +1581,6 @@ def main():
     test_at_valth["roc_auc"] = float(roc_auc_score_np(yt_true, pt_use))
     test_at_valth["pr_auc"]  = float(average_precision_np(yt_true, pt_use))
 
-    # Write per-sample CSV (val+test) for selected horizon
     per_sample_csv = out_dir / "per_sample.csv"
     with per_sample_csv.open("w", newline="") as f:
         w = csv.writer(f)
@@ -1759,7 +1615,6 @@ def main():
     write_per_video_csv(out_dir / "per_video_val.csv", pv_by_vid)
     write_per_video_csv(out_dir / "per_video_test.csv", pt_by_vid)
 
-    # Anticipation video stats (optional)
     anticipation_stats = None
     if args.task == "anticipation" and args.select_horizon_sec > 0:
         val_vid_list = sorted(list(val_vids))
@@ -1800,7 +1655,6 @@ def main():
             )
         }
 
-    # Metrics bundle
     metrics = {
         "task": str(args.task),
         "horizon_sec": float(args.horizon_sec),
@@ -1826,21 +1680,17 @@ def main():
         "threshold_select_mode": str(args.threshold_select),
         "best_val_threshold_selected": float(best_val_threshold),
 
-        # Oracle curves (F1-based threshold sweep on each split)
         "val_metrics_oracle": val_oracle,
         "test_metrics_oracle": test_oracle,
 
-        # Baselines (this is what exposes “lol always positive” situations)
         "val_baselines": val_base,
         "test_baselines": test_base,
         "warning_val_best_is_all_positive_baseline": bool(warn_val_baseline),
         "warning_test_best_is_all_positive_baseline": bool(warn_test_baseline),
 
-        # Operating point metrics (VAL-chosen threshold, leakage-free)
         "val_metrics_at_val_threshold": val_at_valth,
         "test_metrics_at_val_threshold": test_at_valth,
 
-        # Optional anticipation stats
         "anticipation_video_stats_at_val_threshold": anticipation_stats,
         
         "grace_sec": float(args.grace_sec),
@@ -1861,8 +1711,6 @@ def main():
     with (out_dir / "metrics.json").open("w") as f:
         json.dump(sanitize_for_json(metrics), f, indent=2, allow_nan=False)
 
-    # Plots
-        # Plots
     import matplotlib.pyplot as plt
 
     def _save(figpath: Path):
@@ -1904,7 +1752,6 @@ def main():
         _save(out_path)
 
     def plot_calibration(y_true01: np.ndarray, probs: np.ndarray, out_path: Path, title: str, n_bins: int = 20):
-        # reliability diagram (no sklearn)
         bins = np.linspace(0.0, 1.0, n_bins + 1)
         bin_ids = np.digitize(probs, bins) - 1
         xs = []
@@ -1940,7 +1787,6 @@ def main():
         plt.yticks([0, 1], ["True 0", "True 1"])
         plt.title(f"{title} | th={th:.2f}")
 
-        # annotate
         for (i, j), v in np.ndenumerate(cm):
             plt.text(j, i, str(int(v)), ha="center", va="center")
 
@@ -2010,7 +1856,6 @@ def main():
         neg_fa = np.asarray(neg_fa, dtype=np.float32)
         lead_med = np.asarray(lead_med, dtype=np.float32)
 
-        # Utility vs threshold
         plt.figure()
         plt.plot(th, util, label="utility")
         plt.axvline(chosen_th, linestyle="--", label=f"chosen_th={chosen_th:.2f}")
@@ -2020,7 +1865,6 @@ def main():
         plt.legend()
         _save(Path(str(out_prefix) + "_utility.png"))
 
-        # Rates vs threshold
         plt.figure()
         plt.plot(th, first_in, label="first_in_window_rate")
         plt.plot(th, early, label="early_false_rate")
@@ -2033,7 +1877,6 @@ def main():
         plt.legend()
         _save(Path(str(out_prefix) + "_rates.png"))
 
-        # Lead time vs threshold (NaNs are expected if no hits)
         plt.figure()
         plt.plot(th, lead_med, label="lead_time_median_sec")
         plt.axvline(chosen_th, linestyle="--", label=f"chosen_th={chosen_th:.2f}")
@@ -2043,8 +1886,6 @@ def main():
         plt.legend()
         _save(Path(str(out_prefix) + "_leadtime.png"))
 
-    # -------------
-    # Existing: train curve
     epochs = [h["epoch"] for h in history]
     losses = [h["train_loss"] for h in history]
     pr = [h["pr_auc"] for h in history]
@@ -2061,7 +1902,6 @@ def main():
     plt.title("Training curve")
     _save(out_dir / "train_curve.png")
 
-    # Existing: PR curve on test (operating point shown)
     order = np.argsort(-pt_use)
     y_sorted = yt_true[order]
     tp = np.cumsum(y_sorted)
@@ -2078,7 +1918,6 @@ def main():
     plt.title(f"PR curve (test) | op@val_th={best_val_threshold:.2f} ({args.threshold_select})")
     _save(out_dir / "pr_curve.png")
 
-    # Existing: ROC curve on test
     order = np.argsort(-pt_use)
     y_sorted = yt_true[order]
     tp = np.cumsum(y_sorted)
@@ -2093,28 +1932,21 @@ def main():
     plt.title("ROC curve (test)")
     _save(out_dir / "roc_curve.png")
 
-    # -------------
-    # NEW: threshold sweeps (VAL + TEST)
     plot_threshold_sweep(val_sweep, out_dir / "val_threshold_sweep.png", "Threshold sweep (VAL)", best_val_threshold)
     plot_threshold_sweep(test_sweep, out_dir / "test_threshold_sweep.png", "Threshold sweep (TEST)", best_val_threshold)
 
-    # NEW: prob histograms
     plot_prob_hist(yv_true, pv_use, out_dir / "val_prob_hist.png", "Prob histogram (VAL) | pos vs neg")
     plot_prob_hist(yt_true, pt_use, out_dir / "test_prob_hist.png", "Prob histogram (TEST) | pos vs neg")
 
-    # NEW: calibration
     plot_calibration(yv_true, pv_use, out_dir / "val_calibration.png", "Calibration (VAL)")
     plot_calibration(yt_true, pt_use, out_dir / "test_calibration.png", "Calibration (TEST)")
 
-    # NEW: confusion matrices at chosen threshold
     plot_confusion(yv_true, pv_use, best_val_threshold, out_dir / "val_confusion.png", "Confusion matrix (VAL)")
     plot_confusion(yt_true, pt_use, best_val_threshold, out_dir / "test_confusion.png", "Confusion matrix (TEST)")
 
-    # NEW: per-video scatter
     plot_per_video_scatter(out_dir / "per_video_val.csv", out_dir / "per_video_val_scatter.png", "Per-video scatter (VAL) | mean vs max prob")
     plot_per_video_scatter(out_dir / "per_video_test.csv", out_dir / "per_video_test_scatter.png", "Per-video scatter (TEST) | mean vs max prob")
 
-    # NEW: video utility sweep plots (if present)
     plot_video_utility_sweep(out_dir / "video_utility_sweep.csv", out_dir / "video_utility_sweep", best_val_threshold)
 
     print("\n==== DONE ====")

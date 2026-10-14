@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Build video-level LLM prompt/response JSONL (llm_data/{train,val}.jsonl) from graphs and labels."""
 import os
 import json
 import argparse
@@ -6,27 +7,16 @@ import argparse
 import numpy as np
 import yaml
 
-# Optional import: if you have a dedicated graph-to-text function
 try:
-    from core.graph import graph_to_text  # previously defined in your pipeline
+    from core.graph import graph_to_text
 except Exception:
     graph_to_text = None
 
-from core.utils import get_device  # not strictly needed, but keeps style consistent
+from core.utils import get_device
 
 
-# ---------------------------------------------------------------------
-# Metadata loader
-# ---------------------------------------------------------------------
 def load_metadata(meta_dir: str) -> dict:
-    """
-    Load all known metadata JSONs into a single dict keyed by vid_id.
-
-    Expected files (optional):
-      - xd_violence.json
-      - ucf_crime.json
-      - kinetics.json
-    """
+    """Merge metadata/{xd_violence,ucf_crime,kinetics}.json into one dict keyed by vid_id."""
     meta = {}
     if not os.path.isdir(meta_dir):
         print(f"[Meta] Metadata dir not found: {meta_dir}")
@@ -45,22 +35,14 @@ def load_metadata(meta_dir: str) -> dict:
     return meta
 
 
-# ---------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------
 def safe_load_graph(graph_path: str):
-    """
-    Load graph sequence from .npy with allow_pickle.
-    Returns a Python list of frame dicts (or [] on error).
-    """
+    """Load a graph .npy as a list of per-frame dicts ([] on error)."""
     try:
         arr = np.load(graph_path, allow_pickle=True)
-        # Often saved as 1-D object array where each element is a dict.
         if isinstance(arr, np.ndarray):
             if arr.dtype == object:
                 seq = arr.tolist()
             else:
-                # Already some structured array; try best-effort list conversion
                 seq = arr.tolist()
         else:
             seq = list(arr)
@@ -73,9 +55,6 @@ def safe_load_graph(graph_path: str):
 
 
 def safe_load_labels(label_path: str):
-    """
-    Load label curve from .npy; returns 1-D numpy array of floats.
-    """
     try:
         arr = np.load(label_path, allow_pickle=True)
         arr = np.asarray(arr, dtype=float).reshape(-1)
@@ -86,13 +65,7 @@ def safe_load_labels(label_path: str):
 
 
 def safe_load_predictions(pred_dir: str | None, vid_id: str):
-    """
-    If pred_dir is provided and vid_id.npz exists:
-
-      returns (pred_curve, gt_curve) as np.ndarray (1-D)
-
-    Otherwise returns (None, None).
-    """
+    """Return (pred, gt) curves from <pred_dir>/<vid_id>.npz, or (None, None)."""
     if pred_dir is None:
         return None, None
 
@@ -111,10 +84,7 @@ def safe_load_predictions(pred_dir: str | None, vid_id: str):
 
 
 def fallback_graph_summary(graph_seq, meta: dict | None, label: int) -> str:
-    """
-    If core.graph.graph_to_text is not available or fails,
-    we build a simple summary from basic stats.
-    """
+    """Stats-only summary used when core.graph.graph_to_text is unavailable or fails."""
     num_frames = len(graph_seq)
     num_nodes_per_frame = []
 
@@ -124,7 +94,6 @@ def fallback_graph_summary(graph_seq, meta: dict | None, label: int) -> str:
             num_nodes_per_frame.append(0)
         else:
             try:
-                # nodes might be: np.ndarray [N, D] or list of rows
                 if hasattr(nodes, "shape"):
                     n = nodes.shape[0]
                 else:
@@ -152,17 +121,7 @@ def build_single_example(
     pred_curve: np.ndarray | None,
     bin_thresh: float = 0.5,
 ) -> dict:
-    """
-    Build one JSONL example for the LLM.
-
-    Returns a dict with:
-      - id, source, label, event_frame, total_frames, fps
-      - prompt (instruction-style)
-      - response ("violent" / "non-violent")
-    """
-    # ------------------------------
-    # Basic metadata fields
-    # ------------------------------
+    """Build one video-level JSONL example (metadata fields, prompt, response)."""
     if meta is None:
         meta = {}
 
@@ -172,7 +131,6 @@ def build_single_example(
     fps = meta.get("fps", None)
     base_label = meta.get("label", None)
 
-    # If metadata doesn't have label, derive from label_curve
     if base_label is None:
         base_label = int((label_curve >= bin_thresh).any())
     else:
@@ -183,15 +141,10 @@ def build_single_example(
 
     violence_str = "violent" if base_label == 1 else "non-violent"
 
-    # ------------------------------
-    # Graph → text summary
-    # ------------------------------
     if graph_to_text is not None:
         try:
-            # Try the "nice" signature first
             text_summary = graph_to_text(graph_seq, meta)
         except TypeError:
-            # Maybe it only takes the graph sequence
             try:
                 text_summary = graph_to_text(graph_seq)
             except Exception:
@@ -201,9 +154,6 @@ def build_single_example(
     else:
         text_summary = fallback_graph_summary(graph_seq, meta, base_label)
 
-    # ------------------------------
-    # Base model (transformer) risk summary (if available)
-    # ------------------------------
     pred_summary = ""
     if pred_curve is not None and pred_curve.size > 0:
         max_pred = float(pred_curve.max())
@@ -219,9 +169,6 @@ def build_single_example(
                 risk_at_event = float(pred_curve[event_frame])
                 pred_summary += f"- risk_at_event_frame: {risk_at_event:.3f}\n"
 
-    # ------------------------------
-    # Prompt / response
-    # ------------------------------
     prompt_lines = []
     prompt_lines.append("You are a model that judges whether a short video contains physical violence.")
     prompt_lines.append("")
@@ -270,10 +217,7 @@ def build_examples_from_index(
     pred_dir: str | None,
     bin_thresh: float = 0.5,
 ) -> list:
-    """
-    Given an index JSON (train_index.json or val_index.json), build
-    a list of LLM examples.
-    """
+    """Build LLM examples for every entry of an index JSON (train_index.json or val_index.json)."""
     with open(index_path, "r") as f:
         items = json.load(f)
 
@@ -324,9 +268,6 @@ def write_jsonl(path: str, examples: list):
     print(f"[LLM] Wrote {len(examples)} examples → {path}")
 
 
-# ---------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -361,7 +302,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # Load path config so we can locate metadata
     if os.path.exists("configs/paths.yaml"):
         with open("configs/paths.yaml", "r") as f:
             paths_cfg = yaml.safe_load(f)
@@ -373,7 +313,6 @@ def main():
     print(f"[LLM] Using metadata dir: {meta_dir}")
     metadata = load_metadata(meta_dir)
 
-    # Train examples
     if os.path.exists(args.train_index):
         train_examples = build_examples_from_index(
             index_path=args.train_index,
@@ -385,7 +324,6 @@ def main():
         print(f"[LLM] Train index not found: {args.train_index}. No train examples.")
         train_examples = []
 
-    # Val examples
     if os.path.exists(args.val_index):
         val_examples = build_examples_from_index(
             index_path=args.val_index,
@@ -397,7 +335,6 @@ def main():
         print(f"[LLM] Val index not found: {args.val_index}. No val examples.")
         val_examples = []
 
-    # Write JSONL
     train_out = os.path.join(args.out_dir, "train.jsonl")
     val_out = os.path.join(args.out_dir, "val.jsonl")
 

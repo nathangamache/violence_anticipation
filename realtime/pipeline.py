@@ -14,11 +14,9 @@ from llm.llm_head import LLMFusionHead
 from core.model import ViolenceTransformer
 
 
-# ----------------- Base model -----------------
 model = ViolenceTransformer().cuda()
 model.eval()
 
-# ----------------- LLM + fusion setup -----------------
 LLM_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
 llm = LLMEmbedder(
@@ -27,7 +25,7 @@ llm = LLMEmbedder(
 )
 
 fusion_head = LLMFusionHead(
-    mode="linear",      # or "weighted"
+    mode="linear",
     base_weight=0.7,
     detach_llm=True,
 )
@@ -35,15 +33,7 @@ fusion_head.eval()
 
 
 def build_live_graph(tracks, actions, audio, scene):
-    """
-    Build a single live graph_frame matching the offline structure enough
-    for graph_to_text() and LLM use.
-
-    tracks: list of dicts {track_id, bbox}
-    actions: dict track_id -> embedding (np.ndarray) or similar
-    audio: np.ndarray or None
-    scene: np.ndarray or None
-    """
+    """Build one live graph frame shaped like the offline graphs, enough for graph_to_text()."""
     nodes = []
 
     for t in tracks:
@@ -66,10 +56,10 @@ def build_live_graph(tracks, actions, audio, scene):
             "action_names": [],
         }
 
-        # If live_actions produced embeddings, attach them as "logits"
+        # live_actions returns VideoMAE embeddings, not logits; they go under the offline key anyway.
         if isinstance(actions, dict) and tid in actions:
             node["action_logits"] = actions[tid]
-            node["action_names"] = []   # no label space yet
+            node["action_names"] = []
 
         nodes.append(node)
 
@@ -77,24 +67,15 @@ def build_live_graph(tracks, actions, audio, scene):
         "nodes": nodes,
         "scene": scene,
         "audio": audio,
-        "timestamp": None,      # you can fill this if you track elapsed time
-        "scene_text": None,     # optional: add CLIP→text label later
+        "timestamp": None,
+        "scene_text": None,
     }
 
     return graph
 
 
 def run_realtime(video_source=0, use_llm=True):
-    """
-    Real-time pipeline:
-      - Reads frames from webcam/RTSP/file
-      - Runs detection, tracking, actions, scene
-      - Builds a sliding buffer of per-frame graphs (unused by base model here,
-        because we kept your original model(buffer) API assumption very simple)
-      - Base model outputs a risk score
-      - Optional LLM runs on the latest frame summary
-      - Fusion head combines base + LLM risk
-    """
+    """Run per-frame extraction, base-model risk, and optional LLM fusion on a live video source."""
     cap = cv2.VideoCapture(video_source)
     buffer = []
 
@@ -111,13 +92,11 @@ def run_realtime(video_source=0, use_llm=True):
             print("[Realtime] Stream ended or cannot read frame.")
             break
 
-        # 1) Per-frame feature extraction
         tracks = live_track(frame)
         actions = live_actions(frame, tracks)
         audio   = live_audio()
         scene   = live_scene(frame)
 
-        # 2) Build graph frame & append to buffer
         graph = build_live_graph(tracks, actions, audio, scene)
         buffer.append(graph)
 
@@ -125,17 +104,15 @@ def run_realtime(video_source=0, use_llm=True):
         if len(buffer) > 120:
             buffer.pop(0)
 
-        # 3) Only start predicting once we have some context
         if len(buffer) > 30:
             with torch.no_grad():
-                # --- Base model risk (assumes model(buffer) → scalar prob or logit) ---
+                # Assumes model(buffer) returns a scalar prob or logit.
                 base_risk = model(buffer).item()
 
                 if use_llm:
-                    # --- LLM semantic risk on latest frame ---
                     latest_graph = buffer[-1]
                     summary = graph_to_text(latest_graph)
-                    llm_score = llm.predict_risk(summary)  # float in [0,1]
+                    llm_score = llm.predict_risk(summary)
 
                     base_tensor = torch.tensor([base_risk], dtype=torch.float32)
                     llm_tensor  = torch.tensor([llm_score], dtype=torch.float32)

@@ -144,7 +144,7 @@ Constants: `FRAME_STRIDE = 4` (detection/actions), `SCENE_STRIDE = 16` (CLIP).
 * Node feature = `_bbox_to_feature(bbox)` (raw pixel `[x1,y1,x2,y2]`, **not normalized**) concatenated with the
   768-d action vector, giving **772-d**. When a track has no action vector, the node is **4-d** and the dataset
   zero-pads it later.
-* Adjacency `adj[i,j] = 1/(1+‖c_i − c_j‖)`, diagonal 0. Despite the comment, `c` is `(x1, y1)` (the **top-left
+* Adjacency `adj[i,j] = 1/(1+‖c_i − c_j‖)`, diagonal 0. Despite the name `centers`, `c` is `(x1, y1)` (the **top-left
   corner**), not the centre. `adj` is stored under key **`"adj"`**, but the dataset reads `"edges"`, so it is
   **never used** (§7).
 * At most 32 nodes per frame (the first 32 detections).
@@ -461,7 +461,7 @@ Scripts:
 * `scripts/preprocess_anticipation.py`: `BASE = ~/projects/violence_anticipation/data`. On this machine that
   resolves to the repo's `data` symlink.
 * `scripts/quick_inspect.py`: `data`.
-* `core/utils.get_device()`: `VA_GPU` env, default `"1"` (the comment wrongly says GPU 0).
+* `core/utils.get_device()`: `VA_GPU` env, default `"1"` (a removed code comment wrongly said GPU 0).
 * `core/extractors.extract_audio_from_file`: `/tmp/va_temp_audio.wav`.
 * HF hub downloads at import: `MCG-NJU/videomae-base` and CLIP `ViT-B/16` (both appear cached; importing `core.extractors` succeeded in this venv). `realtime/pipeline.py` also pulls `Qwen/Qwen2.5-3B-Instruct`.
 * The stray file `data/processed/actions/v=pFamvR9CpYw__#00-06-36_00-15-20_label_B4-0-0.npy.tmp.npy` is a leftover

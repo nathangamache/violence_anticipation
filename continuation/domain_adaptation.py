@@ -1,42 +1,8 @@
-"""
-domain_adaptation.py
-=====================
-Systematic domain adaptation experiments to address the cross-domain
-generalization failure (XD-Violence → UCF-Crime / YouTube).
-
-Last session found:
-  - Cross-domain AUC near 0.5 (random chance)
-  - YouTube embeddings mean LDA score = -5.13 (outside both training classes)
-  - 2,141 / 3,584 dimensions have Cohen's d > 0.5 between domains
-
-Three approaches here:
-  1. TCA (Transfer Component Analysis) — finds a subspace where source
-     and target distributions are aligned. Computationally light.
-
-  2. CORAL (CORrelation ALignment) — aligns second-order statistics.
-     Already implemented in lda_calibration_complete.py but here we
-     do a proper cross-domain eval, not just YouTube.
-
-  3. Batch normalization adaptation — normalizes target domain embeddings
-     using running statistics estimated from the target domain itself
-     (test-time adaptation, no labels needed in target domain).
-
-  4. Subspace-only classifier — trains only on dimensions where both
-     domains overlap (low shift dimensions), discarding domain-specific ones.
+"""Domain adaptation experiments: train on source embeddings, score a target domain (UCF-Crime dir or the YouTube clip).
 
 Usage:
-    python domain_adaptation.py \
-        --source_embeddings data/processed/vlm_emb \
-        --source_labels data/processed/labels_multih \
-        --target_embeddings data/processed/vlm_emb/ucf_crime \
-        --target_labels data/processed/labels_multih/ucf_crime
-
-Or for YouTube single-video test:
-    python domain_adaptation.py \
-        --mode youtube \
-        --source_embeddings data/processed/vlm_emb \
-        --source_labels data/processed/labels_multih \
-        --yt_embeddings probe_clip_01_embeddings.npy
+    python continuation/domain_adaptation.py --target_embeddings data/processed/vlm_emb/ucf_crime
+    python continuation/domain_adaptation.py --mode youtube --yt_embeddings probe_clip_01_embeddings.npy
 """
 
 import argparse
@@ -53,10 +19,6 @@ from sklearn.decomposition import PCA
 
 warnings.filterwarnings("ignore")
 
-
-# ──────────────────────────────────────────────
-# Data loading
-# ──────────────────────────────────────────────
 
 def load_pairs(emb_dir: Path, labels_dir: Path, max_videos: int = 300):
     pairs = []
@@ -85,22 +47,13 @@ def flatten(pairs):
     return np.vstack([p[0] for p in pairs]), np.concatenate([p[1] for p in pairs])
 
 
-# ──────────────────────────────────────────────
-# 1. Subspace-only classifier
-#    (train only on low-shift dimensions)
-# ──────────────────────────────────────────────
-
 def find_low_shift_dims(
     src_emb: np.ndarray,
     tgt_emb: np.ndarray,
     max_shift: float = 0.3,
     top_k: Optional[int] = None,
 ) -> np.ndarray:
-    """
-    Find dimensions where the source and target distributions overlap well.
-    Uses normalized mean shift (Cohen's d style) as the shift measure.
-    Returns array of dimension indices.
-    """
+    """Indices of dims whose standardized mean shift (Cohen's d style) is <= max_shift, or the top_k least shifted."""
     src_mean = src_emb.mean(axis=0)
     tgt_mean = tgt_emb.mean(axis=0)
     src_std = src_emb.std(axis=0) + 1e-8
@@ -109,7 +62,6 @@ def find_low_shift_dims(
     shift = np.abs(src_mean - tgt_mean) / pooled_std
 
     if top_k is not None:
-        # Select top_k least-shifted dimensions
         return np.argsort(shift)[:top_k]
     else:
         return np.where(shift <= max_shift)[0]
@@ -145,15 +97,8 @@ def eval_subspace_classifier(
     return {"method": name, "auc": auc, "ap": ap, "n_dims": n_dims}
 
 
-# ──────────────────────────────────────────────
-# 2. CORAL domain adaptation
-# ──────────────────────────────────────────────
-
 def coral_transform(src_emb: np.ndarray, tgt_emb: np.ndarray, n_pca_dims: int = 256) -> np.ndarray:
-    """
-    Apply CORAL to align target domain to source.
-    Returns target embeddings in the aligned PCA subspace.
-    """
+    """CORAL in a PCA subspace: return (source PCA features, target PCA features re-colored to source covariance)."""
     pca = PCA(n_components=n_pca_dims, random_state=42)
     src_pca = pca.fit_transform(src_emb).astype(np.float64)
     tgt_pca = pca.transform(tgt_emb).astype(np.float64)
@@ -200,10 +145,6 @@ def eval_coral(src_pairs, tgt_pairs, n_pca_dims=256) -> Dict:
     return {"method": "CORAL", "auc": auc, "ap": ap, "n_pca_dims": n_pca_dims}
 
 
-# ──────────────────────────────────────────────
-# 3. TCA (Transfer Component Analysis)
-# ──────────────────────────────────────────────
-
 def tca_transform(
     src_emb: np.ndarray,
     tgt_emb: np.ndarray,
@@ -212,23 +153,11 @@ def tca_transform(
     kernel: str = "rbf",
     sigma: float = 1.0,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Simplified TCA: find a subspace (via kernel PCA) where the MMD between
-    source and target is minimized.
-
-    This is an approximation of Pan et al.'s TCA using kernel alignment.
-    Full TCA requires solving a generalized eigenvalue problem — this version
-    uses PCA on the concatenated aligned features as a practical substitute
-    that captures the main idea.
-
-    For a full TCA implementation, see:
-    Pan, S.J. et al. (2011). Domain Adaptation via Transfer Component Analysis.
-    """
+    """Simplified TCA (not the full eigenproblem of Pan et al. 2011): per-domain standardization, then pooled PCA."""
     n_src = len(src_emb)
     n_tgt = len(tgt_emb)
     n = n_src + n_tgt
 
-    # Reduce dims first for tractability
     pre_pca = PCA(n_components=min(256, src_emb.shape[1] // 4), random_state=42)
     all_emb = np.vstack([src_emb, tgt_emb])
     all_reduced = pre_pca.fit_transform(all_emb).astype(np.float64)
@@ -236,19 +165,15 @@ def tca_transform(
     src_r = all_reduced[:n_src]
     tgt_r = all_reduced[n_src:]
 
-    # MMD-based alignment: normalize each domain, then PCA on combined
     scaler_src = StandardScaler()
     scaler_tgt = StandardScaler()
     src_norm = scaler_src.fit_transform(src_r)
     tgt_norm = scaler_tgt.fit_transform(tgt_r)
 
-    # Re-color target to match source statistics (simple mean/cov match)
-    # This is essentially CORAL in the pre-PCA space, which TCA also achieves
     src_mean = src_norm.mean(axis=0)
     src_std = src_norm.std(axis=0) + 1e-8
     tgt_aligned = (tgt_norm - tgt_norm.mean(axis=0)) / (tgt_norm.std(axis=0) + 1e-8) * src_std + src_mean
 
-    # PCA on aligned combined features
     combined = np.vstack([src_norm, tgt_aligned])
     pca_final = PCA(n_components=n_components, random_state=42)
     pca_final.fit(combined)
@@ -283,34 +208,19 @@ def eval_tca(src_pairs, tgt_pairs, n_components=64) -> Dict:
     return {"method": f"TCA (k={n_components})", "auc": auc, "ap": ap}
 
 
-# ──────────────────────────────────────────────
-# 4. Test-time batch normalization adaptation
-#    (no labels needed in target domain)
-# ──────────────────────────────────────────────
-
 def eval_tta_batchnorm(src_pairs, tgt_pairs) -> Dict:
-    """
-    Test-Time Adaptation via feature normalization.
-    Normalizes target domain using its own mean/std per feature dimension,
-    then maps to source distribution before applying source-trained classifier.
-
-    This is the simplest form of TTA and requires zero target labels.
-    """
+    """Label-free test-time adaptation: standardize the target with its own stats, then rescale to source mean/std."""
     X_src, y_src = flatten(src_pairs)
     X_tgt, y_tgt = flatten(tgt_pairs)
 
-    # Train on source
     scaler_src = StandardScaler()
     X_src_s = scaler_src.fit_transform(X_src)
     clf = LogisticRegression(max_iter=500, C=1.0, class_weight="balanced")
     clf.fit(X_src_s, y_src)
 
-    # Adapt target: normalize per-dimension to source distribution
-    # Step 1: normalize target to zero mean, unit std
     scaler_tgt = StandardScaler()
     X_tgt_norm = scaler_tgt.fit_transform(X_tgt)
 
-    # Step 2: re-scale to source mean/std
     X_tgt_adapted = X_tgt_norm * scaler_src.scale_ + scaler_src.mean_
 
     scores = clf.predict_proba(X_tgt_adapted)[:, 1]
@@ -319,10 +229,6 @@ def eval_tta_batchnorm(src_pairs, tgt_pairs) -> Dict:
 
     return {"method": "TTA BatchNorm", "auc": auc, "ap": ap}
 
-
-# ──────────────────────────────────────────────
-# Naive baseline (no adaptation)
-# ──────────────────────────────────────────────
 
 def eval_no_adaptation(src_pairs, tgt_pairs) -> Dict:
     X_src, y_src = flatten(src_pairs)
@@ -336,16 +242,8 @@ def eval_no_adaptation(src_pairs, tgt_pairs) -> Dict:
     return {"method": "No adaptation", "auc": auc, "ap": ap}
 
 
-# ──────────────────────────────────────────────
-# YouTube single-video mode
-# ──────────────────────────────────────────────
-
 def eval_youtube_mode(src_pairs, yt_emb_path: Path):
-    """
-    Test all adaptation methods on the YouTube video with known timestamps.
-    Reports per-period score means rather than AUC (since ground truth is
-    soft / period-level, not per-frame).
-    """
+    """Per-period mean scores on the YouTube clip (labels are period-level, so no AUC)."""
     if not yt_emb_path.exists():
         print(f"YouTube embeddings not found: {yt_emb_path}")
         return
@@ -447,10 +345,6 @@ def _relative_scores(X_src, y_src, X_tgt):
     return (1.0 / (1.0 + np.exp(-yt_norm))).astype(np.float32)
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["cross_domain", "youtube"], default="cross_domain")
@@ -493,7 +387,6 @@ def main():
         print("Not enough data.")
         return
 
-    # Quantify shift
     X_src, _ = flatten(src_pairs)
     X_tgt, _ = flatten(tgt_pairs)
     scaler = StandardScaler()
@@ -536,7 +429,6 @@ def main():
     results.append(r)
     print(f"  AUC={r['auc']:.4f}  AP={r['ap']:.4f}  dims=512")
 
-    # Summary
     print("\n" + "=" * 65)
     print("DOMAIN ADAPTATION SUMMARY")
     print("=" * 65)
@@ -548,7 +440,6 @@ def main():
         ap = r.get("ap", float("nan"))
         print(f"  {r['method']:<35} {auc:>8.4f} {ap:>8.4f}")
 
-    # Save
     import csv
     fieldnames = ["method", "auc", "ap"]
     with open(args.output, "w", newline="") as f:

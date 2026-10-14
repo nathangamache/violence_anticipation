@@ -1,48 +1,12 @@
 #!/usr/bin/env python3
 """
-Optical Flow Feature Extraction for Violence Detection
-
-Extracts motion-based features that correlate with violence:
-1. Flow magnitude (how much movement)
-2. Flow variance (chaotic vs uniform motion)
-3. Sudden motion changes (acceleration)
-4. Directional entropy (random vs coordinated movement)
-5. Region-based statistics (where is motion concentrated)
-
-These features capture temporal dynamics that static VLM embeddings miss.
+Dense optical-flow motion features (22 per consecutive frame pair) for the videos that have VLM embeddings.
 
 Usage:
-    # Process videos matching embeddings (single process)
-    python optical_flow_features.py \
-        --videos_dir data/videos \
-        --embeddings_dir data/processed/vlm_emb \
-        --output_dir data/processed/optical_flow \
-        --device cuda:0
-
-    # PARALLEL PROCESSING: Run multiple workers
-    # Terminal 1:
-    python optical_flow_features.py \
-        --videos_dir data/videos \
-        --embeddings_dir data/processed/vlm_emb \
-        --output_dir data/processed/optical_flow \
-        --worker_id 0 --num_workers 4
-
-    # Terminal 2:
-    python optical_flow_features.py \
-        --videos_dir data/videos \
-        --embeddings_dir data/processed/vlm_emb \
-        --output_dir data/processed/optical_flow \
-        --worker_id 1 --num_workers 4
-
-    # ... etc for workers 2 and 3
-
-    # Or use the convenience script to launch all workers:
-    python optical_flow_features.py \
-        --videos_dir data/videos \
-        --embeddings_dir data/processed/vlm_emb \
-        --output_dir data/processed/optical_flow \
-        --num_workers 4 \
-        --launch_parallel
+    python tuning/optical_flow_features.py --videos_dir data/videos \
+        --embeddings_dir data/processed/vlm_emb --output_dir data/processed/optical_flow \
+        [--use_pool --num_processes N | --launch_parallel --num_workers N | --worker_id K --num_workers N]
+    python tuning/optical_flow_features.py --analyze --features_dir ... --labels_dir ...
 """
 
 import argparse
@@ -67,36 +31,27 @@ except ImportError:
     TORCH_AVAILABLE = False
 
 
-# ==============================================================================
-# Optical Flow Computation
-# ==============================================================================
-
 class OpticalFlowExtractor:
-    """
-    Extracts optical flow and computes violence-relevant motion features.
-    """
+    """Optical flow between consecutive frames plus violence-relevant motion features."""
     
     def __init__(
         self,
-        method: str = 'farneback',  # 'farneback', 'lucas_kanade', 'raft'
-        resize_height: int = 256,   # Resize for faster processing
+        method: str = 'farneback',  # 'farneback' or 'raft'
+        resize_height: int = 256,
         device: str = 'cuda:0',
     ):
         self.method = method
         self.resize_height = resize_height
         self.device = device
         
-        # For temporal smoothing
         self.flow_history = deque(maxlen=5)
         self.magnitude_history = deque(maxlen=10)
         
-        # RAFT model (if using deep optical flow)
         self.raft_model = None
         if method == 'raft' and TORCH_AVAILABLE:
             self._load_raft()
     
     def _load_raft(self):
-        """Load RAFT optical flow model."""
         try:
             from torchvision.models.optical_flow import raft_large, Raft_Large_Weights
             self.raft_model = raft_large(weights=Raft_Large_Weights.DEFAULT)
@@ -111,13 +66,7 @@ class OpticalFlowExtractor:
         prev_frame: np.ndarray,
         curr_frame: np.ndarray,
     ) -> np.ndarray:
-        """
-        Compute dense optical flow using Farneback method.
-        
-        Returns:
-            flow: [H, W, 2] array with (dx, dy) per pixel
-        """
-        # Convert to grayscale
+        """Dense Farneback flow as [H, W, 2] (dx, dy) per pixel."""
         if len(prev_frame.shape) == 3:
             prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
             curr_gray = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
@@ -125,7 +74,6 @@ class OpticalFlowExtractor:
             prev_gray = prev_frame
             curr_gray = curr_frame
         
-        # Compute flow
         flow = cv2.calcOpticalFlowFarneback(
             prev_gray, curr_gray,
             None,
@@ -149,7 +97,6 @@ class OpticalFlowExtractor:
         import torch
         import torchvision.transforms.functional as F
         
-        # Preprocess
         prev_tensor = torch.from_numpy(prev_frame).permute(2, 0, 1).float() / 255.0
         curr_tensor = torch.from_numpy(curr_frame).permute(2, 0, 1).float() / 255.0
         
@@ -159,7 +106,6 @@ class OpticalFlowExtractor:
         with torch.no_grad():
             flow = self.raft_model(prev_tensor, curr_tensor)[-1]
         
-        # Convert to numpy [H, W, 2]
         flow = flow[0].permute(1, 2, 0).cpu().numpy()
         
         return flow
@@ -169,65 +115,44 @@ class OpticalFlowExtractor:
         prev_frame: np.ndarray,
         curr_frame: np.ndarray,
     ) -> np.ndarray:
-        """Compute optical flow using configured method."""
         if self.method == 'raft' and self.raft_model is not None:
             return self.compute_flow_raft(prev_frame, curr_frame)
         else:
             return self.compute_flow_farneback(prev_frame, curr_frame)
     
     def extract_features(self, flow: np.ndarray) -> Dict[str, float]:
-        """
-        Extract violence-relevant features from optical flow.
-        
-        Args:
-            flow: [H, W, 2] optical flow
-            
-        Returns:
-            Dictionary of feature values
-        """
-        # Flow components
+        """Motion features from a [H, W, 2] flow field; also appends to the temporal history."""
         dx = flow[:, :, 0]
         dy = flow[:, :, 1]
         
-        # Magnitude and angle
         magnitude = np.sqrt(dx**2 + dy**2)
         angle = np.arctan2(dy, dx)
         
-        # Store for temporal analysis
         self.magnitude_history.append(magnitude.mean())
         self.flow_history.append(flow.copy())
         
         features = {}
         
-        # === Global Motion Statistics ===
         features['magnitude_mean'] = float(magnitude.mean())
         features['magnitude_std'] = float(magnitude.std())
         features['magnitude_max'] = float(magnitude.max())
         features['magnitude_p90'] = float(np.percentile(magnitude, 90))
         features['magnitude_p99'] = float(np.percentile(magnitude, 99))
         
-        # Motion intensity (normalized)
         features['motion_intensity'] = float(np.clip(magnitude.mean() / 10.0, 0, 1))
         
-        # === Motion Variance (Chaos Indicator) ===
-        # High variance = chaotic motion (fighting)
-        # Low variance = uniform motion (walking, sports)
+        # high variance = chaotic motion (fighting), low = uniform motion (walking, sports)
         features['flow_variance_x'] = float(dx.var())
         features['flow_variance_y'] = float(dy.var())
         features['flow_variance_total'] = float(dx.var() + dy.var())
         
-        # === Directional Analysis ===
-        # Entropy of flow directions (high = chaotic, low = coordinated)
         angle_hist, _ = np.histogram(angle.flatten(), bins=8, range=(-np.pi, np.pi))
         angle_hist = angle_hist / (angle_hist.sum() + 1e-8)
         directional_entropy = -np.sum(angle_hist * np.log(angle_hist + 1e-8))
         features['directional_entropy'] = float(directional_entropy)
         
-        # Dominant direction strength
         features['dominant_direction_strength'] = float(angle_hist.max())
         
-        # === Spatial Distribution ===
-        # Divide frame into grid and analyze motion distribution
         h, w = magnitude.shape
         grid_h, grid_w = 3, 3
         cell_h, cell_w = h // grid_h, w // grid_w
@@ -240,31 +165,25 @@ class OpticalFlowExtractor:
         
         grid_magnitudes = np.array(grid_magnitudes)
         
-        # Motion concentration (is motion localized or spread out?)
         features['motion_concentration'] = float(grid_magnitudes.max() / (grid_magnitudes.mean() + 1e-8))
         features['motion_spread'] = float(grid_magnitudes.std())
         
-        # Center vs periphery motion
         center_motion = grid_magnitudes[4]  # Center cell
         edge_motion = np.mean([grid_magnitudes[i] for i in [0, 1, 2, 3, 5, 6, 7, 8]])
         features['center_motion_ratio'] = float(center_motion / (edge_motion + 1e-8))
         
-        # === Temporal Features (if history available) ===
         if len(self.magnitude_history) >= 2:
-            # Acceleration (change in motion)
             mag_diff = self.magnitude_history[-1] - self.magnitude_history[-2]
             features['motion_acceleration'] = float(mag_diff)
         else:
             features['motion_acceleration'] = 0.0
         
-        # Motion consistency (always include)
         if len(self.magnitude_history) >= 5:
             recent_mags = list(self.magnitude_history)[-5:]
             features['motion_consistency'] = float(np.std(recent_mags))
         else:
             features['motion_consistency'] = 0.0
         
-        # Flow change (if previous flow available)
         if len(self.flow_history) >= 2:
             prev_flow = self.flow_history[-2]
             flow_diff = np.abs(flow - prev_flow)
@@ -274,24 +193,18 @@ class OpticalFlowExtractor:
             features['flow_change_mean'] = 0.0
             features['flow_change_max'] = 0.0
         
-        # === High-Motion Region Analysis ===
-        # Find regions with very high motion
         high_motion_mask = magnitude > np.percentile(magnitude, 90)
         features['high_motion_area_ratio'] = float(high_motion_mask.mean())
         
-        # Contiguity of high-motion regions
         labeled, num_features = ndimage.label(high_motion_mask)
         features['num_high_motion_regions'] = float(num_features)
         
-        # === Violence-Specific Composite Scores ===
-        # Sudden chaotic motion (fighting signature)
         features['chaos_score'] = float(
             features['directional_entropy'] * 
             features['motion_intensity'] * 
             (1 + features['motion_acceleration'])
         )
         
-        # Impact score (sudden localized high motion)
         features['impact_score'] = float(
             features['magnitude_p99'] * 
             features['motion_concentration'] * 
@@ -307,7 +220,7 @@ class OpticalFlowExtractor:
 
 
 def get_feature_names() -> List[str]:
-    """Return list of all optical flow feature names."""
+    """Column order of the saved `features` array."""
     return [
         'magnitude_mean', 'magnitude_std', 'magnitude_max', 
         'magnitude_p90', 'magnitude_p99', 'motion_intensity',
@@ -321,12 +234,7 @@ def get_feature_names() -> List[str]:
     ]
 
 
-# ==============================================================================
-# Video Processing
-# ==============================================================================
-
 def find_video_file(video_name: str, videos_dir: Path) -> Optional[Path]:
-    """Find video file for a given video name."""
     extensions = ['.mp4', '.avi', '.mkv', '.mov', '.webm', '.MP4', '.AVI']
     
     for ext in extensions:
@@ -357,16 +265,7 @@ def process_single_video(
     resize_height: int = 256,
     show_progress: bool = True,
 ) -> Optional[Dict]:
-    """
-    Process a single video and extract optical flow features.
-    
-    Args:
-        video_path: Path to video file
-        output_path: Path to save output .npz
-        extractor: OpticalFlowExtractor instance
-        sample_rate: Process every Nth frame
-        resize_height: Resize frames for faster processing
-    """
+    """Extract flow features for one video and save them to output_path (.npz)."""
     cap = cv2.VideoCapture(str(video_path))
     
     if not cap.isOpened():
@@ -378,7 +277,6 @@ def process_single_video(
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
-    # Compute resize dimensions
     scale = resize_height / height
     new_width = int(width * scale)
     new_height = resize_height
@@ -402,14 +300,11 @@ def process_single_video(
             break
         
         if frame_idx % sample_rate == 0:
-            # Resize
             frame_resized = cv2.resize(frame, (new_width, new_height))
             
             if prev_frame is not None:
-                # Compute flow
                 flow = extractor.compute_flow(prev_frame, frame_resized)
                 
-                # Extract features
                 features = extractor.extract_features(flow)
                 feature_vector = [features[name] for name in get_feature_names()]
                 
@@ -430,7 +325,6 @@ def process_single_video(
         print(f"No features extracted from {video_path}")
         return None
     
-    # Stack and save
     all_features = np.array(all_features, dtype=np.float32)
     frame_indices = np.array(frame_indices)
     
@@ -471,7 +365,6 @@ def process_videos_from_embeddings(
     
     emb_files = sorted(list(embeddings_dir.rglob("*.npz")))
     
-    # Filter by source first
     if source_filter:
         filtered = []
         for emb_path in emb_files:
@@ -486,7 +379,6 @@ def process_videos_from_embeddings(
     
     print(f"Found {len(emb_files)} embedding files (after filter)")
     
-    # Split work among workers
     if num_workers > 1:
         emb_files = [f for i, f in enumerate(emb_files) if i % num_workers == worker_id]
         print(f"Worker {worker_id}/{num_workers}: processing {len(emb_files)} videos")
@@ -498,7 +390,6 @@ def process_videos_from_embeddings(
     for emb_path in tqdm(emb_files, desc=f"Worker {worker_id}" if num_workers > 1 else "Processing"):
         video_name = emb_path.stem
         
-        # Output path
         rel_path = emb_path.relative_to(embeddings_dir)
         output_path = output_dir / rel_path.parent / f"{video_name}.npz"
         
@@ -506,7 +397,6 @@ def process_videos_from_embeddings(
             skipped += 1
             continue
         
-        # Find video
         video_path = find_video_file(video_name, videos_dir)
         if video_path is None:
             not_found += 1
@@ -514,7 +404,6 @@ def process_videos_from_embeddings(
                 print(f"Video not found: {video_name}")
             continue
         
-        # Process
         result = process_single_video(
             video_path, output_path, extractor, sample_rate
         )
@@ -557,13 +446,11 @@ def process_videos_parallel_pool(
     
     emb_files = sorted(list(embeddings_dir.rglob("*.npz")))
     
-    # Filter and prepare tasks
     tasks = []
     
     for emb_path in emb_files:
         video_name = emb_path.stem
         
-        # Source filter
         if source_filter:
             is_xd = '__#' in video_name or video_name.startswith('v=')
             is_ucf = '_x264' in video_name
@@ -572,14 +459,12 @@ def process_videos_parallel_pool(
             if source_filter == 'ucf_crime' and not is_ucf:
                 continue
         
-        # Output path
         rel_path = emb_path.relative_to(embeddings_dir)
         output_path = output_dir / rel_path.parent / f"{video_name}.npz"
         
         if output_path.exists():
             continue
         
-        # Find video
         video_path = find_video_file(video_name, videos_dir)
         if video_path is None:
             continue
@@ -612,8 +497,6 @@ def launch_parallel_workers(
     args,
     num_workers: int,
 ):
-    """Launch multiple worker processes."""
-    
     processes = []
     
     for worker_id in range(num_workers):
@@ -634,22 +517,16 @@ def launch_parallel_workers(
         
         print(f"Launching worker {worker_id}: {' '.join(cmd)}")
         
-        # Launch in background
         p = subprocess.Popen(cmd)
         processes.append(p)
     
     print(f"\nLaunched {num_workers} workers. Waiting for completion...")
     
-    # Wait for all to complete
     for p in processes:
         p.wait()
     
     print("All workers complete!")
 
-
-# ==============================================================================
-# Feature Analysis
-# ==============================================================================
 
 def analyze_features(
     features_dir: Path,
@@ -675,12 +552,10 @@ def analyze_features(
         if not label_path.exists():
             continue
         
-        # Load features
         feat_data = np.load(feat_path, allow_pickle=True)
         features = feat_data['features']
         frame_indices = feat_data['frame_indices']
         
-        # Load labels
         if label_path.suffix == '.npz':
             labels = np.load(label_path)
             labels = labels.get('labels', labels.get('arr_0'))
@@ -691,11 +566,8 @@ def analyze_features(
             labels = labels.max(axis=1)
         labels = (labels > 0).astype(float)
         
-        # Align (features are at frame_indices positions)
-        # This is approximate - depends on sample_rate alignment
+        # approximate: flow row i is paired with label row i (frame rate and label rate not aligned)
         for i, feat in enumerate(features):
-            # Map frame index to label index (assuming labels at ~1 FPS)
-            # This needs adjustment based on your actual label rate
             label_idx = min(i, len(labels) - 1)
             all_features.append(feat)
             all_labels.append(labels[label_idx])
@@ -712,7 +584,6 @@ def analyze_features(
     
     feature_names = get_feature_names()
     
-    # Per-feature AUC
     print("\nPer-Feature ROC-AUC:")
     feature_aucs = []
     for i, name in enumerate(feature_names):
@@ -723,13 +594,11 @@ def analyze_features(
         feature_aucs.append(auc)
         print(f"  {name:<30} {auc:.3f}")
     
-    # Logistic regression
     print("\nLogistic Regression:")
     n = len(all_labels)
     idx = np.random.permutation(n)
     train_idx, test_idx = idx[:int(0.7*n)], idx[int(0.7*n):]
     
-    # Normalize features
     mean = all_features[train_idx].mean(axis=0)
     std = all_features[train_idx].std(axis=0) + 1e-8
     X_train = (all_features[train_idx] - mean) / std
@@ -744,7 +613,6 @@ def analyze_features(
     print(f"  Train AUC: {train_auc:.4f}")
     print(f"  Test AUC:  {test_auc:.4f}")
     
-    # Plot
     fig, ax = plt.subplots(figsize=(12, 8))
     sorted_idx = np.argsort(feature_aucs)[::-1]
     colors = ['green' if a > 0.55 else 'gray' for a in np.array(feature_aucs)[sorted_idx]]
@@ -760,10 +628,6 @@ def analyze_features(
     
     print(f"\nSaved analysis to {output_path}")
 
-
-# ==============================================================================
-# Main
-# ==============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Optical Flow Feature Extraction")
@@ -788,7 +652,6 @@ def main():
                         choices=['xd_violence', 'ucf_crime'])
     parser.add_argument('--device', type=str, default='cuda:0')
     
-    # Parallel processing options
     parser.add_argument('--worker_id', type=int, default=0,
                         help='Worker ID (0 to num_workers-1)')
     parser.add_argument('--num_workers', type=int, default=1,
@@ -800,7 +663,6 @@ def main():
     parser.add_argument('--use_pool', action='store_true',
                         help='Use multiprocessing pool (single machine)')
     
-    # Analysis
     parser.add_argument('--analyze', action='store_true',
                         help='Analyze existing features')
     parser.add_argument('--features_dir', type=str, default=None)
@@ -808,7 +670,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Analysis mode
     if args.analyze:
         if not args.features_dir or not args.labels_dir:
             print("Need --features_dir and --labels_dir for analysis")
@@ -820,7 +681,6 @@ def main():
         )
         return
     
-    # Launch parallel workers mode
     if args.launch_parallel:
         if not args.videos_dir or not args.embeddings_dir:
             print("Need --videos_dir and --embeddings_dir for parallel launch")
@@ -828,7 +688,6 @@ def main():
         launch_parallel_workers(args, args.num_workers)
         return
     
-    # Multiprocessing pool mode
     if args.use_pool:
         if not args.videos_dir or not args.embeddings_dir:
             print("Need --videos_dir and --embeddings_dir for pool mode")
@@ -875,7 +734,6 @@ def main():
         )
     
     elif args.videos_dir:
-        # Process all videos in directory
         videos_dir = Path(args.videos_dir)
         for ext in ['*.mp4', '*.avi', '*.mkv']:
             for video_path in videos_dir.glob(ext):

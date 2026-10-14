@@ -1,23 +1,11 @@
 #!/usr/bin/env python3
 """
-Contrastive Projection V3 - Simplified and Stable
-
-Key changes from V2:
-1. Classification-first: contrastive loss is auxiliary, not primary
-2. No mixup (was confusing the model)
-3. Gentler augmentation
-4. Natural class distribution (no forced 50/50 balancing)
-5. Simpler architecture options
-6. Better monitoring of what's actually happening
+Contrastive projection V3: classification-first MLP projector over VLM embeddings with auxiliary SupCon.
 
 Usage:
-    python contrastive_projection_v3.py \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --output_dir ./contrastive_v3 \
-        --model_size large \
-        --epochs 100 \
-        --device cuda:1
+    python tuning/contrastive_projection.py --embeddings_dir data/processed/vlm_emb \
+        --labels_dir data/processed/labels_multih --output_dir ./contrastive_v3 \
+        --model_size large --epochs 100 --device cuda:1
 """
 
 import argparse
@@ -42,14 +30,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-# ==============================================================================
-# Model
-# ==============================================================================
-
 class ProjectionNetwork(nn.Module):
-    """
-    Simpler, more stable projection network.
-    """
+    """MLP encoder with a contrastive projection head and a classification head."""
     
     MODEL_CONFIGS = {
         'small': {'hidden_dims': [1024, 512, 256], 'dropout': 0.2},
@@ -69,7 +51,6 @@ class ProjectionNetwork(nn.Module):
         hidden_dims = config['hidden_dims']
         dropout = config['dropout']
         
-        # Encoder
         layers = []
         prev_dim = input_dim
         
@@ -82,12 +63,10 @@ class ProjectionNetwork(nn.Module):
         
         self.encoder = nn.Sequential(*layers)
         
-        # Projection head for contrastive (small)
         self.projector = nn.Sequential(
             nn.Linear(hidden_dims[-1], projection_dim),
         )
         
-        # Classification head
         self.classifier = nn.Sequential(
             nn.Linear(hidden_dims[-1], 128),
             nn.LayerNorm(128),
@@ -104,7 +83,7 @@ class ProjectionNetwork(nn.Module):
     def _init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight, gain=0.5)  # Smaller init
+                nn.init.xavier_uniform_(m.weight, gain=0.5)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
     
@@ -124,12 +103,7 @@ class ProjectionNetwork(nn.Module):
         return self.encoder(x)
 
 
-# ==============================================================================
-# Losses
-# ==============================================================================
-
 class FocalLoss(nn.Module):
-    """Standard focal loss."""
     def __init__(self, alpha: float = 0.75, gamma: float = 2.0):
         super().__init__()
         self.alpha = alpha
@@ -145,10 +119,7 @@ class FocalLoss(nn.Module):
 
 
 class SimpleContrastiveLoss(nn.Module):
-    """
-    Simplified supervised contrastive loss.
-    No hard negative mining (it was causing instability).
-    """
+    """Supervised contrastive loss without hard-negative mining."""
     def __init__(self, temperature: float = 0.1):
         super().__init__()
         self.temperature = temperature
@@ -160,42 +131,32 @@ class SimpleContrastiveLoss(nn.Module):
         if batch_size < 4:
             return torch.tensor(0.0, device=device)
         
-        # Similarity matrix
         sim = torch.matmul(features, features.T) / self.temperature
         sim = torch.clamp(sim, -20, 20)  # Stability
         
-        # Masks
         labels = labels.view(-1, 1)
         mask_pos = torch.eq(labels, labels.T).float()
         mask_self = torch.eye(batch_size, device=device)
-        mask_pos = mask_pos - mask_self  # Exclude self
+        mask_pos = mask_pos - mask_self
         
-        # Check if any positives exist
         if mask_pos.sum() == 0:
             return torch.tensor(0.0, device=device)
         
-        # Log-softmax for stability
         sim_max, _ = sim.max(dim=1, keepdim=True)
         sim = sim - sim_max.detach()
         
         exp_sim = torch.exp(sim) * (1 - mask_self)
         log_prob = sim - torch.log(exp_sim.sum(dim=1, keepdim=True) + 1e-8)
         
-        # Mean log prob over positives
         pos_count = mask_pos.sum(dim=1).clamp(min=1)
         loss = -(mask_pos * log_prob).sum(dim=1) / pos_count
         
-        # Only include samples that have positives
         has_pos = mask_pos.sum(dim=1) > 0
         if has_pos.sum() == 0:
             return torch.tensor(0.0, device=device)
         
         return loss[has_pos].mean()
 
-
-# ==============================================================================
-# Data
-# ==============================================================================
 
 def classify_video_source(video_id: str) -> str:
     if '_x264' in video_id:
@@ -245,7 +206,7 @@ def load_labels(path: Path):
 
 
 class SimpleDataset(Dataset):
-    """Simple dataset without fancy balancing."""
+    """Frame-level (VLM embedding, anticipation label) samples for the clips in an index JSON."""
     
     def __init__(
         self,
@@ -293,7 +254,6 @@ class SimpleDataset(Dataset):
             embeddings = embeddings[:min_len]
             labels_raw = labels_raw[:min_len]
             
-            # Anticipation labels
             antic_labels = np.zeros_like(labels_raw)
             for t in range(len(labels_raw)):
                 future_end = min(t + horizon_frames, len(labels_raw))
@@ -307,7 +267,6 @@ class SimpleDataset(Dataset):
                     'video_id': video_name,
                 })
         
-        # Shuffle and optionally limit
         np.random.shuffle(self.samples)
         if max_samples and len(self.samples) > max_samples:
             self.samples = self.samples[:max_samples]
@@ -327,10 +286,6 @@ class SimpleDataset(Dataset):
         }
 
 
-# ==============================================================================
-# Training
-# ==============================================================================
-
 def train(
     model: nn.Module,
     train_loader: DataLoader,
@@ -340,7 +295,7 @@ def train(
     lr: float = 1e-4,
     weight_decay: float = 1e-4,
     patience: int = 15,
-    contrastive_weight: float = 0.1,  # Small - auxiliary only
+    contrastive_weight: float = 0.1,
 ) -> Tuple[Dict, float]:
     
     model = model.to(device)
@@ -358,7 +313,6 @@ def train(
     history = defaultdict(list)
     
     for epoch in range(epochs):
-        # === Training ===
         model.train()
         train_loss_sum = 0
         train_cls_sum = 0
@@ -375,15 +329,12 @@ def train(
             
             proj, logits, _ = model(emb)
             
-            # Classification loss (primary)
             loss_cls = focal_loss(logits, labels)
             
-            # Contrastive loss (auxiliary)
             loss_con = contrastive_loss(proj, labels)
             
             loss = loss_cls + contrastive_weight * loss_con
             
-            # Skip bad batches
             if torch.isnan(loss) or loss.item() > 100:
                 continue
             
@@ -421,7 +372,6 @@ def train(
             train_auc = 0.5
             train_ap = train_labels_all.mean()
         
-        # === Validation ===
         model.eval()
         val_labels_all = []
         val_scores_all = []
@@ -453,7 +403,6 @@ def train(
             val_f1 = 0
             val_thresh = 0.5
         
-        # Record
         history['train_loss'].append(float(train_loss))
         history['train_cls'].append(float(train_cls))
         history['train_con'].append(float(train_con))
@@ -472,7 +421,6 @@ def train(
               f"train_auc={train_auc:.4f} val_auc={val_auc:.4f} (gap={gap:+.4f}) | "
               f"val_ap={val_ap:.4f} val_f1={val_f1:.4f}")
         
-        # Early stopping
         if val_auc > best_val_auc:
             best_val_auc = val_auc
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
@@ -489,10 +437,6 @@ def train(
     
     return dict(history), best_val_auc
 
-
-# ==============================================================================
-# Export
-# ==============================================================================
 
 def export_embeddings(
     model: nn.Module,
@@ -528,7 +472,6 @@ def export_embeddings(
         
         projected = np.concatenate(projected, axis=0)
         
-        # Preserve directory structure
         rel_path = path.relative_to(embeddings_dir)
         out_path = output_dir / rel_path.parent / f"{video_name}.npz"
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -538,15 +481,10 @@ def export_embeddings(
     print(f"Exported to {output_dir}")
 
 
-# ==============================================================================
-# Visualization
-# ==============================================================================
-
 def plot_history(history: Dict, output_path: Path):
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     epochs = range(1, len(history['train_loss']) + 1)
     
-    # Loss
     axes[0, 0].plot(epochs, history['train_loss'], 'b-', label='Total')
     axes[0, 0].plot(epochs, history['train_cls'], 'g--', label='Classification')
     axes[0, 0].plot(epochs, history['train_con'], 'r--', label='Contrastive')
@@ -556,7 +494,6 @@ def plot_history(history: Dict, output_path: Path):
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
     
-    # AUC
     axes[0, 1].plot(epochs, history['train_auc'], 'b-', label='Train')
     axes[0, 1].plot(epochs, history['val_auc'], 'r-', label='Val')
     axes[0, 1].fill_between(epochs, history['train_auc'], history['val_auc'], alpha=0.2, color='gray')
@@ -567,7 +504,6 @@ def plot_history(history: Dict, output_path: Path):
     axes[0, 1].grid(True, alpha=0.3)
     axes[0, 1].set_ylim([0.4, 1.0])
     
-    # AP
     axes[1, 0].plot(epochs, history['train_ap'], 'b-', label='Train')
     axes[1, 0].plot(epochs, history['val_ap'], 'r-', label='Val')
     axes[1, 0].set_xlabel('Epoch')
@@ -576,7 +512,6 @@ def plot_history(history: Dict, output_path: Path):
     axes[1, 0].legend()
     axes[1, 0].grid(True, alpha=0.3)
     
-    # F1 and threshold
     ax1 = axes[1, 1]
     ax1.plot(epochs, history['val_f1'], 'g-', label='Val F1')
     ax1.set_xlabel('Epoch')
@@ -597,10 +532,6 @@ def plot_history(history: Dict, output_path: Path):
     plt.savefig(output_path, dpi=150)
     plt.close()
 
-
-# ==============================================================================
-# Main
-# ==============================================================================
 
 def main():
     parser = argparse.ArgumentParser()
@@ -641,7 +572,6 @@ def main():
     with open(output_dir / 'args.json', 'w') as f:
         json.dump(vars(args), f, indent=2)
     
-    # Data
     print("\nLoading data...")
     train_data = SimpleDataset(
         args.train_index, Path(args.embeddings_dir), Path(args.labels_dir),
@@ -656,14 +586,12 @@ def main():
     train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    # Model
     model = ProjectionNetwork(
         input_dim=args.input_dim,
         model_size=args.model_size,
         projection_dim=args.projection_dim,
     )
     
-    # Train
     print("\n" + "="*70)
     print("TRAINING")
     print("="*70)
@@ -680,7 +608,6 @@ def main():
         contrastive_weight=args.contrastive_weight,
     )
     
-    # Save
     torch.save({
         'model_state_dict': model.state_dict(),
         'args': vars(args),
@@ -692,7 +619,6 @@ def main():
     
     plot_history(history, output_dir / 'training_curves.png')
     
-    # Test
     print("\nEvaluating on test...")
     test_data = SimpleDataset(
         args.test_index, Path(args.embeddings_dir), Path(args.labels_dir),
@@ -723,7 +649,6 @@ def main():
     print(f"  PR-AUC:  {test_ap:.4f}")
     print(f"  Best F1: {test_f1:.4f}")
     
-    # Save final metrics
     metrics = {
         'best_val_auc': float(best_val_auc),
         'test_auc': float(test_auc),
@@ -733,7 +658,6 @@ def main():
     with open(output_dir / 'metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
     
-    # Export
     if args.export_embeddings:
         print("\nExporting embeddings...")
         export_dir = output_dir / 'projected_emb'

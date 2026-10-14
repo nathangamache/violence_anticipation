@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
-"""
-Ensemble Simulator for Violence Anticipation
+"""Ensemble of the simple student MLP and the temporal LSTM on the long simulation.
 
-Combines the temporal LSTM model with the original simple model.
-Only triggers an alert when BOTH models agree, which should reduce
-false alarms while maintaining detection rate.
-
-Strategies:
-1. AND: Both must be above threshold (most conservative)
-2. OR: Either above threshold (most sensitive)
-3. AVERAGE: Average scores, then threshold
-4. WEIGHTED: Weighted average of scores
+Strategies: and (both above threshold), or (either), average, weighted.
 """
 
 import argparse
@@ -29,17 +20,12 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, average_precision_s
 from tqdm import tqdm
 
 
-# ==============================================================================
-# Model Definitions (must match training)
-# ==============================================================================
-
 class SimpleStudentModel(nn.Module):
-    """Original simple model - matches actual saved architecture."""
+    """Per-frame student MLP; layer layout must match the saved checkpoint."""
     
     def __init__(self, input_dim=3584, hidden_dims=[512, 256, 128], dropout=0.3):
         super().__init__()
         
-        # hidden_dims = [first_hidden, second_hidden, third_hidden]
         self.feature_extractor = nn.Sequential(
             nn.Linear(input_dim, hidden_dims[0]),
             nn.BatchNorm1d(hidden_dims[0]),
@@ -70,7 +56,7 @@ class SimpleStudentModel(nn.Module):
 
 
 class TemporalViolenceModel(nn.Module):
-    """Temporal LSTM model."""
+    """Copy of the temporal LSTM; must match the saved checkpoint."""
     
     def __init__(
         self,
@@ -141,10 +127,6 @@ class TemporalViolenceModel(nn.Module):
         return logits
 
 
-# ==============================================================================
-# Ensemble Simulator
-# ==============================================================================
-
 @dataclass
 class EnsembleResults:
     strategy: str
@@ -201,8 +183,8 @@ class EnsembleSimulator:
         device: str = 'cuda:1',
         simple_threshold: float = 0.6,
         temporal_threshold: float = 0.388,
-        strategy: str = 'and',  # 'and', 'or', 'average', 'weighted'
-        temporal_weight: float = 0.5,  # For weighted strategy
+        strategy: str = 'and',
+        temporal_weight: float = 0.5,
         sequence_length: int = 30,
     ):
         self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
@@ -212,16 +194,14 @@ class EnsembleSimulator:
         self.temporal_weight = temporal_weight
         self.sequence_length = sequence_length
         
-        # Load simple model
         print(f"Loading simple model from {simple_model_path}...")
         simple_ckpt = torch.load(simple_model_path, map_location=self.device, weights_only=False)
         
-        # Auto-detect dimensions from checkpoint weights
         state_dict = simple_ckpt.get('model_state_dict', simple_ckpt)
-        hidden_dim_0 = state_dict['feature_extractor.0.weight'].shape[0]  # 512
-        hidden_dim_1 = state_dict['feature_extractor.4.weight'].shape[0]  # 256
-        hidden_dim_2 = state_dict['feature_extractor.8.weight'].shape[0]  # 128
-        input_dim = state_dict['feature_extractor.0.weight'].shape[1]     # 3584
+        hidden_dim_0 = state_dict['feature_extractor.0.weight'].shape[0]
+        hidden_dim_1 = state_dict['feature_extractor.4.weight'].shape[0]
+        hidden_dim_2 = state_dict['feature_extractor.8.weight'].shape[0]
+        input_dim = state_dict['feature_extractor.0.weight'].shape[1]
         
         self.simple_model = SimpleStudentModel(
             input_dim=input_dim,
@@ -234,7 +214,6 @@ class EnsembleSimulator:
         self.simple_model.to(self.device)
         self.simple_model.eval()
         
-        # Load temporal model
         print(f"Loading temporal model from {temporal_model_path}...")
         temporal_ckpt = torch.load(temporal_model_path, map_location=self.device, weights_only=False)
         
@@ -254,14 +233,12 @@ class EnsembleSimulator:
     
     @torch.no_grad()
     def score_frame_simple(self, embedding: np.ndarray) -> float:
-        """Score a single frame with simple model."""
         x = torch.tensor(embedding, dtype=torch.float32).unsqueeze(0).to(self.device)
         logit = self.simple_model(x)
         return torch.sigmoid(logit).cpu().item()
     
     @torch.no_grad()
     def score_sequence_temporal(self, embeddings: np.ndarray) -> float:
-        """Score a sequence with temporal model."""
         x = torch.tensor(embeddings, dtype=torch.float32).unsqueeze(0).to(self.device)
         logit = self.temporal_model(x)
         return torch.sigmoid(logit).cpu().item()
@@ -271,32 +248,23 @@ class EnsembleSimulator:
         simple_score: float,
         temporal_score: float,
     ) -> Tuple[int, float]:
-        """
-        Combine predictions from both models.
-        
-        Returns:
-            (prediction, combined_score)
-        """
+        """Return (prediction, combined_score) for the configured strategy."""
         if self.strategy == 'and':
-            # Both must agree
             pred = 1 if (simple_score >= self.simple_threshold and 
                         temporal_score >= self.temporal_threshold) else 0
             combined_score = min(simple_score, temporal_score)
         
         elif self.strategy == 'or':
-            # Either triggers
             pred = 1 if (simple_score >= self.simple_threshold or 
                         temporal_score >= self.temporal_threshold) else 0
             combined_score = max(simple_score, temporal_score)
         
         elif self.strategy == 'average':
-            # Average scores
             combined_score = (simple_score + temporal_score) / 2
             avg_threshold = (self.simple_threshold + self.temporal_threshold) / 2
             pred = 1 if combined_score >= avg_threshold else 0
         
         elif self.strategy == 'weighted':
-            # Weighted average
             combined_score = (
                 (1 - self.temporal_weight) * simple_score +
                 self.temporal_weight * temporal_score
@@ -341,35 +309,26 @@ class EnsembleSimulator:
         all_scores = []
         all_predictions = []
         
-        # We need sequence_length frames before we can use temporal model
-        # For frames before that, we'll use simple model only
-        
         recent_combined_scores = []
         
         for i in tqdm(range(n_frames), desc="Scoring"):
-            # Simple model score (always available)
             simple_score = self.score_frame_simple(embeddings[i])
             
-            # Temporal model score (needs sequence_length frames)
             if i >= self.sequence_length - 1:
                 seq_start = i - self.sequence_length + 1
                 seq = embeddings[seq_start:i+1]
                 temporal_score = self.score_sequence_temporal(seq)
             else:
-                # Not enough frames yet, use simple score only
                 temporal_score = simple_score
             
-            # Combine
             pred, combined_score = self.combine_predictions(simple_score, temporal_score)
             
-            # Apply smoothing
             recent_combined_scores.append(combined_score)
             if len(recent_combined_scores) > smoothing_window:
                 recent_combined_scores.pop(0)
             
             if len(recent_combined_scores) >= smoothing_window:
                 if self.strategy == 'and':
-                    # For AND, require all recent combined scores to indicate alert
                     avg_threshold = (self.simple_threshold + self.temporal_threshold) / 2
                     smoothed_pred = 1 if all(s >= avg_threshold for s in recent_combined_scores) else 0
                 else:
@@ -383,7 +342,6 @@ class EnsembleSimulator:
         elapsed = time.time() - start_time
         print(f"  Completed in {elapsed:.1f}s ({n_frames/elapsed:.0f} fps)")
         
-        # Compute metrics
         return self._compute_metrics(
             np.array(all_scores),
             np.array(all_predictions),
@@ -402,7 +360,6 @@ class EnsembleSimulator:
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         
-        # Event-level analysis
         violence_events = []
         in_event = False
         event_start = 0
@@ -417,7 +374,6 @@ class EnsembleSimulator:
         if in_event:
             violence_events.append((event_start, len(labels) - 1))
         
-        # Detection and lead times
         detected = 0
         lead_times = []
         horizon_frames = int(30 * fps)
@@ -435,7 +391,6 @@ class EnsembleSimulator:
                             lead_times.append(lead_time)
                         break
         
-        # False alarms
         false_alarms = 0
         in_alarm = False
         for pred, label in zip(predictions, labels):
@@ -496,7 +451,6 @@ def main():
     
     results.print_summary()
     
-    # Save
     with open(Path(args.output_dir) / 'results.json', 'w') as f:
         json.dump({
             'strategy': results.strategy,

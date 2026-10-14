@@ -12,15 +12,7 @@ from core.utils import get_device
 
 
 def build_index_file(graphs_dir: str, labels_dir: str, out_json: str) -> str:
-    """
-    Build an index JSON of:
-      {
-        "graph_path": "...",
-        "label_path": "..."
-      }
-
-    Only includes items where BOTH graph and label exist.
-    """
+    """Write an index JSON of {graph_path, label_path} for every graph that has a label."""
     items = []
     for fn in os.listdir(graphs_dir):
         if not (fn.endswith(".npy") or fn.endswith(".pt")):
@@ -44,9 +36,6 @@ def build_index_file(graphs_dir: str, labels_dir: str, out_json: str) -> str:
 
 
 def infer_dims(dataset: GraphSequenceDataset):
-    """
-    Infer node_dim, scene_dim, audio_dim from the first non-empty frames in the dataset.
-    """
     node_dim = None
     scene_dim = None
     audio_dim = None
@@ -76,9 +65,6 @@ def infer_dims(dataset: GraphSequenceDataset):
 
 
 def train():
-    # --------------------------------------------------------
-    # Load configs
-    # --------------------------------------------------------
     with open("configs/training.yaml", "r") as f:
         cfg = yaml.safe_load(f)
 
@@ -90,12 +76,9 @@ def train():
     graphs_dir = paths_cfg["paths"]["graphs"]
     labels_dir = paths_cfg["paths"]["labels"]
 
-    # Anticipation-related hyperparams (for logging + loss weighting)
     anticipation_window_sec = float(training_cfg.get("anticipation_window_sec", 30.0))
     anticipation_weight_factor = float(training_cfg.get("anticipation_weight_factor", 1.0))
 
-    # NEW: anti-spam / false-alarm penalty knobs
-    # Enable by setting spam_penalty_lambda > 0 in configs/training.yaml
     spam_penalty_lambda = float(training_cfg.get("spam_penalty_lambda", 0.0))
     spam_penalty_margin = float(training_cfg.get("spam_penalty_margin", 0.25))
     low_target_eps = float(training_cfg.get("low_target_eps", 1e-3))
@@ -106,9 +89,6 @@ def train():
     print(f"[Train] Spam penalty margin         = {spam_penalty_margin:.3f}")
     print(f"[Train] Low-target eps              = {low_target_eps:.6f}")
 
-    # --------------------------------------------------------
-    # Build index
-    # --------------------------------------------------------
     index_json = build_index_file(
         graphs_dir=graphs_dir,
         labels_dir=labels_dir,
@@ -118,14 +98,8 @@ def train():
     dataset = GraphSequenceDataset(index_json)
     print(f"[Train] Dataset size = {len(dataset)} sequences")
 
-    # --------------------------------------------------------
-    # Infer dims
-    # --------------------------------------------------------
     node_dim, scene_dim, audio_dim = infer_dims(dataset)
 
-    # --------------------------------------------------------
-    # Dataloader
-    # --------------------------------------------------------
     batch_size = int(training_cfg.get("batch_size", 1))
     if batch_size != 1:
         print("[Warn] batch_size>1 not supported with variable-length sequences. Forcing batch_size=1.")
@@ -142,9 +116,6 @@ def train():
     device = get_device()
     print(f"[Train] Device = {device}")
 
-    # --------------------------------------------------------
-    # Model + optimizer
-    # --------------------------------------------------------
     model = ViolenceTransformer(
         node_dim=node_dim,
         scene_dim=scene_dim,
@@ -161,9 +132,6 @@ def train():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    # --------------------------------------------------------
-    # Training loop
-    # --------------------------------------------------------
     os.makedirs("checkpoints", exist_ok=True)
 
     for epoch in range(num_epochs):
@@ -183,7 +151,6 @@ def train():
         for batch in progress:
             frames_cpu, labels_cpu = batch[0]
 
-            # Move frames to device
             frames_cuda = []
             for f in frames_cpu:
                 frames_cuda.append(
@@ -206,7 +173,6 @@ def train():
             if preds.dim() > 1:
                 preds = preds.view(-1)
 
-            # Align lengths
             T = min(preds.shape[0], labels.shape[0])
             if T == 0:
                 continue
@@ -214,20 +180,10 @@ def train():
             preds = preds[:T]
             labels_aligned = labels[:T]
 
-            # ----------------------------
-            # 1) Anticipation-weighted MSE
-            # ----------------------------
             weights = 1.0 + anticipation_weight_factor * labels_aligned
             mse_loss = ((preds - labels_aligned) ** 2 * weights).mean()
 
-            # -----------------------------------------
-            # 2) Anti-spam penalty (stop alarm spamming)
-            #
-            # Penalize predictions above `spam_penalty_margin`
-            # on frames whose GT risk is ~0 (non-violent frames).
-            #
-            # loss_spam = mean( relu(pred - margin)^2 ) over low-target frames
-            # -----------------------------------------
+            # "Spam" = false alarms: penalize preds above the margin on frames with GT risk ~0.
             if spam_penalty_lambda > 0.0:
                 low_mask = (labels_aligned <= low_target_eps)
                 if low_mask.any():

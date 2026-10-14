@@ -4,7 +4,6 @@ import numpy as np
 from pathlib import Path
 import sys
 
-# Check a few embedding files
 emb_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('data/processed/vlm_emb')
 
 print(f"Scanning {emb_dir}")

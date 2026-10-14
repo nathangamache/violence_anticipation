@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+"""Build metadata/ucf_crime.json; only the annotated test anomalies get label 1 and an event_frame."""
 import os, json, cv2
 
 BASE = os.path.expanduser("~/projects/violence_anticipation/data")
 RAW_DIR = f"{BASE}/raw_videos/ucf_crime"
-VID_DIR = f"{RAW_DIR}/videos"   # your mp4s live here
+VID_DIR = f"{RAW_DIR}/videos"
 ANN_FILE = f"{RAW_DIR}/Temporal_Anomaly_Annotation_for_Testing_Videos.txt"
 OUT_JSON = f"{BASE}/metadata/ucf_crime.json"
 
@@ -14,18 +15,13 @@ def safe_mkdir(p):
 
 
 def parse_annotation_line(line):
-    """
-    Example:
-    Abuse028_x264.mp4  Abuse  165 240  -1 -1
-    Format:
-    video  category  start1 end1  start2 end2
-    """
+    """Parse 'Abuse028_x264.mp4  Abuse  165 240  -1 -1' (video, category, start1 end1, start2 end2)
+    into (vid_id, earliest start frame); None if there is no valid start."""
     parts = [p for p in line.strip().split(" ") if p != ""]
     if len(parts) < 4:
         return None
 
     video = parts[0].replace(".mp4", "")
-    # parts[1] = category (ignored)
 
     try:
         start1 = int(parts[2])
@@ -33,7 +29,6 @@ def parse_annotation_line(line):
     except:
         return None
 
-    # Optional second interval
     if len(parts) >= 6:
         try:
             start2 = int(parts[4])
@@ -52,16 +47,12 @@ def parse_annotation_line(line):
     if not starts:
         return None
 
-    # FIRST violent frame
     return video, min(starts)
 
 
 def main():
     safe_mkdir(os.path.dirname(OUT_JSON))
 
-    # ----------------------------------------
-    # STEP 1 — parse annotation file
-    # ----------------------------------------
     violent_events = {}
 
     with open(ANN_FILE, "r") as f:
@@ -72,9 +63,6 @@ def main():
             video, first_event_frame = parsed
             violent_events[video] = first_event_frame
 
-    # ----------------------------------------
-    # STEP 2 — Process all videos in /videos/
-    # ----------------------------------------
     metadata = {}
     for f in os.listdir(VID_DIR):
         if not f.endswith(".mp4"):
@@ -83,7 +71,6 @@ def main():
         vid_id = f.replace(".mp4", "")
         path = os.path.join(VID_DIR, f)
 
-        # get video info
         cap = cv2.VideoCapture(path)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
@@ -96,7 +83,6 @@ def main():
             event_frame = 0
             label = 0
 
-        # clip the event frame to prevent > total_frames
         if event_frame > total_frames:
             event_frame = max(0, total_frames - 1)
 
@@ -108,7 +94,6 @@ def main():
             "source": "ucf_crime"
         }
 
-    # save metadata
     with open(OUT_JSON, "w") as f:
         json.dump(metadata, f, indent=4)
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Mean-pool per-person VideoMAE action embeddings into one feature per Kinetics clip."""
 import os
 import json
 import numpy as np
@@ -26,7 +27,6 @@ def safe_mkdir(p):
 
 
 def preprocess_kinetics_actions():
-    # --------------- Load metadata ---------------
     if not os.path.exists(KIN_META):
         raise FileNotFoundError(f"Missing metadata file: {KIN_META}")
 
@@ -43,7 +43,6 @@ def preprocess_kinetics_actions():
 
     label_to_idx = {}
 
-    # --------------- Iterate over all clips ---------------
     for clip_id, info in tqdm(meta.items(), desc="Kinetics clips"):
         vid_path = os.path.join(KIN_VID_DIR, f"{clip_id}.mp4")
         if not os.path.exists(vid_path):
@@ -55,27 +54,22 @@ def preprocess_kinetics_actions():
             print(f"[Skip] No label for clip {clip_id}")
             continue
 
-        # Map string label → integer index
         if label_str not in label_to_idx:
             label_to_idx[label_str] = len(label_to_idx)
         label_idx = label_to_idx[label_str]
 
-        # ---------- 1) Tracking ----------
         try:
             tracks_by_frame = extract_tracks(vid_path)
         except Exception as e:
             print(f"[Error] extract_tracks failed for {clip_id}: {e}")
             continue
 
-        # ---------- 2) Actions ----------
         try:
             actions_by_frame = extract_actions(vid_path, tracks_by_frame)
         except Exception as e:
             print(f"[Error] extract_actions failed for {clip_id}: {e}")
             continue
 
-        # actions_by_frame: list[frame_idx] -> dict(track_id -> emb)
-        # Flatten all embeddings into a single list
         embeddings = []
         for frame_actions in actions_by_frame:
             for _, emb in frame_actions.items():
@@ -88,7 +82,6 @@ def preprocess_kinetics_actions():
             print(f"[Warn] No embeddings for clip {clip_id}, skipping.")
             continue
 
-        # ---------- 3) Pool to clip-level feature ----------
         clip_feat = np.mean(np.stack(embeddings, axis=0), axis=0).astype(np.float32)
 
         all_features.append(clip_feat)
@@ -98,7 +91,6 @@ def preprocess_kinetics_actions():
     if len(all_features) == 0:
         raise RuntimeError("[Kinetics] No valid clips processed; all_features is empty.")
 
-    # --------------- Stack + save ---------------
     features = np.stack(all_features, axis=0)
     labels = np.array(all_labels, dtype=np.int64)
 

@@ -1,19 +1,10 @@
-"""
-ema_smoothing.py
-================
-EMA (Exponential Moving Average) smoothing at three levels:
-  1. Post-processing: smooth inference scores before thresholding
-  2. Embedding-level: smooth VLM embeddings across time before feeding the model
-  3. Hidden-state-level: smooth LSTM hidden states during inference (requires model surgery)
+"""EMA smoothing at three levels: output scores, input embeddings and LSTM hidden states.
 
 Usage:
-    python ema_smoothing.py \
-        --embeddings data/processed/vlm_emb \
-        --labels data/processed/labels_multih \
-        --checkpoint outputs/outputs_temporal/best_temporal_model.pt \
-        --alphas 0.1 0.3 0.5 0.7 0.9
+    python ema_smoothing.py --embeddings data/processed/vlm_emb --labels data/processed/labels_multih \
+        --checkpoint outputs/outputs_temporal/best_temporal_model.pt --alphas 0.1 0.3 0.5 0.7 0.9
 
-Outputs a CSV comparing raw vs. EMA-smoothed AUC at each alpha for all three levels.
+Writes raw vs smoothed AUC per level and alpha to results/ema_results.csv.
 """
 
 import argparse
@@ -31,10 +22,6 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 
-
-# ──────────────────────────────────────────────
-# EMA utilities
-# ──────────────────────────────────────────────
 
 def ema_1d(values: np.ndarray, alpha: float) -> np.ndarray:
     """EMA over a 1-D array (e.g., scalar scores over time)."""
@@ -54,12 +41,8 @@ def ema_2d(matrix: np.ndarray, alpha: float) -> np.ndarray:
     return out
 
 
-# ──────────────────────────────────────────────
-# Data loading helpers
-# ──────────────────────────────────────────────
-
 def load_video_pairs(vlm_dir: Path, labels_dir: Path, max_videos: int = 200):
-    """Load (embeddings, labels) pairs from XD-Violence processed files."""
+    """(emb, binary labels) for the first max_videos sorted .npz files; under the default vlm_emb these are UCF-Crime, not XD."""
     vlm_files = sorted(vlm_dir.rglob("*.npz"))[:max_videos]
     pairs = []
     for vf in vlm_files:
@@ -87,20 +70,12 @@ def flatten_pairs(pairs):
     return X, y
 
 
-# ──────────────────────────────────────────────
-# Level 1 – Post-processing EMA on scores
-# ──────────────────────────────────────────────
-
 def eval_score_ema(pairs, clf, alphas):
-    """
-    Train a logistic regression on raw embeddings, generate per-frame scores,
-    then evaluate AUC both raw and after EMA smoothing at each alpha.
-    """
+    """Per-video val AUC of LR frame scores, raw and after causal EMA at each alpha."""
     X, y = flatten_pairs(pairs)
     scaler = StandardScaler()
     X_s = scaler.fit_transform(X)
 
-    # Split by video index to avoid leakage
     n_val = max(1, len(pairs) // 5)
     train_pairs = pairs[:-n_val]
     val_pairs = pairs[-n_val:]
@@ -121,7 +96,6 @@ def eval_score_ema(pairs, clf, alphas):
 
         results[alpha] = np.mean(smoothed_aucs) if smoothed_aucs else float("nan")
 
-    # Raw baseline
     raw_aucs = []
     for emb, lbl in val_pairs:
         scores_raw = clf.predict_proba(scaler.transform(emb))[:, 1]
@@ -132,15 +106,8 @@ def eval_score_ema(pairs, clf, alphas):
     return results
 
 
-# ──────────────────────────────────────────────
-# Level 2 – Embedding-level EMA before classification
-# ──────────────────────────────────────────────
-
 def eval_embedding_ema(pairs, alphas):
-    """
-    Apply EMA along the time axis to smooth embeddings before training/inference.
-    Uses logistic regression as the downstream classifier.
-    """
+    """Per-video val AUC of LR trained and tested on EMA-smoothed embeddings, per alpha."""
     n_val = max(1, len(pairs) // 5)
     train_pairs = pairs[:-n_val]
     val_pairs = pairs[-n_val:]
@@ -148,7 +115,6 @@ def eval_embedding_ema(pairs, alphas):
     results = {}
 
     for alpha in alphas:
-        # Smooth training embeddings
         smoothed_train = [(ema_2d(emb, alpha), lbl) for emb, lbl in train_pairs]
         smoothed_val = [(ema_2d(emb, alpha), lbl) for emb, lbl in val_pairs]
 
@@ -166,7 +132,6 @@ def eval_embedding_ema(pairs, alphas):
                 aucs.append(roc_auc_score(lbl, scores))
         results[alpha] = np.mean(aucs) if aucs else float("nan")
 
-    # Raw baseline
     X_train_raw, y_train_raw = flatten_pairs(train_pairs)
     scaler_raw = StandardScaler()
     X_train_raw_s = scaler_raw.fit_transform(X_train_raw)
@@ -182,16 +147,8 @@ def eval_embedding_ema(pairs, alphas):
     return results
 
 
-# ──────────────────────────────────────────────
-# Level 3 – LSTM hidden-state EMA (model surgery)
-# ──────────────────────────────────────────────
-
 class EMAHookLSTM(nn.Module):
-    """
-    Wraps a trained LSTM model and applies EMA smoothing to hidden states
-    output at each timestep before passing to the classifier head.
-    This is done by hooking into the LSTM forward pass.
-    """
+    """Wraps a trained LSTM model and applies EMA over its per-timestep outputs before the classifier."""
 
     def __init__(self, base_model: nn.Module, alpha: float = 0.5):
         super().__init__()
@@ -199,21 +156,14 @@ class EMAHookLSTM(nn.Module):
         self.alpha = alpha
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        x: (batch, seq_len, input_dim)
-        Applies EMA across timesteps on LSTM output before classifier.
-        """
-        # We need access to the LSTM and classifier separately.
-        # Try common attribute names used in this project.
+        """x: (batch, seq_len, input_dim). Falls back to the plain model without lstm/classifier submodules."""
         model = self.base_model
 
-        # Try to find the LSTM and classifier submodules
         lstm_module = getattr(model, "lstm", None)
         classifier = getattr(model, "classifier", None)
         feat_extractor = getattr(model, "feature_extractor", None)
 
         if lstm_module is None or classifier is None:
-            # Fall back: just run the model normally
             return model(x)
 
         B, T, D = x.shape
@@ -225,32 +175,27 @@ class EMAHookLSTM(nn.Module):
 
         lstm_out, _ = lstm_module(feats)  # (B, T, hidden)
 
-        # Apply EMA across time dimension on hidden states
         alpha = self.alpha
         ema_out = torch.zeros_like(lstm_out)
         ema_out[:, 0, :] = lstm_out[:, 0, :]
         for t in range(1, T):
             ema_out[:, t, :] = alpha * lstm_out[:, t, :] + (1 - alpha) * ema_out[:, t - 1, :]
 
-        # Use last timestep
         last = ema_out[:, -1, :]
 
-        # Handle attention pooling if present
         attention = getattr(model, "attention", None)
         if attention is not None:
             try:
                 attn_weights = torch.softmax(attention(ema_out), dim=1)
                 last = (ema_out * attn_weights).sum(dim=1)
             except Exception:
-                pass  # Fall through to using last timestep
+                pass
 
         return classifier(last)
 
 
 def eval_hidden_state_ema(checkpoint_path: Path, pairs, alphas, device="cpu"):
-    """
-    Load the checkpoint, wrap with EMAHookLSTM, run inference on val pairs.
-    """
+    """Val AUC per alpha with the checkpoint wrapped in EMAHookLSTM; needs a pickled nn.Module checkpoint."""
     if not checkpoint_path.exists():
         print(f"  [SKIP] Checkpoint not found: {checkpoint_path}")
         return {}
@@ -272,7 +217,7 @@ def eval_hidden_state_ema(checkpoint_path: Path, pairs, alphas, device="cpu"):
 
     results = {}
 
-    for alpha in [None] + list(alphas):  # None = raw
+    for alpha in [None] + list(alphas):
         aucs = []
         model = EMAHookLSTM(base_model, alpha=alpha if alpha is not None else 1.0)
         model.eval()
@@ -302,10 +247,6 @@ def eval_hidden_state_ema(checkpoint_path: Path, pairs, alphas, device="cpu"):
     return results
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
-
 def main():
     parser = argparse.ArgumentParser(description="EMA smoothing experiments")
     parser.add_argument("--embeddings", type=Path, default=Path("data/processed/vlm_emb"))
@@ -328,7 +269,6 @@ def main():
 
     clf_base = LogisticRegression(max_iter=500, C=1.0, class_weight="balanced")
 
-    # ── Level 1: Score EMA ────────────────────
     print("\n[Level 1] Post-processing score EMA")
     score_results = eval_score_ema(pairs, clf_base, args.alphas)
     print(f"  Raw AUC:  {score_results['raw']:.4f}")
@@ -336,7 +276,6 @@ def main():
         delta = score_results[a] - score_results["raw"]
         print(f"  alpha={a:.1f}: {score_results[a]:.4f}  (Δ {delta:+.4f})")
 
-    # ── Level 2: Embedding EMA ────────────────
     print("\n[Level 2] Embedding-level EMA (applied before classifier)")
     emb_results = eval_embedding_ema(pairs, args.alphas)
     print(f"  Raw AUC:  {emb_results['raw']:.4f}")
@@ -344,7 +283,6 @@ def main():
         delta = emb_results[a] - emb_results["raw"]
         print(f"  alpha={a:.1f}: {emb_results[a]:.4f}  (Δ {delta:+.4f})")
 
-    # ── Level 3: Hidden-state EMA ─────────────
     print("\n[Level 3] LSTM hidden-state EMA")
     hs_results = eval_hidden_state_ema(args.checkpoint, pairs, args.alphas, device=args.device)
     if hs_results:
@@ -356,7 +294,6 @@ def main():
     else:
         print("  (skipped — checkpoint not available or incompatible)")
 
-    # ── Save CSV ──────────────────────────────
     import csv
     rows = []
     for level, res in [("score_ema", score_results), ("embedding_ema", emb_results), ("hidden_state_ema", hs_results)]:

@@ -1,46 +1,13 @@
 #!/usr/bin/env python3
-"""
-Comprehensive Experiment Runner for Violence Anticipation
-=========================================================
+"""Run violence-anticipation experiments 1-4 with the temporal LSTM.
 
-Runs 4 experiments:
-
-1. PERSON DETECTION FILTERING
-   - Run YOLOv8 person detection on raw video frames
-   - Compute % frames with people per video
-   - Mask model scores to only frames with people
-   - Measure FA rate reduction
-
-2. DATASET-SPLIT EVALUATION
-   a. Score all non-violent clips → expected: all scores low
-   b. Score all violent clips    → expected: scores rise near violence
-   c. Build unified eval dataset from both, generate metrics
-
-3. CROSS-DATASET TRAINING
-   - Train on XD-Violence only → test on UCF-Crime and XD-Violence
-   - Train on UCF-Crime only   → test on XD-Violence and UCF-Crime
-   - Train on both combined    → test on XD-Violence and UCF-Crime
-   - Compare generalization
-
-4. UCF-CRIME EVALUATION WITH GRAPHS
-   - Build UCF-Crime simulation
-   - Run detection + anticipation evaluation
-   - Generate ROC, PR, timeline, lead-time, FA distribution graphs
+exp1 prints the exp1_person_detection.py command; exp2 scores violent vs non-violent test clips plus a
+unified sim; exp3 trains XD-only, UCF-only and combined models; exp4 evaluates on UCF-Crime vs XD.
 
 Usage:
-    # Run all experiments
-    python run_experiments.py --all \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --model_path outputs/outputs_temporal/best_temporal_model.pt \
-        --raw_videos_dir data/raw_videos \
-        --output_dir experiments_output
-
-    # Run individual experiments
-    python run_experiments.py --exp1 ...
-    python run_experiments.py --exp2 ...
-    python run_experiments.py --exp3 ...
-    python run_experiments.py --exp4 ...
+    python experiments/run_experiments.py --all --model_path outputs/outputs_temporal/best_temporal_model.pt \
+        --embeddings_dir data/processed/vlm_emb --labels_dir data/processed/labels_multih
+    python experiments/run_experiments.py --exp2 --exp4 ...
 """
 
 import argparse
@@ -73,9 +40,7 @@ plt.style.use('seaborn-v0_8-whitegrid')
 sns.set_palette("husl")
 
 
-# ==============================================================================
-# Model Definition (must match train_temporal_model.py exactly)
-# ==============================================================================
+# Must match train_temporal_model.py exactly so its checkpoints load.
 class TemporalViolenceModel(nn.Module):
     def __init__(self, input_dim=3584, hidden_dim=256, lstm_hidden=128,
                  num_lstm_layers=2, dropout=0.3, bidirectional=True, use_attention=True):
@@ -134,9 +99,6 @@ class FocalLoss(nn.Module):
         return (alpha_t * (1 - p_t) ** self.gamma * ce).mean()
 
 
-# ==============================================================================
-# Data Loading Utilities
-# ==============================================================================
 def classify_video_source(video_id: str) -> str:
     if '_x264' in video_id:
         return 'ucf_crime'
@@ -250,7 +212,6 @@ def load_video_data(index_path, embeddings_dir, labels_dir, source_filter=None):
 
 
 def load_all_videos_both_sources(index_paths, embeddings_dir, labels_dir):
-    """Load videos from all index files, both sources."""
     all_videos = []
     seen = set()
     for idx_path in index_paths:
@@ -262,9 +223,6 @@ def load_all_videos_both_sources(index_paths, embeddings_dir, labels_dir):
     return all_videos
 
 
-# ==============================================================================
-# Sequence Dataset (for training / evaluation)
-# ==============================================================================
 class TemporalViolenceDataset(Dataset):
     def __init__(self, video_data, sequence_length=30, horizon_sec=30.0, fps=1.0, stride=5, augment=False):
         self.sequence_length = sequence_length
@@ -299,9 +257,6 @@ class TemporalViolenceDataset(Dataset):
         return {'embeddings': emb, 'label': torch.tensor(s['label'], dtype=torch.float32)}
 
 
-# ==============================================================================
-# Model Helpers
-# ==============================================================================
 def load_model(model_path, device):
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     state_dict = checkpoint.get('model_state_dict', checkpoint.get('model', checkpoint))
@@ -321,7 +276,7 @@ def load_model(model_path, device):
 
 @torch.no_grad()
 def score_embeddings(model, embeddings, seq_len, device, batch_size=256):
-    """Score a sequence of embeddings frame-by-frame using sliding window."""
+    """Sliding-window scores; the first seq_len-1 frames are back-filled with the first window's score."""
     n = len(embeddings)
     if n < seq_len:
         return np.full(n, 0.5)
@@ -337,7 +292,7 @@ def score_embeddings(model, embeddings, seq_len, device, batch_size=256):
 
 
 def train_model(train_videos, val_videos, args_dict, device, output_dir):
-    """Train a TemporalViolenceModel and return the best checkpoint."""
+    """Train with early stopping on val AUC; returns (best model, history) or None."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -378,7 +333,6 @@ def train_model(train_videos, val_videos, args_dict, device, output_dir):
     history = {'train_loss': [], 'train_auc': [], 'val_auc': [], 'val_pr_auc': []}
 
     for epoch in range(epochs):
-        # Train
         model.train()
         total_loss = 0
         all_labels, all_scores = [], []
@@ -400,7 +354,6 @@ def train_model(train_videos, val_videos, args_dict, device, output_dir):
         history['train_loss'].append(total_loss / len(train_loader))
         history['train_auc'].append(train_auc)
 
-        # Val
         model.eval()
         val_labels, val_scores = [], []
         with torch.no_grad():
@@ -443,19 +396,15 @@ def train_model(train_videos, val_videos, args_dict, device, output_dir):
     return model, history
 
 
-# ==============================================================================
-# Simulation Builder (for Exp 2, 4)
-# ==============================================================================
 def build_simulation(videos, fps=1.0, horizon_sec=30.0, duration_hours=8.0,
                      violence_pct=1.0, seed=42):
-    """Build long-form simulation from video list."""
+    """Stitch shuffled non-violent padding and every violent clip into one stream with anticipation labels."""
     np.random.seed(seed)
     violent = [v for v in videos if v['labels'].max() > 0]
     nonviolent = [v for v in videos if v['labels'].max() == 0]
 
     if not violent:
         print("  WARNING: No violent videos for simulation")
-        # Use only non-violent
         all_emb = np.concatenate([v['embeddings'] for v in nonviolent])
         all_lbl = np.zeros(len(all_emb))
         return {'embeddings': all_emb, 'anticipation_labels': all_lbl,
@@ -470,7 +419,6 @@ def build_simulation(videos, fps=1.0, horizon_sec=30.0, duration_hours=8.0,
     nv_idx = 0
 
     for v_vid in violent:
-        # Add non-violent padding
         pad_frames = int(avg_pad * np.random.uniform(0.5, 1.5))
         added = 0
         while added < pad_frames and nonviolent:
@@ -479,14 +427,12 @@ def build_simulation(videos, fps=1.0, horizon_sec=30.0, duration_hours=8.0,
             stream_lbl.append(np.zeros(len(nv_vid['embeddings'])))
             added += len(nv_vid['embeddings'])
             nv_idx += 1
-        # Add violent video
         stream_emb.append(v_vid['embeddings'])
         stream_lbl.append(v_vid['labels'])
 
     all_emb = np.concatenate(stream_emb)
     all_lbl = np.concatenate(stream_lbl)
 
-    # Build anticipation labels
     horizon_frames = int(horizon_sec * fps)
     antic_labels = np.zeros(len(all_lbl))
     for t in range(len(all_lbl)):
@@ -499,11 +445,8 @@ def build_simulation(videos, fps=1.0, horizon_sec=30.0, duration_hours=8.0,
     }
 
 
-# ==============================================================================
-# Evaluation & Event Analysis
-# ==============================================================================
 def evaluate_simulation(model, sim_data, seq_len, device, threshold=None):
-    """Full evaluation on simulation data: ROC, PR, events, lead times, FA."""
+    """ROC/PR, event, lead-time and FA metrics on a sim; threshold=None picks best F1 on this same data."""
     embeddings = sim_data['embeddings']
     labels = sim_data['anticipation_labels']
     fps = float(sim_data.get('fps', 1.0))
@@ -514,7 +457,6 @@ def evaluate_simulation(model, sim_data, seq_len, device, threshold=None):
     roc_auc = roc_auc_score(labels, scores) if len(set(labels)) > 1 else 0.5
     pr_auc = average_precision_score(labels, scores) if len(set(labels)) > 1 else 0
 
-    # Find best threshold if not given
     if threshold is None:
         prec, rec, threshs = precision_recall_curve(labels, scores)
         f1s = 2 * prec * rec / (prec + rec + 1e-8)
@@ -528,7 +470,6 @@ def evaluate_simulation(model, sim_data, seq_len, device, threshold=None):
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
-    # Event analysis
     events, lead_times = _analyze_events(labels, preds, scores, timestamps, fps)
     fa_times = _find_false_alarms(labels, preds, timestamps)
 
@@ -603,9 +544,6 @@ def _find_false_alarms(labels, preds, timestamps):
     return fa_times
 
 
-# ==============================================================================
-# Plotting Functions
-# ==============================================================================
 def plot_roc(results, path, title="ROC Curve"):
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(results['fpr'], results['tpr'], 'b-', lw=2.5, label=f'ROC (AUC={results["roc_auc"]:.4f})')
@@ -684,7 +622,6 @@ def plot_fa_distribution(results, path, title="FA Distribution"):
     plt.tight_layout(); plt.savefig(path, dpi=150); plt.close()
 
 def generate_all_plots(results, out_dir, prefix=""):
-    """Generate full set of evaluation plots."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     p = f"{prefix}_" if prefix else ""
@@ -699,7 +636,7 @@ def generate_all_plots(results, out_dir, prefix=""):
 
 
 def save_results_json(results, path):
-    """Save numeric results to JSON (no arrays)."""
+    """Save scalar results (and 2-D arrays such as the confusion matrix) to JSON."""
     out = {}
     for k, v in results.items():
         if isinstance(v, (int, float, str, bool)):
@@ -716,16 +653,8 @@ def save_results_json(results, path):
         json.dump(out, f, indent=2)
 
 
-# ==============================================================================
-# EXPERIMENT 1: Person Detection Filtering
-# ==============================================================================
 def run_experiment_1(args, model, seq_len, device):
-    """
-    Experiment 1 runs as a standalone script: experiments/exp1_person_detection.py
-    
-    It requires YOLOv8 + raw video access, so it must be run separately.
-    This function prints the run command.
-    """
+    """Print the command for the standalone exp1_person_detection.py (needs YOLOv8 and raw videos)."""
     print("\n" + "=" * 70)
     print("EXPERIMENT 1: Person Detection Filtering")
     print("=" * 70)
@@ -741,10 +670,6 @@ def run_experiment_1(args, model, seq_len, device):
     print(f"    --output_dir experiments/output/exp1_person_detection")
 
 
-
-# ==============================================================================
-# EXPERIMENT 2: Non-Violent vs Violent Clip Analysis + Unified Eval
-# ==============================================================================
 def run_experiment_2(args, model, seq_len, device):
     print("\n" + "=" * 70)
     print("EXPERIMENT 2: Non-Violent vs Violent Clip Analysis")
@@ -753,7 +678,6 @@ def run_experiment_2(args, model, seq_len, device):
     out_dir = Path(args.output_dir) / 'exp2_clip_analysis'
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load ALL test videos (both sources)
     print("\nLoading all test videos...")
     all_videos = load_video_data(args.test_index, args.embeddings_dir, args.labels_dir, source_filter=None)
     print(f"  Loaded {len(all_videos)} test videos")
@@ -762,7 +686,6 @@ def run_experiment_2(args, model, seq_len, device):
     nonviolent_videos = [v for v in all_videos if v['labels'].max() == 0]
     print(f"  Violent: {len(violent_videos)}, Non-violent: {len(nonviolent_videos)}")
 
-    # 2a: Score non-violent clips
     print("\n--- 2a: Scoring non-violent clips ---")
     nv_scores_all = []
     nv_per_video = []
@@ -780,7 +703,6 @@ def run_experiment_2(args, model, seq_len, device):
     print(f"  Score stats: mean={nv_scores_all.mean():.4f}, std={nv_scores_all.std():.4f}, "
           f"max={nv_scores_all.max():.4f}, >0.5: {(nv_scores_all > 0.5).mean():.2%}")
 
-    # 2b: Score violent clips
     print("\n--- 2b: Scoring violent clips ---")
     v_scores_all, v_labels_all = [], []
     v_per_video = []
@@ -803,7 +725,6 @@ def run_experiment_2(args, model, seq_len, device):
     print(f"  Score during violence: mean={v_scores_all[v_labels_all > 0].mean():.4f}")
     print(f"  Score during non-violence: mean={v_scores_all[v_labels_all == 0].mean():.4f}")
 
-    # 2c: Build unified evaluation dataset
     print("\n--- 2c: Unified Evaluation ---")
     sim_data = build_simulation(all_videos, duration_hours=8.0, seed=42)
     results = evaluate_simulation(model, sim_data, seq_len, device)
@@ -815,10 +736,8 @@ def run_experiment_2(args, model, seq_len, device):
     print(f"    FA/Hour: {results['fa_per_hour']:.1f}")
     print(f"    Avg Lead Time: {results['avg_lead_time']:.1f}s")
 
-    # Generate plots
     generate_all_plots(results, out_dir, prefix="unified")
 
-    # Plot: non-violent vs violent score distributions
     fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
     axes[0].hist(nv_scores_all, bins=50, alpha=0.7, color='blue', density=True)
@@ -832,7 +751,6 @@ def run_experiment_2(args, model, seq_len, device):
     axes[1].axvline(x=results['threshold'], color='green', linestyle='--')
     axes[1].legend()
 
-    # Per-source breakdown
     sources = sorted(set(v['source'] for v in all_videos))
     per_source_means = {}
     for src in sources:
@@ -857,7 +775,6 @@ def run_experiment_2(args, model, seq_len, device):
     plt.savefig(out_dir / 'exp2_clip_analysis.png', dpi=150)
     plt.close()
 
-    # Save results
     save_results_json(results, out_dir / 'exp2_unified_metrics.json')
     with open(out_dir / 'exp2_per_video_nonviolent.json', 'w') as f:
         json.dump(nv_per_video, f, indent=2)
@@ -868,9 +785,6 @@ def run_experiment_2(args, model, seq_len, device):
     return results
 
 
-# ==============================================================================
-# EXPERIMENT 3: Cross-Dataset Training
-# ==============================================================================
 def run_experiment_3(args, device):
     print("\n" + "=" * 70)
     print("EXPERIMENT 3: Cross-Dataset Training")
@@ -879,7 +793,6 @@ def run_experiment_3(args, device):
     out_dir = Path(args.output_dir) / 'exp3_cross_dataset'
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load all videos split by source
     print("\nLoading all video data...")
     train_xd = load_video_data(args.train_index, args.embeddings_dir, args.labels_dir, source_filter='xd_violence')
     val_xd = load_video_data(args.val_index, args.embeddings_dir, args.labels_dir, source_filter='xd_violence')
@@ -892,7 +805,6 @@ def run_experiment_3(args, device):
     print(f"  XD-Violence: {len(train_xd)} train, {len(val_xd)} val, {len(test_xd)} test")
     print(f"  UCF-Crime:   {len(train_ucf)} train, {len(val_ucf)} val, {len(test_ucf)} test")
 
-    # Base training args
     base_args = {
         'input_dim': 3584, 'hidden_dim': 256, 'lstm_hidden': 128,
         'num_lstm_layers': 2, 'dropout': 0.3, 'sequence_length': 30,
@@ -900,7 +812,6 @@ def run_experiment_3(args, device):
         'lr': 1e-4, 'horizon_sec': 30.0, 'fps': 1.0,
     }
 
-    # Define training configurations
     configs = [
         ('xd_only', train_xd, val_xd),
         ('ucf_only', train_ucf, val_ucf),
@@ -925,7 +836,6 @@ def run_experiment_3(args, device):
 
         trained_model, history = result
 
-        # Test on each dataset
         config_results = {'history': history}
         for test_name, test_data in [('xd_violence', test_xd), ('ucf_crime', test_ucf), ('both', test_xd + test_ucf)]:
             if not test_data:
@@ -942,12 +852,10 @@ def run_experiment_3(args, device):
             print(f"    ROC-AUC={res['roc_auc']:.4f}, PR-AUC={res['pr_auc']:.4f}, "
                   f"Det={res['detection_rate']:.1%}, FA/hr={res['fa_per_hour']:.1f}")
 
-            # Generate plots for each test
             generate_all_plots(res, model_dir / f'test_{test_name}', prefix=f"{config_name}_on_{test_name}")
 
         all_results[config_name] = config_results
 
-    # Summary comparison plot
     print("\n\nGenerating cross-dataset comparison...")
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
@@ -982,9 +890,7 @@ def run_experiment_3(args, device):
     plt.savefig(out_dir / 'exp3_cross_dataset_comparison.png', dpi=150)
     plt.close()
 
-    # Save all results
     with open(out_dir / 'exp3_all_results.json', 'w') as f:
-        # Convert any numpy types
         def convert(obj):
             if isinstance(obj, (np.floating, np.float64, np.float32)):
                 return float(obj)
@@ -1001,9 +907,6 @@ def run_experiment_3(args, device):
     return all_results
 
 
-# ==============================================================================
-# EXPERIMENT 4: UCF-Crime Evaluation with Graphs
-# ==============================================================================
 def run_experiment_4(args, model, seq_len, device):
     print("\n" + "=" * 70)
     print("EXPERIMENT 4: UCF-Crime Detection & Anticipation Evaluation")
@@ -1012,19 +915,16 @@ def run_experiment_4(args, model, seq_len, device):
     out_dir = Path(args.output_dir) / 'exp4_ucf_crime_eval'
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load UCF-Crime test videos
     print("\nLoading UCF-Crime test videos...")
     ucf_test = load_video_data(args.test_index, args.embeddings_dir, args.labels_dir, source_filter='ucf_crime')
     print(f"  Loaded {len(ucf_test)} UCF-Crime test videos")
 
     if not ucf_test:
         print("  No UCF-Crime test videos found!")
-        # Try loading from all indices
         print("  Trying all indices...")
         for idx_path in [args.train_index, args.val_index, args.test_index]:
             vids = load_video_data(idx_path, args.embeddings_dir, args.labels_dir, source_filter='ucf_crime')
             ucf_test.extend(vids)
-        # Deduplicate
         seen = set()
         unique = []
         for v in ucf_test:
@@ -1042,13 +942,11 @@ def run_experiment_4(args, model, seq_len, device):
     nonviolent = [v for v in ucf_test if v['labels'].max() == 0]
     print(f"  Violent: {len(violent)}, Non-violent: {len(nonviolent)}")
 
-    # Build UCF-Crime simulation
     print("\nBuilding UCF-Crime simulation...")
     sim_data = build_simulation(ucf_test, duration_hours=8.0, seed=42)
     print(f"  Simulation: {len(sim_data['embeddings']):,} frames, "
           f"{sim_data['anticipation_labels'].mean()*100:.2f}% positive")
 
-    # Evaluate
     print("\nEvaluating model on UCF-Crime...")
     results = evaluate_simulation(model, sim_data, seq_len, device)
 
@@ -1063,7 +961,6 @@ def run_experiment_4(args, model, seq_len, device):
     print(f"  Avg Lead Time:  {results['avg_lead_time']:.1f}s")
     print(f"  Threshold:      {results['threshold']:.4f}")
 
-    # Also evaluate on XD-Violence for comparison
     print("\nLoading XD-Violence test for comparison...")
     xd_test = load_video_data(args.test_index, args.embeddings_dir, args.labels_dir, source_filter='xd_violence')
     xd_results = None
@@ -1074,13 +971,10 @@ def run_experiment_4(args, model, seq_len, device):
         print(f"    ROC-AUC: {xd_results['roc_auc']:.4f} vs UCF: {results['roc_auc']:.4f}")
         print(f"    PR-AUC:  {xd_results['pr_auc']:.4f} vs UCF: {results['pr_auc']:.4f}")
 
-    # Generate all plots for UCF-Crime
     print("\nGenerating UCF-Crime evaluation plots...")
     generate_all_plots(results, out_dir, prefix="ucf_crime")
 
-    # If we have XD-Violence comparison, create overlay plots
     if xd_results:
-        # Overlay ROC
         fig, axes = plt.subplots(1, 2, figsize=(16, 7))
         axes[0].plot(results['fpr'], results['tpr'], 'r-', lw=2.5, label=f'UCF-Crime (AUC={results["roc_auc"]:.4f})')
         axes[0].plot(xd_results['fpr'], xd_results['tpr'], 'b-', lw=2.5, label=f'XD-Violence (AUC={xd_results["roc_auc"]:.4f})')
@@ -1089,7 +983,6 @@ def run_experiment_4(args, model, seq_len, device):
         axes[0].set_title('ROC Comparison: UCF-Crime vs XD-Violence')
         axes[0].legend(); axes[0].grid(True, alpha=0.3)
 
-        # Overlay PR
         axes[1].plot(results['pr_recall'], results['pr_precision'], 'r-', lw=2.5, label=f'UCF-Crime (AP={results["pr_auc"]:.4f})')
         axes[1].plot(xd_results['pr_recall'], xd_results['pr_precision'], 'b-', lw=2.5, label=f'XD-Violence (AP={xd_results["pr_auc"]:.4f})')
         axes[1].set_xlabel('Recall'); axes[1].set_ylabel('Precision')
@@ -1100,7 +993,6 @@ def run_experiment_4(args, model, seq_len, device):
         plt.savefig(out_dir / 'exp4_ucf_vs_xd_comparison.png', dpi=150)
         plt.close()
 
-        # Summary bar chart
         fig, ax = plt.subplots(figsize=(12, 6))
         metrics_to_compare = ['roc_auc', 'pr_auc', 'f1', 'detection_rate']
         x = np.arange(len(metrics_to_compare))
@@ -1118,7 +1010,6 @@ def run_experiment_4(args, model, seq_len, device):
         ax.set_ylim([0, 1.05])
         ax.grid(True, alpha=0.3, axis='y')
 
-        # Add value labels
         for i, (xd_v, ucf_v) in enumerate(zip(xd_vals, ucf_vals)):
             ax.text(i - width/2, xd_v + 0.02, f'{xd_v:.3f}', ha='center', fontsize=9)
             ax.text(i + width/2, ucf_v + 0.02, f'{ucf_v:.3f}', ha='center', fontsize=9)
@@ -1127,7 +1018,6 @@ def run_experiment_4(args, model, seq_len, device):
         plt.savefig(out_dir / 'exp4_domain_comparison.png', dpi=150)
         plt.close()
 
-    # Save results
     save_results_json(results, out_dir / 'exp4_ucf_crime_metrics.json')
     if xd_results:
         save_results_json(xd_results, out_dir / 'exp4_xd_violence_metrics.json')
@@ -1136,9 +1026,6 @@ def run_experiment_4(args, model, seq_len, device):
     return results
 
 
-# ==============================================================================
-# MAIN
-# ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Run Violence Anticipation Experiments")
     parser.add_argument('--embeddings_dir', type=str, default='data/processed/vlm_emb')
@@ -1169,14 +1056,12 @@ def main():
 
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
-    # Load base model (for exp 1, 2, 4)
     model, seq_len, model_args = None, 30, {}
     if args.all or args.exp1 or args.exp2 or args.exp4:
         print(f"\nLoading model from {args.model_path}...")
         model, seq_len, model_args = load_model(args.model_path, device)
         print(f"  Loaded (seq_len={seq_len}, params={sum(p.numel() for p in model.parameters()):,})")
 
-    # Run experiments
     if args.all or args.exp1:
         run_experiment_1(args, model, seq_len, device)
 

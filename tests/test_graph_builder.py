@@ -5,11 +5,9 @@ from core.graph import build_graph_sequence, graph_to_text
 
 
 def test_build_graph_sequence_basic():
-    # Fake scene/audio embeddings
     scene = np.zeros((32,), dtype=np.float32)
     audio = np.zeros((16,), dtype=np.float32)
 
-    # Fake tracks: two frames, two people
     tracks = [
         {
             "frame_idx": 0,
@@ -27,7 +25,6 @@ def test_build_graph_sequence_basic():
         },
     ]
 
-    # Fake actions: only some frames/people have logits
     actions = {
         0: {
             1: {
@@ -45,12 +42,10 @@ def test_build_graph_sequence_basic():
 
     graph_seq = build_graph_sequence(tracks, actions, scene, audio)
 
-    # Basic structure
     assert isinstance(graph_seq, np.ndarray)
     assert graph_seq.dtype == object
     assert len(graph_seq) == 2
 
-    # Each frame should be a dict with required keys
     for frame in graph_seq:
         assert isinstance(frame, dict)
         assert "nodes" in frame
@@ -59,11 +54,9 @@ def test_build_graph_sequence_basic():
         assert "timestamp" in frame
         assert "scene_text" in frame
 
-        # scene/audio should be same objects we passed in (or copies)
         assert frame["scene"].shape == scene.shape
         assert frame["audio"].shape == audio.shape
 
-    # Check node structure
     frame0 = graph_seq[0]
     nodes0 = frame0["nodes"]
     assert len(nodes0) == 2
@@ -76,12 +69,10 @@ def test_build_graph_sequence_basic():
     assert "action_logits" in n0
     assert "action_names" in n0
 
-    # Velocity on first frame should be zero (no previous position)
     vx0, vy0 = n0["velocity"]
     assert vx0 == 0.0
     assert vy0 == 0.0
 
-    # On second frame, track 1 should have non-zero vx
     frame1 = graph_seq[1]
     nodes1 = frame1["nodes"]
     node1_track1 = [n for n in nodes1 if n["track_id"] == 1][0]
@@ -90,7 +81,6 @@ def test_build_graph_sequence_basic():
 
 
 def test_graph_to_text_basic():
-    # Build a minimal fake graph_frame
     graph_frame = {
         "nodes": [
             {
@@ -123,7 +113,6 @@ def test_graph_to_text_basic():
     assert "Person 2" in summary
     assert "parking lot at night" in summary
 
-    # Empty nodes → special case
     empty_frame = {
         "nodes": [],
         "scene": None,

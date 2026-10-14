@@ -1,4 +1,4 @@
-# scripts/vlm_build_student_dataset.py
+"""Build student-distillation NPZs: graph-frame features as inputs, VLM teacher outputs as targets."""
 import argparse
 import json
 import os
@@ -39,13 +39,7 @@ def read_jsonl(path: str) -> List[Dict[str, Any]]:
 
 
 def load_graph_frame_feature(graph_path: str, t: int, scene_dim_default=512, audio_dim_default=64) -> np.ndarray:
-    """
-    Build a fixed-size feature vector from one timestep:
-    - num_people scalar
-    - node mean + node max (2*node_dim)
-    - scene vec
-    - audio vec
-    """
+    """Step-t feature: [num_people, node mean, node max, scene, audio]."""
     seq = np.load(graph_path, allow_pickle=True)
     frames = list(seq) if isinstance(seq, np.ndarray) else seq
     t = max(0, min(int(t), len(frames) - 1))
@@ -120,7 +114,6 @@ def encode_multihot(vals: List[str], vocab: Dict[str, int]) -> np.ndarray:
 
 
 def violent_to_float(v: Any) -> float:
-    # Accept either {"label": "...", "score": ...} or raw label
     if isinstance(v, dict):
         lab = str(v.get("label", "uncertain")).lower()
         score = float(v.get("score", 0.5))
@@ -158,7 +151,6 @@ def main():
         recs = []
         for it in index_items:
             vid_id = os.path.splitext(os.path.basename(it["graph_path"]))[0]
-            # find JSONL under any source subdir
             found = None
             for src in ["kinetics", "ucf_crime", "xd_violence", "unknown"]:
                 p = os.path.join(args.vlm_dir, src, f"{vid_id}.jsonl")
@@ -190,7 +182,6 @@ def main():
     print(f"[Vocab] Saved {vocabs_path}")
     print(f"[Vocab] actions={len(actions_vocab)} weapons={len(weapons_vocab)} scenes={len(scenes_vocab)}")
 
-    # Build vid_id -> graph_path for convenience
     graph_map = {}
     for it in train_items + val_items:
         vid_id = os.path.splitext(os.path.basename(it["graph_path"]))[0]
@@ -212,7 +203,6 @@ def main():
 
             graph_path = graph_map[vid_id]
             if not os.path.exists(graph_path):
-                # fallback to graphs_dir by name
                 gp = os.path.join(args.graphs_dir, f"{vid_id}.npy")
                 if os.path.exists(gp):
                     graph_path = gp

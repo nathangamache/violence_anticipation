@@ -1,47 +1,12 @@
 #!/usr/bin/env python3
-"""
-Multi-Modal Feature Fusion for Violence Anticipation
-
-Supports fusion of multiple modalities:
-- VLM embeddings (3584 dims) - semantic scene understanding
-- Audio features (~92 dims) - sound patterns, impacts, speech
-- Pose features (~540 dims) - body language, motion
-
-Fusion strategies:
-- concat: Simple concatenation
-- concat_norm: Normalize each modality before concatenation
-- weighted: Weighted concatenation
+"""Early fusion of VLM, audio and pose features (concat, concat_norm or weighted).
 
 Usage:
-    # Check separability of all modalities
-    python scripts/multimodal_fusion.py \
-        --mode check_separability \
-        --vlm_dir data/processed/vlm_emb \
-        --audio_dir data/processed/audio_features \
-        --pose_dir data/processed/pose_features \
-        --labels_dir data/processed/labels_multih \
-        --source_filter xd_violence
-
-    # Build fused embeddings for training
-    python scripts/multimodal_fusion.py \
-        --mode build_embeddings \
-        --vlm_dir data/processed/vlm_emb \
-        --audio_dir data/processed/audio_features \
-        --pose_dir data/processed/pose_features \
-        --output_dir data/processed/multimodal_features \
-        --modalities vlm audio pose \
-        --source_filter xd_violence
-
-    # Build fused simulation for evaluation
-    python scripts/multimodal_fusion.py \
-        --mode build_simulation \
-        --vlm_dir data/processed/vlm_emb \
-        --audio_dir data/processed/audio_features \
-        --pose_dir data/processed/pose_features \
-        --labels_dir data/processed/labels_multih \
-        --output simulation_data/xd_violence_multimodal.npz \
-        --modalities vlm audio \
-        --source_filter xd_violence
+    python scripts/multimodal_fusion.py --mode {check_separability,build_embeddings,build_simulation} \
+        --vlm_dir data/processed/vlm_emb --audio_dir data/processed/audio_features \
+        --pose_dir data/processed/pose_features --labels_dir data/processed/labels_multih \
+        --modalities vlm audio [pose] --source_filter xd_violence \
+        [--output_dir data/processed/multimodal_features | --output simulation_data/<name>.npz]
 """
 
 import argparse
@@ -56,12 +21,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-# ==============================================================================
-# Utility Functions
-# ==============================================================================
-
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
@@ -94,12 +54,7 @@ def normalize_features(features: np.ndarray, eps: float = 1e-8) -> Tuple[np.ndar
     return normalized, mean.squeeze(), std.squeeze()
 
 
-# ==============================================================================
-# Feature Loading Functions
-# ==============================================================================
-
 def load_vlm_features(path: Path) -> Optional[np.ndarray]:
-    """Load VLM embedding from file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
@@ -120,7 +75,6 @@ def load_vlm_features(path: Path) -> Optional[np.ndarray]:
 
 
 def load_audio_features(path: Path) -> Optional[np.ndarray]:
-    """Load audio features from file."""
     try:
         data = np.load(path)
         features = data.get('features', data.get('arr_0'))
@@ -132,7 +86,6 @@ def load_audio_features(path: Path) -> Optional[np.ndarray]:
 
 
 def load_pose_features(path: Path) -> Optional[np.ndarray]:
-    """Load pose features from file."""
     try:
         data = np.load(path)
         features = data.get('features', data.get('arr_0'))
@@ -144,7 +97,6 @@ def load_pose_features(path: Path) -> Optional[np.ndarray]:
 
 
 def load_labels(path: Path) -> Optional[np.ndarray]:
-    """Load labels from file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
@@ -160,10 +112,6 @@ def load_labels(path: Path) -> Optional[np.ndarray]:
         pass
     return None
 
-
-# ==============================================================================
-# Multi-Modal Fusion
-# ==============================================================================
 
 class MultiModalFuser:
     """Handles fusion of multiple modalities."""
@@ -184,7 +132,6 @@ class MultiModalFuser:
         self.modalities = modalities
         self.strategy = strategy
         
-        # Feature dimensions (will be set on first load)
         self.dims = {}
     
     def load_video_features(self, video_name: str) -> Dict[str, Optional[np.ndarray]]:
@@ -212,7 +159,6 @@ class MultiModalFuser:
         return features
     
     def load_video_labels(self, video_name: str) -> Optional[np.ndarray]:
-        """Load labels for a video."""
         if self.labels_dir is None:
             return None
         path = find_file_in_subdirs(self.labels_dir, video_name, ['.npy', '.npz'])
@@ -237,21 +183,17 @@ class MultiModalFuser:
     
     def fuse_features(self, features: Dict[str, np.ndarray]) -> Optional[np.ndarray]:
         """Fuse multiple modalities into a single feature vector."""
-        # Filter to available features
         available = {k: v for k, v in features.items() if v is not None}
         
         if not available:
             return None
         
-        # Align lengths
         available = self.align_features(available)
         
         if self.strategy == 'concat':
-            # Simple concatenation
             return np.concatenate(list(available.values()), axis=1)
         
         elif self.strategy == 'concat_norm':
-            # Normalize each modality before concatenation
             normalized = []
             for key in self.modalities:
                 if key in available and available[key] is not None:
@@ -264,7 +206,6 @@ class MultiModalFuser:
             return np.concatenate(normalized, axis=1)
         
         elif self.strategy == 'weighted':
-            # Weighted concatenation (can be adjusted)
             weights = {'vlm': 1.0, 'audio': 1.5, 'pose': 1.0}
             normalized = []
             for key in self.modalities:
@@ -281,17 +222,12 @@ class MultiModalFuser:
             raise ValueError(f"Unknown fusion strategy: {self.strategy}")
     
     def get_total_dim(self) -> int:
-        """Get total fused feature dimension."""
         total = 0
         for mod in self.modalities:
             if mod in self.dims:
                 total += self.dims[mod]
         return total
 
-
-# ==============================================================================
-# Check Separability
-# ==============================================================================
 
 def check_separability(
     vlm_dir: Optional[Path],
@@ -317,7 +253,6 @@ def check_separability(
         strategy=strategy,
     )
     
-    # Find all videos with labels
     label_files = list(labels_dir.rglob('*.npy')) + list(labels_dir.rglob('*.npz'))
     video_names = [f.stem for f in label_files]
     
@@ -327,21 +262,18 @@ def check_separability(
     video_names = video_names[:max_videos]
     print(f"Analyzing {len(video_names)} videos...")
     
-    # Collect features by class
     modality_violent = defaultdict(list)
     modality_nonviolent = defaultdict(list)
     fused_violent = []
     fused_nonviolent = []
     
     for video_name in tqdm(video_names, desc="Loading features"):
-        # Load features
         features = fuser.load_video_features(video_name)
         labels = fuser.load_video_labels(video_name)
         
         if labels is None:
             continue
         
-        # Align all to same length
         all_features = {k: v for k, v in features.items() if v is not None}
         if not all_features:
             continue
@@ -351,7 +283,6 @@ def check_separability(
         
         violent_mask = labels > 0
         
-        # Store per-modality features
         for mod, feat in all_features.items():
             feat = feat[:min_len]
             if violent_mask.sum() > 0:
@@ -359,7 +290,6 @@ def check_separability(
             if (~violent_mask).sum() > 0:
                 modality_nonviolent[mod].append(feat[~violent_mask])
         
-        # Store fused features
         fused = fuser.fuse_features({k: v[:min_len] for k, v in all_features.items()})
         if fused is not None:
             if violent_mask.sum() > 0:
@@ -367,7 +297,6 @@ def check_separability(
             if (~violent_mask).sum() > 0:
                 fused_nonviolent.append(fused[~violent_mask])
     
-    # Compute metrics
     def compute_metrics(violent_list, nonviolent_list, name):
         if not violent_list or not nonviolent_list:
             print(f"\n{name}: Insufficient data")
@@ -381,7 +310,6 @@ def check_separability(
         
         diff = np.abs(v_mean - nv_mean)
         
-        # Handle zero vectors
         v_norm = np.linalg.norm(v_mean)
         nv_norm = np.linalg.norm(nv_mean)
         
@@ -413,7 +341,6 @@ def check_separability(
     
     results = {}
     
-    # Per-modality metrics
     for mod in modalities:
         if mod in modality_violent and mod in modality_nonviolent:
             results[mod] = compute_metrics(
@@ -422,7 +349,6 @@ def check_separability(
                 f"{mod.upper()} Features"
             )
     
-    # Fused metrics
     if fused_violent and fused_nonviolent:
         results['fused'] = compute_metrics(
             fused_violent, 
@@ -432,10 +358,6 @@ def check_separability(
     
     return results
 
-
-# ==============================================================================
-# Build Fused Embeddings
-# ==============================================================================
 
 def build_fused_embeddings(
     vlm_dir: Optional[Path],
@@ -458,7 +380,6 @@ def build_fused_embeddings(
         strategy=strategy,
     )
     
-    # Find all videos from primary modality directory
     primary_dir = vlm_dir or audio_dir or pose_dir
     if primary_dir is None:
         raise ValueError("At least one modality directory must be specified")
@@ -489,24 +410,20 @@ def build_fused_embeddings(
             skipped += 1
             continue
         
-        # Load features
         features = fuser.load_video_features(video_name)
         
-        # Check if we have minimum required modalities
         available = [k for k, v in features.items() if v is not None]
         if len(available) < len(modalities):
             missing_modality += 1
             continue
         
         try:
-            # Fuse
             fused = fuser.fuse_features(features)
             
             if fused is None or len(fused) == 0:
                 errors += 1
                 continue
             
-            # Save
             np.savez_compressed(
                 out_path,
                 emb=fused.astype(np.float16),
@@ -527,7 +444,6 @@ def build_fused_embeddings(
     print(f"  Errors: {errors}")
     print(f"  Total feature dim: {fuser.get_total_dim()}")
     
-    # Save metadata
     metadata = {
         'modalities': modalities,
         'strategy': strategy,
@@ -542,10 +458,6 @@ def build_fused_embeddings(
     print(f"\nFused embeddings saved to: {output_dir}")
     return metadata
 
-
-# ==============================================================================
-# Build Fused Simulation
-# ==============================================================================
 
 def build_fused_simulation(
     vlm_dir: Optional[Path],
@@ -574,7 +486,6 @@ def build_fused_simulation(
         strategy=strategy,
     )
     
-    # Find all videos with labels
     label_files = list(labels_dir.rglob('*.npy')) + list(labels_dir.rglob('*.npz'))
     video_names = list(set(f.stem for f in label_files))
     
@@ -596,24 +507,20 @@ def build_fused_simulation(
     horizon_frames = int(horizon_sec * fps)
     
     for video_name in tqdm(video_names, desc="Loading videos"):
-        # Load features
         features = fuser.load_video_features(video_name)
         labels = fuser.load_video_labels(video_name)
         
         if labels is None:
             continue
         
-        # Check we have all required modalities
         available = {k: v for k, v in features.items() if v is not None}
         if len(available) < len(modalities):
             continue
         
-        # Fuse
         fused = fuser.fuse_features(features)
         if fused is None:
             continue
         
-        # Align with labels
         min_len = min(len(fused), len(labels))
         fused = fused[:min_len]
         labels = labels[:min_len]
@@ -621,13 +528,11 @@ def build_fused_simulation(
         if min_len == 0:
             continue
         
-        # Create anticipation labels
         anticipation_labels = np.zeros_like(labels)
         for t in range(len(labels)):
             future_end = min(t + horizon_frames, len(labels))
             anticipation_labels[t] = labels[t:future_end].max()
         
-        # Track boundaries
         start = current_pos
         end = current_pos + len(fused)
         video_boundaries.append([start, end])
@@ -641,7 +546,6 @@ def build_fused_simulation(
     if not all_embeddings:
         raise RuntimeError("No valid videos found!")
     
-    # Concatenate
     embeddings = np.vstack(all_embeddings)
     frame_labels = np.concatenate(all_frame_labels)
     anticipation_labels = np.concatenate(all_anticipation_labels)
@@ -654,7 +558,6 @@ def build_fused_simulation(
     print(f"  Violence frames: {frame_labels.sum():.0f} ({frame_labels.mean()*100:.2f}%)")
     print(f"  Anticipation frames: {anticipation_labels.sum():.0f} ({anticipation_labels.mean()*100:.2f}%)")
     
-    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         output_path,
@@ -681,16 +584,11 @@ def build_fused_simulation(
     }
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser(description="Multi-modal feature fusion for violence anticipation")
     parser.add_argument('--mode', type=str, required=True,
                         choices=['check_separability', 'build_embeddings', 'build_simulation'])
     
-    # Directories
     parser.add_argument('--vlm_dir', type=str, default=None,
                         help='VLM embeddings directory')
     parser.add_argument('--audio_dir', type=str, default=None,
@@ -704,7 +602,6 @@ def main():
     parser.add_argument('--output', type=str, default=None,
                         help='Output file path for simulation')
     
-    # Fusion options
     parser.add_argument('--modalities', type=str, nargs='+', default=['vlm', 'audio'],
                         choices=['vlm', 'audio', 'pose'],
                         help='Modalities to fuse')
@@ -715,7 +612,6 @@ def main():
                         choices=['xd_violence', 'ucf_crime'],
                         help='Filter by video source')
     
-    # Other options
     parser.add_argument('--max_videos', type=int, default=None,
                         help='Maximum videos to process')
     parser.add_argument('--skip_existing', action='store_true',
@@ -727,7 +623,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Convert paths
     vlm_dir = Path(args.vlm_dir) if args.vlm_dir else None
     audio_dir = Path(args.audio_dir) if args.audio_dir else None
     pose_dir = Path(args.pose_dir) if args.pose_dir else None

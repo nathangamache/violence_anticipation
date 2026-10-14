@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
-"""
-Check audio availability in XD-Violence videos.
-
-This script analyzes videos to determine:
-1. How many videos have audio streams
-2. Audio properties (sample rate, channels, duration)
-3. Whether audio is silent or has actual content
+"""Report audio stream presence and loudness for a directory of videos (XD-Violence).
 
 Usage:
-    python scripts/check_audio_availability.py \
-        --videos_dir data/raw_videos/xd_violence/videos \
+    python scripts/check_audio_availability.py --videos_dir data/raw_videos/xd_violence/videos \
         --output audio_analysis_report.json
 """
 
@@ -24,7 +17,6 @@ from collections import defaultdict
 import numpy as np
 from tqdm import tqdm
 
-# Try to import audio processing libraries
 try:
     import librosa
     LIBROSA_AVAILABLE = True
@@ -40,9 +32,6 @@ except ImportError:
 
 
 def get_video_info_ffprobe(video_path: Path) -> Dict:
-    """
-    Use ffprobe to get detailed video/audio stream information.
-    """
     try:
         cmd = [
             'ffprobe',
@@ -71,33 +60,20 @@ def get_video_info_ffprobe(video_path: Path) -> Dict:
 
 
 def analyze_audio_content(video_path: Path, duration_sec: float = 10.0) -> Dict:
-    """
-    Analyze actual audio content to check if it's silent or has signal.
-    
-    Samples the first `duration_sec` seconds of audio.
-    """
     if not LIBROSA_AVAILABLE:
         return {'error': 'librosa not available'}
     
     try:
-        # Load a sample of audio
         y, sr = librosa.load(str(video_path), sr=16000, mono=True, duration=duration_sec)
         
         if len(y) == 0:
             return {'has_content': False, 'reason': 'empty audio'}
         
-        # Calculate audio statistics
         rms = np.sqrt(np.mean(y ** 2))
         peak = np.max(np.abs(y))
         
-        # Check if audio is essentially silent
-        # RMS below -60dB is typically considered silent
         rms_db = 20 * np.log10(rms + 1e-10)
-        
-        # Calculate zero crossing rate (speech/music have higher ZCR than silence)
         zcr = np.mean(librosa.feature.zero_crossing_rate(y))
-        
-        # Spectral centroid (silent audio has very low centroid)
         spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr))
         
         has_content = rms_db > -50 and peak > 0.01
@@ -119,9 +95,6 @@ def analyze_audio_content(video_path: Path, duration_sec: float = 10.0) -> Dict:
 
 
 def check_video_audio(video_path: Path, analyze_content: bool = True) -> Dict:
-    """
-    Check if a video has audio and analyze its properties.
-    """
     result = {
         'path': str(video_path),
         'filename': video_path.name,
@@ -129,14 +102,12 @@ def check_video_audio(video_path: Path, analyze_content: bool = True) -> Dict:
         'audio_streams': [],
     }
     
-    # Get info via ffprobe
     info = get_video_info_ffprobe(video_path)
     
     if 'error' in info:
         result['error'] = info['error']
         return result
     
-    # Check for audio streams
     streams = info.get('streams', [])
     audio_streams = [s for s in streams if s.get('codec_type') == 'audio']
     
@@ -155,13 +126,11 @@ def check_video_audio(video_path: Path, analyze_content: bool = True) -> Dict:
         }
         result['audio_streams'].append(stream_info)
     
-    # Get format info
     format_info = info.get('format', {})
     result['duration'] = format_info.get('duration')
     result['format'] = format_info.get('format_name')
     result['size_bytes'] = format_info.get('size')
     
-    # Analyze actual audio content
     if analyze_content and result['has_audio_stream'] and LIBROSA_AVAILABLE:
         content_analysis = analyze_audio_content(video_path)
         result['content_analysis'] = content_analysis
@@ -194,7 +163,6 @@ def main():
         print(f"Error: Directory not found: {videos_dir}")
         return
     
-    # Find all video files
     video_files = []
     for ext in args.extensions:
         video_files.extend(videos_dir.rglob(f'*{ext}'))
@@ -210,7 +178,6 @@ def main():
     print(f"Analyzing content: {args.analyze_content and LIBROSA_AVAILABLE}")
     print()
     
-    # Analyze each video
     results = []
     stats = defaultdict(int)
     
@@ -218,7 +185,6 @@ def main():
         result = check_video_audio(video_path, analyze_content=args.analyze_content)
         results.append(result)
         
-        # Update stats
         if 'error' in result:
             stats['errors'] += 1
         elif result['has_audio_stream']:
@@ -230,7 +196,6 @@ def main():
         else:
             stats['no_audio_stream'] += 1
     
-    # Print summary
     print("\n" + "="*60)
     print("AUDIO AVAILABILITY SUMMARY")
     print("="*60)
@@ -241,7 +206,6 @@ def main():
     print(f"Videos without audio stream: {stats['no_audio_stream']} ({100*stats['no_audio_stream']/len(video_files):.1f}%)")
     print(f"Errors: {stats['errors']} ({100*stats['errors']/len(video_files):.1f}%)")
     
-    # Audio codec breakdown
     codec_counts = defaultdict(int)
     sample_rates = defaultdict(int)
     
@@ -261,7 +225,6 @@ def main():
         for sr, count in sorted(sample_rates.items(), key=lambda x: -x[1]):
             print(f"  {sr} Hz: {count}")
     
-    # Content analysis summary
     if args.analyze_content and LIBROSA_AVAILABLE:
         rms_values = []
         for r in results:
@@ -276,7 +239,6 @@ def main():
             print(f"  Mean: {np.mean(rms_values):.1f} dB")
             print(f"  Median: {np.median(rms_values):.1f} dB")
     
-    # Save detailed report
     report = {
         'summary': {
             'total_videos': len(video_files),
@@ -297,11 +259,10 @@ def main():
     
     print(f"\nDetailed report saved to: {output_path}")
     
-    # List videos with audio content
     videos_with_audio = [r['filename'] for r in results if r.get('has_audio_content', False)]
     if videos_with_audio:
         print(f"\nVideos with audio content ({len(videos_with_audio)}):")
-        for v in videos_with_audio[:20]:  # Show first 20
+        for v in videos_with_audio[:20]:
             print(f"  {v}")
         if len(videos_with_audio) > 20:
             print(f"  ... and {len(videos_with_audio) - 20} more")

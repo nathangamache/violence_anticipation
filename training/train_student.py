@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""
-Improved Violence Anticipation Student Model Training
-
-Key improvements over baseline:
-1. Focal Loss for handling class imbalance
-2. Proper class weighting
-3. Dropout regularization  
-4. Multiple threshold selection strategies
-5. Per-source evaluation diagnostics
-6. Temporal smoothing option
-7. Gradient clipping for stability
-"""
+"""Frame-level MLP student on VLM embeddings: focal loss, threshold strategies, per-source diagnostics."""
 
 import argparse
 import json
@@ -32,17 +21,8 @@ from sklearn.metrics import (
 from tqdm import tqdm
 
 
-# ==============================================================================
-# Focal Loss - Better for imbalanced classification
-# ==============================================================================
 class FocalLoss(nn.Module):
-    """
-    Focal Loss for imbalanced binary classification.
-    FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
-    
-    When gamma > 0, reduces loss for well-classified examples,
-    focusing training on hard negatives/positives.
-    """
+    """Binary focal loss on logits: -alpha_t * (1 - p_t)^gamma * log(p_t)."""
     def __init__(self, alpha: float = 0.25, gamma: float = 2.0, reduction: str = 'mean'):
         super().__init__()
         self.alpha = alpha
@@ -53,10 +33,8 @@ class FocalLoss(nn.Module):
         BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
         pt = torch.exp(-BCE_loss)  # pt = p if y=1, 1-p if y=0
         
-        # Alpha weighting
         alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)
         
-        # Focal term
         focal_weight = (1 - pt) ** self.gamma
         
         loss = alpha_t * focal_weight * BCE_loss
@@ -68,19 +46,8 @@ class FocalLoss(nn.Module):
         return loss
 
 
-# ==============================================================================
-# Improved Student Model Architecture
-# ==============================================================================
 class VLMStudentModel(nn.Module):
-    """
-    Student model that learns to anticipate violence from VLM embeddings.
-    
-    Improvements:
-    - Deeper architecture with residual connections
-    - Dropout for regularization
-    - BatchNorm for training stability
-    - Optional temporal context via LSTM
-    """
+    """Linear-BN-GELU-Dropout MLP over VLM embeddings, with an optional BiLSTM head (use_temporal)."""
     def __init__(
         self,
         input_dim: int = 3584,  # Qwen2.5-VL embedding dim
@@ -93,7 +60,6 @@ class VLMStudentModel(nn.Module):
         
         self.use_temporal = use_temporal
         
-        # Feature extraction layers
         layers = []
         prev_dim = input_dim
         
@@ -101,14 +67,13 @@ class VLMStudentModel(nn.Module):
             layers.extend([
                 nn.Linear(prev_dim, hdim),
                 nn.BatchNorm1d(hdim),
-                nn.GELU(),  # GELU often works better than ReLU for this type of task
+                nn.GELU(),
                 nn.Dropout(dropout),
             ])
             prev_dim = hdim
         
         self.feature_extractor = nn.Sequential(*layers)
         
-        # Optional temporal modeling
         if use_temporal:
             self.lstm = nn.LSTM(
                 input_size=hidden_dims[-1],
@@ -121,7 +86,6 @@ class VLMStudentModel(nn.Module):
         else:
             final_dim = hidden_dims[-1]
         
-        # Final classifier
         self.classifier = nn.Sequential(
             nn.Linear(final_dim, 64),
             nn.GELU(),
@@ -132,7 +96,6 @@ class VLMStudentModel(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """Initialize weights using Xavier uniform."""
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight)
@@ -140,24 +103,18 @@ class VLMStudentModel(nn.Module):
                     nn.init.zeros_(m.bias)
     
     def forward(self, x: torch.Tensor, return_features: bool = False) -> torch.Tensor:
-        """
-        Args:
-            x: [B, input_dim] or [B, T, input_dim] if temporal
-            return_features: If True, also return intermediate features
-        """
-        # Ensure x is at least 2D for BatchNorm
+        """x: [B, input_dim], or [B, T, input_dim] when use_temporal."""
+        # BatchNorm1d needs a batch dimension
         if x.dim() == 1:
             x = x.unsqueeze(0)
         
         if x.dim() == 3 and self.use_temporal:
-            # Temporal mode: [B, T, D]
             B, T, D = x.shape
             x_flat = x.view(B * T, D)
             features = self.feature_extractor(x_flat)
             features = features.view(B, T, -1)
             
             lstm_out, _ = self.lstm(features)
-            # Use last timestep
             features = lstm_out[:, -1, :]
         else:
             features = self.feature_extractor(x)
@@ -169,11 +126,7 @@ class VLMStudentModel(nn.Module):
         return logits
 
 
-# ==============================================================================
-# File Discovery Helpers (for nested directory structures)
-# ==============================================================================
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from its ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
@@ -184,10 +137,8 @@ def classify_video_source(video_id: str) -> str:
 
 
 def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]:
-    """Find embedding file in nested directory structure."""
     source = classify_video_source(video_name)
     
-    # Try various paths
     for subdir in [source, 'ucf_crime', 'xd_violence', '']:
         for ext in ['.npz', '.npy']:
             if subdir:
@@ -200,14 +151,11 @@ def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]
 
 
 def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
-    """Find label file (supports flat and nested structure)."""
-    # Try flat structure first
     for ext in ['.npy', '.npz']:
         path = labels_dir / f"{video_name}{ext}"
         if path.exists():
             return path
     
-    # Try nested structure
     source = classify_video_source(video_name)
     for subdir in [source, 'ucf_crime', 'xd_violence']:
         for ext in ['.npy', '.npz']:
@@ -218,20 +166,16 @@ def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
 
 
 def load_embedding(path: Path) -> Optional[np.ndarray]:
-    """Load embedding from .npy or .npz file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
             keys = list(data.keys())
-            # Try common key names (including 'emb' which is used in this project)
             for key in ['emb', 'embedding', 'embeddings', 'features', 'arr_0']:
                 if key in keys:
                     arr = data[key]
-                    # Convert float16 to float32 for training stability
                     if arr.dtype == np.float16:
                         arr = arr.astype(np.float32)
                     return arr
-            # Return first array as fallback
             if keys:
                 arr = data[keys[0]]
                 if arr.dtype == np.float16:
@@ -248,7 +192,6 @@ def load_embedding(path: Path) -> Optional[np.ndarray]:
 
 
 def load_labels_from_file(path: Path) -> Optional[np.ndarray]:
-    """Load labels from .npy or .npz file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
@@ -265,32 +208,27 @@ def load_labels_from_file(path: Path) -> Optional[np.ndarray]:
     return None
 
 
-# ==============================================================================
-# Dataset
-# ==============================================================================
 def extract_video_name(item) -> str:
-    """Extract video name from index item (handles both dict and string formats)."""
     if isinstance(item, dict):
-        # Use graph_path or label_path to get the filename
         path = item.get('graph_path') or item.get('label_path', '')
-        return Path(path).stem  # Get filename without extension
+        return Path(path).stem
     elif isinstance(item, str):
         return Path(item).stem
     return str(item)
 
 
 class ViolenceAnticipationDataset(Dataset):
-    """Dataset for violence anticipation with VLM embeddings."""
+    """One sample per embedding row; label = any violence in rows [t, t + horizon_sec * fps)."""
     
     def __init__(
         self,
-        video_items: List,  # Can be list of dicts or list of strings
+        video_items: List,
         embeddings_dir: Path,
         labels_dir: Path,
         horizon_sec: float = 30.0,
         fps: float = 1.0,
         min_frames: int = 5,
-        source_filter: Optional[str] = None,  # Filter to only this source
+        source_filter: Optional[str] = None,
     ):
         self.embeddings_dir = Path(embeddings_dir)
         self.labels_dir = Path(labels_dir)
@@ -299,10 +237,8 @@ class ViolenceAnticipationDataset(Dataset):
         self.min_frames = min_frames
         self.source_filter = source_filter.lower() if source_filter else None
         
-        # Extract video names from items
         self.video_ids = [extract_video_name(item) for item in video_items]
         
-        # Filter by source if specified
         if self.source_filter:
             original_count = len(self.video_ids)
             self.video_ids = [
@@ -311,12 +247,10 @@ class ViolenceAnticipationDataset(Dataset):
             ]
             print(f"  Source filter '{self.source_filter}': {original_count} -> {len(self.video_ids)} videos")
         
-        # Pre-load and create samples
         self.samples = []
         self._build_samples()
     
     def _build_samples(self):
-        """Build frame-level samples with anticipation labels."""
         missing_emb = 0
         missing_label = 0
         load_errors = 0
@@ -340,22 +274,18 @@ class ViolenceAnticipationDataset(Dataset):
                     load_errors += 1
                     continue
                 
-                # Handle multi-horizon labels
                 if labels.ndim > 1:
                     labels = labels.max(axis=1) if labels.shape[1] > 1 else labels.squeeze()
                 
-                # Binarize
                 labels = (labels > 0).astype(float)
                 
                 if len(embeddings) < self.min_frames:
                     continue
                 
-                # Ensure embeddings and labels have same length
                 min_len = min(len(embeddings), len(labels))
                 embeddings = embeddings[:min_len]
                 labels = labels[:min_len]
                 
-                # Create anticipation labels
                 horizon_frames = int(self.horizon_sec * self.fps)
                 
                 for t in range(len(embeddings)):
@@ -396,16 +326,8 @@ class ViolenceAnticipationDataset(Dataset):
         }
 
 
-# ==============================================================================
-# Source-Balanced Sampling
-# ==============================================================================
 class SourceBalancedSampler(torch.utils.data.Sampler):
-    """
-    Sampler that balances samples across different video sources.
-    
-    This helps when one source (e.g., UCF-Crime) is underperforming,
-    by ensuring it gets equal representation during training.
-    """
+    """Samples each source in proportion to its weight (default: inverse source frequency)."""
     def __init__(
         self, 
         dataset,
@@ -415,13 +337,11 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
         self.dataset = dataset
         self.samples_per_epoch = samples_per_epoch or len(dataset)
         
-        # Group sample indices by source
         self.source_indices = defaultdict(list)
         for idx, sample in enumerate(dataset.samples):
             source = classify_video_source(sample['video_id'])
             self.source_indices[source].append(idx)
         
-        # Default weights: inverse of source frequency (balance equally)
         if source_weights is None:
             total = len(dataset)
             self.source_weights = {
@@ -431,7 +351,6 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
         else:
             self.source_weights = source_weights
         
-        # Normalize weights
         weight_sum = sum(self.source_weights.values())
         self.source_weights = {k: v / weight_sum for k, v in self.source_weights.items()}
         
@@ -443,7 +362,6 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
     def __iter__(self):
         indices = []
         
-        # Sample from each source according to weights
         for src, weight in self.source_weights.items():
             n_samples = int(self.samples_per_epoch * weight)
             src_indices = self.source_indices[src]
@@ -451,7 +369,6 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
             if len(src_indices) == 0:
                 continue
             
-            # Sample with replacement if needed
             if n_samples > len(src_indices):
                 sampled = np.random.choice(src_indices, size=n_samples, replace=True)
             else:
@@ -459,7 +376,6 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
             
             indices.extend(sampled.tolist())
         
-        # Shuffle all indices
         np.random.shuffle(indices)
         return iter(indices)
     
@@ -467,19 +383,14 @@ class SourceBalancedSampler(torch.utils.data.Sampler):
         return self.samples_per_epoch
 
 
-# ==============================================================================
-# Threshold Selection Strategies
-# ==============================================================================
 def find_threshold_f1(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[float, float]:
-    """Find threshold that maximizes F1 score."""
     precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
     f1_scores = 2 * (precision * recall) / (precision + recall + 1e-8)
-    best_idx = np.argmax(f1_scores[:-1])  # Last element is undefined
+    best_idx = np.argmax(f1_scores[:-1])  # last PR point has no threshold
     return thresholds[best_idx], f1_scores[best_idx]
 
 
 def find_threshold_youden(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[float, float]:
-    """Find threshold using Youden's J statistic (sensitivity + specificity - 1)."""
     fpr, tpr, thresholds = roc_curve(y_true, y_scores)
     j_scores = tpr - fpr
     best_idx = np.argmax(j_scores)
@@ -494,14 +405,11 @@ def find_threshold_precision_floor(
     """Find threshold that achieves minimum precision while maximizing recall."""
     precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
     
-    # Find points where precision >= min_precision
     valid_mask = precision[:-1] >= min_precision
     
     if not valid_mask.any():
-        # Fall back to max F1 if can't achieve precision floor
         return find_threshold_f1(y_true, y_scores)
     
-    # Among valid points, maximize recall
     valid_recalls = recall[:-1][valid_mask]
     valid_thresholds = thresholds[valid_mask]
     best_idx = np.argmax(valid_recalls)
@@ -510,7 +418,6 @@ def find_threshold_precision_floor(
 
 
 def find_threshold_mcc(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[float, float]:
-    """Find threshold that maximizes Matthews Correlation Coefficient."""
     thresholds = np.linspace(0, 1, 100)
     best_mcc = -1
     best_thresh = 0.5
@@ -527,9 +434,6 @@ def find_threshold_mcc(y_true: np.ndarray, y_scores: np.ndarray) -> Tuple[float,
     return best_thresh, best_mcc
 
 
-# ==============================================================================
-# Training & Evaluation
-# ==============================================================================
 class Trainer:
     def __init__(
         self,
@@ -541,7 +445,7 @@ class Trainer:
         lr: float = 1e-4,
         weight_decay: float = 1e-4,
         use_focal_loss: bool = True,
-        focal_alpha: float = 0.75,  # Higher alpha = more weight on positives
+        focal_alpha: float = 0.75,
         focal_gamma: float = 2.0,
         class_weight: Optional[float] = None,
         grad_clip: float = 1.0,
@@ -553,19 +457,16 @@ class Trainer:
         self.device = device
         self.grad_clip = grad_clip
         
-        # Optimizer
         self.optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=lr,
             weight_decay=weight_decay,
         )
         
-        # Learning rate scheduler
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             self.optimizer, T_0=10, T_mult=2
         )
         
-        # Loss function
         if use_focal_loss:
             self.criterion = FocalLoss(alpha=focal_alpha, gamma=focal_gamma)
         else:
@@ -591,7 +492,6 @@ class Trainer:
             
             loss.backward()
             
-            # Gradient clipping
             if self.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
             
@@ -642,7 +542,6 @@ class Trainer:
         all_labels = np.array(all_labels)
         all_scores = np.array(all_scores)
         
-        # Core metrics
         pos_rate = all_labels.mean()
         
         if len(np.unique(all_labels)) < 2:
@@ -660,7 +559,6 @@ class Trainer:
                 'n_samples': len(all_labels),
             }
         
-        # Multiple threshold strategies
         threshold_methods = {
             'f1': find_threshold_f1,
             'youden': find_threshold_youden,
@@ -705,20 +603,17 @@ class Trainer:
             print(f"Epoch {epoch + 1}/{n_epochs}")
             print(f"{'='*60}")
             
-            # Train
             train_metrics = self.train_epoch()
             print(f"Train - Loss: {train_metrics['loss']:.4f}, "
                   f"ROC-AUC: {train_metrics['roc_auc']:.4f}, "
                   f"PR-AUC: {train_metrics['pr_auc']:.4f}")
             
-            # Validate
             val_metrics = self.evaluate(self.val_loader)
             print(f"Val   - ROC-AUC: {val_metrics['roc_auc']:.4f}, "
                   f"PR-AUC: {val_metrics['pr_auc']:.4f}")
             print(f"        F1@thresh: {val_metrics.get('f1_f1', 0):.4f} "
                   f"(thresh={val_metrics.get('f1_threshold', 0):.3f})")
             
-            # Track best
             if val_metrics['roc_auc'] > self.best_val_roc:
                 self.best_val_roc = val_metrics['roc_auc']
                 self.best_model_state = {k: v.cpu().clone() for k, v in self.model.state_dict().items()}
@@ -730,7 +625,6 @@ class Trainer:
                     print(f"\n        Early stopping triggered after {patience} epochs without improvement")
                     break
             
-            # Record history
             for k, v in train_metrics.items():
                 history[f'train_{k}'].append(v)
             for k, v in val_metrics.items():
@@ -745,7 +639,6 @@ class Trainer:
             self.model.load_state_dict(self.best_model_state)
     
     def final_evaluation(self) -> Dict[str, Dict]:
-        """Run comprehensive evaluation on all splits."""
         self.load_best_model()
         
         results = {}
@@ -770,7 +663,6 @@ class Trainer:
             
             results[name] = metrics
         
-        # Compute generalization gap
         print(f"\n{'='*60}")
         print("GENERALIZATION GAP ANALYSIS")
         print(f"{'='*60}")
@@ -788,11 +680,7 @@ class Trainer:
         return results
 
 
-# ==============================================================================
-# Per-Source Analysis
-# ==============================================================================
 def per_source_analysis(results: Dict, split_name: str = 'test'):
-    """Analyze performance broken down by video source."""
     metrics = results[split_name]
     
     if 'video_ids' not in metrics:
@@ -803,7 +691,6 @@ def per_source_analysis(results: Dict, split_name: str = 'test'):
     labels = metrics['labels']
     scores = metrics['scores']
     
-    # Group by source
     source_data = defaultdict(lambda: {'labels': [], 'scores': []})
     
     for vid, label, score in zip(video_ids, labels, scores):
@@ -835,13 +722,9 @@ def per_source_analysis(results: Dict, split_name: str = 'test'):
         print(f"  PR-AUC:  {pr_auc:.4f}")
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Train violence anticipation student model")
     
-    # Data paths
     parser.add_argument('--embeddings_dir', type=str, required=True,
                         help='Directory containing VLM embeddings (.npy files)')
     parser.add_argument('--labels_dir', type=str, required=True,
@@ -853,7 +736,6 @@ def main():
     parser.add_argument('--test_index', type=str, required=True,
                         help='JSON file with test video IDs')
     
-    # Model config
     parser.add_argument('--hidden_dims', type=int, nargs='+', default=[512, 256, 128],
                         help='Hidden layer dimensions')
     parser.add_argument('--dropout', type=float, default=0.3,
@@ -861,7 +743,6 @@ def main():
     parser.add_argument('--input_dim', type=int, default=3584,
                         help='VLM embedding dimension')
     
-    # Training config
     parser.add_argument('--epochs', type=int, default=50,
                         help='Number of training epochs')
     parser.add_argument('--patience', type=int, default=10,
@@ -875,7 +756,6 @@ def main():
     parser.add_argument('--grad_clip', type=float, default=1.0,
                         help='Gradient clipping norm')
     
-    # Loss config
     parser.add_argument('--use_focal_loss', action='store_true', default=True,
                         help='Use focal loss instead of BCE')
     parser.add_argument('--focal_alpha', type=float, default=0.75,
@@ -883,7 +763,6 @@ def main():
     parser.add_argument('--focal_gamma', type=float, default=2.0,
                         help='Focal loss gamma (focusing parameter)')
     
-    # Task config
     parser.add_argument('--horizon_sec', type=float, default=30.0,
                         help='Anticipation horizon in seconds')
     parser.add_argument('--fps', type=float, default=1.0,
@@ -895,7 +774,6 @@ def main():
     parser.add_argument('--source_filter', type=str, default=None,
                         help='Only use videos from this source (e.g., ucf_crime, xd_violence)')
     
-    # Output
     parser.add_argument('--output_dir', type=str, default='./outputs',
                         help='Output directory for model and results')
     parser.add_argument('--save_model', action='store_true',
@@ -905,7 +783,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Setup
     if args.device.startswith('cuda') and not torch.cuda.is_available():
         print(f"Warning: {args.device} requested but CUDA not available, falling back to CPU")
         device = torch.device('cpu')
@@ -915,7 +792,6 @@ def main():
     
     os.makedirs(args.output_dir, exist_ok=True)
     
-    # Load video IDs (handle both list of dicts and list of strings)
     with open(args.train_index) as f:
         train_items = json.load(f)
     with open(args.val_index) as f:
@@ -927,7 +803,6 @@ def main():
     print(f"Val:   {len(val_items)} items")
     print(f"Test:  {len(test_items)} items")
     
-    # Show sample to verify format
     if train_items:
         print(f"Sample item format: {type(train_items[0])}")
         if isinstance(train_items[0], dict):
@@ -935,7 +810,6 @@ def main():
             sample_name = extract_video_name(train_items[0])
             print(f"  Extracted name: {sample_name}")
     
-    # Create datasets
     print("\nBuilding datasets...")
     train_dataset = ViolenceAnticipationDataset(
         train_items, args.embeddings_dir, args.labels_dir,
@@ -957,22 +831,19 @@ def main():
     print(f"Val samples:   {len(val_dataset)}")
     print(f"Test samples:  {len(test_dataset)}")
     
-    # Compute class weights
     train_labels = [s['label'] for s in train_dataset.samples]
     pos_rate = np.mean(train_labels)
     class_weight = (1 - pos_rate) / pos_rate if pos_rate > 0 else 1.0
     print(f"\nTraining positive rate: {pos_rate:.4f}")
     print(f"Class weight (neg/pos): {class_weight:.2f}")
     
-    # Create dataloaders
     if args.source_balanced:
-        # Build custom weights if ucf_weight is specified
         source_weights = None
         if args.ucf_weight is not None:
             source_weights = {
                 'ucf_crime': args.ucf_weight,
                 'xd_violence': 1.0,
-                'Movies': 1.0,  # Note: classify_video_source returns lowercase
+                'Movies': 1.0,  # never matches: classify_video_source has no 'Movies' source
                 'unknown': 0.5,
             }
         
@@ -993,7 +864,6 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    # Create model
     model = VLMStudentModel(
         input_dim=args.input_dim,
         hidden_dims=args.hidden_dims,
@@ -1002,7 +872,6 @@ def main():
     
     print(f"\nModel parameters: {sum(p.numel() for p in model.parameters()):,}")
     
-    # Create trainer
     trainer = Trainer(
         model=model,
         train_loader=train_loader,
@@ -1018,22 +887,17 @@ def main():
         grad_clip=args.grad_clip,
     )
     
-    # Train
     print("\n" + "="*60)
     print("TRAINING")
     print("="*60)
     
     history = trainer.train(args.epochs, patience=args.patience)
     
-    # Final evaluation
     results = trainer.final_evaluation()
     
-    # Per-source analysis
     per_source_analysis(results, 'test')
     
-    # Save results
     def convert_to_serializable(obj):
-        """Convert numpy types to JSON-serializable Python types."""
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, (np.float16, np.float32, np.float64)):
@@ -1053,13 +917,12 @@ def main():
         results_to_save[split] = {}
         for k, v in metrics.items():
             if k in ['labels', 'scores', 'video_ids', 'frame_idxs']:
-                continue  # Skip large arrays
+                continue
             results_to_save[split][k] = convert_to_serializable(v)
     
     with open(os.path.join(args.output_dir, 'results.json'), 'w') as f:
         json.dump(results_to_save, f, indent=2)
     
-    # Save model
     if args.save_model:
         trainer.load_best_model()
         torch.save({

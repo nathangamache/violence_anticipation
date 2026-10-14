@@ -4,10 +4,6 @@ from realtime.pipeline import build_live_graph
 
 
 def test_live_graph():
-    """
-    Test that build_live_graph returns the correct structure.
-    """
-
     tracks = [
         {"track_id": 1, "bbox": [0, 0, 10, 10]},
         {"track_id": 2, "bbox": [10, 10, 20, 20]}

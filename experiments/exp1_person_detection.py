@@ -1,29 +1,9 @@
 #!/usr/bin/env python3
-"""
-Experiment 1: Person Detection Filtering
+"""Experiment 1: zero temporal-model scores on steps where YOLOv8 sees no person, then compare metrics.
 
-Theory: If we force the model to predict "no violence" whenever there are no
-people in the frame, we should reduce the false positive rate by eliminating
-any above-threshold predictions on empty/people-free frames.
-
-Pipeline:
-1. Run YOLOv8 person detection on raw video frames (matching VLM sample rate)
-2. Create a person-presence mask for each video
-3. Score each video with the temporal LSTM model (baseline)
-4. Apply person mask: score=0 when no people detected (filtered)
-5. Compare FA rates, precision, recall between baseline and filtered
-
-Usage:
-    pip install ultralytics
-
-    python experiments/exp1_person_detection.py \
-        --model_path outputs/outputs_temporal/best_temporal_model.pt \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --raw_videos_dir data/raw_videos \
-        --test_index test_index.json \
-        --device cuda:1 \
-        --output_dir experiments/output/exp1_person_detection
+Usage (needs `pip install ultralytics`):
+    python experiments/exp1_person_detection.py --model_path outputs/outputs_temporal/best_temporal_model.pt \
+        --raw_videos_dir data/raw_videos --test_index test_index.json --device cuda:1
 """
 
 import argparse
@@ -56,9 +36,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# ==============================================================================
-# Model Definition (must match train_temporal_model.py exactly)
-# ==============================================================================
+# Must match train_temporal_model.py exactly so its checkpoints load.
 class TemporalViolenceModel(nn.Module):
     def __init__(self, input_dim=3584, hidden_dim=256, lstm_hidden=128,
                  num_lstm_layers=2, dropout=0.3, bidirectional=True, use_attention=True):
@@ -94,9 +72,6 @@ class TemporalViolenceModel(nn.Module):
         return self.classifier(context).squeeze(-1)
 
 
-# ==============================================================================
-# Data Utilities
-# ==============================================================================
 def classify_video_source(video_id):
     if '_x264' in video_id:
         return 'ucf_crime'
@@ -106,7 +81,6 @@ def classify_video_source(video_id):
 
 
 def find_video_file(video_name, raw_videos_dir):
-    """Find the actual video file for a given video name."""
     raw_dir = Path(raw_videos_dir)
     source = classify_video_source(video_name)
     search_dirs = []
@@ -191,19 +165,9 @@ def load_labels_from_file(path):
     return None
 
 
-# ==============================================================================
-# Person Detection
-# ==============================================================================
 def detect_people_in_video(video_path, yolo_model, sample_every_t=5, total_T=None,
                            confidence_threshold=0.3):
-    """
-    Run YOLO person detection on sampled frames from a video.
-
-    Returns:
-        person_mask: np.ndarray of shape [T] - 1=person detected, 0=no person
-        person_counts: np.ndarray of shape [T] - person count per frame
-        person_pct: float - percentage of frames with at least one person
-    """
+    """Person mask and counts at every sample_every_t-th of total_T steps, plus % of sampled frames with a person."""
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
         return None, None, 0.0
@@ -238,9 +202,6 @@ def detect_people_in_video(video_path, yolo_model, sample_every_t=5, total_T=Non
     return person_mask, person_counts, person_pct
 
 
-# ==============================================================================
-# Model Scoring
-# ==============================================================================
 @torch.no_grad()
 def score_embeddings(model, embeddings, seq_len, device, batch_size=256):
     """Score embeddings using sliding window."""
@@ -258,11 +219,7 @@ def score_embeddings(model, embeddings, seq_len, device, batch_size=256):
     return np.concatenate([np.full(seq_len - 1, all_scores[0]), np.array(all_scores)])
 
 
-# ==============================================================================
-# Metrics
-# ==============================================================================
 def compute_metrics(scores, labels, threshold):
-    """Compute classification and operational metrics."""
     preds = (scores >= threshold).astype(int)
     tp = ((preds == 1) & (labels == 1)).sum()
     fp = ((preds == 1) & (labels == 0)).sum()
@@ -275,7 +232,7 @@ def compute_metrics(scores, labels, threshold):
     roc = roc_auc_score(labels, scores) if len(set(labels)) > 1 else 0.5
     pr_auc = average_precision_score(labels, scores) if len(set(labels)) > 1 else 0
 
-    # Count FA events (contiguous FP regions)
+    # FA event = contiguous run of false-positive frames
     in_fa = False
     n_fa = 0
     for p, l in zip(preds, labels):
@@ -296,9 +253,6 @@ def compute_metrics(scores, labels, threshold):
     }
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', type=str, required=True)
@@ -328,7 +282,6 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
-    # --- Load violence anticipation model ---
     print("Loading violence anticipation model...")
     checkpoint = torch.load(args.model_path, map_location=device, weights_only=False)
     model_args = checkpoint.get('args', {})
@@ -344,7 +297,6 @@ def main():
     seq_len = model_args.get('sequence_length', 30)
     print(f"  Loaded model (seq_len={seq_len})")
 
-    # --- Load YOLO ---
     print("Loading YOLO person detector...")
     if not YOLO_AVAILABLE:
         print("ERROR: ultralytics not installed. Run: pip install ultralytics")
@@ -352,14 +304,12 @@ def main():
     yolo = YOLO(args.yolo_model)
     print(f"  Loaded {args.yolo_model}")
 
-    # --- Load metadata for total_frames ---
     metadata = {}
     for meta_file in ['data/metadata/xd_violence.json', 'data/metadata/ucf_crime.json']:
         if os.path.exists(meta_file):
             with open(meta_file) as f:
                 metadata.update(json.load(f))
 
-    # --- Load test videos ---
     print(f"\nLoading test videos from {args.test_index}...")
     with open(args.test_index) as f:
         items = json.load(f)
@@ -377,7 +327,6 @@ def main():
         if args.source_filter and source != args.source_filter:
             continue
 
-        # Load embeddings and labels
         emb_path = find_embedding_file(video_name, args.embeddings_dir)
         lbl_path = find_label_file(video_name, args.labels_dir)
         if emb_path is None or lbl_path is None:
@@ -394,12 +343,10 @@ def main():
         min_len = min(len(emb), len(lbl))
         emb, lbl = emb[:min_len], lbl[:min_len]
 
-        # Find raw video file
         video_path = find_video_file(video_name, args.raw_videos_dir)
         if video_path is None:
             continue
 
-        # --- Run person detection ---
         person_mask, person_counts, person_pct = detect_people_in_video(
             video_path, yolo,
             sample_every_t=args.sample_every_t,
@@ -410,20 +357,16 @@ def main():
         if person_mask is None:
             continue
 
-        # Align person_mask with embeddings (nearest-neighbor resize)
+        # nearest-neighbour resize onto the embedding timeline
         if len(person_mask) != len(emb):
             indices = np.round(np.linspace(0, len(person_mask) - 1, len(emb))).astype(int)
             person_mask = person_mask[indices]
             person_counts = person_counts[indices]
 
-        # --- Temporal smoothing of person mask ---
-        # If YOLO saw a person within the last N frames, assume they're still there.
-        # This prevents single-frame YOLO misses from fragmenting continuous alarms
-        # into many short ones.
-        raw_person_pct = person_mask.mean() * 100  # before smoothing
+        raw_person_pct = person_mask.mean() * 100
         if args.person_holdover > 0:
             smoothed_mask = np.zeros_like(person_mask)
-            frames_since_person = args.person_holdover + 1  # start as "no person seen"
+            frames_since_person = args.person_holdover + 1
             for i in range(len(person_mask)):
                 if person_mask[i] == 1:
                     frames_since_person = 0
@@ -431,22 +374,17 @@ def main():
                 else:
                     frames_since_person += 1
                     if frames_since_person <= args.person_holdover:
-                        smoothed_mask[i] = 1  # holdover: person was recently here
+                        smoothed_mask[i] = 1
                     else:
-                        smoothed_mask[i] = 0  # genuinely no person for a while
+                        smoothed_mask[i] = 0
             person_mask = smoothed_mask
         smoothed_person_pct = person_mask.mean() * 100
 
-        # --- Score with model (baseline) ---
         scores = score_embeddings(model, emb, seq_len, device)
 
-        # --- Apply person mask ---
-        # No people in frame -> force score to 0 -> model cannot predict violence
-        # People in frame -> keep original model score
         scores_filtered = scores.copy()
         scores_filtered[person_mask == 0] = 0.0
 
-        # Track diagnostic stats
         n_no_person = int((person_mask == 0).sum())
         n_no_person_but_high_score = int(((person_mask == 0) & (scores > 0.3)).sum())
 
@@ -468,7 +406,6 @@ def main():
         all_labels.extend(lbl)
         all_person_masks.extend(person_mask)
 
-    # --- Aggregate results ---
     all_scores_baseline = np.array(all_scores_baseline)
     all_scores_filtered = np.array(all_scores_filtered)
     all_labels = np.array(all_labels)
@@ -477,7 +414,6 @@ def main():
     print(f"\nProcessed {len(results_per_video)} videos")
     print(f"Total frames: {len(all_labels):,}")
 
-    # --- Find threshold if not provided ---
     threshold = args.threshold
     if threshold is None:
         prec, rec, threshs = precision_recall_curve(all_labels, all_scores_baseline)
@@ -486,7 +422,6 @@ def main():
         threshold = threshs[best_idx]
         print(f"Auto-detected threshold: {threshold:.4f}")
 
-    # --- Compare baseline vs filtered ---
     baseline_metrics = compute_metrics(all_scores_baseline, all_labels, threshold)
     filtered_metrics = compute_metrics(all_scores_filtered, all_labels, threshold)
 
@@ -506,7 +441,6 @@ def main():
             change = f - b
             print(f"  {metric:<23} {b:>12} {f:>15} {change:>+10}")
 
-    # --- Key insight stats ---
     raw_pcts = [r['person_pct_raw'] for r in results_per_video]
     smoothed_pcts = [r['person_pct_smoothed'] for r in results_per_video]
     violent_pcts = [r['person_pct_smoothed'] for r in results_per_video if r['has_violence']]
@@ -530,14 +464,12 @@ def main():
     fa_reduction = baseline_metrics['n_fa_events'] - filtered_metrics['n_fa_events']
     print(f"    FA events eliminated: {fa_reduction}")
 
-    # --- Check if person filtering hurts recall ---
     if filtered_metrics['fn'] > baseline_metrics['fn']:
         fn_increase = filtered_metrics['fn'] - baseline_metrics['fn']
         print(f"\n  WARNING: Person filtering increased FN by {fn_increase} frames")
         print(f"    This means YOLO missed people during {fn_increase} violent frames.")
         print(f"    Recall dropped: {baseline_metrics['recall']:.4f} -> {filtered_metrics['recall']:.4f}")
 
-    # --- Save results ---
     output = {
         'threshold': threshold,
         'person_holdover': args.person_holdover,
@@ -559,10 +491,8 @@ def main():
     with open(out_dir / 'exp1_results.json', 'w') as f:
         json.dump(output, f, indent=2)
 
-    # --- Plot: Person % histogram + metric comparison ---
     fig, axes = plt.subplots(1, 3, figsize=(20, 5))
 
-    # Person detection rate per video
     axes[0].hist(smoothed_pcts, bins=20, color='steelblue', alpha=0.7, edgecolor='black')
     axes[0].set_xlabel('% Frames with People (smoothed)')
     axes[0].set_ylabel('Videos')
@@ -571,7 +501,6 @@ def main():
                     label=f'Mean={np.mean(smoothed_pcts):.1f}%')
     axes[0].legend()
 
-    # Metric comparison bars
     metrics_compare = ['precision', 'recall', 'f1', 'roc_auc']
     x = np.arange(len(metrics_compare))
     b_vals = [baseline_metrics[m] for m in metrics_compare]
@@ -586,7 +515,6 @@ def main():
     axes[1].legend()
     axes[1].set_ylim([0, 1.05])
 
-    # FA comparison
     axes[2].bar(['Baseline', 'Person-Filtered'],
                 [baseline_metrics['fa_per_hour'], filtered_metrics['fa_per_hour']],
                 color=['steelblue', 'coral'], alpha=0.7, edgecolor='black')
@@ -601,7 +529,6 @@ def main():
     plt.savefig(out_dir / 'exp1_person_detection_results.png', dpi=150)
     plt.close()
 
-    # --- Plot: Score distributions with/without people ---
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     no_person_scores = all_scores_baseline[all_person_masks == 0]
@@ -619,7 +546,6 @@ def main():
     axes[0].set_title('Score Distribution by Person Presence')
     axes[0].legend()
 
-    # Breakdown: no-person frames that are FP vs TN
     if len(no_person_scores) > 0:
         no_person_labels = all_labels[all_person_masks == 0]
         no_person_fp = no_person_scores[(no_person_scores >= threshold) & (no_person_labels == 0)]

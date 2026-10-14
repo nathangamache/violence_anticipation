@@ -3,13 +3,8 @@ from core.model import ViolenceTransformer
 
 
 def test_model_forward():
-    """
-    Ensure that the ViolenceTransformer performs a full forward pass
-    on a synthetic 30-frame sequence graph.
-    """
     model = ViolenceTransformer().cuda()
 
-    # Build dummy sequence of 30 frames
     seq = []
     for _ in range(30):
         seq.append({

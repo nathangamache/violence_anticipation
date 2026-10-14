@@ -1,16 +1,4 @@
-"""Shared media decoding and the per-video feature file contract.
-
-Every extractor in ``anticipation/features/`` writes one ``.npz`` per video to
-``FEATURE_ROOT/<extractor>/<source>/<stem>.npz`` with these keys:
-
-    t_sec : float32 [T]      tick times in seconds since video start; ticks are 1, 2, ..., floor(duration)
-    feat  : float16 [T, D]   features for each tick
-    valid : bool    [T]      False where the stream is absent (no audio track, no person, decode error)
-    meta  : str              JSON with extractor name, version, model id, window_sec, D, and any column names
-
-Causality rule: the feature at tick t may only use media from [t - window_sec, t]. Never pool over the whole
-video. ``check_causal`` verifies this by re-extracting on a truncated copy of the input.
-"""
+"""Shared media decoding and the per-video feature file contract (spec: docs/FEATURES.md, section 0.1)."""
 
 import json
 import os
@@ -23,12 +11,10 @@ FEATURE_ROOT = "data/features"
 
 
 def feature_path(extractor, video_id):
-    """Canonical feature path; ``video_id`` is ``<source>/<stem>`` (e.g. ``xd/Skyfall.2012__#01-55-44_...``)."""
     return os.path.join(FEATURE_ROOT, extractor, video_id + ".npz")
 
 
 def tick_times(duration_sec):
-    """Integer-second ticks 1..floor(duration). A video shorter than 1 s has no ticks."""
     return np.arange(1, int(np.floor(duration_sec)) + 1, dtype=np.float32)
 
 
@@ -84,7 +70,6 @@ class Video:
         return self.vr.get_batch(self.frame_index(t_sec).tolist()).asnumpy()
 
     def sample_times(self, fps, end_sec=None):
-        """Uniform timestamps 0, 1/fps, 2/fps, ... strictly below ``end_sec`` (default: duration)."""
         end = self.info.duration_sec if end_sec is None else min(end_sec, self.info.duration_sec)
         return np.arange(0.0, end, 1.0 / fps)
 
@@ -98,7 +83,6 @@ def has_audio(path):
 
 
 def load_audio(path, sr=16000):
-    """Decode the first audio stream to mono float32 at ``sr``. Returns None if the file has no audio."""
     if not has_audio(path):
         return None
     out = subprocess.run(
@@ -117,10 +101,7 @@ def is_digital_silence(wav, thresh=1e-4):
 
 
 def check_causal(extract_fn, video_path, cut_sec, atol=1e-2):
-    """Assert features for ticks <= cut_sec are identical when the video is truncated at cut_sec.
-
-    ``extract_fn(path) -> (t_sec, feat, valid)``. Writes a truncated copy with ffmpeg to a temp file.
-    """
+    """Re-extract on a copy cut at ``cut_sec`` and compare earlier ticks; ``extract_fn(path) -> (t_sec, feat, valid)``."""
     import tempfile
 
     with tempfile.TemporaryDirectory() as d:

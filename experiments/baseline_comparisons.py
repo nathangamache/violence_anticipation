@@ -1,38 +1,8 @@
-"""
-baseline_comparisons.py
-========================
-Single-entry-point script to run all baseline and current-model comparisons.
-Produces a unified comparison table covering every algorithm we have tried or
-are testing, with consistent evaluation protocol.
-
-Models compared:
-  -- Old / baseline --
-  [B1] Random baseline (AUC ~0.5 expected)
-  [B2] Frame-level mean pooling (average embedding → logistic regression)
-  [B3] Majority-class predictor
-  [B4] Logistic regression on raw VLM embeddings (our known strong baseline)
-  [B5] SVM on VLM embeddings
-
-  -- Current / new --
-  [C1] LSTM (checkpoint from outputs_temporal)
-  [C2] LSTM + score EMA (best alpha from ema_smoothing results)
-  [C3] Logistic regression + temporal features
-  [C4] Transformer encoder
-  [C5] Sliding window aggregation (best config from algorithm_variations)
-  [C6] LDA-calibrated logistic regression
-
-Evaluation metrics:
-  - Frame-level ROC-AUC
-  - Frame-level Average Precision (PR-AUC)
-  - Per-video AUC (mean across videos)
-  - Event-level false alarm rate (alarms per 10 minutes of normal footage)
+"""Compare simple baselines (random, majority, LR, SVM, LDA, sliding window) with the LSTM on VLM embeddings.
 
 Usage:
-    python baseline_comparisons.py \
-        --embeddings data/processed/vlm_emb \
-        --labels data/processed/labels_multih \
-        --lstm_checkpoint outputs/outputs_temporal/best_temporal_model.pt \
-        --ema_alpha 0.5
+    python experiments/baseline_comparisons.py --embeddings data/processed/vlm_emb --labels data/processed/labels_multih \
+        --lstm_checkpoint outputs/outputs_temporal/best_temporal_model.pt --ema_alpha 0.5
 """
 
 import argparse
@@ -52,10 +22,6 @@ from sklearn.svm import LinearSVC
 
 warnings.filterwarnings("ignore")
 
-
-# ──────────────────────────────────────────────
-# Shared utilities
-# ──────────────────────────────────────────────
 
 def load_video_pairs(vlm_dir: Path, labels_dir: Path, max_videos: int = 300):
     pairs = []
@@ -97,9 +63,7 @@ def ema_1d(values: np.ndarray, alpha: float) -> np.ndarray:
 
 
 def compute_metrics(val_pairs, score_fn, ema_alpha=None) -> Dict:
-    """
-    Run score_fn(emb) for each val video, collect frame-level and per-video metrics.
-    """
+    """Frame AUC/AP and mean per-video AUC (EMA-smoothed if ema_alpha) plus unsmoothed FA per 10 min on all-negative videos."""
     all_scores, all_labels = [], []
     per_video_aucs = []
 
@@ -119,8 +83,6 @@ def compute_metrics(val_pairs, score_fn, ema_alpha=None) -> Dict:
     frame_ap = average_precision_score(all_labels, all_scores) if len(np.unique(all_labels)) > 1 else float("nan")
     per_vid_auc = float(np.mean(per_video_aucs)) if per_video_aucs else float("nan")
 
-    # Event-level false alarm rate: number of alarm events per 10 minutes
-    # of footage from non-violent videos
     normal_scores = [scores for scores, lbl in
                      [(score_fn(emb), lbl) for emb, lbl in val_pairs]
                      if lbl.max() == 0]
@@ -142,10 +104,7 @@ def compute_false_alarm_rate(
     threshold: float = 0.5,
     fps: float = 1.0,
 ) -> float:
-    """
-    Compute false alarms per 10 minutes of normal footage.
-    A false alarm = any contiguous run of above-threshold frames.
-    """
+    """False alarms per 10 min of normal footage; an alarm is a contiguous above-threshold run."""
     total_duration_minutes = sum(len(s) for s in normal_video_scores) / (fps * 60)
     total_alarms = 0
 
@@ -160,15 +119,10 @@ def compute_false_alarm_rate(
 
     if total_duration_minutes == 0:
         return float("nan")
-    return total_alarms / total_duration_minutes * 10.0  # per 10 min
+    return total_alarms / total_duration_minutes * 10.0
 
-
-# ──────────────────────────────────────────────
-# Model implementations
-# ──────────────────────────────────────────────
 
 def run_random_baseline(val_pairs) -> Dict:
-    """Completely random scores — expected AUC ~0.5."""
     rng = np.random.RandomState(42)
 
     def score_fn(emb):
@@ -178,9 +132,9 @@ def run_random_baseline(val_pairs) -> Dict:
 
 
 def run_majority_class(train_pairs, val_pairs) -> Dict:
-    """Always predicts the majority class — score is constant."""
+    """Constant score equal to the training positive rate."""
     _, y_train = flatten(train_pairs)
-    majority_score = float(y_train.mean())  # 1 if violence is majority, 0 if not
+    majority_score = float(y_train.mean())
 
     def score_fn(emb):
         return np.full(len(emb), majority_score, dtype=np.float32)
@@ -189,10 +143,7 @@ def run_majority_class(train_pairs, val_pairs) -> Dict:
 
 
 def run_mean_pooling_lr(train_pairs, val_pairs) -> Dict:
-    """
-    Per-video mean embedding → logistic regression.
-    This compresses temporal information to a single vector per video.
-    """
+    """Per-video mean embedding -> LR, giving one constant score per video."""
     X_train_vid = np.array([p[0].mean(axis=0) for p in train_pairs])
     y_train_vid = np.array([int(p[1].max()) for p in train_pairs])
     scaler = StandardScaler()
@@ -208,7 +159,6 @@ def run_mean_pooling_lr(train_pairs, val_pairs) -> Dict:
 
 
 def run_lr_raw(train_pairs, val_pairs, ema_alpha=None) -> Dict:
-    """Frame-level logistic regression on raw VLM embeddings."""
     X_train, y_train = flatten(train_pairs)
     scaler = StandardScaler()
     X_s = scaler.fit_transform(X_train)
@@ -237,9 +187,7 @@ def run_svm(train_pairs, val_pairs) -> Dict:
 
 
 def run_lda_calibrated(train_pairs, val_pairs) -> Dict:
-    """
-    LDA projection → sigmoid calibration → probability scores.
-    """
+    """LDA projection -> sigmoid centred between the class means."""
     X_train, y_train = flatten(train_pairs)
     lda = LinearDiscriminantAnalysis(n_components=1)
     X_lda = lda.fit_transform(X_train, y_train).flatten()
@@ -315,7 +263,6 @@ def run_sliding_window(train_pairs, val_pairs, window=15, strategy="mean") -> Di
 
 
 def run_lstm(checkpoint_path: Path, train_pairs, val_pairs, ema_alpha=None, device="cpu", seq_len=30) -> Dict:
-    """Load LSTM checkpoint and evaluate."""
     if not checkpoint_path.exists():
         print(f"    [SKIP] {checkpoint_path} not found")
         return {"frame_auc": float("nan"), "frame_ap": float("nan"), "per_vid_auc": float("nan"), "fa_per_10min": float("nan")}
@@ -351,10 +298,6 @@ def run_lstm(checkpoint_path: Path, train_pairs, val_pairs, ema_alpha=None, devi
     return compute_metrics(val_pairs, score_fn, ema_alpha=ema_alpha)
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
-
 def print_results_table(results: List[Dict]):
     print("\n" + "=" * 75)
     print("COMPREHENSIVE BASELINE COMPARISON")
@@ -362,7 +305,6 @@ def print_results_table(results: List[Dict]):
     print(f"{'Model':<35} {'Frame AUC':>10} {'Frame AP':>10} {'Vid AUC':>10} {'FA/10min':>10}")
     print("-" * 75)
 
-    # Sort by frame AUC descending
     results_sorted = sorted(results, key=lambda r: r.get("frame_auc", 0) or 0, reverse=True)
     for r in results_sorted:
         def fmt(v):
@@ -398,7 +340,6 @@ def main():
 
     results = []
 
-    # ── Baselines ────────────────────────────
     print("\n[B1] Random baseline")
     r = run_random_baseline(val_pairs)
     r["model"] = "Random"
@@ -429,7 +370,6 @@ def main():
     results.append(r)
     print(f"  AUC={r['frame_auc']:.4f}")
 
-    # ── Current / new models ─────────────────
     print(f"[C1] LSTM (checkpoint)")
     r = run_lstm(args.lstm_checkpoint, train_pairs, val_pairs, device=device)
     r["model"] = "LSTM"
@@ -473,10 +413,8 @@ def main():
     results.append(r)
     print(f"  AUC={r['frame_auc']:.4f}")
 
-    # ── Print table ───────────────────────────
     print_results_table(results)
 
-    # ── Save CSV ──────────────────────────────
     import csv
     fieldnames = ["model", "frame_auc", "frame_ap", "per_vid_auc", "fa_per_10min"]
     with open(args.output, "w", newline="") as f:

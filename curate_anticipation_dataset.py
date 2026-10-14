@@ -1,29 +1,12 @@
 #!/usr/bin/env python3
-"""
-Automated Violence Anticipation Dataset Curation Pipeline
-
-This script automates the process of:
-1. Searching for videos with escalation sequences (road rage, bodycam, confrontations)
-2. Downloading candidate videos
-3. Running VLM analysis to detect escalation patterns
-4. Automatically annotating violence start times
-5. Filtering for videos with 10+ second pre-violence windows
-
-Requirements:
-    pip install yt-dlp opencv-python pillow tqdm
+"""Search, download, VLM-annotate, filter and export YouTube escalation videos for the anticipation dataset.
 
 Usage:
-    # Step 1: Search and download candidates
-    python curate_anticipation_dataset.py search --output_dir data/anticipation_curation
-    
-    # Step 2: Analyze downloaded videos with VLM
-    python curate_anticipation_dataset.py analyze --video_dir data/anticipation_curation/videos --device cuda:0
-    
-    # Step 3: Filter for good anticipation candidates
+    python curate_anticipation_dataset.py --output_dir data/anticipation_curation search
+    python curate_anticipation_dataset.py download --max_downloads 50
+    python curate_anticipation_dataset.py analyze --device cuda:0
     python curate_anticipation_dataset.py filter --min_anticipation 10
-    
-    # Step 4: Generate final dataset
-    python curate_anticipation_dataset.py export --output_dir data/anticipation_dataset
+    python curate_anticipation_dataset.py --output_dir data/anticipation_dataset export
 """
 
 import argparse
@@ -37,7 +20,6 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 import csv
 
-# Check for required packages
 try:
     import cv2
     from PIL import Image
@@ -48,17 +30,15 @@ except ImportError as e:
     print("Install with: pip install opencv-python pillow tqdm numpy")
     sys.exit(1)
 
-# Load .env file if present
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # python-dotenv not installed, will use os.environ directly
+    pass
 
 
 @dataclass
 class VideoCandidate:
-    """Represents a candidate video for the anticipation dataset."""
     video_id: str
     source: str  # "youtube", "wikimedia", "local"
     url: str
@@ -68,7 +48,6 @@ class VideoCandidate:
     download_status: str = "pending"  # pending, downloaded, failed, skipped
     analysis_status: str = "pending"  # pending, analyzed, failed
     
-    # Populated after analysis
     has_violence: bool = False
     violence_start_frame: Optional[int] = None
     violence_start_second: Optional[float] = None
@@ -76,61 +55,47 @@ class VideoCandidate:
     escalation_start_second: Optional[float] = None
     anticipation_window_seconds: Optional[float] = None
     stage_timeline: Optional[List[Dict]] = None
-    quality_score: Optional[float] = None  # 0-1, how good this video is for training
+    quality_score: Optional[float] = None  # 0-1
     notes: str = ""
 
 
-# =============================================================================
-# Search Keywords for Finding Good Anticipation Videos
-# =============================================================================
-
 SEARCH_QUERIES = [
-    # Road rage with escalation
     "road rage fight full video",
     "road rage confrontation turns violent",
     "road rage argument to fight",
     "dashcam road rage fight",
     
-    # Bodycam with escalation
     "bodycam arrest turns violent",
     "bodycam confrontation fight",
     "police bodycam altercation",
     "bodycam use of force full video",
     
-    # Street confrontations
     "street argument turns into fight",
     "verbal altercation becomes physical",
     "confrontation escalates to violence",
     
-    # Security/surveillance
     "security camera fight full video",
     "cctv confrontation",
     "bar fight security camera",
     "club fight cctv",
     
-    # Specific scenarios
     "customer attacks employee full video",
     "parking lot confrontation fight",
     "neighbor dispute turns violent",
 ]
 
-# Keywords that suggest the video might have good pre-violence footage
+# Title keywords: GOOD hints at unedited footage with the lead-up, BAD at clipped compilations.
 GOOD_INDICATORS = [
     "full video", "unedited", "complete", "entire incident",
     "starts with", "argument", "confrontation", "altercation",
     "escalates", "turns violent", "before the fight"
 ]
 
-# Keywords to avoid (usually edited/clipped)
 BAD_INDICATORS = [
     "compilation", "best of", "top 10", "knockout", "instant karma",
     "fight only", "action only", "highlights"
 ]
 
-
-# =============================================================================
-# Video Search Functions
-# =============================================================================
 
 def parse_duration(duration_str: str) -> int:
     """Parse ISO 8601 duration (PT1H2M3S) to seconds."""
@@ -150,14 +115,10 @@ def parse_duration(duration_str: str) -> int:
 
 
 def search_youtube_api(query: str, api_key: str, max_results: int = 10) -> List[Dict]:
-    """
-    Search YouTube using the Data API v3.
-    Faster and more reliable than yt-dlp scraping.
-    """
+    """Search YouTube with the Data API v3."""
     import urllib.request
     import urllib.parse
     
-    # Search for videos
     search_url = "https://www.googleapis.com/youtube/v3/search"
     search_params = {
         "part": "snippet",
@@ -182,7 +143,6 @@ def search_youtube_api(query: str, api_key: str, max_results: int = 10) -> List[
     if not video_ids:
         return []
     
-    # Get video details (duration, etc.)
     details_url = "https://www.googleapis.com/youtube/v3/videos"
     details_params = {
         "part": "contentDetails,snippet",
@@ -220,10 +180,7 @@ def search_youtube_api(query: str, api_key: str, max_results: int = 10) -> List[
 
 
 def search_youtube_ytdlp(query: str, max_results: int = 10) -> List[Dict]:
-    """
-    Search YouTube using yt-dlp (no API key needed).
-    Slower and may be rate-limited.
-    """
+    """Search YouTube with yt-dlp (no API key needed, slower and may be rate-limited)."""
     cmd = [
         "yt-dlp",
         f"ytsearch{max_results}:{query}",
@@ -259,10 +216,6 @@ def search_youtube_ytdlp(query: str, max_results: int = 10) -> List[Dict]:
 
 
 def search_youtube(query: str, max_results: int = 10, api_key: str = None) -> List[Dict]:
-    """
-    Search YouTube for videos matching the query.
-    Uses API if key provided, otherwise falls back to yt-dlp.
-    """
     if api_key:
         return search_youtube_api(query, api_key, max_results)
     else:
@@ -272,40 +225,29 @@ def search_youtube(query: str, max_results: int = 10, api_key: str = None) -> Li
 def filter_candidates(videos: List[Dict], 
                      min_duration: int = 30,
                      max_duration: int = 600) -> List[Dict]:
-    """
-    Filter video candidates based on duration and title keywords.
-    """
     filtered = []
     
     for v in videos:
         duration = v.get("duration", 0)
         title = v.get("title", "").lower()
         
-        # Duration filter
         if duration < min_duration or duration > max_duration:
             continue
         
-        # Check for bad indicators
         if any(bad in title for bad in BAD_INDICATORS):
             continue
         
-        # Prefer videos with good indicators
         good_score = sum(1 for good in GOOD_INDICATORS if good in title)
         v["quality_hint"] = good_score
         
         filtered.append(v)
     
-    # Sort by quality hint
     filtered.sort(key=lambda x: x.get("quality_hint", 0), reverse=True)
     
     return filtered
 
 
 def download_video(url: str, output_dir: str, video_id: str) -> Optional[str]:
-    """
-    Download a video using yt-dlp.
-    Returns the path to the downloaded file, or None if failed.
-    """
     output_path = os.path.join(output_dir, f"{video_id}.mp4")
     
     if os.path.exists(output_path):
@@ -324,7 +266,6 @@ def download_video(url: str, output_dir: str, video_id: str) -> Optional[str]:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
         if os.path.exists(output_path):
             return output_path
-        # Try alternative output name
         for f in os.listdir(output_dir):
             if f.startswith(video_id):
                 return os.path.join(output_dir, f)
@@ -337,17 +278,9 @@ def download_video(url: str, output_dir: str, video_id: str) -> Optional[str]:
         return None
 
 
-# =============================================================================
-# VLM Analysis Functions
-# =============================================================================
-
 def extract_frames(video_path: str, 
                    fps: float = 1.0,
                    max_frames: int = 300) -> List[Tuple[int, float, Image.Image]]:
-    """
-    Extract frames from video at specified FPS.
-    Returns list of (frame_index, timestamp_seconds, PIL.Image).
-    """
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         return []
@@ -356,7 +289,6 @@ def extract_frames(video_path: str,
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = total_frames / video_fps if video_fps > 0 else 0
     
-    # Calculate frame interval
     frame_interval = int(video_fps / fps) if fps < video_fps else 1
     
     frames = []
@@ -386,15 +318,7 @@ def analyze_video_with_vlm(video_path: str,
                            teacher,
                            fps: float = 1.0,
                            verbose: bool = False) -> Dict:
-    """
-    Analyze a video using the VLM to detect escalation and violence.
-    
-    Returns dict with:
-        - stage_timeline: list of {frame, timestamp, stage, scores}
-        - violence_start: timestamp when violence begins
-        - escalation_start: timestamp when escalation begins
-        - anticipation_window: seconds between escalation and violence
-    """
+    """Run the VLM frame by frame; return the stage timeline, violence/escalation onsets and the anticipation window (s)."""
     from vlm.qwen_teacher import simple_to_vector
     
     frames = extract_frames(video_path, fps=fps)
@@ -439,21 +363,18 @@ def analyze_video_with_vlm(video_path: str,
     if not stage_timeline:
         return {"error": "No frames analyzed successfully"}
     
-    # Find violence start (first frame where stage == "violence")
     violence_start = None
     for entry in stage_timeline:
         if entry["stage"] == "violence":
             violence_start = entry["timestamp"]
             break
     
-    # Find escalation start (first frame where stage in ["tension", "escalation"])
     escalation_start = None
     for entry in stage_timeline:
         if entry["stage"] in ["tension", "escalation"]:
             escalation_start = entry["timestamp"]
             break
     
-    # Calculate anticipation window
     anticipation_window = None
     if violence_start is not None and escalation_start is not None:
         if escalation_start < violence_start:
@@ -470,25 +391,18 @@ def analyze_video_with_vlm(video_path: str,
     }
 
 
-# =============================================================================
-# Pipeline Commands
-# =============================================================================
-
 def cmd_search(args):
-    """Search for candidate videos and save metadata."""
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
     candidates_file = output_dir / "candidates.json"
     
-    # Load existing candidates if any
     existing = {}
     if candidates_file.exists():
         with open(candidates_file) as f:
             data = json.load(f)
             existing = {c["video_id"]: c for c in data.get("candidates", [])}
     
-    # Get API key from args or environment
     api_key = args.api_key or os.environ.get("YOUTUBE_API_KEY")
     if api_key:
         print(f"Using YouTube Data API v3")
@@ -520,12 +434,10 @@ def cmd_search(args):
                 )
                 all_candidates.append(asdict(candidate))
     
-    # Merge with existing
     for vid, c in existing.items():
         if vid not in seen_ids:
             all_candidates.append(c)
     
-    # Save
     with open(candidates_file, "w") as f:
         json.dump({
             "created": datetime.now().isoformat(),
@@ -538,7 +450,6 @@ def cmd_search(args):
 
 
 def cmd_download(args):
-    """Download candidate videos."""
     output_dir = Path(args.output_dir)
     candidates_file = output_dir / "candidates.json"
     videos_dir = output_dir / "videos"
@@ -553,7 +464,6 @@ def cmd_download(args):
     
     candidates = data.get("candidates", [])
     
-    # Filter to only pending downloads
     to_download = [c for c in candidates if c.get("download_status") == "pending"]
     
     if args.max_downloads:
@@ -573,7 +483,6 @@ def cmd_download(args):
         else:
             candidate["download_status"] = "failed"
     
-    # Save updated candidates
     with open(candidates_file, "w") as f:
         json.dump(data, f, indent=2)
     
@@ -582,7 +491,6 @@ def cmd_download(args):
 
 
 def cmd_analyze(args):
-    """Analyze downloaded videos with VLM."""
     output_dir = Path(args.output_dir)
     candidates_file = output_dir / "candidates.json"
     
@@ -590,14 +498,12 @@ def cmd_analyze(args):
         print("No candidates.json found. Run 'search' and 'download' first.")
         return
     
-    # Import VLM
     try:
         from vlm.qwen_teacher import QwenTeacher, QwenTeacherConfig
     except ImportError:
         print("Could not import QwenTeacher. Make sure vlm/ is in your path.")
         return
     
-    # Initialize teacher
     print(f"Loading VLM on {args.device}...")
     teacher = QwenTeacher(QwenTeacherConfig(
         device=args.device,
@@ -611,7 +517,6 @@ def cmd_analyze(args):
     
     candidates = data.get("candidates", [])
     
-    # Filter to downloaded but not analyzed
     to_analyze = [
         c for c in candidates 
         if c.get("download_status") == "downloaded" 
@@ -656,7 +561,6 @@ def cmd_analyze(args):
                 candidate["anticipation_window_seconds"] = result.get("anticipation_window")
                 candidate["stage_timeline"] = result.get("stage_timeline")
                 
-                # Print summary
                 if result.get("has_violence"):
                     print(f"  Violence detected at: {result['violence_start']:.1f}s")
                     if result.get("anticipation_window"):
@@ -669,7 +573,6 @@ def cmd_analyze(args):
             candidate["analysis_status"] = "failed"
             candidate["notes"] = str(e)
     
-    # Save updated candidates
     with open(candidates_file, "w") as f:
         json.dump(data, f, indent=2)
     
@@ -687,7 +590,6 @@ def cmd_analyze(args):
 
 
 def cmd_filter(args):
-    """Filter analyzed videos for good anticipation candidates."""
     output_dir = Path(args.output_dir)
     candidates_file = output_dir / "candidates.json"
     
@@ -700,7 +602,6 @@ def cmd_filter(args):
     
     candidates = data.get("candidates", [])
     
-    # Filter for good anticipation videos
     good_candidates = []
     
     for c in candidates:
@@ -713,31 +614,25 @@ def cmd_filter(args):
         if anticipation is None or anticipation < args.min_anticipation:
             continue
         
-        # Calculate quality score
-        # Higher score = better for training
+        # Heuristic: a longer lead-up (capped at 60 s) and a calm -> tension -> escalation progression score higher.
         quality = 0.0
         
-        # Longer anticipation is better (up to 60s)
         quality += min(anticipation / 60.0, 1.0) * 0.4
         
-        # Check stage progression
         timeline = c.get("stage_timeline", [])
         stages = [t.get("stage") for t in timeline]
         
-        # Ideal: calm -> tension -> escalation -> violence
         if "calm" in stages and "tension" in stages:
             quality += 0.2
         if "escalation" in stages:
             quality += 0.2
         
-        # Penalize if violence starts immediately
         if timeline and timeline[0].get("stage") == "violence":
             quality -= 0.3
         
         c["quality_score"] = max(0, min(1, quality))
         good_candidates.append(c)
     
-    # Sort by quality
     good_candidates.sort(key=lambda x: x.get("quality_score", 0), reverse=True)
     
     print(f"\n=== Good Anticipation Candidates ===")
@@ -750,7 +645,6 @@ def cmd_filter(args):
         print(f"   Quality: {c['quality_score']:.2f}")
         print()
     
-    # Save filtered list
     filtered_file = output_dir / "filtered_candidates.json"
     with open(filtered_file, "w") as f:
         json.dump({
@@ -763,7 +657,6 @@ def cmd_filter(args):
 
 
 def cmd_export(args):
-    """Export final dataset for training."""
     output_dir = Path(args.output_dir)
     source_dir = Path(args.source_dir)
     filtered_file = source_dir / "filtered_candidates.json"
@@ -779,14 +672,12 @@ def cmd_export(args):
     
     candidates = data.get("candidates", [])
     
-    # Create dataset structure
     annotations = []
     
     for c in candidates:
         if not c.get("local_path") or not os.path.exists(c["local_path"]):
             continue
         
-        # Copy video to output dir
         src_path = c["local_path"]
         dst_path = output_dir / "videos" / f"{c['video_id']}.mp4"
         dst_path.parent.mkdir(exist_ok=True)
@@ -795,7 +686,6 @@ def cmd_export(args):
             import shutil
             shutil.copy2(src_path, dst_path)
         
-        # Create annotation
         annotations.append({
             "video_id": c["video_id"],
             "video_path": str(dst_path.relative_to(output_dir)),
@@ -808,7 +698,6 @@ def cmd_export(args):
             "quality_score": c.get("quality_score", 0),
         })
     
-    # Save annotations
     ann_file = output_dir / "annotations.json"
     with open(ann_file, "w") as f:
         json.dump({
@@ -817,7 +706,6 @@ def cmd_export(args):
             "annotations": annotations,
         }, f, indent=2)
     
-    # Also save as CSV for easy viewing
     csv_file = output_dir / "annotations.csv"
     if annotations:
         with open(csv_file, "w", newline="") as f:
@@ -832,7 +720,6 @@ def cmd_export(args):
 
 
 def cmd_status(args):
-    """Show pipeline status."""
     output_dir = Path(args.output_dir)
     candidates_file = output_dir / "candidates.json"
     
@@ -845,7 +732,6 @@ def cmd_status(args):
     
     candidates = data.get("candidates", [])
     
-    # Count statuses
     download_status = {}
     analysis_status = {}
     anticipation_counts = {
@@ -886,10 +772,6 @@ def cmd_status(args):
         print(f"  {window}: {count}")
 
 
-# =============================================================================
-# Main
-# =============================================================================
-
 def main():
     parser = argparse.ArgumentParser(description="Curate violence anticipation dataset")
     parser.add_argument("--output_dir", type=str, default="data/anticipation_curation",
@@ -897,7 +779,6 @@ def main():
     
     subparsers = parser.add_subparsers(dest="command", help="Pipeline commands")
     
-    # Search command
     search_parser = subparsers.add_parser("search", help="Search for candidate videos")
     search_parser.add_argument("--api_key", type=str, default=None,
                               help="YouTube Data API v3 key (or set YOUTUBE_API_KEY env var)")
@@ -905,11 +786,9 @@ def main():
     search_parser.add_argument("--min_duration", type=int, default=30)
     search_parser.add_argument("--max_duration", type=int, default=600)
     
-    # Download command
     download_parser = subparsers.add_parser("download", help="Download candidate videos")
     download_parser.add_argument("--max_downloads", type=int, default=None)
     
-    # Analyze command
     analyze_parser = subparsers.add_parser("analyze", help="Analyze videos with VLM")
     analyze_parser.add_argument("--device", type=str, default="cuda:0")
     analyze_parser.add_argument("--fps", type=float, default=1.0,
@@ -917,16 +796,13 @@ def main():
     analyze_parser.add_argument("--max_analyze", type=int, default=None)
     analyze_parser.add_argument("--verbose", action="store_true")
     
-    # Filter command
     filter_parser = subparsers.add_parser("filter", help="Filter for good anticipation candidates")
     filter_parser.add_argument("--min_anticipation", type=float, default=10,
                               help="Minimum anticipation window in seconds")
     
-    # Export command
     export_parser = subparsers.add_parser("export", help="Export final dataset")
     export_parser.add_argument("--source_dir", type=str, default="data/anticipation_curation")
     
-    # Status command
     status_parser = subparsers.add_parser("status", help="Show pipeline status")
     
     args = parser.parse_args()

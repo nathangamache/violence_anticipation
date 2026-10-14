@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Plot GT vs predicted risk for one clip with a legacy ViolenceTransformer checkpoint."""
 import os
 import json
 import argparse
@@ -21,7 +22,6 @@ def main():
     GRAPHS = f"{BASE}/processed/graphs"
     LABELS = f"{BASE}/processed/labels"
 
-    # Build / reuse index
     index_path = "train_index.json"
     if not os.path.exists(index_path):
         index_path = build_index_file(GRAPHS, LABELS, "train_index.json")
@@ -43,13 +43,11 @@ def main():
     model.load_state_dict(state)
     model.eval()
 
-    # Pick an item
     if args.vid is None:
         idx = 0
         frames, labels = dataset[idx]
         vid_id = os.path.splitext(os.path.basename(dataset.items[idx]["graph_path"]))[0]
     else:
-        # search by vid_id in dataset
         vid_id = args.vid
         idx = None
         for i, it in enumerate(dataset.items):
@@ -66,7 +64,6 @@ def main():
     print("GT min/max/mean:", labels_np.min(), labels_np.max(), labels_np.mean())
     print("GT any > 0.5?", (labels_np > 0.5).any())
 
-    # Forward pass
     frames_cuda = []
     for f in frames:
         frames_cuda.append(
@@ -85,7 +82,6 @@ def main():
     preds = preds[:T]
     labels_np = labels_np[:T]
 
-    # Plot
     plt.figure(figsize=(12, 4))
     plt.plot(labels_np, label="GT risk", linewidth=2)
     plt.plot(preds, label="Pred risk", alpha=0.7)

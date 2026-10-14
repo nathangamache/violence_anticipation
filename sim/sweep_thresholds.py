@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Sweep different thresholds to find optimal operating point.
-"""
+"""Run sim/live_simulator.py at several thresholds and print a precision/recall/false-alarm table."""
 import subprocess
 import json
 from pathlib import Path
@@ -26,7 +24,6 @@ for thresh in thresholds:
         '--device', 'cuda:1'
     ], capture_output=True, text=True)
     
-    # Parse results
     try:
         with open(f'./simulation_sweep/thresh_{thresh}/results.json') as f:
             r = json.load(f)

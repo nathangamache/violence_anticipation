@@ -55,7 +55,7 @@ Most scripts default to the HF id `Qwen/Qwen2.5-VL-7B-Instruct`. That resolves f
 
 ---
 
-## 2. `vlm/qwen_teacher.py` (core wrapper, 1187 lines)
+## 2. `vlm/qwen_teacher.py` (core wrapper, about 970 lines)
 
 ### Classes and functions
 * `_best_effort_json_parse(text)` tries three things in order: a ```` ```json {…} ``` ```` fence, then the first balanced `{…}`, then light repairs (`'`→`"`, trailing commas). It returns a dict or `None`.
@@ -141,7 +141,7 @@ This matches how the label files are indexed, since labels are per *graph timest
 
 | Dir | Files | Content / provenance |
 |---|---|---|
-| `vlm_labels_old/` + `vlm_emb_old/` (2026-01-29) | 949 ucf + 772 xd | 78,236 records, 44 parse failures, no context/prompt fields. Embeddings are **unnormalised** (norm about 293) and nearly identical across frames (within-video cosine 0.999). Inferred to be the earliest version, which mean-pooled over the whole sequence so the prompt tokens dominated. That is exactly what the comment in `_extract_embedding` warns against. **Do not use these embeddings.** |
+| `vlm_labels_old/` + `vlm_emb_old/` (2026-01-29) | 949 ucf + 772 xd | 78,236 records, 44 parse failures, no context/prompt fields. Embeddings are **unnormalised** (norm about 293) and nearly identical across frames (within-video cosine 0.999). Inferred to be the earliest version, which mean-pooled over the whole sequence so the prompt tokens dominated. That is exactly what the docstring of `_extract_embedding` warns against. **Do not use these embeddings.** |
 | `vlm_labels_meanpool/` + `vlm_emb_meanpool/` (2026-02-09) | 949 + 772 | The JSONL is 195 of 200 files byte-identical to `_old`. The embeddings are L2-normalised and different. Inferred: mean over all attended tokens. Used by `outputs/student_mlp` (training area). |
 | `vlm_labels/` + `vlm_emb/{ucf_crime,xd_violence}` (2026-02-16) | 949 + 772 | 78,236 records, `context_mode="both"`, no `prompt_mode` field (so the default/context-aware prompt from an older script version; inferred), 2 parse failures. Keys: `violent, people_count, actions, weapons, scene, temporal_change, notes`. Embeddings `[N,3584]` fp16, norm 1. Inferred to pool the current frame plus one previous frame's image tokens (see §2.2). **This is the default `vlm_emb` used by most later scripts.** |
 | `vlm_labels_violence/` + `vlm_emb_violence/` (2026-02-20) | 949 + 772 | `prompt_mode=violence_embedding`, `context_mode=none`. Keys: `violent, aggression_level, threat_indicators, body_language, actions, weapons, people_count, scene`. Contains duplicate records (see above). Log: `logs/gpu0_final_scan.log`. |
@@ -386,3 +386,15 @@ In other words the teacher "disagrees" with the ground truth where the ground tr
 * Fix the labels first: use XD `annotations.txt` / UCF temporal annotations, and treat un-annotated UCF anomaly videos as *unknown* rather than negative.
 * For anticipation, single-frame VLM embeddings are scene-dominated (within-video cosine ~0.95+). Use temporal deltas of embeddings, multi-frame or clip-level video inputs (Qwen2.5-VL supports video input), or a dedicated video backbone, and fuse with audio and pose.
 * If a VLM is finetuned, train a light classification or regression head on pooled vision tokens with video-level splits. Keep the train-time and inference-time embedding code identical (one function).
+
+## Notes moved from code comments
+
+* `experiments/fast_analyze_curation.py` (old docstring estimate, not re-measured): embedding-only analysis is about 10 to 20x faster than the text-generation `analyze` command. The 92 curated videos at 0.2 fps take about 45 min, versus 60+ h with text generation. The script's `est_per_frame = 0.6` reflects about 0.5 to 0.7 s/frame for embedding extraction.
+
+* `llm/llm_head_infer.py` was written for frame-level rows of the form `{id: "<video>|t=<sec>", video_id, frame_idx, t_sec, source, prompt, target_risk, risk_bin}`. No script in the repo produces that format, so it has only been run on the video-level `llm_data` rows. On those rows the target comes from `label`, because it reads `target_risk`, then `risk`, then `label`. Any `risk` field is assumed to be ground truth, not an earlier prediction.
+
+* `scripts/vlm_label_dataset.py` (old docstring, author's intent, not validated): `--prompt_mode violence_embedding` was the recommended mode for violence-detection embeddings and `anticipation_multicue` for the anticipation task. `scene_context` was meant to run once per video as an environment baseline, not per frame.
+
+* `scripts/eval_vlm_teacher.py`: global metrics and plots always use every usable (score, gt) pair, and `per_video.csv` lists every video. Only `video_aggregates_valid_only` in `summary.json` is filtered, to videos with at least `--min_samples_per_video` (5) samples and both GT classes. `warning_best_is_all_positive_baseline` is set when the best-F1 threshold is ~0 and its F1 is within 1e-3 of the always-positive baseline.
+
+* `tuning/question_analysis/vlm_question_features.py` (old docstring, author's intent, not validated): the VQA approach was motivated by the claim that raw VLM embeddings are about 95% generic scene features, so explicit violence-indicator questions should be more discriminative. The negative-weight questions exist because sports, acting and play often look like violence. Batch-question mode was described as much faster but less accurate than per-question mode.

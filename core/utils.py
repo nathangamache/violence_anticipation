@@ -18,7 +18,7 @@ def center_of_bbox(bbox):
     return np.array([(x1 + x2) / 2, (y1 + y2) / 2], dtype=np.float32)
 
 def get_device():
-    gpu = os.environ.get("VA_GPU", "1")  # default to GPU 0
+    gpu = os.environ.get("VA_GPU", "1")
     if not torch.cuda.is_available():
         return torch.device("cpu")
     return torch.device(f"cuda:{gpu}")

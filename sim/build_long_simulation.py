@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""
-Long-Form Video Simulation Builder
-
-Creates a realistic long-form surveillance simulation by:
-1. Taking your existing test videos (embeddings + labels)
-2. Inserting long stretches of non-violent "padding" between violent events
-3. Preserving temporal order within each video
-4. Outputting a continuous stream for realistic testing
-
-This simulates an 8-hour security shift where violence is rare (~1% of time).
-"""
+"""Build a long-form surveillance stream: violent test clips separated by long non-violent padding (~1% violence)."""
 
 import argparse
 import json
@@ -24,7 +14,6 @@ import numpy as np
 
 
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from its ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
@@ -35,7 +24,6 @@ def classify_video_source(video_id: str) -> str:
 
 
 def extract_video_name(item) -> str:
-    """Extract video name from index item."""
     if isinstance(item, dict):
         path = item.get('graph_path') or item.get('label_path', '')
         return Path(path).stem
@@ -43,7 +31,6 @@ def extract_video_name(item) -> str:
 
 
 def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]:
-    """Find embedding file in nested directory structure."""
     source = classify_video_source(video_name)
     for subdir in [source, 'ucf_crime', 'xd_violence', '']:
         for ext in ['.npz', '.npy']:
@@ -57,7 +44,6 @@ def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]
 
 
 def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
-    """Find label file."""
     for ext in ['.npy', '.npz']:
         path = labels_dir / f"{video_name}{ext}"
         if path.exists():
@@ -72,7 +58,6 @@ def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
 
 
 def load_embedding(path: Path) -> Optional[np.ndarray]:
-    """Load embedding from file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
@@ -93,7 +78,6 @@ def load_embedding(path: Path) -> Optional[np.ndarray]:
 
 
 def load_labels(path: Path) -> Optional[np.ndarray]:
-    """Load labels from file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
@@ -111,16 +95,14 @@ def load_labels(path: Path) -> Optional[np.ndarray]:
 
 @dataclass
 class VideoSegment:
-    """Represents a video segment in the simulation."""
     video_id: str
     embeddings: np.ndarray  # [T, D]
     labels: np.ndarray      # [T]
     has_violence: bool
-    start_time: float = 0.0  # Start time in the simulation
+    start_time: float = 0.0
     
 
 class LongFormSimulationBuilder:
-    """Builds a realistic long-form surveillance simulation."""
     
     def __init__(
         self,
@@ -139,12 +121,7 @@ class LongFormSimulationBuilder:
         index_path: str, 
         source_filter: Optional[str] = None
     ) -> Tuple[List[VideoSegment], List[VideoSegment]]:
-        """
-        Load videos and separate into violent and non-violent.
-        
-        Returns:
-            (violent_videos, nonviolent_videos)
-        """
+        """Return (violent_videos, nonviolent_videos) from the index, optionally filtered by source."""
         with open(index_path) as f:
             items = json.load(f)
         
@@ -154,7 +131,6 @@ class LongFormSimulationBuilder:
         for item in items:
             video_name = extract_video_name(item)
             
-            # Filter by source
             if source_filter and classify_video_source(video_name) != source_filter:
                 continue
             
@@ -170,12 +146,10 @@ class LongFormSimulationBuilder:
             if embeddings is None or labels is None:
                 continue
             
-            # Handle multi-dim labels
             if labels.ndim > 1:
                 labels = labels.max(axis=1)
             labels = (labels > 0).astype(np.float32)
             
-            # Align lengths
             min_len = min(len(embeddings), len(labels))
             embeddings = embeddings[:min_len]
             labels = labels[:min_len]
@@ -201,20 +175,10 @@ class LongFormSimulationBuilder:
         violent_videos: List[VideoSegment],
         nonviolent_videos: List[VideoSegment],
         target_duration_hours: float = 8.0,
-        violence_percentage: float = 1.0,  # Target ~1% violence
+        violence_percentage: float = 1.0,
         random_seed: int = 42,
     ) -> Dict:
-        """
-        Build a long-form simulation stream.
-        
-        Strategy:
-        1. Calculate how much violent vs non-violent content we need
-        2. Interleave violent videos with long stretches of non-violent content
-        3. Preserve temporal order within each video
-        
-        Returns:
-            Dictionary with simulation data
-        """
+        """Alternate uniform(0.5, 1.5) x average-padding stretches of non-violent clips with one violent clip."""
         np.random.seed(random_seed)
         
         target_frames = int(target_duration_hours * 3600 * self.fps)
@@ -226,7 +190,6 @@ class LongFormSimulationBuilder:
         print(f"  Target violent frames: {target_violent_frames:,} ({violence_percentage}%)")
         print(f"  Target non-violent frames: {target_nonviolent_frames:,}")
         
-        # Count available frames
         violent_frames_available = sum(len(v.embeddings) for v in violent_videos)
         nonviolent_frames_available = sum(len(v.embeddings) for v in nonviolent_videos)
         
@@ -234,21 +197,18 @@ class LongFormSimulationBuilder:
         print(f"  Violent: {len(violent_videos)} videos, {violent_frames_available:,} frames")
         print(f"  Non-violent: {len(nonviolent_videos)} videos, {nonviolent_frames_available:,} frames")
         
-        # Build the stream
         stream_embeddings = []
         stream_labels = []
-        stream_metadata = []  # Track which video each frame came from
+        stream_metadata = []
         
         current_time = 0.0
         
-        # Shuffle videos
         violent_queue = violent_videos.copy()
         np.random.shuffle(violent_queue)
         
         nonviolent_queue = nonviolent_videos.copy()
         np.random.shuffle(nonviolent_queue)
         
-        # Calculate padding between violent events
         if len(violent_queue) > 0:
             avg_padding_frames = target_nonviolent_frames // len(violent_queue)
         else:
@@ -259,10 +219,8 @@ class LongFormSimulationBuilder:
         violent_idx = 0
         nonviolent_idx = 0
         
-        # Build stream by alternating: non-violent padding -> violent event -> repeat
         while len(stream_embeddings) < target_frames and violent_idx < len(violent_queue):
             
-            # Add non-violent padding
             padding_frames = int(avg_padding_frames * np.random.uniform(0.5, 1.5))
             frames_added = 0
             
@@ -271,7 +229,7 @@ class LongFormSimulationBuilder:
                 
                 for t in range(len(video.embeddings)):
                     stream_embeddings.append(video.embeddings[t])
-                    stream_labels.append(0.0)  # Non-violent
+                    stream_labels.append(0.0)
                     stream_metadata.append({
                         'video_id': video.video_id,
                         'frame_idx': t,
@@ -283,12 +241,10 @@ class LongFormSimulationBuilder:
                 
                 nonviolent_idx += 1
                 
-                # Cycle back if we run out
                 if nonviolent_idx >= len(nonviolent_queue):
                     nonviolent_idx = 0
                     np.random.shuffle(nonviolent_queue)
             
-            # Add violent event
             if violent_idx < len(violent_queue):
                 video = violent_queue[violent_idx]
                 
@@ -305,11 +261,9 @@ class LongFormSimulationBuilder:
                 
                 violent_idx += 1
         
-        # Convert to arrays
         stream_embeddings = np.array(stream_embeddings)
         stream_labels = np.array(stream_labels)
         
-        # Create anticipation labels
         horizon_frames = int(self.horizon_sec * self.fps)
         anticipation_labels = np.zeros(len(stream_labels))
         
@@ -317,7 +271,6 @@ class LongFormSimulationBuilder:
             future_end = min(t + horizon_frames, len(stream_labels))
             anticipation_labels[t] = stream_labels[t:future_end].max()
         
-        # Statistics
         actual_violent = (stream_labels > 0).sum()
         actual_anticipation = (anticipation_labels > 0).sum()
         
@@ -340,11 +293,9 @@ class LongFormSimulationBuilder:
         }
     
     def save_simulation(self, simulation: Dict, output_path: str):
-        """Save simulation to disk."""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Save embeddings and labels as NPZ
         np.savez_compressed(
             output_path,
             embeddings=simulation['embeddings'],
@@ -354,7 +305,6 @@ class LongFormSimulationBuilder:
             horizon_sec=simulation['horizon_sec'],
         )
         
-        # Save metadata as JSON
         meta_path = output_path.with_suffix('.meta.json')
         meta = {
             'fps': simulation['fps'],
@@ -410,7 +360,6 @@ def main():
         horizon_sec=args.horizon_sec,
     )
     
-    # Load videos
     print(f"\nLoading videos from {args.test_index}...")
     violent_videos, nonviolent_videos = builder.load_videos(
         args.test_index,
@@ -423,7 +372,6 @@ def main():
         print("ERROR: No violent videos found!")
         return
     
-    # Build simulation
     simulation = builder.build_simulation(
         violent_videos=violent_videos,
         nonviolent_videos=nonviolent_videos,
@@ -432,7 +380,6 @@ def main():
         random_seed=args.seed,
     )
     
-    # Save
     builder.save_simulation(simulation, args.output)
     
     print("\n" + "="*70)

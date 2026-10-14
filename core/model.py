@@ -4,17 +4,9 @@ import torch.nn as nn
 
 
 class ViolenceTransformer(nn.Module):
-    """
-    Sequence model over frame-wise graph features.
+    """Temporal transformer over frame dicts with "nodes" [N, node_dim], "scene" [scene_dim], "audio" [audio_dim].
 
-    Each frame dict should contain:
-      - "nodes": [N, node_dim] tensor
-      - "scene": [scene_dim] tensor
-      - "audio": [audio_dim] tensor
-
-    Contract:
-      - forward(..., return_logits=True) returns LOGITS (unbounded)  [T]
-      - forward(..., return_logits=False) returns PROBS (sigmoid)   [T]
+    forward returns [T] logits, or sigmoid probabilities when return_logits=False.
     """
 
     def __init__(
@@ -36,12 +28,10 @@ class ViolenceTransformer(nn.Module):
         self.hidden_dim = hidden_dim
         self.max_len = max_len
 
-        # Project each modality into a shared hidden space
         self.node_proj = nn.Linear(node_dim, hidden_dim)
         self.scene_proj = nn.Linear(scene_dim, hidden_dim)
         self.audio_proj = nn.Linear(audio_dim, hidden_dim)
 
-        # Learnable positional embeddings over time
         self.pos_embed = nn.Embedding(max_len, hidden_dim)
 
         encoder_layer = nn.TransformerEncoderLayer(
@@ -49,13 +39,12 @@ class ViolenceTransformer(nn.Module):
             nhead=num_heads,
             dim_feedforward=hidden_dim * 4,
             dropout=dropout,
-            batch_first=True,  # [B, T, H]
+            batch_first=True,
         )
         self.temporal_encoder = nn.TransformerEncoder(
             encoder_layer, num_layers=num_layers
         )
 
-        # One score per frame (logit)
         self.out_head = nn.Linear(hidden_dim, 1)
 
     def forward(self, frames, return_logits: bool = True):
@@ -63,29 +52,26 @@ class ViolenceTransformer(nn.Module):
 
         if not frames:
             dummy = torch.zeros(self.hidden_dim, device=device)
-            seq = dummy.unsqueeze(0).unsqueeze(0)  # [1, 1, H]
+            seq = dummy.unsqueeze(0).unsqueeze(0)
         else:
             frame_vecs = []
             for f in frames:
                 nodes = f["nodes"].to(device)
                 if nodes.dim() == 1:
-                    nodes = nodes.unsqueeze(0)  # [1, D]
+                    nodes = nodes.unsqueeze(0)
 
-                # Project node features and average
-                x_nodes = self.node_proj(nodes)   # [N, H]
-                node_agg = x_nodes.mean(dim=0)    # [H]
+                x_nodes = self.node_proj(nodes)
+                node_agg = x_nodes.mean(dim=0)
 
-                # Scene
                 scene = f["scene"].to(device)
                 if scene.dim() > 1:
                     scene = scene.view(-1)
-                scene_emb = self.scene_proj(scene)  # [H]
+                scene_emb = self.scene_proj(scene)
 
-                # Audio
                 audio = f["audio"].to(device)
                 if audio.dim() > 1:
                     audio = audio.view(-1)
-                audio_emb = self.audio_proj(audio)  # [H]
+                audio_emb = self.audio_proj(audio)
 
                 frame_vecs.append(node_agg + scene_emb + audio_emb)
 
@@ -97,10 +83,10 @@ class ViolenceTransformer(nn.Module):
             T = self.max_len
 
         pos_idx = torch.arange(T, device=device)
-        pe = self.pos_embed(pos_idx)            # [T, H]
-        seq = seq + pe.unsqueeze(0)             # [1, T, H]
+        pe = self.pos_embed(pos_idx)
+        seq = seq + pe.unsqueeze(0)
 
-        seq_out = self.temporal_encoder(seq)    # [1, T, H]
+        seq_out = self.temporal_encoder(seq)
         logits = self.out_head(seq_out).squeeze(-1).squeeze(0)  # [T]
 
         if return_logits:
@@ -109,5 +95,4 @@ class ViolenceTransformer(nn.Module):
 
     @torch.no_grad()
     def predict_proba(self, frames):
-        """Convenience helper: always returns probabilities."""
         return self.forward(frames, return_logits=False)

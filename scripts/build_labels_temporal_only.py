@@ -1,31 +1,8 @@
 #!/usr/bin/env python3
-"""
-Build frame-level label arrays aligned to graph sequence length T.
+"""Build per-step (T,) detection or anticipation labels, only for videos with temporal annotations (Option A).
 
-Option A behavior:
-- UCF-Crime: ONLY write labels for videos that have valid temporal annotations
-  in Temporal_Anomaly_Annotation_for_Testing_Videos.txt.
-- XD-Violence: ONLY write labels for videos that have valid temporal annotations
-  in --xd_temporal_file.
-- If no valid temporal segment exists -> skip (no label file produced).
-
-Tasks:
-- detection:
-    y[t] = 1 if raw_frame(t) is inside any (start,end) temporal segment.
-
-- anticipation (PRE-only by default):
-    y[t] = 1 if raw_frame(t) is within horizon window BEFORE any segment start:
-           raw_frame(t) in [start - horizon_frames, start)  (strict anticipation)
-
-    If --include_during_event is set:
-           raw_frame(t) in [start - horizon_frames, end]    (early detection variant)
-
-    If --ignore_during_event is set:
-           y[t] = ignore_value (default -1.0) for any t where raw_frame(t) is inside
-           the event segment [start, end] (ignore takes precedence over labeling)
-
-For other sources (kinetics), we use metadata event_frame if present; else fallback to clip label.
-Note: Kinetics behavior is kept simple/legacy-style.
+Anticipation positives are [start - H, start), or [start - H, end] with --include_during_event.
+--ignore_during_event then overwrites in-event steps with --ignore_value. Kinetics uses event_frame, else the clip label.
 """
 
 import os
@@ -39,9 +16,6 @@ import numpy as np
 import cv2
 
 
-# ----------------------------
-# Metadata
-# ----------------------------
 def load_metadata(meta_dir: str) -> Dict[str, dict]:
     meta = {}
     for fname in ["xd_violence.json", "ucf_crime.json", "kinetics.json"]:
@@ -52,11 +26,7 @@ def load_metadata(meta_dir: str) -> Dict[str, dict]:
     return meta
 
 
-# ----------------------------
-# Temporal annotation parsing
-# ----------------------------
 def _add_alias_keys(segs: Dict[str, list], vid: str, value):
-    """Add helpful aliases: lower(), strip _x264, strip .mp4, etc."""
     if not vid:
         return
     segs[vid] = value
@@ -78,11 +48,7 @@ def _add_alias_keys(segs: Dict[str, list], vid: str, value):
 
 
 def parse_ucf_temporal(path: str) -> Dict[str, List[Tuple[int, int]]]:
-    """
-    Returns: vid_id -> list of (start_frame, end_frame) segments (ints, in frames).
-    Keeps only valid segments where start>=0, end>start.
-    Adds aliases without _x264.
-    """
+    """Map vid_id (and aliases) to valid (start_frame, end_frame) segments."""
     segs: Dict[str, List[Tuple[int, int]]] = {}
 
     if not os.path.exists(path):
@@ -99,7 +65,7 @@ def parse_ucf_temporal(path: str) -> Dict[str, List[Tuple[int, int]]]:
                 continue
 
             fname = os.path.basename(parts[0])
-            vid = os.path.splitext(fname)[0]  # remove .mp4
+            vid = os.path.splitext(fname)[0]
 
             nums = [int(x) for x in re.findall(r"-?\d+", " ".join(parts[1:]))]
             if len(nums) < 2:
@@ -116,16 +82,7 @@ def parse_ucf_temporal(path: str) -> Dict[str, List[Tuple[int, int]]]:
 
 
 def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
-    """
-    Returns: vid_id -> list of (start, end) segments as floats.
-    Units may be frames/seconds/normalized fractions; we decide later at build time.
-
-    Supported formats:
-      1) JSON dict: vid -> [[s,e], ...] OR [{"start":s,"end":e}, ...]
-      2) Text/CSV-ish:
-         vid_id <anything> s1 e1 s2 e2 ...
-         # comments allowed
-    """
+    """Map vid_id (and aliases) to float segments from JSON or "vid s1 e1 s2 e2 ..." text; units unresolved."""
     segs: Dict[str, List[Tuple[float, float]]] = {}
     if not path:
         return segs
@@ -133,7 +90,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
         print(f"[XD] WARNING: xd_temporal_file not found: {path}. XD will be skipped under Option A.")
         return segs
 
-    # JSON mode
     if path.lower().endswith(".json"):
         with open(path, "r") as f:
             data = json.load(f)
@@ -166,7 +122,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
 
         return segs
 
-    # Text / CSV-ish mode
     float_re = re.compile(r"-?\d+(?:\.\d+)?")
 
     with open(path, "r", errors="ignore") as f:
@@ -197,9 +152,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
     return segs
 
 
-# ----------------------------
-# Video utilities
-# ----------------------------
 def get_total_frames(video_path: str) -> int:
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -210,7 +162,7 @@ def get_total_frames(video_path: str) -> int:
 
 
 def map_t_to_raw_frame(t: int, T: int, total_frames: int) -> int:
-    # match your VLM sampler convention (center of bin)
+    # center of bin, same convention as the VLM sampler
     raw = int(round(((t + 0.5) / float(T)) * float(total_frames)))
     return max(0, min(total_frames - 1, raw))
 
@@ -229,9 +181,6 @@ def infer_T_from_graph(graph_path: str) -> Optional[int]:
     return None
 
 
-# ----------------------------
-# Segment conversion + label building
-# ----------------------------
 def segments_to_frame_pairs(
     segments: List[Tuple[float, float]],
     *,
@@ -239,17 +188,7 @@ def segments_to_frame_pairs(
     fps: float,
     units: str = "auto",
 ) -> List[Tuple[int, int]]:
-    """
-    Convert float segments into integer raw-frame segments.
-
-    units:
-      - frames: endpoints are raw frame indices
-      - seconds: endpoints are seconds within the clip
-      - auto:
-          * if max_end <= 1.0 -> treat as normalized fraction of clip [0,1]
-          * elif max_end * fps <= total_frames * 1.25 -> treat as seconds
-          * else treat as frames
-    """
+    """Convert XD segments to raw-frame pairs; units="auto" infers normalized, seconds or frames."""
     if total_frames <= 0:
         return []
     if fps <= 0:
@@ -300,9 +239,6 @@ def build_ignore_mask_from_frame_segments(
     total_frames: int,
     seg_frames: List[Tuple[int, int]],
 ) -> np.ndarray:
-    """
-    ignore_mask[t] = True if raw_frame(t) is inside ANY segment [s, e].
-    """
     ignore = np.zeros((T,), dtype=np.bool_)
     if T <= 0 or total_frames <= 0 or not seg_frames:
         return ignore
@@ -343,11 +279,7 @@ def build_labels_anticipation_from_frame_segments(
     fps: float,
     include_during_event: bool = False,
 ) -> np.ndarray:
-    """
-    Anticipation labels based on segment START times.
-    Strict PRE-only: positives only BEFORE start: [start - H, start)
-    If include_during_event: [start - H, end]
-    """
+    """Positives in [start - H, start), or [start - H, end] with include_during_event."""
     y = np.zeros((T,), dtype=np.float32)
     if T <= 0 or total_frames <= 0 or not seg_frames:
         return y
@@ -356,7 +288,7 @@ def build_labels_anticipation_from_frame_segments(
         fps = 25.0
     h_frames = int(round(max(0.0, horizon_sec) * fps))
     if h_frames <= 0:
-        return y  # no anticipation window
+        return y
 
     for t in range(T):
         rf = map_t_to_raw_frame(t, T, total_frames)
@@ -380,10 +312,7 @@ def build_labels_from_event_frame(
     horizon_sec: float,
     fps: float,
 ) -> np.ndarray:
-    """
-    Legacy: label a window leading up to an event_frame.
-    For detection-like use: set horizon_sec=0.
-    """
+    """Legacy (Kinetics): positives in [event_frame - H, event_frame]."""
     y = np.zeros((T,), dtype=np.float32)
     if T <= 0 or total_frames <= 0 or fps <= 0:
         return y
@@ -399,9 +328,6 @@ def build_labels_from_event_frame(
     return y
 
 
-# ----------------------------
-# Main
-# ----------------------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--graphs_dir", required=True)
@@ -422,7 +348,6 @@ def main():
 
     ap.add_argument("--include_during_event", action="store_true")
 
-    # NEW: ignore points during the event segment [start, end]
     ap.add_argument("--ignore_during_event", action="store_true")
     ap.add_argument("--ignore_value", type=float, default=-1.0)
 
@@ -501,7 +426,6 @@ def main():
             skipped_bad_T += 1
             continue
 
-        # Option A filters
         if source == "ucf_crime":
             segs = ucf_segments.get(vid_id) or ucf_segments.get(vid_id.lower())
             if not segs:
@@ -565,7 +489,7 @@ def main():
                 )
 
         else:
-            # kinetics: legacy behavior
+            # kinetics (legacy)
             label = int(info.get("label", 0))
             event_frame = info.get("event_frame", None)
 
@@ -580,10 +504,8 @@ def main():
             else:
                 y = np.ones((T,), dtype=np.float32) if label == 1 else np.zeros((T,), dtype=np.float32)
 
-        # NEW: optionally ignore points during the event segment (UCF/XD only)
         if args.ignore_during_event and seg_frames and task == "anticipation":
             ignore_mask = build_ignore_mask_from_frame_segments(T, total_frames, seg_frames)
-            # ignore takes precedence over “include_during_event”
             y = y.astype(np.float32, copy=False)
             y[ignore_mask] = float(args.ignore_value)
 

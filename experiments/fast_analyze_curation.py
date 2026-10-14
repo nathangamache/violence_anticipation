@@ -1,31 +1,11 @@
 #!/usr/bin/env python3
-"""
-Fast Video Analysis for Anticipation Dataset Curation
+"""Fast curation analysis: Qwen embeddings -> LSTM scores -> stage timeline written to candidates.json.
 
-Replaces the slow VLM text-generation analysis (~6s/frame) with:
-1. VLM embedding extraction only (~0.5s/frame) via infer_embedding_only()
-2. LSTM violence scoring on the extracted embeddings
-3. Score trajectory analysis to find escalation/violence timestamps
-
-This is ~10-20x faster than the original analyze command.
-
-For 92 videos at 0.2 fps: ~45 minutes total (vs 60+ hours)
+Uses infer_embedding_only (~0.5 s/frame) instead of text-generation analysis (~6 s/frame).
 
 Usage:
-    python experiments/fast_analyze_curation.py \
-        --output_dir data/anticipation_curation \
-        --model_path outputs/outputs_temporal/best_temporal_model.pt \
-        --vlm_device cuda:0 \
-        --lstm_device cuda:1 \
-        --fps 0.5
-
-    # Faster with lower fps (1 frame every 5 seconds)
-    python experiments/fast_analyze_curation.py \
-        --output_dir data/anticipation_curation \
-        --model_path outputs/outputs_temporal/best_temporal_model.pt \
-        --vlm_device cuda:0 \
-        --lstm_device cuda:1 \
-        --fps 0.2
+    python experiments/fast_analyze_curation.py --output_dir data/anticipation_curation \
+        --model_path outputs/outputs_temporal/best_temporal_model.pt --vlm_device cuda:0 --lstm_device cuda:1 --fps 0.5
 """
 
 import argparse
@@ -36,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-# Add project root to path so vlm package is importable regardless of cwd
+# Make the vlm package importable regardless of cwd.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
@@ -50,9 +30,7 @@ from PIL import Image
 from tqdm import tqdm
 
 
-# ==============================================================================
-# LSTM Model (must match train_temporal_model.py)
-# ==============================================================================
+# Must match train_temporal_model.py exactly so its checkpoints load.
 class TemporalViolenceModel(nn.Module):
     def __init__(self, input_dim=3584, hidden_dim=256, lstm_hidden=128,
                  num_lstm_layers=2, dropout=0.3, bidirectional=True, use_attention=True):
@@ -88,12 +66,8 @@ class TemporalViolenceModel(nn.Module):
         return self.classifier(context).squeeze(-1)
 
 
-# ==============================================================================
-# Frame Extraction
-# ==============================================================================
 def extract_frames(video_path: str, fps: float = 0.5,
                    max_frames: int = 600) -> List[Tuple[int, float, Image.Image]]:
-    """Extract frames from video at specified FPS."""
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         return []
@@ -130,19 +104,9 @@ def extract_frames(video_path: str, fps: float = 0.5,
     return frames
 
 
-# ==============================================================================
-# Embedding Extraction (fast path - no text generation)
-# ==============================================================================
 def extract_embeddings_from_video(video_path: str, teacher, fps: float = 0.5,
                                    verbose: bool = False) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Extract VLM embeddings from video frames using infer_embedding_only().
-    ~10x faster than infer_one() since it skips text generation.
-
-    Returns:
-        embeddings: np.ndarray [N, 3584]
-        timestamps: np.ndarray [N] in seconds
-    """
+    """VLM embeddings [N, 3584] and timestamps [N] in seconds via infer_embedding_only."""
     frames = extract_frames(video_path, fps=fps)
     if not frames:
         return np.array([]), np.array([])
@@ -169,16 +133,11 @@ def extract_embeddings_from_video(video_path: str, teacher, fps: float = 0.5,
     return np.stack(embeddings), np.array(timestamps)
 
 
-# ==============================================================================
-# LSTM Scoring
-# ==============================================================================
 @torch.no_grad()
 def score_with_lstm(model, embeddings, seq_len, device, batch_size=128):
-    """Score embeddings using the trained LSTM with sliding window."""
+    """Sliding-window LSTM scores; the first seq_len-1 frames reuse the first window's score."""
     n = len(embeddings)
     if n < seq_len:
-        # Not enough frames for a full window, score with what we have
-        # Pad with the first frame repeated
         padded = np.zeros((seq_len, embeddings.shape[1]), dtype=np.float32)
         padded[-n:] = embeddings
         x = torch.tensor(padded, dtype=torch.float32).unsqueeze(0).to(device)
@@ -194,7 +153,6 @@ def score_with_lstm(model, embeddings, seq_len, device, batch_size=128):
         scores = torch.sigmoid(model(x)).cpu().numpy()
         all_scores.extend(scores)
 
-    # Pad the beginning (first seq_len-1 frames don't have a full window)
     padded_scores = np.concatenate([
         np.full(seq_len - 1, all_scores[0]),
         np.array(all_scores)
@@ -202,54 +160,35 @@ def score_with_lstm(model, embeddings, seq_len, device, batch_size=128):
     return padded_scores
 
 
-# ==============================================================================
-# Stage Classification from Score Trajectory
-# ==============================================================================
 def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
                     violence_threshold: float = 0.75,
                     tension_threshold: float = 0.3,
                     smoothing_window: int = 3,
                     ramp_up_frames: int = 30) -> Dict:
-    """
-    Classify video stages from the LSTM score trajectory.
+    """Heuristic per-frame stages (calm/tension/escalation/violence/aftermath) from smoothed LSTM scores.
 
-    Stages:
-        calm:       score < tension_threshold
-        tension:    tension_threshold <= score < violence_threshold, rising
-        escalation: score approaching violence_threshold, steep rise
-        violence:   score >= violence_threshold
-        aftermath:  score dropping after violence
-
-    The first `ramp_up_frames` are marked as "ramp_up" and excluded from
-    stage detection, since the LSTM sliding window is padded with copies
-    of the first embedding during this period, producing unreliable scores.
-
-    Returns dict with stage_timeline, violence_start, escalation_start, etc.
+    The first ramp_up_frames are labelled "ramp_up" and ignored: they have no full LSTM window yet.
     """
     n = len(scores)
     if n == 0:
         return {"error": "No scores"}
 
-    # Smooth scores to avoid noise
     if smoothing_window > 1 and n >= smoothing_window:
         kernel = np.ones(smoothing_window) / smoothing_window
         smoothed = np.convolve(scores, kernel, mode='same')
     else:
         smoothed = scores.copy()
 
-    # Compute score derivative (rate of change)
     if n > 1:
         derivative = np.gradient(smoothed)
     else:
         derivative = np.zeros(n)
 
-    # Classify each frame
     stages = []
     peak_reached = False
     peak_score = 0.0
 
     for i in range(n):
-        # Skip ramp-up period: LSTM needs seq_len frames of real context
         if i < ramp_up_frames:
             stages.append("ramp_up")
             continue
@@ -264,7 +203,7 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
         elif peak_reached and s < violence_threshold:
             stage = "aftermath"
         elif s >= tension_threshold:
-            if d > 0.01:  # Rising scores
+            if d > 0.01:
                 stage = "escalation"
             else:
                 stage = "tension"
@@ -273,7 +212,6 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
 
         stages.append(stage)
 
-    # Build timeline (group consecutive same-stage frames)
     stage_timeline = []
     for i in range(n):
         stage_timeline.append({
@@ -284,7 +222,6 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
             "raw_score": float(scores[i]),
         })
 
-    # Find key timestamps (skip ramp_up frames)
     violence_start = None
     escalation_start = None
     tension_start = None
@@ -299,11 +236,9 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
         if stage == "escalation" and escalation_start is None:
             escalation_start = float(timestamps[i])
 
-    # Use tension_start as escalation_start if no explicit escalation found
     if escalation_start is None and tension_start is not None:
         escalation_start = tension_start
 
-    # Anticipation window
     anticipation_window = None
     if violence_start is not None and escalation_start is not None:
         if escalation_start < violence_start:
@@ -311,7 +246,6 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
 
     has_violence = violence_start is not None
 
-    # Compute stats excluding ramp-up period
     post_ramp_mask = np.array([s != "ramp_up" for s in stages])
     if post_ramp_mask.any():
         post_ramp_scores = smoothed[post_ramp_mask]
@@ -338,9 +272,6 @@ def classify_stages(scores: np.ndarray, timestamps: np.ndarray,
     }
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Fast video analysis for anticipation curation")
     parser.add_argument('--output_dir', type=str, default='data/anticipation_curation',
@@ -378,7 +309,6 @@ def main():
         print("No candidates.json found. Run search and download first.")
         return
 
-    # --- Load candidates ---
     with open(candidates_file) as f:
         data = json.load(f)
     candidates = data.get("candidates", [])
@@ -399,7 +329,6 @@ def main():
         print("Use --reanalyze to re-analyze with new thresholds.")
         return
 
-    # Check if we can skip VLM entirely by reusing saved embeddings
     can_skip_vlm = False
     if args.reanalyze and args.save_embeddings:
         emb_dir = Path(args.embeddings_dir)
@@ -416,14 +345,12 @@ def main():
     print(f"Thresholds: violence={args.violence_threshold}, tension={args.tension_threshold}")
     print(f"Ramp-up skip: {args.ramp_up_frames} frames")
 
-    # Estimate time
     avg_duration = np.mean([c.get('duration_seconds', 300) for c in to_analyze])
     avg_frames = avg_duration * args.fps
     est_per_frame = 0.6  # ~0.5-0.7s per frame for embedding extraction
     est_total = len(to_analyze) * avg_frames * est_per_frame
     print(f"Estimated time: {est_total/60:.0f} minutes ({est_total/3600:.1f} hours)")
 
-    # --- Load VLM for embedding extraction (skip if reusing all cached) ---
     teacher = None
     if not can_skip_vlm:
         print(f"\nLoading VLM on {args.vlm_device}...")
@@ -445,7 +372,6 @@ def main():
     else:
         print("\nSkipping VLM load (all embeddings cached)")
 
-    # --- Load LSTM model ---
     print(f"Loading LSTM model on {args.lstm_device}...")
     lstm_device = torch.device(args.lstm_device if torch.cuda.is_available() else 'cpu')
     checkpoint = torch.load(args.model_path, map_location=lstm_device, weights_only=False)
@@ -463,13 +389,11 @@ def main():
     seq_len = model_args.get('sequence_length', 30)
     print(f"  LSTM loaded (seq_len={seq_len})")
 
-    # --- Embeddings output dir ---
     if args.save_embeddings:
         emb_dir = Path(args.embeddings_dir)
         emb_dir.mkdir(parents=True, exist_ok=True)
         print(f"  Saving embeddings to {emb_dir}")
 
-    # --- Process videos ---
     print(f"\n{'='*60}")
     print("ANALYZING VIDEOS")
     print(f"{'='*60}\n")
@@ -490,19 +414,16 @@ def main():
         start_time = time.time()
 
         try:
-            # Step 1: Extract embeddings (fast path) or load from disk
             emb_cache_path = Path(args.embeddings_dir) / f"{vid}.npz" if args.save_embeddings else None
             loaded_from_cache = False
 
             if emb_cache_path and emb_cache_path.exists() and args.reanalyze:
-                # Reuse previously extracted embeddings
                 cached = np.load(emb_cache_path)
                 embeddings = cached['emb'].astype(np.float32)
                 timestamps = cached['timestamps']
                 loaded_from_cache = True
                 print(f"  Loaded {len(embeddings)} cached embeddings")
             else:
-                # Extract fresh embeddings from video
                 embeddings, timestamps = extract_embeddings_from_video(
                     video_path, teacher, fps=args.fps, verbose=args.verbose
                 )
@@ -518,10 +439,8 @@ def main():
                 print(f"  Embeddings: {len(embeddings)} frames in {elapsed_emb:.1f}s "
                       f"({elapsed_emb/len(embeddings):.2f}s/frame)")
 
-            # Step 2: Score with LSTM
             scores = score_with_lstm(lstm_model, embeddings, seq_len, lstm_device)
 
-            # Step 3: Classify stages from score trajectory
             result = classify_stages(
                 scores, timestamps,
                 violence_threshold=args.violence_threshold,
@@ -538,7 +457,6 @@ def main():
                 candidate["notes"] = result["error"]
                 continue
 
-            # Update candidate
             candidate["analysis_status"] = "analyzed"
             candidate["has_violence"] = result["has_violence"]
             candidate["violence_start_second"] = result["violence_start"]
@@ -553,7 +471,6 @@ def main():
 
             analyzed_count += 1
 
-            # Print summary
             if result["has_violence"]:
                 violence_count += 1
                 print(f"  VIOLENCE at {result['violence_start']:.1f}s "
@@ -568,13 +485,12 @@ def main():
 
             print(f"  Done in {elapsed_total:.1f}s")
 
-            # Step 4: Save embeddings if requested
             if args.save_embeddings:
                 emb_path = Path(args.embeddings_dir) / f"{vid}.npz"
                 t_indices = np.arange(len(embeddings))
                 raw_frame_indices = np.array([f[0] for f in
                     extract_frames(video_path, fps=args.fps)[:len(embeddings)]]
-                ) if False else t_indices  # Approximate
+                ) if False else t_indices  # disabled: raw_frame_idx is saved as arange(N), not real frame indices
                 np.savez_compressed(
                     emb_path,
                     emb=embeddings.astype(np.float16),
@@ -595,7 +511,6 @@ def main():
         with open(candidates_file, "w") as f:
             json.dump(data, f, indent=2)
 
-    # --- Final summary ---
     print(f"\n{'='*60}")
     print("ANALYSIS COMPLETE")
     print(f"{'='*60}")
@@ -606,7 +521,6 @@ def main():
     if analyzed_count > 0:
         print(f"  Avg per video: {total_time/analyzed_count:.1f}s")
 
-    # Save final state
     with open(candidates_file, "w") as f:
         json.dump(data, f, indent=2)
 

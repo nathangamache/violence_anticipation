@@ -1,28 +1,9 @@
 #!/usr/bin/env python3
-"""
-Multimodal Feature Fusion for Violence Detection
-
-Combines multiple feature streams:
-1. VLM embeddings (scene understanding) 
-2. Optical flow features (motion patterns)
-3. [Optional] QA features (explicit violence indicators)
-
-This gives the temporal model richer, more discriminative input.
+"""Early fusion of VLM embeddings, optical-flow features and optional VLM-QA features.
 
 Usage:
-    # Fuse VLM + optical flow features
-    python fuse_features.py \
-        --vlm_dir data/processed/vlm_emb \
-        --flow_dir data/processed/optical_flow \
-        --output_dir data/processed/fused_features \
-        --fusion_method concat
-
-    # Also include QA features if available
-    python fuse_features.py \
-        --vlm_dir data/processed/vlm_emb \
-        --flow_dir data/processed/optical_flow \
-        --qa_dir data/processed/vlm_qa_features \
-        --output_dir data/processed/fused_features
+    python fuse_features.py --vlm_dir data/processed/vlm_emb --flow_dir data/processed/optical_flow \
+        --output_dir data/processed/fused_features [--qa_dir data/processed/vlm_qa_features]
 """
 
 import argparse
@@ -35,7 +16,6 @@ from sklearn.preprocessing import StandardScaler
 
 
 def load_features(path: Path) -> Optional[np.ndarray]:
-    """Load features from npz file."""
     try:
         data = np.load(path, allow_pickle=True)
         for key in ['emb', 'embedding', 'embeddings', 'features', 'arr_0']:
@@ -51,17 +31,13 @@ def align_features(
     features_list: List[np.ndarray],
     names: List[str],
 ) -> List[np.ndarray]:
-    """
-    Align features to same length.
-    Uses the shortest length as reference.
-    """
+    """Subsample longer streams with linspace to the shortest stream's length."""
     lengths = [len(f) for f in features_list]
     min_len = min(lengths)
     
     aligned = []
     for feat, name, orig_len in zip(features_list, names, lengths):
         if len(feat) > min_len:
-            # Subsample to match
             indices = np.linspace(0, len(feat) - 1, min_len, dtype=int)
             feat = feat[indices]
         aligned.append(feat)
@@ -73,7 +49,6 @@ def normalize_features(
     features: np.ndarray,
     method: str = 'standard',
 ) -> np.ndarray:
-    """Normalize features."""
     if method == 'standard':
         mean = features.mean(axis=0, keepdims=True)
         std = features.std(axis=0, keepdims=True) + 1e-8
@@ -90,7 +65,6 @@ def normalize_features(
 
 
 def fuse_concat(feature_list: List[np.ndarray]) -> np.ndarray:
-    """Simple concatenation fusion."""
     return np.concatenate(feature_list, axis=1)
 
 
@@ -98,7 +72,6 @@ def fuse_weighted(
     feature_list: List[np.ndarray],
     weights: List[float],
 ) -> np.ndarray:
-    """Weighted concatenation."""
     weighted = []
     for feat, w in zip(feature_list, weights):
         weighted.append(feat * w)
@@ -116,17 +89,13 @@ def fuse_features_for_video(
     flow_weight: float = 1.0,
     qa_weight: float = 1.0,
 ) -> Optional[np.ndarray]:
-    """Fuse features for a single video."""
-    
     features_list = []
     names = []
     weights = []
     
-    # Load VLM features
     if vlm_dir:
         vlm_path = vlm_dir / f"{video_name}.npz"
         if not vlm_path.exists():
-            # Try subdirectories
             for subdir in ['xd_violence', 'ucf_crime', '']:
                 p = vlm_dir / subdir / f"{video_name}.npz" if subdir else vlm_path
                 if p.exists():
@@ -140,7 +109,6 @@ def fuse_features_for_video(
                 names.append('vlm')
                 weights.append(vlm_weight)
     
-    # Load optical flow features
     if flow_dir:
         flow_path = flow_dir / f"{video_name}.npz"
         if not flow_path.exists():
@@ -157,7 +125,6 @@ def fuse_features_for_video(
                 names.append('flow')
                 weights.append(flow_weight)
     
-    # Load QA features
     if qa_dir:
         qa_path = qa_dir / f"{video_name}.npz"
         if not qa_path.exists():
@@ -177,14 +144,11 @@ def fuse_features_for_video(
     if not features_list:
         return None
     
-    # Align lengths
     features_list = align_features(features_list, names)
     
-    # Normalize each feature set
     if normalize:
         features_list = [normalize_features(f, normalize) for f in features_list]
     
-    # Fuse
     if fusion_method == 'concat':
         fused = fuse_concat(features_list)
     elif fusion_method == 'weighted':
@@ -207,11 +171,8 @@ def process_all_videos(
     qa_weight: float = 1.0,
     source_filter: str = None,
 ):
-    """Process all videos."""
-    
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Get all video names from available directories
     video_names = set()
     
     for dir_path in [vlm_dir, flow_dir, qa_dir]:
@@ -224,11 +185,9 @@ def process_all_videos(
     processed = 0
     skipped = 0
     
-    # Track dimensions
     dims_info = {}
     
     for video_name in tqdm(video_names, desc="Fusing features"):
-        # Source filter
         if source_filter:
             is_xd = '__#' in video_name or video_name.startswith('v=')
             is_ucf = '_x264' in video_name
@@ -237,13 +196,11 @@ def process_all_videos(
             if source_filter == 'ucf_crime' and not is_ucf:
                 continue
         
-        # Output path
         out_path = output_dir / f"{video_name}.npz"
         if out_path.exists():
             skipped += 1
             continue
         
-        # Fuse
         fused = fuse_features_for_video(
             video_name,
             vlm_dir,
@@ -259,11 +216,9 @@ def process_all_videos(
         if fused is None:
             continue
         
-        # Save
         np.savez_compressed(out_path, emb=fused.astype(np.float16))
         processed += 1
         
-        # Track dimension
         if 'dim' not in dims_info:
             dims_info['dim'] = fused.shape[1]
             dims_info['sample_video'] = video_name
@@ -274,7 +229,6 @@ def process_all_videos(
     if dims_info:
         print(f"Output dimension: {dims_info['dim']}")
     
-    # Save config
     config = {
         'vlm_dir': str(vlm_dir) if vlm_dir else None,
         'flow_dir': str(flow_dir) if flow_dir else None,

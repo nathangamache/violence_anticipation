@@ -729,3 +729,17 @@ Ownership notes:
   in their own `docs/codebase/*.md` files.
 - The label-transform bug in §6.1 must also be fixed in training. Otherwise the model learns
   "pre-violence within 120 s, violence = negative".
+
+## Notes moved from code comments
+
+- `experiments/baseline_comparisons.py`: the default `--ema_alpha 0.5` was chosen as the best alpha from
+  the `ema_smoothing.py` results, and the sliding window `w=15` as the best config from
+  `algorithm_variations.py`. The old docstring's model list ([B1] to [C6]) was stale. It listed a
+  Transformer encoder that the script never implements, and its numbering differs from the printed labels.
+- `experiments/baseline_comparisons.py::run_majority_class` scores every frame with the training positive
+  rate (a constant in (0, 1)), not with a 0/1 majority label.
+- `experiments/fast_analyze_curation.py::score_with_lstm`: a clip shorter than `seq_len` gets one score
+  from a single window that is front-padded with **zeros**. A removed comment wrongly said the first frame
+  was repeated.
+- `experiments/fast_analyze_curation.py::classify_stages`: `stage_timeline` has one entry per frame. It
+  does not group consecutive frames of the same stage, though a removed comment said it did.

@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
-"""
-Contrastive Fine-tuning for Violence Detection Embeddings
-
-This script fine-tunes a projection layer on top of your frozen VLM embeddings
-using contrastive learning to better separate violent from non-violent frames.
-
-Key idea:
-- Violent embeddings should be CLOSE to other violent embeddings
-- Violent embeddings should be FAR from non-violent embeddings
-- This creates a more discriminative embedding space
+"""SupCon + focal projector fine-tuned on frozen VLM embeddings.
 
 Usage:
-    python contrastive_finetune.py \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --train_index train_index.json \
-        --output_dir outputs_contrastive \
-        --device cuda:1
+    python contrastive_finetune.py --embeddings_dir data/processed/vlm_emb \
+        --labels_dir data/processed/labels_multih --train_index train_index.json \
+        --output_dir outputs_contrastive --device cuda:1
 """
 
 import argparse
@@ -36,16 +24,8 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 from tqdm import tqdm
 
 
-# ==============================================================================
-# Contrastive Loss Functions
-# ==============================================================================
-
 class SupervisedContrastiveLoss(nn.Module):
-    """
-    Supervised Contrastive Loss (SupCon)
-    
-    Pulls same-class embeddings together, pushes different-class apart.
-    """
+    """Supervised contrastive (SupCon) loss."""
     
     def __init__(self, temperature: float = 0.07):
         super().__init__()
@@ -76,7 +56,7 @@ class SupervisedContrastiveLoss(nn.Module):
 
 
 class CombinedContrastiveLoss(nn.Module):
-    """Combines contrastive loss with classification loss."""
+    """Weighted SupCon + focal (gamma=2) classification loss."""
     
     def __init__(self, temperature: float = 0.07, contrastive_weight: float = 0.5):
         super().__init__()
@@ -97,10 +77,6 @@ class CombinedContrastiveLoss(nn.Module):
         
         return total, {'contrastive': loss_con.item(), 'classification': loss_cls.item(), 'total': total.item()}
 
-
-# ==============================================================================
-# Projection Model
-# ==============================================================================
 
 class ContrastiveProjector(nn.Module):
     """Learns a projection from VLM embeddings to a contrastive space."""
@@ -140,10 +116,6 @@ class ContrastiveProjector(nn.Module):
         return projected, logits
 
 
-# ==============================================================================
-# Dataset
-# ==============================================================================
-
 class ContrastiveDataset(Dataset):
     def __init__(self, video_data, horizon_sec=30.0, fps=1.0, balance_classes=True):
         self.horizon_frames = int(horizon_sec * fps)
@@ -179,10 +151,6 @@ class ContrastiveDataset(Dataset):
             'label': torch.tensor(s['label'], dtype=torch.float32),
         }
 
-
-# ==============================================================================
-# Data Loading
-# ==============================================================================
 
 def classify_video_source(video_id):
     if '_x264' in video_id: return 'ucf_crime'
@@ -255,10 +223,6 @@ def load_video_data(index_path, embeddings_dir, labels_dir, source_filter=None):
     return video_data
 
 
-# ==============================================================================
-# Training
-# ==============================================================================
-
 def train_epoch(model, loader, optimizer, criterion, device):
     model.train()
     total_losses = defaultdict(float)
@@ -307,7 +271,6 @@ def evaluate(model, loader, device):
         metrics['roc_auc'] = roc_auc_score(all_labels, all_scores)
         metrics['pr_auc'] = average_precision_score(all_labels, all_scores)
     
-    # Class separation metric
     pos_emb = all_embeddings[all_labels == 1]
     neg_emb = all_embeddings[all_labels == 0]
     if len(pos_emb) > 0 and len(neg_emb) > 0:
@@ -347,14 +310,12 @@ def main():
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
     
-    # Load data
     print("\nLoading data...")
     train_videos = load_video_data(args.train_index, Path(args.embeddings_dir), Path(args.labels_dir), args.source_filter)
     val_videos = load_video_data(args.val_index, Path(args.embeddings_dir), Path(args.labels_dir), args.source_filter)
     test_videos = load_video_data(args.test_index, Path(args.embeddings_dir), Path(args.labels_dir), args.source_filter)
     print(f"Loaded: {len(train_videos)} train, {len(val_videos)} val, {len(test_videos)} test")
     
-    # Datasets
     print("\nBuilding datasets...")
     train_dataset = ContrastiveDataset(train_videos, args.horizon_sec, balance_classes=True)
     val_dataset = ContrastiveDataset(val_videos, args.horizon_sec, balance_classes=False)
@@ -364,7 +325,6 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    # Model
     model = ContrastiveProjector(args.input_dim, args.projection_dim, args.hidden_dim, args.dropout).to(device)
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
     
@@ -372,7 +332,6 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
     criterion = CombinedContrastiveLoss(args.temperature, args.contrastive_weight)
     
-    # Train
     best_val_roc = 0
     best_state = None
     patience_counter = 0
@@ -402,7 +361,6 @@ def main():
                 print(f"\nEarly stopping")
                 break
     
-    # Final eval
     model.load_state_dict(best_state)
     print("\n" + "="*60)
     print("FINAL EVALUATION")
@@ -414,7 +372,6 @@ def main():
     print(f"\nVal  - ROC: {val_m.get('roc_auc',0):.4f}, PR: {val_m.get('pr_auc',0):.4f}, Sep: {val_m.get('class_separation',0):.4f}")
     print(f"Test - ROC: {test_m.get('roc_auc',0):.4f}, PR: {test_m.get('pr_auc',0):.4f}, Sep: {test_m.get('class_separation',0):.4f}")
     
-    # Save
     torch.save({'model_state_dict': best_state, 'args': vars(args)}, Path(args.output_dir) / 'contrastive_model.pt')
     np.savez_compressed(Path(args.output_dir) / 'test_projected.npz', 
                         embeddings=test_m['embeddings'], labels=test_m['labels'], scores=test_m['scores'])

@@ -88,9 +88,9 @@ torch CUDA works.
 
 ### 1.3 The misalignment bug (affects 4 of the 8 scripts)
 
-`train_temporal_model.load_video_data` (lines 380–386), `train_student.ViolenceAnticipationDataset`
-(lines 343–356), `contrastive_finetune.load_video_data` together with `ContrastiveDataset`, and
-`contrastive_projection.SimpleDataset` (lines 288–294) all do this:
+`train_temporal_model.load_video_data` (lines 316–322), `train_student.ViolenceAnticipationDataset`
+(lines 277–287), `contrastive_finetune.load_video_data` together with `ContrastiveDataset`, and
+`contrastive_projection.SimpleDataset` (lines 249–255) all do this:
 
 ```python
 if labels.ndim > 1: labels = labels.max(axis=1)
@@ -420,7 +420,7 @@ labels, scores). Val metrics are only printed.
 These numbers were recomputed from `test_projected.npz`. As with the other XD runs, 59% of the test rows
 come from one negative clip.
 
-### 2.6 `tuning/contrastive_projection.py` (V3; the docstring calls it `contrastive_projection_v3.py`)
+### 2.6 `tuning/contrastive_projection.py` (V3; its old docstring called it `contrastive_projection_v3.py`)
 
 **Model.** `ProjectionNetwork` has three encoder sizes, all using Linear + LN + GELU + Dropout layers:
 
@@ -617,3 +617,18 @@ the best single question ("violence_occurring") has AUC 0.59.
    few clips have 30+ s of non-violent lead-in. A 30-s anticipation target needs long untrimmed
    footage, or a specific selection of clips with a long lead-in, such as `curate_anticipation_dataset.py`
    / `vlm_emb/curated` (see the curation doc).
+
+## Notes moved from code comments
+
+- `train_student_original.py`: `sweep_thresholds` and the `video_utility` grid clamp the top threshold
+  below 1.0 (`--sweep_th_max` default 0.999). Sigmoid probabilities almost never reach 1.0, so a 1.0
+  threshold is a degenerate "never alert" operating point that selection could otherwise pick.
+- `train_student_original.py`: the `video_utility` "miss" term is `1 - any_alert_in_window_rate`, so
+  a video whose first alert was early still counts as a hit if a later alert lands in window.
+- `train_student_original.py`: `lead_time_*` stats come only from videos whose first alert is in window,
+  and are clamped at 0, so an alert inside the grace period after onset adds a lead time of 0 s.
+- `tuning/contrastive_projection.py` V3 vs V2 (old docstring, author's view, not validated): V3 makes
+  classification primary and SupCon auxiliary (weight 0.1). It drops mixup ("was confusing the model") and
+  SupCon hard-negative mining ("was causing instability"). It also uses the natural class distribution
+  instead of forced 50/50 balancing. The docstring also claimed "gentler augmentation", but V3 has no
+  augmentation at all.

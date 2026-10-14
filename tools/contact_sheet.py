@@ -1,7 +1,6 @@
 """Render timestamped contact sheets (frame grids) so a reviewer can locate events in a video by eye.
 
-Each tile is one frame with its video time burned in (seconds and mm:ss). Used to annotate violence
-onsets in the curated YouTube hold-out set; see docs/YOUTUBE_ANNOTATION.md.
+Each tile shows its video time (seconds and mm:ss). Used to annotate onsets in the curated YouTube hold-out set.
 
 Usage:
     # coarse pass: one frame every 2 s, 30 tiles (60 s) per sheet, whole video
@@ -31,7 +30,7 @@ def _font(size):
 
 
 def render_sheets(video_path, out_dir, start=0.0, end=None, step=2.0, cols=6, rows=5, tile_w=256, prefix="coarse"):
-    """Write sheets ``<prefix>_<k>.jpg`` covering [start, end) and return their paths."""
+    """Write sheets ``<prefix>_<first_t>-<last_t>.jpg`` covering [start, end) and return their paths."""
     v = Video(video_path)
     end = v.info.duration_sec if end is None else min(end, v.info.duration_sec)
     times = np.arange(start, end, step)

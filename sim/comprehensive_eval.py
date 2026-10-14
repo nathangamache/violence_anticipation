@@ -1,35 +1,10 @@
 #!/usr/bin/env python3
-"""
-Comprehensive Evaluation & Visualization for Violence Anticipation Models
-
-Supports multiple model architectures:
-1. TemporalViolenceModel (LSTM-based temporal model from train_temporal_model.py)
-2. VLMStudentModel (improved student model from train_student.py)
-3. StudentMLP (original student model from train_student_original.py)
+"""Evaluate a checkpoint on a pre-built simulation stream; writes plots and metrics.json.
 
 Usage:
-    # Temporal LSTM model (auto-detected)
-    python comprehensive_eval.py \
-        --model_path outputs_temporal/best_temporal_model.pt \
-        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz \
-        --threshold 0.388 \
-        --output_dir ./eval_temporal
-
-    # VLMStudentModel 
-    python comprehensive_eval.py \
-        --model_path runs/outputs_xd/best_model.pt \
-        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz \
-        --threshold 0.6 \
-        --model_type vlm_student \
-        --output_dir ./eval_student
-
-    # StudentMLP (original)
-    python comprehensive_eval.py \
-        --model_path outputs_original/best.pt \
-        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz \
-        --threshold 0.5 \
-        --model_type student_mlp \
-        --output_dir ./eval_mlp
+    python sim/comprehensive_eval.py --model_path outputs/outputs_temporal/best_temporal_model.pt \
+        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz --threshold 0.388 --output_dir final/eval \
+        [--model_type auto|temporal|vlm_student|student_mlp]
 """
 
 import argparse
@@ -57,10 +32,6 @@ import seaborn as sns
 plt.style.use('seaborn-v0_8-whitegrid')
 sns.set_palette("husl")
 
-
-# ==============================================================================
-# Model Definitions
-# ==============================================================================
 
 class TemporalViolenceModel(nn.Module):
     """Temporal LSTM model from train_temporal_model.py."""
@@ -175,10 +146,6 @@ class StudentMLP(nn.Module):
         return self.net(x)
 
 
-# ==============================================================================
-# Model Loading
-# ==============================================================================
-
 def detect_model_type(checkpoint):
     state_dict = checkpoint.get('model_state_dict', checkpoint.get('model', {}))
     if any('lstm' in k for k in state_dict.keys()):
@@ -238,10 +205,6 @@ def load_model(model_path, device, model_type='auto'):
     print(f"  Type: {model_type}, Seq len: {seq_len}, Params: {sum(p.numel() for p in model.parameters()):,}")
     return model, model_type, seq_len, args
 
-
-# ==============================================================================
-# Evaluation
-# ==============================================================================
 
 @dataclass
 class EvaluationResults:
@@ -317,7 +280,6 @@ class ComprehensiveEvaluator:
         fps = float(data.get('fps', 1.0))
         n_frames = len(embeddings)
         
-        # Check if we need to fuse optical flow features
         current_dim = embeddings.shape[1] if embeddings.ndim > 1 else embeddings.shape[0]
         
         if expected_input_dim is not None and current_dim != expected_input_dim:
@@ -328,19 +290,16 @@ class ComprehensiveEvaluator:
                 flow_data = np.load(optical_flow_sim)
                 flow_features = flow_data.get('embeddings', flow_data.get('features', flow_data.get('arr_0')))
                 
-                # Align lengths
                 min_len = min(len(embeddings), len(flow_features))
                 embeddings = embeddings[:min_len]
                 flow_features = flow_features[:min_len]
                 labels = labels[:min_len]
                 n_frames = min_len
                 
-                # Normalize flow features
                 flow_mean = flow_features.mean(axis=0, keepdims=True)
                 flow_std = flow_features.std(axis=0, keepdims=True) + 1e-8
                 flow_features = (flow_features - flow_mean) / flow_std
                 
-                # Fuse
                 embeddings = np.concatenate([embeddings, flow_features], axis=1)
                 print(f"Fused features: {embeddings.shape[1]} dimensions")
             else:
@@ -446,7 +405,6 @@ class ComprehensiveEvaluator:
         embeddings, labels = data['embeddings'], data['anticipation_labels']
         fps = float(data.get('fps', 1.0))
         
-        # Check if we need to fuse optical flow features
         current_dim = embeddings.shape[1] if embeddings.ndim > 1 else embeddings.shape[0]
         
         if expected_input_dim is not None and current_dim != expected_input_dim and optical_flow_sim is not None:
@@ -487,10 +445,6 @@ class ComprehensiveEvaluator:
         
         return results
 
-
-# ==============================================================================
-# Visualization
-# ==============================================================================
 
 def plot_roc_curve(results, output_path):
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -719,10 +673,6 @@ def save_metrics_json(results, sweep_results, output_path):
     print(f"  Saved: {output_path}")
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser(description="Comprehensive Model Evaluation")
     parser.add_argument('--model_path', type=str, required=True)
@@ -733,7 +683,6 @@ def main():
     parser.add_argument('--output_dir', type=str, default='./final_evaluation')
     parser.add_argument('--device', type=str, default='cuda:1')
     
-    # Optical flow fusion support
     parser.add_argument('--optical_flow_sim', type=str, default=None,
                         help='Path to optical flow simulation NPZ (for fused models)')
     parser.add_argument('--input_dim', type=int, default=None,
@@ -746,7 +695,6 @@ def main():
     
     evaluator = ComprehensiveEvaluator(args.model_path, args.device, args.model_type)
     
-    # Check if model expects fused features
     expected_dim = args.input_dim
     if expected_dim is None and hasattr(evaluator, 'model_args') and evaluator.model_args:
         expected_dim = evaluator.model_args.get('input_dim', 3584)

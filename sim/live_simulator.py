@@ -1,24 +1,10 @@
 #!/usr/bin/env python3
-"""
-Live Video Simulator for Violence Anticipation
-
-Simulates processing a long video stream (e.g., security camera footage)
-where violence is rare (~1%) and generates realistic performance metrics.
+"""Replay a simulated stream through the single-frame VLMStudentModel and report alarm metrics.
 
 Usage:
-    python live_simulator.py \
-        --model_path outputs_xd/best_model.pt \
-        --video_path path/to/long_video.mp4 \
-        --output_dir ./simulation_results
-
-Or use synthetic mode to test with existing embeddings:
-    python live_simulator.py \
-        --model_path outputs_xd/best_model.pt \
-        --synthetic \
-        --embeddings_dir data/processed/vlm_emb \
-        --labels_dir data/processed/labels_multih \
-        --test_index test_index.json \
-        --output_dir ./simulation_results
+    python sim/live_simulator.py --model_path runs/outputs_xd/best_model.pt \
+        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz --threshold 0.6 --output_dir simulation_results/final
+    python sim/live_simulator.py --model_path runs/outputs_xd/best_model.pt --synthetic --test_index test_index.json
 """
 
 import argparse
@@ -35,7 +21,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-# Try to import visualization libraries
 try:
     import matplotlib
     matplotlib.use('Agg')
@@ -52,9 +37,7 @@ from sklearn.metrics import (
 )
 
 
-# ==============================================================================
-# Model Definition (must match training)
-# ==============================================================================
+# Must match training/train_student.py::VLMStudentModel.
 class VLMStudentModel(nn.Module):
     def __init__(
         self,
@@ -118,9 +101,6 @@ class VLMStudentModel(nn.Module):
         return logits
 
 
-# ==============================================================================
-# Helper Functions
-# ==============================================================================
 def classify_video_source(video_id: str) -> str:
     if '_x264' in video_id:
         return 'ucf_crime'
@@ -201,19 +181,13 @@ def extract_video_name(item) -> str:
     return str(item)
 
 
-# ==============================================================================
-# Simulation Results
-# ==============================================================================
 @dataclass
 class SimulationResults:
-    """Container for simulation results."""
-    # Raw data
     timestamps: List[float]
     scores: List[float]
     predictions: List[int]
     ground_truth: List[int]
     
-    # Metrics
     threshold: float
     confusion_mat: np.ndarray
     roc_auc: float
@@ -222,11 +196,9 @@ class SimulationResults:
     recall: float
     f1: float
     
-    # Timing
     total_duration_sec: float
     fps_processed: float
     
-    # Event-level metrics
     n_violence_events: int
     n_detected_events: int
     n_false_alarms: int
@@ -268,9 +240,8 @@ class SimulationResults:
         if self.avg_lead_time_sec > 0:
             print(f"  Average lead time: {self.avg_lead_time_sec:.1f} seconds")
         
-        # Practical metrics
         if len(self.timestamps) > 0:
-            false_alarm_rate = self.n_false_alarms / (self.total_duration_sec / 3600)  # per hour
+            false_alarm_rate = self.n_false_alarms / (self.total_duration_sec / 3600)
             print(f"\nOperational Metrics:")
             print(f"  False alarms per hour: {false_alarm_rate:.1f}")
             if self.n_violence_events > 0:
@@ -278,11 +249,8 @@ class SimulationResults:
                 print(f"  Event detection rate: {detection_rate:.1%}")
 
 
-# ==============================================================================
-# Live Simulator
-# ==============================================================================
 class LiveSimulator:
-    """Simulates live video processing for violence anticipation."""
+    """Frame-by-frame replay of a single-frame VLMStudentModel over a simulated stream."""
     
     def __init__(
         self,
@@ -301,11 +269,9 @@ class LiveSimulator:
         self.smoothing_window = smoothing_window
         self.alert_cooldown = alert_cooldown
         
-        # Load model
         print(f"Loading model from {model_path}...")
         checkpoint = torch.load(model_path, map_location=self.device)
         
-        # Get model args
         model_args = checkpoint.get('args', {})
         input_dim = model_args.get('input_dim', 3584)
         hidden_dims = model_args.get('hidden_dims', [512, 256, 128])
@@ -323,7 +289,6 @@ class LiveSimulator:
         print(f"Model loaded. Device: {self.device}")
     
     def process_frame(self, embedding: np.ndarray) -> Tuple[float, int]:
-        """Process a single frame and return (score, prediction)."""
         with torch.no_grad():
             x = torch.tensor(embedding, dtype=torch.float32).to(self.device)
             logit = self.model(x)
@@ -337,29 +302,23 @@ class LiveSimulator:
         labels_dir: Path,
         test_index_path: str,
         source_filter: Optional[str] = 'xd_violence',
-        dilute_ratio: float = 10.0,  # Add this many non-violent frames per violent
+        dilute_ratio: float = 10.0,
     ) -> SimulationResults:
-        """
-        Run simulation using existing embeddings, optionally diluting
-        with extra non-violent frames to simulate realistic 1% violence rate.
-        """
+        """Build a stream from per-video test embeddings, diluted with whole non-violent videos, and replay it."""
         print("\n" + "="*70)
         print("SYNTHETIC LIVE SIMULATION")
         print("="*70)
         
-        # Load test index
         with open(test_index_path) as f:
             test_items = json.load(f)
         
         print(f"Loaded {len(test_items)} test items")
         
-        # Collect all frames
-        all_frames = []  # (embedding, label, video_id, frame_idx)
+        all_frames = []
         
         for item in test_items:
             video_name = extract_video_name(item)
             
-            # Filter by source
             if source_filter and classify_video_source(video_name) != source_filter:
                 continue
             
@@ -375,12 +334,10 @@ class LiveSimulator:
             if embeddings is None or labels is None:
                 continue
             
-            # Handle multi-dim labels
             if labels.ndim > 1:
                 labels = labels.max(axis=1)
             labels = (labels > 0).astype(int)
             
-            # Create anticipation labels
             horizon_frames = int(self.horizon_sec * self.fps)
             min_len = min(len(embeddings), len(labels))
             
@@ -397,24 +354,17 @@ class LiveSimulator:
         
         print(f"Collected {len(all_frames)} frames")
         
-        # Separate violent and non-violent
         violent_frames = [f for f in all_frames if f['label'] == 1]
         nonviolent_frames = [f for f in all_frames if f['label'] == 0]
         
         print(f"  Violent: {len(violent_frames)}")
         print(f"  Non-violent: {len(nonviolent_frames)}")
         
-        # Optionally dilute to simulate realistic ratio
         if dilute_ratio > 0:
-            # Instead of shuffling everything, we'll interleave videos
-            # This preserves temporal order within each video
-            
-            # Group frames by video
             video_frames = defaultdict(list)
             for f in all_frames:
                 video_frames[f['video_id']].append(f)
             
-            # Separate violent and non-violent videos
             violent_videos = []
             nonviolent_videos = []
             
@@ -425,11 +375,9 @@ class LiveSimulator:
                 else:
                     nonviolent_videos.append((vid, frames))
             
-            # Calculate how many non-violent videos to add
             violent_frame_count = sum(len(frames) for _, frames in violent_videos)
             target_nonviolent = int(violent_frame_count * dilute_ratio)
             
-            # Sample non-violent videos to reach target
             selected_nonviolent = []
             current_count = 0
             np.random.shuffle(nonviolent_videos)
@@ -440,20 +388,17 @@ class LiveSimulator:
                 selected_nonviolent.append((vid, frames))
                 current_count += len(frames)
             
-            # If we need more, oversample
             while current_count < target_nonviolent and nonviolent_videos:
                 vid, frames = nonviolent_videos[np.random.randint(len(nonviolent_videos))]
                 selected_nonviolent.append((vid, frames))
                 current_count += len(frames)
             
-            # Combine and shuffle at VIDEO level (not frame level)
+            # Shuffle whole videos so frame order within each video is preserved.
             all_videos = violent_videos + selected_nonviolent
             np.random.shuffle(all_videos)
             
-            # Flatten while preserving temporal order within videos
             simulation_frames = []
             for vid, frames in all_videos:
-                # Sort by frame index to preserve temporal order
                 frames_sorted = sorted(frames, key=lambda x: x['frame_idx'])
                 simulation_frames.extend(frames_sorted)
             
@@ -464,7 +409,6 @@ class LiveSimulator:
         else:
             simulation_frames = all_frames
         
-        # Run simulation
         print("\nRunning simulation...")
         if self.smoothing_window > 1:
             print(f"  Temporal smoothing: {self.smoothing_window} consecutive frames required")
@@ -478,26 +422,22 @@ class LiveSimulator:
         predictions = []
         ground_truth = []
         
-        # For temporal smoothing
         recent_scores = []
         frames_since_alert = self.alert_cooldown  # Allow immediate first alert
         
         for i, frame in enumerate(simulation_frames):
-            t = i / self.fps  # Simulated timestamp
+            t = i / self.fps
             score, _ = self.process_frame(frame['embedding'])
             
-            # Apply temporal smoothing
             recent_scores.append(score)
             if len(recent_scores) > self.smoothing_window:
                 recent_scores.pop(0)
             
-            # Prediction with smoothing: all recent scores must be above threshold
             if len(recent_scores) >= self.smoothing_window:
                 smoothed_above = all(s >= self.threshold for s in recent_scores)
             else:
                 smoothed_above = False
             
-            # Apply cooldown
             if self.alert_cooldown > 0:
                 if smoothed_above and frames_since_alert >= self.alert_cooldown:
                     pred = 1
@@ -518,7 +458,6 @@ class LiveSimulator:
         
         elapsed = time.time() - start_time
         
-        # Calculate metrics
         return self._compute_results(
             timestamps, scores, predictions, ground_truth, elapsed
         )
@@ -531,13 +470,10 @@ class LiveSimulator:
         ground_truth: List[int],
         elapsed_time: float,
     ) -> SimulationResults:
-        """Compute all metrics from simulation data."""
-        
         y_true = np.array(ground_truth)
         y_scores = np.array(scores)
         y_pred = np.array(predictions)
         
-        # Basic metrics
         cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
         
         if len(np.unique(y_true)) > 1:
@@ -547,7 +483,6 @@ class LiveSimulator:
             roc_auc = 0.5
             pr_auc = y_true.mean()
         
-        # Precision, recall, F1
         tp = cm[1, 1]
         fp = cm[0, 1]
         fn = cm[1, 0]
@@ -556,8 +491,6 @@ class LiveSimulator:
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         
-        # Event-level analysis
-        # Find violence events (contiguous sequences of violence)
         violence_events = []
         in_event = False
         event_start = 0
@@ -573,18 +506,15 @@ class LiveSimulator:
         if in_event:
             violence_events.append((event_start, len(ground_truth) - 1))
         
-        # Count detected events (any prediction=1 before or during event)
         detected_events = 0
         lead_times = []
         
         for start, end in violence_events:
-            # Check if any prediction in window [max(0, start-horizon), end]
             check_start = max(0, start - int(self.horizon_sec * self.fps))
             event_predictions = predictions[check_start:end + 1]
             
             if any(p == 1 for p in event_predictions):
                 detected_events += 1
-                # Find first detection
                 for i, p in enumerate(event_predictions):
                     if p == 1:
                         lead_time = (start - check_start - i) / self.fps
@@ -592,8 +522,6 @@ class LiveSimulator:
                             lead_times.append(lead_time)
                         break
         
-        # Count false alarms (predictions during non-violent periods)
-        # Group consecutive false positives as single alarm
         false_alarms = 0
         in_alarm = False
         
@@ -625,13 +553,7 @@ class LiveSimulator:
         )
     
     def run_prebuilt_simulation(self, sim_path: str) -> SimulationResults:
-        """
-        Run simulation from a pre-built NPZ file.
-        
-        The NPZ file should contain:
-        - embeddings: [N, D] array
-        - anticipation_labels: [N] array (0/1)
-        """
+        """Replay a pre-built NPZ holding `embeddings` [N, D] and `anticipation_labels` [N]."""
         print("\n" + "="*70)
         print("RUNNING PRE-BUILT SIMULATION")
         print("="*70)
@@ -652,7 +574,6 @@ class LiveSimulator:
         if self.alert_cooldown > 0:
             print(f"  Alert cooldown: {self.alert_cooldown} frames")
         
-        # Run simulation
         print("\nProcessing frames...")
         start_time = time.time()
         
@@ -668,7 +589,6 @@ class LiveSimulator:
             t = i / fps
             score, _ = self.process_frame(embeddings[i])
             
-            # Apply temporal smoothing
             recent_scores.append(score)
             if len(recent_scores) > self.smoothing_window:
                 recent_scores.pop(0)
@@ -678,7 +598,6 @@ class LiveSimulator:
             else:
                 smoothed_above = False
             
-            # Apply cooldown
             if self.alert_cooldown > 0:
                 if smoothed_above and frames_since_alert >= self.alert_cooldown:
                     pred = 1
@@ -712,9 +631,7 @@ class LiveSimulator:
         source_filter: Optional[str] = 'xd_violence',
         target_precision: float = 0.5,
     ) -> float:
-        """Find threshold that achieves target precision."""
-        
-        # Quick pass to collect scores and labels
+        """Return the max-recall threshold with precision >= target_precision, else the best-F1 threshold."""
         with open(test_index_path) as f:
             test_items = json.load(f)
         
@@ -754,29 +671,24 @@ class LiveSimulator:
                 all_scores.append(score)
                 all_labels.append(ant_label)
         
-        # Find threshold for target precision
         precision, recall, thresholds = precision_recall_curve(all_labels, all_scores)
         
         valid_idx = np.where(precision[:-1] >= target_precision)[0]
         if len(valid_idx) > 0:
-            # Pick threshold with highest recall among valid
             best_idx = valid_idx[np.argmax(recall[:-1][valid_idx])]
             return thresholds[best_idx]
         else:
-            # Fall back to max F1
             f1_scores = 2 * precision * recall / (precision + recall + 1e-8)
             return thresholds[np.argmax(f1_scores[:-1])]
 
 
 def plot_results(results: SimulationResults, output_dir: Path):
-    """Generate visualization plots."""
     if not HAS_MATPLOTLIB:
         print("Skipping plots (matplotlib not available)")
         return
     
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
-    # 1. Score distribution
     ax = axes[0, 0]
     scores_neg = [s for s, g in zip(results.scores, results.ground_truth) if g == 0]
     scores_pos = [s for s, g in zip(results.scores, results.ground_truth) if g == 1]
@@ -789,7 +701,6 @@ def plot_results(results: SimulationResults, output_dir: Path):
     ax.set_title('Score Distribution')
     ax.legend()
     
-    # 2. Confusion matrix
     ax = axes[0, 1]
     im = ax.imshow(results.confusion_mat, cmap='Blues')
     ax.set_xticks([0, 1])
@@ -805,12 +716,11 @@ def plot_results(results: SimulationResults, output_dir: Path):
             ax.text(j, i, f'{results.confusion_mat[i, j]}', 
                    ha='center', va='center', fontsize=14)
     
-    # 3. Timeline (sample)
     ax = axes[1, 0]
     sample_size = min(1000, len(results.timestamps))
     indices = np.linspace(0, len(results.timestamps)-1, sample_size, dtype=int)
     
-    times = [results.timestamps[i] / 60 for i in indices]  # Convert to minutes
+    times = [results.timestamps[i] / 60 for i in indices]
     scores_sample = [results.scores[i] for i in indices]
     gt_sample = [results.ground_truth[i] for i in indices]
     
@@ -824,7 +734,6 @@ def plot_results(results: SimulationResults, output_dir: Path):
     ax.legend()
     ax.set_ylim(0, 1)
     
-    # 4. ROC and PR curves (if we had the data)
     ax = axes[1, 1]
     ax.text(0.5, 0.5, f"ROC-AUC: {results.roc_auc:.3f}\nPR-AUC: {results.pr_auc:.3f}\n\n"
             f"Precision: {results.precision:.3f}\nRecall: {results.recall:.3f}\nF1: {results.f1:.3f}",
@@ -854,7 +763,6 @@ def main():
     parser.add_argument('--fps', type=float, default=1.0,
                         help='Frame rate')
     
-    # Synthetic mode
     parser.add_argument('--synthetic', action='store_true',
                         help='Use synthetic simulation with existing embeddings')
     parser.add_argument('--prebuilt_sim', type=str, default=None,
@@ -882,18 +790,16 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     output_dir = Path(args.output_dir)
     
-    # Initialize simulator
     simulator = LiveSimulator(
         model_path=args.model_path,
         device=args.device,
-        threshold=args.threshold or 0.5,  # Temporary, will be updated
+        threshold=args.threshold or 0.5,
         horizon_sec=args.horizon_sec,
         fps=args.fps,
         smoothing_window=args.smoothing_window,
         alert_cooldown=args.alert_cooldown,
     )
     
-    # Auto-select threshold if not provided
     if args.threshold is None and args.synthetic:
         print(f"\nAuto-selecting threshold for {args.target_precision:.0%} precision...")
         threshold = simulator.find_optimal_threshold(
@@ -906,7 +812,6 @@ def main():
         print(f"Selected threshold: {threshold:.3f}")
         simulator.threshold = threshold
     
-    # Run simulation
     if args.prebuilt_sim:
         results = simulator.run_prebuilt_simulation(args.prebuilt_sim)
     elif args.synthetic:
@@ -921,13 +826,10 @@ def main():
         print("Use --prebuilt_sim or --synthetic mode")
         return
     
-    # Print results
     results.print_summary()
     
-    # Generate plots
     plot_results(results, output_dir)
     
-    # Save results
     results_dict = {
         'threshold': results.threshold,
         'roc_auc': results.roc_auc,

@@ -1,41 +1,11 @@
 #!/usr/bin/env python3
-"""
-Run an LLM (e.g. Qwen2.5-3B-Instruct) as a decision head on top of the
-graph-to-text summaries stored in llm_data/*.jsonl.
+"""Run a chat LLM (default Qwen2.5-3B-Instruct) as a risk head on llm_data/*.jsonl prompts; report MSE and ROC-AUC.
 
-Each JSONL line is expected to look roughly like:
+Each row needs "prompt" (or "input"); the target is read from "target_risk", then "risk", then "label".
 
-{
-  "id": "RoadAccidents039_x264|t=3.2",
-  "video_id": "RoadAccidents039_x264",
-  "frame_idx": 96,
-  "t_sec": 3.2,
-  "source": "ucf_crime",
-  "prompt": "<full instruction + scene summary>",
-  "target_risk": 0.0,        # optional but strongly recommended
-  "risk_bin": 0              # optional (>= threshold -> 1)
-}
-
-We are robust to some variation:
-- If "prompt" is missing, we try "input".
-- If "target_risk" is missing, we try "risk" or "label".
-
-Usage examples
--------------
-1) Using Hugging Face hub (online):
-    python -m llm.llm_head_infer \
-        --model_path Qwen/Qwen2.5-3B-Instruct \
-        --data_path llm_data/val.jsonl \
-        --out_path llm_data/val_preds_qwen.jsonl \
-        --device cuda:1
-
-2) Using a local clone:
-    # e.g. git clone https://huggingface.co/Qwen/Qwen2.5-3B-Instruct ~/models/Qwen2.5-3B-Instruct
-    python -m llm.llm_head_infer \
-        --model_path /data1~/models/Qwen2.5-3B-Instruct \
-        --data_path llm_data/val.jsonl \
-        --out_path llm_data/val_preds_qwen.jsonl \
-        --device cuda:1
+Usage:
+    python -m llm.llm_head_infer --model_path Qwen/Qwen2.5-3B-Instruct \
+        --data_path llm_data/val.jsonl --out_path llm_data/val_preds_qwen.jsonl --device cuda:1
 """
 
 import argparse
@@ -51,11 +21,6 @@ from tqdm import tqdm
 from sklearn.metrics import roc_auc_score, mean_squared_error
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
-
-
-# ---------------------------------------------------------------------
-# I/O helpers
-# ---------------------------------------------------------------------
 
 
 def load_jsonl(path: str) -> List[Dict[str, Any]]:
@@ -81,16 +46,8 @@ def write_jsonl(path: str, records: List[Dict[str, Any]]) -> None:
     print(f"[JSONL] Wrote {len(records)} records → {path}")
 
 
-# ---------------------------------------------------------------------
-# Qwen-style chat + risk parsing
-# ---------------------------------------------------------------------
-
-
 def build_chat_prompt(prompt_text: str) -> List[Dict[str, str]]:
-    """
-    Wrap a single 'prompt' string (scene summary + instructions) into
-    a Qwen-style chat message list.
-    """
+    """Wrap a prompt in a system + user chat asking for JSON {"risk", "rationale"}."""
     system_msg = (
         "You are an expert assistant for early violence risk assessment "
         "from CCTV-style video. You receive a textual summary of the current "
@@ -107,10 +64,7 @@ def build_chat_prompt(prompt_text: str) -> List[Dict[str, str]]:
 
 
 def extract_json_block(text: str) -> Optional[str]:
-    """
-    Try to extract the first plausible JSON object substring from text.
-    Very forgiving; looks for the outermost {...}.
-    """
+    """Return the outermost {...} substring of text, or None."""
     start = text.find("{")
     end = text.rfind("}")
     if start == -1 or end == -1 or end <= start:
@@ -119,19 +73,10 @@ def extract_json_block(text: str) -> Optional[str]:
 
 
 def parse_risk_from_output(raw_output: str) -> Tuple[float, str]:
-    """
-    Parse the LLM output into:
-        (risk_value_between_0_and_1, rationale_str)
-
-    Strategy:
-      1) Try to parse JSON object in the text (field "risk").
-      2) Fallback: regex for a float after the word 'risk'.
-      3) Fallback: the first float in the entire string.
-    """
-    risk_val = 0.5  # neutral default
+    """Parse (risk in [0, 1], rationale): JSON first, then a number after "risk", then the first number; default 0.5."""
+    risk_val = 0.5
     rationale = raw_output.strip()
 
-    # Step 1: JSON parsing
     json_block = extract_json_block(raw_output)
     if json_block is not None:
         try:
@@ -142,12 +87,10 @@ def parse_risk_from_output(raw_output: str) -> Tuple[float, str]:
                     risk_val = float(rv)
                 if "rationale" in obj and isinstance(obj["rationale"], str):
                     rationale = obj["rationale"]
-                # clamp later
                 return _clamp01(risk_val), rationale
         except Exception:
-            pass  # fall through to heuristics
+            pass
 
-    # Step 2: regex like "risk: 0.73" or "risk = 0.73"
     m = re.search(r"risk[^0-9]*([01]?\.\d+|\d+\.\d+|\d+)", raw_output, flags=re.IGNORECASE)
     if m:
         try:
@@ -156,7 +99,6 @@ def parse_risk_from_output(raw_output: str) -> Tuple[float, str]:
         except Exception:
             pass
 
-    # Step 3: first float anywhere
     m2 = re.search(r"([01]?\.\d+|\d+\.\d+|\d+)", raw_output)
     if m2:
         try:
@@ -173,22 +115,8 @@ def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, float(x)))
 
 
-# ---------------------------------------------------------------------
-# Inference core
-# ---------------------------------------------------------------------
-
-
 def load_qwen(model_path: str, device: str):
-    """
-    Load Qwen (or any chat-style causal LM) from a HF repo or local folder.
-
-    - model_path can be:
-        * "Qwen/Qwen2.5-3B-Instruct"  (Hugging Face)
-        * "~/models/Qwen2.5-3B-Instruct"  (local dir)
-
-    - device: e.g. "cuda:0", "cuda:1", or "cpu"
-      You can also control this via CUDA_VISIBLE_DEVICES.
-    """
+    """Load a causal LM and tokenizer from a HF repo id or local directory (CPU if CUDA is unavailable)."""
     print(f"[LLM] Loading model from: {model_path}")
     torch_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
 
@@ -221,15 +149,7 @@ def run_llm_inference(
     temperature: float = 0.0,
     bin_thresh: float = 0.5,
 ) -> Dict[str, Any]:
-    """
-    Iterate over LLM dataset examples, call Qwen, and compute metrics.
-
-    Returns:
-      {
-        "records": [... per-example output ...],
-        "metrics": {"mse": ..., "auc": ..., "num_frames": ...}
-      }
-    """
+    """Generate a risk per sample; returns {"records": [...], "metrics": {"mse", "auc", "num_frames"}}."""
     if max_examples is not None and max_examples > 0:
         data = data[:max_examples]
         print(f"[LLM] Limiting to first {len(data)} examples")
@@ -246,7 +166,6 @@ def run_llm_inference(
     }
 
     for sample in tqdm(data, desc="LLM Inference", dynamic_ncols=True):
-        # Robustly get the prompt text
         if "prompt" in sample:
             prompt_text = sample["prompt"]
         elif "input" in sample:
@@ -274,19 +193,16 @@ def run_llm_inference(
                 **gen_kwargs,
             )
 
-        # Only decode the newly generated tokens
         gen_ids = output_ids[0][inputs["input_ids"].shape[1]:]
         raw_output = tokenizer.decode(gen_ids, skip_special_tokens=True)
 
         risk_pred, rationale = parse_risk_from_output(raw_output)
 
-        # Ground truth risk (if available)
         target_risk = None
         if "target_risk" in sample:
             target_risk = float(sample["target_risk"])
         elif "risk" in sample:
-            # Careful: if the model was used before, risk might be pred; but here
-            # we assume it's GT if that's how you stored it.
+            # "risk" is assumed to be ground truth here, not an earlier prediction.
             target_risk = float(sample["risk"])
         elif "label" in sample:
             target_risk = float(sample["label"])
@@ -323,7 +239,6 @@ def run_llm_inference(
         mse = float(mean_squared_error(targets_np, scores_np))
         metrics["mse"] = mse
 
-        # Bin targets for ROC-AUC
         bin_targets = (targets_np >= bin_thresh).astype(int)
         if np.unique(bin_targets).size < 2:
             print("[LLM] Only one class in binarized labels; ROC-AUC undefined.")
@@ -336,11 +251,6 @@ def run_llm_inference(
         "records": records,
         "metrics": metrics,
     }
-
-
-# ---------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------
 
 
 def parse_args():
@@ -408,18 +318,14 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # Normalize max_examples
     max_examples = args.max_examples
     if max_examples is not None and max_examples <= 0:
         max_examples = None
 
-    # Load data
     data = load_jsonl(args.data_path)
 
-    # Load model
     tokenizer, model, device = load_qwen(args.model_path, args.device)
 
-    # Run inference
     results = run_llm_inference(
         data=data,
         tokenizer=tokenizer,
@@ -434,7 +340,6 @@ def main():
     records = results["records"]
     metrics = results["metrics"]
 
-    # Save predictions
     write_jsonl(args.out_path, records)
 
     print("\n========== LLM HEAD METRICS ==========")

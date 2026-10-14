@@ -2,9 +2,6 @@ import numpy as np
 from core.utils import center_of_bbox
 
 def test_center_bbox():
-    """
-    Verify center_of_bbox returns correct midpoint.
-    """
     bbox = [0, 0, 10, 10]
     cxcy = center_of_bbox(bbox)
 
@@ -16,9 +13,6 @@ def test_center_bbox():
 
 
 def test_import_extractors():
-    """
-    Ensure extractor functions import cleanly.
-    """
     from core.extractors import (
         detect_and_track,
         extract_actions,
@@ -30,7 +24,6 @@ def test_import_extractors():
         live_audio
     )
 
-    # Just verifying the names exist
     assert callable(detect_and_track)
     assert callable(extract_actions)
     assert callable(extract_audio)

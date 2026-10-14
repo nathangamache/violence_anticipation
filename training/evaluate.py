@@ -15,21 +15,8 @@ from core.model import ViolenceTransformer
 from core.utils import get_device
 
 
-# ---------------------------------------------------------------------
-# Index builder (fallback if val_index.json doesn't exist)
-# ---------------------------------------------------------------------
 def build_index_file(graphs_dir: str, labels_dir: str, out_json: str) -> str:
-    """
-    Build an index JSON of:
-      {
-        "graph_path": "...",
-        "label_path": "..."
-      }
-
-    Only includes items where BOTH graph and label exist.
-    Typically used as a fallback when a curated index (like val_index.json)
-    is not present.
-    """
+    """Write an index JSON of {graph_path, label_path} for every graph that has a label."""
     items = []
     for fn in os.listdir(graphs_dir):
         if not (fn.endswith(".npy") or fn.endswith(".pt")):
@@ -40,7 +27,6 @@ def build_index_file(graphs_dir: str, labels_dir: str, out_json: str) -> str:
         label_path = os.path.join(labels_dir, f"{vid_id}.npy")
 
         if not os.path.exists(label_path):
-            # Skip items without labels
             print(f"[Index] Skip (missing label): {vid_id}")
             continue
 
@@ -53,13 +39,7 @@ def build_index_file(graphs_dir: str, labels_dir: str, out_json: str) -> str:
     return out_json
 
 
-# ---------------------------------------------------------------------
-# Dimension inference (reuse logic from train.py)
-# ---------------------------------------------------------------------
 def infer_dims(dataset: GraphSequenceDataset):
-    """
-    Infer node_dim, scene_dim, audio_dim from the first non-empty frames.
-    """
     node_dim = None
     scene_dim = None
     audio_dim = None
@@ -67,15 +47,12 @@ def infer_dims(dataset: GraphSequenceDataset):
     for i in range(len(dataset)):
         frames, _ = dataset[i]
         for f in frames:
-            # nodes: [N, D_nodes] or possibly [0, D_nodes]
             if node_dim is None and hasattr(f["nodes"], "ndim") and f["nodes"].ndim == 2 and f["nodes"].shape[0] > 0:
                 node_dim = f["nodes"].shape[1]
 
-            # scene: [D_scene]
             if scene_dim is None and hasattr(f["scene"], "shape") and f["scene"].ndim == 1 and f["scene"].shape[0] > 0:
                 scene_dim = f["scene"].shape[0]
 
-            # audio: [D_audio]
             if audio_dim is None and hasattr(f["audio"], "shape") and f["audio"].ndim == 1 and f["audio"].shape[0] > 0:
                 audio_dim = f["audio"].shape[0]
 
@@ -92,9 +69,6 @@ def infer_dims(dataset: GraphSequenceDataset):
     return node_dim, scene_dim, audio_dim
 
 
-# ---------------------------------------------------------------------
-# Evaluation core (used by both train.py and CLI)
-# ---------------------------------------------------------------------
 def evaluate_model(
     model: ViolenceTransformer,
     dataset: GraphSequenceDataset,
@@ -102,24 +76,15 @@ def evaluate_model(
     bin_thresh: float = 0.5,
     desc: str = "Eval",
 ):
-    """
-    Run full-dataset evaluation.
-
-    - Collects all frame-level predictions and ground-truth risk values.
-    - Computes:
-        * MSE on the continuous risk curve
-        * ROC-AUC on binarized labels (target >= bin_thresh -> 1)
-    """
-
+    """Pooled frame-level MSE and ROC-AUC (targets binarized at bin_thresh)."""
     model.eval()
-    all_scores = []   # predicted risk per frame
-    all_targets = []  # GT risk per frame (continuous)
+    all_scores = []
+    all_targets = []
 
     with torch.no_grad():
         for idx in tqdm(range(len(dataset)), desc=desc, dynamic_ncols=True):
-            frames_cpu, labels_cpu = dataset[idx]  # labels_cpu: np.array[T] or similar
+            frames_cpu, labels_cpu = dataset[idx]
 
-            # Move frames to device
             frames_cuda = []
             for f in frames_cpu:
                 nodes = torch.as_tensor(f["nodes"], dtype=torch.float32, device=device)
@@ -140,12 +105,10 @@ def evaluate_model(
             if labels.dim() > 1:
                 labels = labels.view(-1)
 
-            # Forward
-            preds = model(frames_cuda)  # [T_pred]
+            preds = model(frames_cuda)
             if preds.dim() > 1:
                 preds = preds.view(-1)
 
-            # Align lengths
             T = min(preds.shape[0], labels.shape[0])
             if T == 0:
                 continue
@@ -159,17 +122,11 @@ def evaluate_model(
     if not all_scores:
         raise RuntimeError("[Eval] No valid sequences produced any predictions.")
 
-    scores = np.concatenate(all_scores, axis=0)   # [N_frames]
-    targets = np.concatenate(all_targets, axis=0) # [N_frames]
+    scores = np.concatenate(all_scores, axis=0)
+    targets = np.concatenate(all_targets, axis=0)
 
-    # ------------------------------
-    # Continuous regression metric
-    # ------------------------------
     mse = float(np.mean((scores - targets) ** 2))
 
-    # ------------------------------
-    # Binary classification metric
-    # ------------------------------
     bin_targets = (targets >= bin_thresh).astype(int)
 
     if np.unique(bin_targets).size < 2:
@@ -185,9 +142,6 @@ def evaluate_model(
     }
 
 
-# ---------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -204,14 +158,12 @@ def main():
     )
     args = parser.parse_args()
 
-    # Load config paths (graphs & labels)
     with open("configs/paths.yaml", "r") as f:
         paths_cfg = yaml.safe_load(f)
 
     graphs_dir = paths_cfg["paths"]["graphs"]
     labels_dir = paths_cfg["paths"]["labels"]
 
-    # Prefer user-provided val_index.json if it exists
     if os.path.exists("val_index.json"):
         index_json = "val_index.json"
         print("[Eval] Using existing validation index: val_index.json")
@@ -223,17 +175,13 @@ def main():
             out_json="eval_index.json",
         )
 
-    # Build dataset
     dataset = GraphSequenceDataset(index_json)
     print(f"[Eval] Dataset size = {len(dataset)} sequences")
 
-    # Infer dimensions
     node_dim, scene_dim, audio_dim = infer_dims(dataset)
 
-    # Device
     device = get_device()
 
-    # Model
     model = ViolenceTransformer(
         node_dim=node_dim,
         scene_dim=scene_dim,
@@ -244,12 +192,10 @@ def main():
         dropout=0.1,
     ).to(device)
 
-    # Load checkpoint
     print(f"[Eval] Loading checkpoint: {args.ckpt}")
     state = torch.load(args.ckpt, map_location=device)
     model.load_state_dict(state)
 
-    # Evaluate
     metrics = evaluate_model(
         model,
         dataset,

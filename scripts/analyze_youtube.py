@@ -1,26 +1,7 @@
 #!/usr/bin/env python3
-"""
-Violence Anticipation System - YouTube Video Analyzer
+"""Score a YouTube URL or local video with Qwen2.5-VL frame embeddings and the temporal LSTM.
 
-This script analyzes YouTube videos for violence anticipation using:
-1. Qwen2.5-VL for frame embeddings
-2. Temporal LSTM model for violence prediction
-
-Usage:
-    # Analyze a YouTube video (downloads temporarily)
-    python analyze_youtube.py --url "https://www.youtube.com/watch?v=VIDEO_ID"
-    
-    # Analyze a local video file
-    python analyze_youtube.py --video /path/to/video.mp4
-    
-    # Download video for later use
-    python analyze_youtube.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --download-only --output video.mp4
-    
-    # Adjust threshold and other parameters
-    python analyze_youtube.py --url "URL" --threshold 0.3 --fps 1.0
-
-Requirements:
-    pip install yt-dlp opencv-python torch transformers qwen-vl-utils pillow matplotlib
+Usage: python scripts/analyze_youtube.py (--url URL | --video PATH) [--threshold 0.3] [--download-only --output video.mp4]
 """
 
 import argparse
@@ -38,7 +19,6 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-# Optional imports with graceful fallback
 try:
     import matplotlib
     matplotlib.use('Agg')
@@ -47,10 +27,6 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-
-# ==============================================================================
-# Model Definition (must match training)
-# ==============================================================================
 
 class TemporalViolenceModel(nn.Module):
     """Temporal LSTM model matching train_temporal_model.py architecture."""
@@ -122,7 +98,6 @@ def load_model(model_path: str, device: str) -> Tuple[nn.Module, dict]:
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     state_dict = checkpoint['model_state_dict']
     
-    # Detect dimensions from state dict
     input_dim = state_dict['frame_encoder.0.weight'].shape[1]
     hidden_dim = state_dict['frame_encoder.0.weight'].shape[0]
     lstm_hidden = state_dict['lstm.weight_hh_l0'].shape[1]
@@ -149,24 +124,13 @@ def load_model(model_path: str, device: str) -> Tuple[nn.Module, dict]:
     return model, config
 
 
-# ==============================================================================
-# Video Processing
-# ==============================================================================
-
 def download_youtube_video(url: str, output_path: Optional[str] = None, max_duration: Optional[int] = None) -> str:
-    """Download YouTube video using yt-dlp.
-    
-    Args:
-        url: YouTube video URL
-        output_path: Output file path (optional)
-        max_duration: Maximum duration in seconds to download (for long videos/streams)
-    """
+    """Download with yt-dlp; long or live videos are cut to the first max_duration seconds."""
     import yt_dlp
     
     if output_path is None:
         output_path = tempfile.mktemp(suffix='.mp4')
     
-    # First, get video info without downloading
     print(f"Fetching video info from: {url}")
     with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
         info = ydl.extract_info(url, download=False)
@@ -182,7 +146,6 @@ def download_youtube_video(url: str, output_path: Optional[str] = None, max_dura
         elif was_live:
             print("  Status: Was a livestream")
     
-    # Configure download options
     ydl_opts = {
         'outtmpl': output_path,
         'quiet': False,
@@ -195,7 +158,6 @@ def download_youtube_video(url: str, output_path: Optional[str] = None, max_dura
         'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
     }
     
-    # For livestreams or very long videos, limit duration
     if max_duration and (is_live or was_live or (duration and duration > max_duration)):
         print(f"  Limiting download to first {max_duration} seconds...")
         ydl_opts['download_ranges'] = lambda info, ydl: [{'start_time': 0, 'end_time': max_duration}]
@@ -203,11 +165,10 @@ def download_youtube_video(url: str, output_path: Optional[str] = None, max_dura
         ydl_opts['external_downloader'] = 'ffmpeg'
         ydl_opts['external_downloader_args'] = {'ffmpeg': ['-t', str(max_duration)]}
     
-    # If it's a past livestream with HLS issues, try alternative approach
+    # past livestreams have HLS fragment issues
     if was_live:
         print("  Note: This was a livestream. Using alternative download method...")
         ydl_opts['format'] = 'best[height<=720]'
-        # Skip unavailable fragments instead of failing
         ydl_opts['fragment_retries'] = 3
         ydl_opts['skip_unavailable_fragments'] = True
     
@@ -256,7 +217,6 @@ def extract_frames(video_path: str, fps: float = 1.0) -> List[np.ndarray]:
             break
         
         if frame_idx % frame_interval == 0:
-            # Convert BGR to RGB
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(frame_rgb)
         
@@ -268,21 +228,8 @@ def extract_frames(video_path: str, fps: float = 1.0) -> List[np.ndarray]:
     return frames
 
 
-# ==============================================================================
-# Embedding Generation
-# ==============================================================================
-
 def load_vlm_model(device: str = "cuda", vlm_model_id: str = "Qwen/Qwen2.5-VL-7B-Instruct"):
-    """Load Qwen2.5-VL model for embedding generation.
-    
-    Tries to use the project's QwenTeacher first for compatibility.
-    Falls back to loading the model directly if QwenTeacher is not available.
-    
-    Args:
-        device: Device to use (e.g., "cuda:0", "cuda:1")
-        vlm_model_id: Model ID to load
-    """
-    # Try to use the project's QwenTeacher for perfect compatibility
+    """Load QwenTeacher (matches training embeddings); falls back to raw Qwen2.5-VL-3B, which does not."""
     try:
         import sys
         script_path = Path(__file__).resolve()
@@ -295,20 +242,19 @@ def load_vlm_model(device: str = "cuda", vlm_model_id: str = "Qwen/Qwen2.5-VL-7B
         print(f"Loading VLM via QwenTeacher: {vlm_model_id}")
         print(f"  Device: {device}")
         
-        # Configure for embedding extraction
         cfg = QwenTeacherConfig(
             model_id=vlm_model_id,
             device=device,
             dtype="bfloat16",
-            prompt_mode="violence_embedding",  # Use violence-focused prompts
-            context_mode="none",  # No temporal context needed for single frames
+            prompt_mode="violence_embedding",
+            context_mode="none",  # single frames, no temporal context
             attn_implementation="sdpa",
         )
         
         teacher = QwenTeacher(cfg)
         print("  Model loaded successfully (using QwenTeacher)")
         
-        # Return teacher as both model and processor (we'll handle it differently)
+        # QwenTeacher needs no separate processor
         return teacher, None
         
     except ImportError as e:
@@ -320,11 +266,10 @@ def load_vlm_model(device: str = "cuda", vlm_model_id: str = "Qwen/Qwen2.5-VL-7B
         traceback.print_exc()
         print("Falling back to direct model loading...")
     
-    # Fallback: Load model directly (uses smaller 3B model)
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
     
     print("Loading Qwen2.5-VL model directly...")
-    fallback_model = "Qwen/Qwen2.5-VL-3B-Instruct"  # Use smaller model for fallback
+    fallback_model = "Qwen/Qwen2.5-VL-3B-Instruct"
     print(f"  Using fallback model: {fallback_model}")
     print(f"  WARNING: This may not match your training embeddings!")
     
@@ -348,28 +293,11 @@ def generate_embeddings(
     target_dim: int = 3584,
     use_project_extractor: bool = True,
 ) -> np.ndarray:
-    """Generate embeddings for frames using Qwen2.5-VL.
-    
-    This function uses the project's QwenTeacher for embedding extraction
-    to ensure compatibility with trained models.
-    
-    Args:
-        frames: List of RGB frames as numpy arrays
-        vlm_model: Loaded QwenTeacher or Qwen2.5-VL model
-        vlm_processor: Model processor (None if using QwenTeacher)
-        device: Device to run inference on
-        batch_size: Not used currently (frame-by-frame processing)
-        target_dim: Target embedding dimension (3584 for training compatibility)
-        use_project_extractor: Try to use project's QwenTeacher class
-    
-    Returns:
-        embeddings: [num_frames, target_dim] array of embeddings
-    """
+    """Embed frames as [num_frames, target_dim] via QwenTeacher, else a generic pooling that does not match training."""
     embeddings = []
     
     print(f"Generating embeddings for {len(frames)} frames...")
     
-    # Check if we're using QwenTeacher
     try:
         from vlm.qwen_teacher import QwenTeacher
         is_qwen_teacher = isinstance(vlm_model, QwenTeacher)
@@ -384,11 +312,8 @@ def generate_embeddings(
             if (i + 1) % 10 == 0 or i == 0:
                 print(f"  Processing frame {i + 1}/{len(frames)}")
             
-            # Convert to PIL Image
             pil_image = Image.fromarray(frame)
             
-            # Use the teacher's embedding extraction method
-            # This uses violence_embedding prompt mode by default
             embedding = teacher.infer_embedding_only(pil_image)
             
             if embedding is None:
@@ -400,13 +325,11 @@ def generate_embeddings(
         embeddings = np.array(embeddings)
         print(f"  Generated embeddings: shape {embeddings.shape}")
         
-        # Check dimension
         if embeddings.shape[1] != target_dim:
             print(f"  Note: Embedding dimension {embeddings.shape[1]} differs from target {target_dim}")
         
         return embeddings
     
-    # Fallback: generic embedding extraction (may not match training)
     from qwen_vl_utils import process_vision_info
     
     print(f"  Using generic embedding extraction")
@@ -417,10 +340,8 @@ def generate_embeddings(
         if (i + 1) % 10 == 0 or i == 0:
             print(f"  Processing frame {i + 1}/{len(frames)}")
         
-        # Convert to PIL Image
         pil_image = Image.fromarray(frame)
         
-        # Prepare message format with violence-focused prompt
         messages = [{
             "role": "user",
             "content": [
@@ -429,7 +350,6 @@ def generate_embeddings(
             ]
         }]
         
-        # Process inputs
         text = vlm_processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         image_inputs, video_inputs = process_vision_info(messages)
         
@@ -441,14 +361,13 @@ def generate_embeddings(
             return_tensors="pt"
         ).to(device)
         
-        # Get embeddings from hidden states
         with torch.no_grad():
             outputs = vlm_model(**inputs, output_hidden_states=True)
             hidden_states = outputs.hidden_states
             last_hidden = hidden_states[-1]
             hidden_dim = last_hidden.shape[-1]
             
-            # Combine representations to reach target_dim
+            # last-layer mean + max, then earlier-layer means, cut or zero-padded to target_dim
             embedding_parts = []
             embedding_parts.append(last_hidden.mean(dim=1))
             embedding_parts.append(last_hidden.max(dim=1).values)
@@ -484,10 +403,6 @@ def generate_embeddings(
     return embeddings
 
 
-# ==============================================================================
-# Inference
-# ==============================================================================
-
 def run_inference(
     model: nn.Module,
     embeddings: np.ndarray,
@@ -499,7 +414,6 @@ def run_inference(
     n_frames = len(embeddings)
     scores = np.zeros(n_frames, dtype=np.float32)
     
-    # Pad beginning
     pad_size = sequence_length - 1
     padded = np.vstack([
         np.zeros((pad_size, embeddings.shape[1]), dtype=np.float32),
@@ -518,10 +432,6 @@ def run_inference(
     return scores
 
 
-# ==============================================================================
-# Visualization
-# ==============================================================================
-
 def plot_results(
     scores: np.ndarray,
     threshold: float,
@@ -538,11 +448,9 @@ def plot_results(
     
     fig, ax = plt.subplots(figsize=(14, 6))
     
-    # Plot scores
     ax.plot(times, scores, 'b-', linewidth=1.5, label='Violence Score')
     ax.axhline(y=threshold, color='r', linestyle='--', linewidth=1, label=f'Threshold ({threshold})')
     
-    # Highlight regions above threshold
     above_threshold = scores >= threshold
     ax.fill_between(times, 0, 1, where=above_threshold, alpha=0.3, color='red', label='Alert Region')
     
@@ -565,7 +473,6 @@ def print_alerts(scores: np.ndarray, threshold: float, fps: float):
     """Print detected alert periods."""
     above_threshold = scores >= threshold
     
-    # Find contiguous alert regions
     alerts = []
     in_alert = False
     alert_start = 0
@@ -604,10 +511,6 @@ def print_alerts(scores: np.ndarray, threshold: float, fps: float):
     print("=" * 60)
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser(
         description="Analyze YouTube videos for violence anticipation",
@@ -628,18 +531,15 @@ Examples:
         """
     )
     
-    # Input options
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument('--url', type=str, help='YouTube video URL')
     input_group.add_argument('--video', type=str, help='Path to local video file')
     
-    # Model options
     parser.add_argument('--model', type=str, default='outputs/outputs_temporal/best_temporal_model.pt',
                         help='Path to trained model checkpoint')
     parser.add_argument('--threshold', type=float, default=0.3,
                         help='Detection threshold (default: 0.3)')
     
-    # Processing options
     parser.add_argument('--fps', type=float, default=1.0,
                         help='Frames per second for analysis (default: 1.0)')
     parser.add_argument('--device', type=str, default='cuda:0',
@@ -647,20 +547,17 @@ Examples:
     parser.add_argument('--max-duration', type=int, default=300,
                         help='Max video duration in seconds to download (default: 300 = 5 min). Use 0 for no limit.')
     
-    # Output options
     parser.add_argument('--output', type=str, help='Output path for downloaded video')
     parser.add_argument('--plot', type=str, default='analysis_plot.png',
                         help='Output path for plot (default: analysis_plot.png)')
     parser.add_argument('--save-scores', type=str, help='Save scores to numpy file')
     parser.add_argument('--save-embeddings', type=str, help='Save embeddings to numpy file')
     
-    # Mode options
     parser.add_argument('--download-only', action='store_true',
                         help='Only download video, do not analyze')
     parser.add_argument('--skip-cleanup', action='store_true',
                         help='Do not delete temporary video file')
     
-    # Embedding options
     parser.add_argument('--embeddings', type=str, 
                         help='Load pre-computed embeddings instead of generating')
     parser.add_argument('--embedding-dim', type=int, default=3584,
@@ -670,12 +567,10 @@ Examples:
     
     args = parser.parse_args()
     
-    # Check device
     if args.device.startswith('cuda') and not torch.cuda.is_available():
         print(f"Warning: {args.device} not available, using CPU")
         args.device = 'cpu'
     
-    # Get video path
     video_path = None
     temp_video = False
     
@@ -695,53 +590,42 @@ Examples:
             sys.exit(1)
     
     try:
-        # Load embeddings or generate them
         if args.embeddings:
             print(f"Loading embeddings from: {args.embeddings}")
             embeddings = np.load(args.embeddings)
             print(f"  Loaded embeddings: shape {embeddings.shape}")
         else:
-            # Extract frames
             frames = extract_frames(video_path, args.fps)
             
-            # Load VLM and generate embeddings
             vlm_model, vlm_processor = load_vlm_model(args.device, args.vlm_model)
             embeddings = generate_embeddings(
                 frames, vlm_model, vlm_processor, args.device,
                 target_dim=args.embedding_dim
             )
             
-            # Clean up VLM model to free memory
             del vlm_model, vlm_processor
             torch.cuda.empty_cache()
             
-            # Save embeddings if requested
             if args.save_embeddings:
                 np.save(args.save_embeddings, embeddings)
                 print(f"Embeddings saved to: {args.save_embeddings}")
         
-        # Load temporal model
         print(f"\nLoading model from: {args.model}")
         model, config = load_model(args.model, args.device)
         print(f"  Input dim: {config['input_dim']}, Sequence length: {config['sequence_length']}")
         
-        # Run inference
         scores = run_inference(model, embeddings, config['sequence_length'], args.device)
         
-        # Save scores if requested
         if args.save_scores:
             np.save(args.save_scores, scores)
             print(f"Scores saved to: {args.save_scores}")
         
-        # Print results
         print_alerts(scores, args.threshold, args.fps)
         
-        # Plot results
         if args.plot:
             plot_results(scores, args.threshold, args.fps, args.plot)
         
     finally:
-        # Cleanup temporary video
         if temp_video and video_path and os.path.exists(video_path):
             os.remove(video_path)
             print(f"Cleaned up temporary video file")

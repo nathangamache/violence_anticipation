@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""
-Temporal Violence Anticipation Model
-
-This version uses temporal context (sequence of frames) instead of single-frame
-classification. This should significantly reduce false alarms by:
-1. Requiring consistent predictions across multiple frames
-2. Learning temporal patterns that precede violence
-3. Better distinguishing brief anomalies from real threats
-
-Key improvements:
-- LSTM/GRU to model temporal dependencies
-- Sequence-level training (not just frame-level)
-- Multi-scale temporal attention
-- Confidence calibration
-"""
+"""BiLSTM + attention model over sliding windows of frame embeddings for violence anticipation."""
 
 import argparse
 import json
@@ -34,26 +20,14 @@ from sklearn.metrics import (
 )
 from tqdm import tqdm
 
-# Matplotlib setup for non-interactive backend
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# ==============================================================================
-# Temporal Model Architecture
-# ==============================================================================
 class TemporalViolenceModel(nn.Module):
-    """
-    Temporal model that processes sequences of embeddings.
-    
-    Architecture:
-    1. Frame encoder: Projects each frame embedding
-    2. Temporal encoder: LSTM/GRU to capture temporal patterns
-    3. Attention: Weighs important frames in the sequence
-    4. Classifier: Predicts violence probability
-    """
+    """Per-frame MLP encoder -> (Bi)LSTM -> attention pooling -> logit."""
     
     def __init__(
         self,
@@ -70,7 +44,6 @@ class TemporalViolenceModel(nn.Module):
         self.use_attention = use_attention
         self.bidirectional = bidirectional
         
-        # Frame encoder
         self.frame_encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.LayerNorm(hidden_dim),
@@ -82,7 +55,6 @@ class TemporalViolenceModel(nn.Module):
             nn.Dropout(dropout),
         )
         
-        # Temporal encoder (LSTM)
         self.lstm = nn.LSTM(
             input_size=hidden_dim,
             hidden_size=lstm_hidden,
@@ -94,7 +66,6 @@ class TemporalViolenceModel(nn.Module):
         
         lstm_output_dim = lstm_hidden * 2 if bidirectional else lstm_hidden
         
-        # Attention mechanism
         if use_attention:
             self.attention = nn.Sequential(
                 nn.Linear(lstm_output_dim, 64),
@@ -102,7 +73,6 @@ class TemporalViolenceModel(nn.Module):
                 nn.Linear(64, 1),
             )
         
-        # Classifier
         self.classifier = nn.Sequential(
             nn.Linear(lstm_output_dim, 64),
             nn.GELU(),
@@ -126,24 +96,14 @@ class TemporalViolenceModel(nn.Module):
                         nn.init.zeros_(param)
     
     def forward(self, x: torch.Tensor, lengths: Optional[torch.Tensor] = None) -> torch.Tensor:
-        """
-        Args:
-            x: [B, T, D] - Batch of sequences
-            lengths: [B] - Actual lengths (for variable length sequences)
-        
-        Returns:
-            logits: [B] - Violence prediction for each sequence
-        """
+        """x: [B, T, D], optional lengths: [B] -> logits [B]."""
         B, T, D = x.shape
         
-        # Encode each frame
         x_flat = x.view(B * T, D)
         encoded = self.frame_encoder(x_flat)
         encoded = encoded.view(B, T, -1)
         
-        # Temporal encoding
         if lengths is not None:
-            # Pack for variable length sequences
             packed = nn.utils.rnn.pack_padded_sequence(
                 encoded, lengths.cpu(), batch_first=True, enforce_sorted=False
             )
@@ -152,17 +112,13 @@ class TemporalViolenceModel(nn.Module):
         else:
             lstm_out, _ = self.lstm(encoded)
         
-        # Aggregate temporal features
         if self.use_attention:
-            # Attention-weighted pooling
-            attn_weights = self.attention(lstm_out)  # [B, T, 1]
+            attn_weights = self.attention(lstm_out)
             attn_weights = F.softmax(attn_weights, dim=1)
-            context = (lstm_out * attn_weights).sum(dim=1)  # [B, hidden]
+            context = (lstm_out * attn_weights).sum(dim=1)
         else:
-            # Just use last hidden state
             context = lstm_out[:, -1, :]
         
-        # Classify
         logits = self.classifier(context).squeeze(-1)
         
         return logits
@@ -186,16 +142,8 @@ class TemporalViolenceModel(nn.Module):
         return logits, attn_weights.squeeze(-1)
 
 
-# ==============================================================================
-# Sequence Dataset
-# ==============================================================================
 class TemporalViolenceDataset(Dataset):
-    """
-    Dataset that returns sequences of frames for temporal modeling.
-    
-    Each sample is a window of consecutive frames with a label indicating
-    whether violence occurs within the prediction horizon.
-    """
+    """Windows of sequence_length rows; label = any violence in the window or the next horizon_sec * fps rows."""
     
     def __init__(
         self,
@@ -203,7 +151,7 @@ class TemporalViolenceDataset(Dataset):
         sequence_length: int = 30,
         horizon_sec: float = 30.0,
         fps: float = 1.0,
-        stride: int = 5,  # How many frames to skip between sequences
+        stride: int = 5,
         augment: bool = False,
     ):
         self.sequence_length = sequence_length
@@ -215,28 +163,21 @@ class TemporalViolenceDataset(Dataset):
         self._build_sequences(video_data)
     
     def _build_sequences(self, video_data: List[Dict]):
-        """Build sequence samples from video data."""
-        
         for video in video_data:
             embeddings = video['embeddings']
             labels = video['labels']
             
-            # Slide window across video
             for start in range(0, len(embeddings) - self.sequence_length + 1, self.stride):
                 end = start + self.sequence_length
                 
-                # Get sequence
                 seq_emb = embeddings[start:end]
                 seq_labels = labels[start:end]
                 
-                # Label: is there violence in the horizon after the sequence?
                 horizon_end = min(end + self.horizon_frames, len(labels))
                 future_violence = labels[end:horizon_end].max() if horizon_end > end else 0
                 
-                # Also consider violence during the sequence
                 current_violence = seq_labels.max()
                 
-                # Positive if violence in current sequence or upcoming horizon
                 label = max(current_violence, future_violence)
                 
                 self.sequences.append({
@@ -258,9 +199,7 @@ class TemporalViolenceDataset(Dataset):
         embeddings = torch.tensor(seq['embeddings'], dtype=torch.float32)
         label = torch.tensor(seq['label'], dtype=torch.float32)
         
-        # Data augmentation
         if self.augment and np.random.random() < 0.5:
-            # Random temporal jittering (small shifts)
             if np.random.random() < 0.3:
                 noise = torch.randn_like(embeddings) * 0.01
                 embeddings = embeddings + noise
@@ -271,9 +210,6 @@ class TemporalViolenceDataset(Dataset):
         }
 
 
-# ==============================================================================
-# Data Loading Helpers
-# ==============================================================================
 def classify_video_source(video_id: str) -> str:
     if '_x264' in video_id:
         return 'ucf_crime'
@@ -394,9 +330,6 @@ def load_video_data(
     return video_data
 
 
-# ==============================================================================
-# Training
-# ==============================================================================
 class FocalLoss(nn.Module):
     def __init__(self, alpha: float = 0.75, gamma: float = 2.0):
         super().__init__()
@@ -471,7 +404,6 @@ def evaluate(model, loader, device):
         'scores': all_scores,
     }
     
-    # Find best threshold
     precision, recall, thresholds = precision_recall_curve(all_labels, all_scores)
     f1_scores = 2 * precision * recall / (precision + recall + 1e-8)
     best_idx = np.argmax(f1_scores[:-1])
@@ -484,17 +416,11 @@ def evaluate(model, loader, device):
     return metrics
 
 
-# ==============================================================================
-# Visualization Functions
-# ==============================================================================
-
 def plot_training_curves(history: Dict, output_dir: Path):
-    """Plot training and validation loss/metrics over epochs."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     epochs = range(1, len(history['train_loss']) + 1)
     
-    # Loss curves
     ax = axes[0]
     ax.plot(epochs, history['train_loss'], 'b-', label='Train Loss', linewidth=2)
     ax.set_xlabel('Epoch')
@@ -503,12 +429,10 @@ def plot_training_curves(history: Dict, output_dir: Path):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # ROC-AUC curves
     ax = axes[1]
     ax.plot(epochs, history['train_roc_auc'], 'b-', label='Train ROC-AUC', linewidth=2)
     ax.plot(epochs, history['val_roc_auc'], 'r-', label='Val ROC-AUC', linewidth=2)
     
-    # Mark best epoch
     best_epoch = np.argmax(history['val_roc_auc']) + 1
     best_val_roc = max(history['val_roc_auc'])
     ax.axvline(x=best_epoch, color='g', linestyle='--', alpha=0.7, label=f'Best Epoch ({best_epoch})')
@@ -526,7 +450,6 @@ def plot_training_curves(history: Dict, output_dir: Path):
 
 
 def plot_roc_curve(labels: np.ndarray, scores: np.ndarray, output_path: Path, title: str = "ROC Curve"):
-    """Plot ROC curve."""
     fpr, tpr, thresholds = roc_curve(labels, scores)
     roc_auc = roc_auc_score(labels, scores)
     
@@ -549,7 +472,6 @@ def plot_roc_curve(labels: np.ndarray, scores: np.ndarray, output_path: Path, ti
 
 
 def plot_pr_curve(labels: np.ndarray, scores: np.ndarray, output_path: Path, title: str = "Precision-Recall Curve"):
-    """Plot Precision-Recall curve."""
     precision, recall, thresholds = precision_recall_curve(labels, scores)
     pr_auc = average_precision_score(labels, scores)
     baseline = labels.mean()
@@ -573,7 +495,6 @@ def plot_pr_curve(labels: np.ndarray, scores: np.ndarray, output_path: Path, tit
 
 
 def plot_score_distribution(labels: np.ndarray, scores: np.ndarray, output_path: Path, title: str = "Score Distribution"):
-    """Plot score distributions for positive and negative classes."""
     fig, ax = plt.subplots(figsize=(10, 6))
     
     neg_scores = scores[labels == 0]
@@ -594,7 +515,6 @@ def plot_score_distribution(labels: np.ndarray, scores: np.ndarray, output_path:
 
 
 def plot_confusion_matrix(labels: np.ndarray, scores: np.ndarray, threshold: float, output_path: Path, title: str = "Confusion Matrix"):
-    """Plot confusion matrix at given threshold."""
     preds = (scores >= threshold).astype(int)
     cm = confusion_matrix(labels, preds)
     
@@ -610,7 +530,6 @@ def plot_confusion_matrix(labels: np.ndarray, scores: np.ndarray, threshold: flo
 
 
 def plot_threshold_sweep(labels: np.ndarray, scores: np.ndarray, output_path: Path, title: str = "Threshold Sweep"):
-    """Plot precision, recall, F1 across thresholds."""
     thresholds = np.linspace(0, 1, 100)
     precisions = []
     recalls = []
@@ -635,7 +554,6 @@ def plot_threshold_sweep(labels: np.ndarray, scores: np.ndarray, output_path: Pa
     ax.plot(thresholds, recalls, 'r-', label='Recall', linewidth=2)
     ax.plot(thresholds, f1s, 'g-', label='F1', linewidth=2)
     
-    # Mark best F1
     best_idx = np.argmax(f1s)
     best_thresh = thresholds[best_idx]
     best_f1 = f1s[best_idx]
@@ -656,7 +574,6 @@ def plot_threshold_sweep(labels: np.ndarray, scores: np.ndarray, output_path: Pa
 
 
 def plot_learning_rate(lr_history: List[float], output_path: Path):
-    """Plot learning rate schedule."""
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(range(1, len(lr_history) + 1), lr_history, 'b-', linewidth=2)
     ax.set_xlabel('Epoch')
@@ -680,10 +597,8 @@ def create_summary_figure(
     test_metrics: Dict,
     output_path: Path,
 ):
-    """Create a single summary figure with all key plots."""
     fig = plt.figure(figsize=(20, 15))
     
-    # 1. Training curves (top left)
     ax1 = fig.add_subplot(3, 3, 1)
     epochs = range(1, len(history['train_loss']) + 1)
     ax1.plot(epochs, history['train_roc_auc'], 'b-', label='Train', linewidth=2)
@@ -696,7 +611,6 @@ def create_summary_figure(
     ax1.legend()
     ax1.grid(True, alpha=0.3)
     
-    # 2. Validation ROC (top middle)
     ax2 = fig.add_subplot(3, 3, 2)
     fpr, tpr, _ = roc_curve(val_labels, val_scores)
     ax2.plot(fpr, tpr, 'b-', linewidth=2, label=f'AUC={val_metrics["roc_auc"]:.4f}')
@@ -707,7 +621,6 @@ def create_summary_figure(
     ax2.legend()
     ax2.grid(True, alpha=0.3)
     
-    # 3. Test ROC (top right)
     ax3 = fig.add_subplot(3, 3, 3)
     fpr, tpr, _ = roc_curve(test_labels, test_scores)
     ax3.plot(fpr, tpr, 'b-', linewidth=2, label=f'AUC={test_metrics["roc_auc"]:.4f}')
@@ -718,7 +631,6 @@ def create_summary_figure(
     ax3.legend()
     ax3.grid(True, alpha=0.3)
     
-    # 4. Validation PR (middle left)
     ax4 = fig.add_subplot(3, 3, 4)
     precision, recall, _ = precision_recall_curve(val_labels, val_scores)
     ax4.plot(recall, precision, 'b-', linewidth=2, label=f'AUC={val_metrics["pr_auc"]:.4f}')
@@ -729,7 +641,6 @@ def create_summary_figure(
     ax4.legend()
     ax4.grid(True, alpha=0.3)
     
-    # 5. Test PR (middle middle)
     ax5 = fig.add_subplot(3, 3, 5)
     precision, recall, _ = precision_recall_curve(test_labels, test_scores)
     ax5.plot(recall, precision, 'b-', linewidth=2, label=f'AUC={test_metrics["pr_auc"]:.4f}')
@@ -740,7 +651,6 @@ def create_summary_figure(
     ax5.legend()
     ax5.grid(True, alpha=0.3)
     
-    # 6. Score distribution (middle right)
     ax6 = fig.add_subplot(3, 3, 6)
     ax6.hist(test_scores[test_labels == 0], bins=30, alpha=0.6, label='Negative', color='blue', density=True)
     ax6.hist(test_scores[test_labels == 1], bins=30, alpha=0.6, label='Positive', color='red', density=True)
@@ -751,7 +661,6 @@ def create_summary_figure(
     ax6.legend()
     ax6.grid(True, alpha=0.3)
     
-    # 7. Confusion matrix (bottom left)
     ax7 = fig.add_subplot(3, 3, 7)
     preds = (test_scores >= test_metrics['best_threshold']).astype(int)
     cm = confusion_matrix(test_labels, preds)
@@ -760,7 +669,6 @@ def create_summary_figure(
     ax7.set_ylabel('Actual')
     ax7.set_title(f'Test Confusion Matrix @ {test_metrics["best_threshold"]:.3f}')
     
-    # 8. Threshold sweep (bottom middle)
     ax8 = fig.add_subplot(3, 3, 8)
     thresholds = np.linspace(0, 1, 50)
     f1s = []
@@ -781,7 +689,6 @@ def create_summary_figure(
     ax8.set_title('Test F1 vs Threshold')
     ax8.grid(True, alpha=0.3)
     
-    # 9. Summary text (bottom right)
     ax9 = fig.add_subplot(3, 3, 9)
     ax9.axis('off')
     
@@ -825,7 +732,6 @@ def generate_all_visualizations(
     lr_history: List[float],
     output_dir: Path,
 ):
-    """Generate all visualization plots."""
     graphs_dir = output_dir / 'graphs'
     graphs_dir.mkdir(exist_ok=True)
     
@@ -836,41 +742,33 @@ def generate_all_visualizations(
     
     print("Generating visualizations...")
     
-    # Training curves
     print("  - Training curves...")
     plot_training_curves(history, graphs_dir)
     
-    # ROC curves
     print("  - ROC curves...")
     plot_roc_curve(val_labels, val_scores, graphs_dir / 'roc_curve_val.png', 'Validation ROC Curve')
     plot_roc_curve(test_labels, test_scores, graphs_dir / 'roc_curve_test.png', 'Test ROC Curve')
     
-    # PR curves
     print("  - PR curves...")
     plot_pr_curve(val_labels, val_scores, graphs_dir / 'pr_curve_val.png', 'Validation PR Curve')
     plot_pr_curve(test_labels, test_scores, graphs_dir / 'pr_curve_test.png', 'Test PR Curve')
     
-    # Score distributions
     print("  - Score distributions...")
     plot_score_distribution(val_labels, val_scores, graphs_dir / 'score_distribution_val.png', 'Validation Score Distribution')
     plot_score_distribution(test_labels, test_scores, graphs_dir / 'score_distribution_test.png', 'Test Score Distribution')
     
-    # Confusion matrices
     print("  - Confusion matrices...")
     plot_confusion_matrix(val_labels, val_scores, val_metrics['best_threshold'], graphs_dir / 'confusion_matrix_val.png', 'Validation Confusion Matrix')
     plot_confusion_matrix(test_labels, test_scores, test_metrics['best_threshold'], graphs_dir / 'confusion_matrix_test.png', 'Test Confusion Matrix')
     
-    # Threshold sweeps
     print("  - Threshold sweeps...")
     plot_threshold_sweep(val_labels, val_scores, graphs_dir / 'threshold_sweep_val.png', 'Validation Threshold Sweep')
     plot_threshold_sweep(test_labels, test_scores, graphs_dir / 'threshold_sweep_test.png', 'Test Threshold Sweep')
     
-    # Learning rate
     print("  - Learning rate schedule...")
     if lr_history:
         plot_learning_rate(lr_history, graphs_dir / 'learning_rate.png')
     
-    # Summary figure
     print("  - Summary figure...")
     create_summary_figure(
         history, val_labels, val_scores, test_labels, test_scores,
@@ -880,13 +778,9 @@ def generate_all_visualizations(
     print(f"Visualizations saved to {graphs_dir}/")
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Train Temporal Violence Model")
     
-    # Data
     parser.add_argument('--embeddings_dir', type=str, default='data/processed/vlm_emb')
     parser.add_argument('--labels_dir', type=str, default='data/processed/labels_multih')
     parser.add_argument('--train_index', type=str, default='train_index.json')
@@ -894,7 +788,6 @@ def main():
     parser.add_argument('--test_index', type=str, default='test_index.json')
     parser.add_argument('--source_filter', type=str, default='xd_violence')
     
-    # Model
     parser.add_argument('--input_dim', type=int, default=3584)
     parser.add_argument('--hidden_dim', type=int, default=256)
     parser.add_argument('--lstm_hidden', type=int, default=128)
@@ -903,7 +796,6 @@ def main():
     parser.add_argument('--sequence_length', type=int, default=30)
     parser.add_argument('--stride', type=int, default=5)
     
-    # Training
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--patience', type=int, default=15)
     parser.add_argument('--batch_size', type=int, default=64)
@@ -912,11 +804,9 @@ def main():
     parser.add_argument('--focal_alpha', type=float, default=0.75)
     parser.add_argument('--focal_gamma', type=float, default=2.0)
     
-    # Task
     parser.add_argument('--horizon_sec', type=float, default=30.0)
     parser.add_argument('--fps', type=float, default=1.0)
     
-    # Output
     parser.add_argument('--output_dir', type=str, default='./outputs_temporal')
     parser.add_argument('--device', type=str, default='cuda:1')
     
@@ -925,11 +815,9 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     output_dir = Path(args.output_dir)
     
-    # Save args
     with open(output_dir / 'args.json', 'w') as f:
         json.dump(vars(args), f, indent=2)
     
-    # Device
     if args.device.startswith('cuda') and not torch.cuda.is_available():
         print(f"Warning: {args.device} not available, using CPU")
         device = torch.device('cpu')
@@ -937,7 +825,6 @@ def main():
         device = torch.device(args.device)
     print(f"Using device: {device}")
     
-    # Load data
     print("\nLoading video data...")
     train_videos = load_video_data(
         args.train_index, Path(args.embeddings_dir), Path(args.labels_dir), args.source_filter
@@ -951,7 +838,6 @@ def main():
     
     print(f"Loaded: {len(train_videos)} train, {len(val_videos)} val, {len(test_videos)} test videos")
     
-    # Create datasets
     print("\nBuilding sequence datasets...")
     train_dataset = TemporalViolenceDataset(
         train_videos, 
@@ -978,12 +864,10 @@ def main():
         augment=False,
     )
     
-    # Dataloaders
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    # Model
     model = TemporalViolenceModel(
         input_dim=args.input_dim,
         hidden_dim=args.hidden_dim,
@@ -994,12 +878,10 @@ def main():
     
     print(f"\nModel parameters: {sum(p.numel() for p in model.parameters()):,}")
     
-    # Training setup
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
     criterion = FocalLoss(alpha=args.focal_alpha, gamma=args.focal_gamma)
     
-    # Training loop with history tracking
     best_val_roc = 0
     best_model_state = None
     epochs_without_improvement = 0
@@ -1022,7 +904,6 @@ def main():
     for epoch in range(args.epochs):
         print(f"\nEpoch {epoch + 1}/{args.epochs}")
         
-        # Record learning rate
         lr_history.append(optimizer.param_groups[0]['lr'])
         
         train_metrics = train_epoch(model, train_loader, optimizer, criterion, device)
@@ -1030,7 +911,6 @@ def main():
         
         scheduler.step()
         
-        # Record history
         history['train_loss'].append(train_metrics['loss'])
         history['train_roc_auc'].append(train_metrics['roc_auc'])
         history['train_pr_auc'].append(train_metrics['pr_auc'])
@@ -1054,10 +934,8 @@ def main():
                 print(f"\nEarly stopping after {args.patience} epochs without improvement")
                 break
     
-    # Load best model
     model.load_state_dict(best_model_state)
     
-    # Final evaluation
     print("\n" + "="*60)
     print("FINAL EVALUATION")
     print("="*60)
@@ -1075,7 +953,6 @@ def main():
     print(f"  PR-AUC: {test_metrics['pr_auc']:.4f}")
     print(f"  Best F1: {test_metrics['best_f1']:.4f} @ thresh={test_metrics['best_threshold']:.3f}")
     
-    # Save model
     save_path = output_dir / 'best_temporal_model.pt'
     torch.save({
         'model_state_dict': best_model_state,
@@ -1087,14 +964,12 @@ def main():
     }, save_path)
     print(f"\nModel saved to {save_path}")
     
-    # Generate visualizations
     print("\n" + "="*60)
     print("GENERATING VISUALIZATIONS")
     print("="*60)
     
     generate_all_visualizations(history, val_metrics, test_metrics, lr_history, output_dir)
     
-    # Save final metrics as JSON
     final_metrics = {
         'validation': {k: float(v) if isinstance(v, (np.floating, float)) else v 
                        for k, v in val_metrics.items() if k not in ['labels', 'scores']},

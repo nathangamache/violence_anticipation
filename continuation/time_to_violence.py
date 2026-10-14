@@ -1,37 +1,4 @@
-"""
-time_to_violence.py
-====================
-Time-to-violence heuristic for the RTSP inference pipeline.
-
-Adds a `TimeToViolenceEstimator` class that wraps the raw violence probability
-score and produces:
-  1. A human-readable lead-time estimate ("~20-30s")
-  2. An alert tier (WATCH / ALERT / IMMINENT / ACTIVE)
-  3. A confidence level based on score stability
-
-Background:
-  From evaluation on XD-Violence, the model's average lead time when it first
-  triggers on a pre-violence window is 26.9 seconds. We use this as the
-  calibration anchor.
-
-  The key insight: instead of just thresholding (alert/no-alert), we can use
-  the RATE OF CHANGE of the violence score to estimate how close the event is.
-  A slowly rising score from a low base → longer lead time.
-  A rapidly rising score already near threshold → shorter lead time.
-
-Usage (drop-in addition to rtsp_inference.py):
-
-    from time_to_violence import TimeToViolenceEstimator, AlertState
-
-    ttv = TimeToViolenceEstimator(fps=1.0)
-
-    # In the inference loop, replace:
-    #   is_alert = score > threshold
-    # with:
-    alert = ttv.update(score, timestamp)
-    if alert.tier != AlertState.CLEAR:
-        print(f"[{alert.tier.name}] Score={score:.3f}  ETA={alert.eta_str}  Conf={alert.confidence:.2f}")
-"""
+"""Alert tiers and a heuristic time-to-violence estimate from per-second violence scores (run directly for a demo)."""
 
 import time
 from collections import deque
@@ -41,59 +8,38 @@ from typing import Optional
 
 
 class AlertState(Enum):
-    CLEAR    = 0   # score below watch threshold
-    WATCH    = 1   # elevated score, monitoring
-    ALERT    = 2   # score above alert threshold, estimating lead time
-    IMMINENT = 3   # score high and rising fast, <15s estimated
-    ACTIVE   = 4   # score above detection threshold, violence likely occurring
+    CLEAR    = 0
+    WATCH    = 1
+    ALERT    = 2
+    IMMINENT = 3
+    ACTIVE   = 4
 
 
 @dataclass
 class AlertOutput:
-    """Output from TimeToViolenceEstimator.update()"""
     tier: AlertState
     score: float
-    eta_seconds: Optional[float]       # estimated seconds until violence
-    eta_str: str                       # human-readable e.g. "~20-30s"
-    confidence: float                  # 0-1, based on score stability
-    score_velocity: float              # rate of change (score/second)
-    sustained_seconds: float           # how long score has been elevated
+    eta_seconds: Optional[float]
+    eta_str: str                       # e.g. "~20-30s"
+    confidence: float                  # 0-1
+    score_velocity: float              # score units per second
+    sustained_seconds: float           # seconds since first reaching ALERT
     timestamp: float
 
 
-# ──────────────────────────────────────────────
-# Thresholds (tunable)
-# ──────────────────────────────────────────────
+THRESHOLD_WATCH     = 0.30
+THRESHOLD_ALERT     = 0.45
+THRESHOLD_IMMINENT  = 0.65
+THRESHOLD_ACTIVE    = 0.75
 
-THRESHOLD_WATCH     = 0.30   # start monitoring
-THRESHOLD_ALERT     = 0.45   # raise alert, begin ETA estimate
-THRESHOLD_IMMINENT  = 0.65   # high confidence, short lead time
-THRESHOLD_ACTIVE    = 0.75   # violence likely occurring now
-
-# From XD-Violence evaluation: average lead time at first alert trigger
+# Mean lead time at first alert in the XD-Violence evaluation (final/high_sensitivity/results.json)
 BASELINE_LEAD_TIME_SECONDS = 26.9
 
-# How many historical scores to keep for velocity computation
 VELOCITY_WINDOW_SECONDS = 10
 
 
 class TimeToViolenceEstimator:
-    """
-    Wraps a frame-by-frame violence probability score and produces
-    structured alert outputs with time-to-violence estimates.
-
-    Parameters
-    ----------
-    fps : float
-        Frame rate at which scores are fed in (typically 1.0 for this system)
-    ema_alpha : float
-        EMA smoothing applied to incoming scores before analysis.
-        Reduces jitter. 0.3 = moderate smoothing.
-    thresholds : dict, optional
-        Override default thresholds.
-    baseline_lead_time : float
-        Calibrated average lead time in seconds (from XD-Violence eval).
-    """
+    """EMA-smooth per-frame violence scores and emit an AlertOutput (tier, ETA, confidence) on each update."""
 
     def __init__(
         self,
@@ -115,7 +61,6 @@ class TimeToViolenceEstimator:
         if thresholds:
             self.thresh.update(thresholds)
 
-        # State
         self._ema_score: float = 0.0
         self._score_history: deque = deque(maxlen=int(VELOCITY_WINDOW_SECONDS * fps))
         self._time_history: deque = deque(maxlen=int(VELOCITY_WINDOW_SECONDS * fps))
@@ -133,22 +78,12 @@ class TimeToViolenceEstimator:
         self._frame_count = 0
 
     def update(self, raw_score: float, timestamp: Optional[float] = None) -> AlertOutput:
-        """
-        Feed one new score. Returns an AlertOutput.
-
-        Parameters
-        ----------
-        raw_score : float
-            Violence probability in [0, 1] from the model
-        timestamp : float, optional
-            Unix timestamp (defaults to time.time())
-        """
+        """Feed one raw model score in [0, 1] and return the current alert."""
         if timestamp is None:
             timestamp = time.time()
 
         self._frame_count += 1
 
-        # EMA smoothing
         if self._frame_count == 1:
             self._ema_score = raw_score
         else:
@@ -160,13 +95,10 @@ class TimeToViolenceEstimator:
         self._score_history.append(score)
         self._time_history.append(timestamp)
 
-        # ── Score velocity ─────────────────────
         velocity = self._compute_velocity()
 
-        # ── Determine tier ─────────────────────
         tier = self._classify_tier(score, velocity)
 
-        # ── Track sustained alert time ─────────
         if tier.value >= AlertState.ALERT.value:
             if self._alert_start_time is None:
                 self._alert_start_time = timestamp
@@ -176,10 +108,8 @@ class TimeToViolenceEstimator:
                 self._alert_start_time = None
             sustained = 0.0
 
-        # ── ETA estimate ───────────────────────
         eta_seconds, eta_str = self._estimate_eta(score, velocity, tier, sustained)
 
-        # ── Confidence ─────────────────────────
         confidence = self._compute_confidence(score, velocity)
 
         self._prev_tier = tier
@@ -196,7 +126,7 @@ class TimeToViolenceEstimator:
         )
 
     def _compute_velocity(self) -> float:
-        """Score change per second over the recent window."""
+        """Least-squares slope of the smoothed score over the recent window (score units per second)."""
         if len(self._score_history) < 3:
             return 0.0
         scores = list(self._score_history)
@@ -204,7 +134,6 @@ class TimeToViolenceEstimator:
         dt = times[-1] - times[0]
         if dt < 0.5:
             return 0.0
-        # Linear regression slope
         n = len(scores)
         t_arr = [times[i] - times[0] for i in range(n)]
         s_arr = scores
@@ -212,16 +141,14 @@ class TimeToViolenceEstimator:
         s_mean = sum(s_arr) / n
         num = sum((t_arr[i] - t_mean) * (s_arr[i] - s_mean) for i in range(n))
         den = sum((t_arr[i] - t_mean) ** 2 for i in range(n)) + 1e-8
-        return num / den  # score units per second
+        return num / den
 
     def _classify_tier(self, score: float, velocity: float) -> AlertState:
-        """Map score + velocity to an alert tier."""
         if score >= self.thresh["active"]:
             return AlertState.ACTIVE
         elif score >= self.thresh["imminent"]:
             return AlertState.IMMINENT
         elif score >= self.thresh["alert"]:
-            # Fast-rising score near threshold → bump to IMMINENT
             if velocity > 0.03 and score > self.thresh["alert"] + 0.05:
                 return AlertState.IMMINENT
             return AlertState.ALERT
@@ -237,54 +164,36 @@ class TimeToViolenceEstimator:
         tier: AlertState,
         sustained: float,
     ):
-        """
-        Estimate time to violence in seconds using a score-bracketed heuristic.
-
-        The approach:
-          - Anchor: at ALERT threshold (~0.45), baseline lead time = 26.9s
-          - As score rises toward ACTIVE threshold (~0.75), lead time shrinks
-          - Velocity modifies the estimate: fast rise → shorter ETA
-          - Sustained time past alert reduces ETA (we are already inside the window)
-        """
+        """Score-bracketed ETA: baseline lead time at ALERT down to 5 s at ACTIVE, adjusted for velocity and time in alert."""
         if tier == AlertState.CLEAR:
             return None, "N/A"
 
         if tier == AlertState.ACTIVE:
             return 0.0, "NOW"
 
-        # Base ETA from score bracket
         alert_range = self.thresh["active"] - self.thresh["alert"]
         if alert_range > 0:
             progress = max(0.0, min(1.0, (score - self.thresh["alert"]) / alert_range))
         else:
             progress = 0.0
 
-        # At progress=0 (just hit alert): full baseline lead time
-        # At progress=1 (just below active): 5s
         base_eta = self.baseline_lead_time * (1 - progress) + 5.0 * progress
 
-        # Velocity adjustment: fast rise means the event is accelerating toward us
         if velocity > 0.02:
-            # Fast rise: subtract up to 8s
             velocity_adjustment = min(8.0, velocity * 200.0)
             base_eta = max(5.0, base_eta - velocity_adjustment)
         elif velocity < -0.01:
-            # Falling score: add some time
             base_eta = min(base_eta + 5.0, self.baseline_lead_time * 1.5)
 
-        # Subtract time already spent in alert state
         eta = max(3.0, base_eta - sustained * 0.5)
 
-        # Watch tier: no reliable estimate yet
         if tier == AlertState.WATCH:
             return None, ">30s"
 
-        # Round to nearest 5s and express as range
         eta_low = max(5, int(eta / 5) * 5 - 5)
         eta_high = eta_low + 10
         eta_str = f"~{eta_low}-{eta_high}s"
 
-        # Imminent: tighter range
         if tier == AlertState.IMMINENT:
             if eta < 10:
                 eta_str = "<10s"
@@ -296,21 +205,13 @@ class TimeToViolenceEstimator:
         return eta, eta_str
 
     def _compute_confidence(self, score: float, velocity: float) -> float:
-        """
-        Confidence in the estimate: 0-1.
-        Higher when:
-          - Score is well above threshold (not borderline)
-          - Score has been elevated for multiple frames (not a spike)
-          - Velocity is positive (rising, not falling)
-        """
+        """Confidence in [0, 1] from the margin above ALERT, recent score stability and whether the score is rising."""
         if score < self.thresh["watch"]:
             return 0.0
 
-        # Score margin above alert threshold
         margin = (score - self.thresh["alert"]) / (1.0 - self.thresh["alert"] + 1e-8)
         margin = max(0.0, min(1.0, margin))
 
-        # History stability (variance of recent scores)
         if len(self._score_history) >= 3:
             recent = list(self._score_history)[-5:]
             variance = sum((s - sum(recent) / len(recent)) ** 2 for s in recent) / len(recent)
@@ -318,15 +219,10 @@ class TimeToViolenceEstimator:
         else:
             stability = 0.3
 
-        # Velocity bonus (rising = more confident)
         vel_factor = 1.0 if velocity >= 0 else 0.7
 
         return round(min(1.0, (0.5 * margin + 0.4 * stability) * vel_factor), 2)
 
-
-# ──────────────────────────────────────────────
-# Integration patch for rtsp_inference.py
-# ──────────────────────────────────────────────
 
 RTSP_INTEGRATION_PATCH = '''
 # ── Add near top of rtsp_inference.py ──────────────────────────────────────
@@ -361,19 +257,8 @@ pred.ttv_confidence = alert.confidence
 '''
 
 
-# ──────────────────────────────────────────────
-# Standalone demo / test
-# ──────────────────────────────────────────────
-
 def demo():
-    """
-    Simulates a 70-second surveillance clip:
-      0-9s:   calm
-      10-39s: tension building (score rises 0.1 → 0.5)
-      40-50s: escalation (0.5 → 0.8)
-      51-60s: active violence (0.8-0.9)
-      61-70s: de-escalation
-    """
+    """Run the estimator on a synthetic 70 s clip: calm, rising tension, escalation, violence, de-escalation."""
     print("\n" + "=" * 65)
     print("TIME-TO-VIOLENCE ESTIMATOR — DEMO")
     print("=" * 65)
@@ -383,7 +268,6 @@ def demo():
 
     ttv = TimeToViolenceEstimator(fps=1.0, ema_alpha=0.3)
 
-    # Synthetic score sequence
     import random
     random.seed(42)
 
@@ -391,11 +275,11 @@ def demo():
         return max(0.0, min(1.0, val + random.gauss(0, noise)))
 
     scores = (
-        [noisy(0.08) for _ in range(10)] +   # calm
-        [noisy(0.1 + 0.015 * i) for i in range(30)] +   # tension building
-        [noisy(0.5 + 0.03 * i) for i in range(10)] +   # escalation
-        [noisy(0.82) for _ in range(10)] +   # active
-        [noisy(0.82 - 0.06 * i) for i in range(10)]    # de-escalation
+        [noisy(0.08) for _ in range(10)] +
+        [noisy(0.1 + 0.015 * i) for i in range(30)] +
+        [noisy(0.5 + 0.03 * i) for i in range(10)] +
+        [noisy(0.82) for _ in range(10)] +
+        [noisy(0.82 - 0.06 * i) for i in range(10)]
     )
 
     print(f"\n{'Time':>4}  {'Raw':>6}  {'EMA':>6}  {'Tier':<10}  {'ETA':<12}  {'Conf':>5}  {'Vel':>8}")

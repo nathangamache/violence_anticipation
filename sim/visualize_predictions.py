@@ -1,23 +1,9 @@
 #!/usr/bin/env python3
-"""
-Video Visualization for Violence Anticipation Model
-
-Creates a video with overlaid model predictions showing:
-- Real-time violence probability score (0-100%)
-- Alert status (green/yellow/red)
-- Ground truth comparison
-- Lead time when alert is triggered
-- Score history graph
+"""Render a video with the temporal model's score, alert state and ground truth overlaid.
 
 Usage:
-    python visualize_predictions.py \
-        --model_path outputs_temporal_violence/best_temporal_model.pt \
-        --video_path data/raw_videos/xd_violence/some_video.mp4 \
-        --embeddings_path data/processed/vlm_emb_violence/xd_violence/some_video.npz \
-        --labels_path data/processed/labels_multih/some_video.npy \
-        --output_path visualizations/some_video_predictions.mp4 \
-        --threshold 0.388 \
-        --device cuda:0
+    python sim/visualize_predictions.py --model_path <temporal ckpt> --video_path <mp4> \
+        --embeddings_path <vlm_emb npz> --labels_path <labels_multih npy> --output_path vis/x.mp4 --threshold 0.388
 """
 
 import argparse
@@ -35,12 +21,8 @@ import cv2
 from tqdm import tqdm
 
 
-# ==============================================================================
-# Model Definition (must match training)
-# ==============================================================================
-
 class TemporalViolenceModel(nn.Module):
-    """Temporal LSTM model."""
+    """Must match training/train_temporal_model.py::TemporalViolenceModel."""
     
     def __init__(
         self,
@@ -111,18 +93,14 @@ class TemporalViolenceModel(nn.Module):
         return logits
 
 
-# ==============================================================================
-# Visualization Class
-# ==============================================================================
-
 @dataclass
 class FramePrediction:
     frame_idx: int
     timestamp_sec: float
     score: float
     is_alert: bool
-    ground_truth: int  # 0=normal, 1=anticipation window
-    is_violence_active: int  # 0=no, 1=yes (actual violence happening)
+    ground_truth: int  # 1 = inside the anticipation window
+    is_violence_active: int
 
 
 class VideoVisualizer:
@@ -139,7 +117,6 @@ class VideoVisualizer:
         self.sequence_length = sequence_length
         self.horizon_sec = horizon_sec
         
-        # Load model
         print(f"Loading model from {model_path}...")
         checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         
@@ -158,7 +135,6 @@ class VideoVisualizer:
     
     @torch.no_grad()
     def predict_sequence(self, embeddings: np.ndarray) -> float:
-        """Predict violence probability for a sequence of embeddings."""
         x = torch.tensor(embeddings, dtype=torch.float32).unsqueeze(0).to(self.device)
         logit = self.model(x)
         return torch.sigmoid(logit).cpu().item()
@@ -168,17 +144,13 @@ class VideoVisualizer:
         embeddings_path: str,
         labels_path: str,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Load embeddings and labels."""
-        # Load embeddings
         emb_data = np.load(embeddings_path)
         embeddings = emb_data['emb']
         emb_timesteps = emb_data['t']
         
-        # Convert float16 to float32 if needed
         if embeddings.dtype == np.float16:
             embeddings = embeddings.astype(np.float32)
         
-        # Load labels
         labels = np.load(labels_path)
         if labels.ndim > 1:
             labels = labels.max(axis=1)
@@ -194,41 +166,32 @@ class VideoVisualizer:
         video_fps: float,
         emb_fps: float = 1.0,
     ) -> List[FramePrediction]:
-        """Compute predictions for all frames."""
         predictions = []
         n_emb = len(embeddings)
         
-        # Score history for smoothing visualization
         score_history = []
         
         print("Computing predictions...")
         for i in tqdm(range(n_emb)):
-            # Get sequence ending at current frame
             if i >= self.sequence_length - 1:
                 seq_start = i - self.sequence_length + 1
                 seq = embeddings[seq_start:i+1]
                 score = self.predict_sequence(seq)
             else:
-                # Not enough frames yet
                 score = 0.0
             
             score_history.append(score)
             
-            # Determine alert status
             is_alert = score >= self.threshold
             
-            # Get ground truth for this timestep
             t = emb_timesteps[i]
             
-            # Compute anticipation label (is violence coming in next horizon_sec?)
             horizon_frames = int(self.horizon_sec * emb_fps)
             future_end = min(t + horizon_frames, len(labels))
             anticipation_label = int(labels[t:future_end].max()) if future_end > t else 0
             
-            # Is violence currently active?
             violence_active = int(labels[t]) if t < len(labels) else 0
             
-            # Timestamp
             timestamp = t / emb_fps
             
             predictions.append(FramePrediction(
@@ -249,11 +212,9 @@ class VideoVisualizer:
         labels_path: str,
         output_path: str,
         show_graph: bool = True,
-        graph_history: int = 60,  # seconds of history to show
+        graph_history: int = 60,  # seconds
     ):
-        """Create visualization video with overlaid predictions."""
-        
-        # Load video
+        """Render the video with score overlays and write <output>_predictions.json."""
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             raise RuntimeError(f"Cannot open video: {video_path}")
@@ -265,10 +226,8 @@ class VideoVisualizer:
         
         print(f"Video: {video_width}x{video_height} @ {video_fps:.1f}fps, {total_frames} frames")
         
-        # Load data and compute predictions
         embeddings, emb_timesteps, labels = self.load_data(embeddings_path, labels_path)
         
-        # Embedding FPS (typically 1 fps based on every_t=5 and video processing)
         if len(emb_timesteps) > 1:
             emb_fps = 1.0 / np.mean(np.diff(emb_timesteps))
         else:
@@ -278,11 +237,8 @@ class VideoVisualizer:
             embeddings, emb_timesteps, labels, video_fps, emb_fps
         )
         
-        # Create prediction lookup by timestep
         pred_by_t = {emb_timesteps[p.frame_idx]: p for p in predictions}
         
-        # Setup output video
-        # Add space for graph at bottom
         graph_height = 150 if show_graph else 0
         output_height = video_height + graph_height
         
@@ -291,7 +247,6 @@ class VideoVisualizer:
         
         print(f"Creating visualization: {output_path}")
         
-        # Process frames
         score_history = []
         gt_history = []
         time_history = []
@@ -301,10 +256,8 @@ class VideoVisualizer:
             if not ret:
                 break
             
-            # Current time in seconds
             current_time = frame_idx / video_fps
             
-            # Find closest embedding timestep
             closest_t = min(emb_timesteps, key=lambda t: abs(t - current_time))
             pred = pred_by_t.get(closest_t)
             
@@ -319,24 +272,20 @@ class VideoVisualizer:
                 ground_truth = 0
                 violence_active = 0
             
-            # Update history
             score_history.append(score)
             gt_history.append(ground_truth)
             time_history.append(current_time)
             
-            # Trim history
             max_history = int(graph_history * video_fps)
             if len(score_history) > max_history:
                 score_history = score_history[-max_history:]
                 gt_history = gt_history[-max_history:]
                 time_history = time_history[-max_history:]
             
-            # Draw overlays on frame
             frame = self._draw_overlays(
                 frame, score, is_alert, ground_truth, violence_active, current_time
             )
             
-            # Add graph if enabled
             if show_graph:
                 graph = self._draw_graph(
                     video_width, graph_height,
@@ -351,7 +300,6 @@ class VideoVisualizer:
         
         print(f"Visualization saved to: {output_path}")
         
-        # Also save predictions as JSON
         json_path = output_path.replace('.mp4', '_predictions.json')
         self._save_predictions_json(predictions, json_path)
     
@@ -364,72 +312,60 @@ class VideoVisualizer:
         violence_active: int,
         current_time: float,
     ) -> np.ndarray:
-        """Draw prediction overlays on frame."""
         h, w = frame.shape[:2]
         
-        # Colors
+        # OpenCV colors are BGR.
         if violence_active:
-            border_color = (0, 0, 255)  # Red - violence happening
+            border_color = (0, 0, 255)
             status_text = "VIOLENCE ACTIVE"
         elif is_alert:
-            border_color = (0, 165, 255)  # Orange - alert
+            border_color = (0, 165, 255)
             status_text = "ALERT: Violence Predicted"
         elif ground_truth:
-            border_color = (0, 255, 255)  # Yellow - in anticipation window
+            border_color = (0, 255, 255)
             status_text = "Anticipation Window"
         else:
-            border_color = (0, 255, 0)  # Green - normal
+            border_color = (0, 255, 0)
             status_text = "Normal"
         
-        # Draw border
         thickness = 8
         cv2.rectangle(frame, (0, 0), (w-1, h-1), border_color, thickness)
         
-        # Semi-transparent overlay for text background
         overlay = frame.copy()
         cv2.rectangle(overlay, (10, 10), (400, 140), (0, 0, 0), -1)
         frame = cv2.addWeighted(overlay, 0.6, frame, 0.4, 0)
         
-        # Score bar
         bar_x, bar_y = 20, 30
         bar_width, bar_height = 200, 25
         
-        # Background bar
         cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_width, bar_y + bar_height), (50, 50, 50), -1)
         
-        # Score fill
         fill_width = int(bar_width * score)
         if score >= self.threshold:
-            fill_color = (0, 0, 255)  # Red
+            fill_color = (0, 0, 255)
         elif score >= self.threshold * 0.7:
-            fill_color = (0, 165, 255)  # Orange
+            fill_color = (0, 165, 255)
         else:
-            fill_color = (0, 255, 0)  # Green
+            fill_color = (0, 255, 0)
         cv2.rectangle(frame, (bar_x, bar_y), (bar_x + fill_width, bar_y + bar_height), fill_color, -1)
         
-        # Score text
         cv2.putText(frame, f"Violence Score: {score*100:.1f}%", (bar_x + bar_width + 10, bar_y + 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Threshold line
         thresh_x = bar_x + int(bar_width * self.threshold)
         cv2.line(frame, (thresh_x, bar_y - 5), (thresh_x, bar_y + bar_height + 5), (255, 255, 255), 2)
         
-        # Status text
         cv2.putText(frame, status_text, (20, 90),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, border_color, 2)
         
-        # Time
         minutes = int(current_time // 60)
         seconds = current_time % 60
         cv2.putText(frame, f"Time: {minutes:02d}:{seconds:05.2f}", (20, 125),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Threshold indicator
         cv2.putText(frame, f"Threshold: {self.threshold*100:.1f}%", (230, 90),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         
-        # Ground truth indicator (top right)
         gt_text = "GT: Violence" if ground_truth else "GT: Normal"
         gt_color = (0, 0, 255) if ground_truth else (0, 255, 0)
         cv2.putText(frame, gt_text, (w - 180, 40),
@@ -445,14 +381,12 @@ class VideoVisualizer:
         gt_history: List[int],
         time_history: List[float],
     ) -> np.ndarray:
-        """Draw score history graph."""
         graph = np.zeros((height, width, 3), dtype=np.uint8)
-        graph[:] = (30, 30, 30)  # Dark gray background
+        graph[:] = (30, 30, 30)
         
         if len(score_history) < 2:
             return graph
         
-        # Margins
         margin_left = 60
         margin_right = 20
         margin_top = 20
@@ -461,29 +395,25 @@ class VideoVisualizer:
         graph_width = width - margin_left - margin_right
         graph_height = height - margin_top - margin_bottom
         
-        # Draw grid
         for i in range(5):
             y = margin_top + int(graph_height * i / 4)
             cv2.line(graph, (margin_left, y), (width - margin_right, y), (60, 60, 60), 1)
             label = f"{100 - i*25}%"
             cv2.putText(graph, label, (5, y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1)
         
-        # Draw threshold line
         thresh_y = margin_top + int(graph_height * (1 - self.threshold))
         cv2.line(graph, (margin_left, thresh_y), (width - margin_right, thresh_y), (0, 0, 255), 2)
         cv2.putText(graph, "Threshold", (margin_left + 5, thresh_y - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
         
-        # Draw ground truth regions
         n_points = len(score_history)
         for i in range(n_points - 1):
             if gt_history[i]:
                 x1 = margin_left + int(graph_width * i / n_points)
                 x2 = margin_left + int(graph_width * (i + 1) / n_points)
                 cv2.rectangle(graph, (x1, margin_top), (x2, margin_top + graph_height),
-                             (40, 40, 80), -1)  # Dark blue for GT regions
+                             (40, 40, 80), -1)
         
-        # Draw score line
         points = []
         for i, score in enumerate(score_history):
             x = margin_left + int(graph_width * i / n_points)
@@ -494,11 +424,9 @@ class VideoVisualizer:
             color = (0, 255, 0) if score_history[i] < self.threshold else (0, 0, 255)
             cv2.line(graph, points[i], points[i+1], color, 2)
         
-        # Labels
         cv2.putText(graph, "Score History", (margin_left, margin_top - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
-        # Time labels
         if time_history:
             start_time = time_history[0]
             end_time = time_history[-1]
@@ -507,7 +435,6 @@ class VideoVisualizer:
             cv2.putText(graph, f"{end_time:.0f}s", (width - margin_right - 30, height - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.4, (150, 150, 150), 1)
         
-        # Legend
         cv2.rectangle(graph, (width - 150, margin_top), (width - margin_right, margin_top + 50), (50, 50, 50), -1)
         cv2.putText(graph, "GT Window", (width - 145, margin_top + 15),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.35, (100, 100, 180), 1)
@@ -519,7 +446,6 @@ class VideoVisualizer:
         return graph
     
     def _save_predictions_json(self, predictions: List[FramePrediction], path: str):
-        """Save predictions to JSON file."""
         data = {
             'threshold': self.threshold,
             'sequence_length': self.sequence_length,
@@ -541,10 +467,6 @@ class VideoVisualizer:
         
         print(f"Predictions saved to: {path}")
 
-
-# ==============================================================================
-# Main
-# ==============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Visualize Violence Anticipation Predictions")
@@ -569,17 +491,14 @@ def main():
     
     args = parser.parse_args()
     
-    # Create output directory
     os.makedirs(os.path.dirname(args.output_path) or '.', exist_ok=True)
     
-    # Create visualizer
     visualizer = VideoVisualizer(
         model_path=args.model_path,
         device=args.device,
         threshold=args.threshold,
     )
     
-    # Create visualization
     visualizer.create_visualization(
         video_path=args.video_path,
         embeddings_path=args.embeddings_path,

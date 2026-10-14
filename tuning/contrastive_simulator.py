@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""
-Simulator for Contrastive-trained Violence Model
-
-Uses the contrastive projector to score frames in the 8-hour simulation.
-"""
+"""Run the V1 contrastive projector over the 8-hour stitched simulation."""
 
 import argparse
 import json
@@ -118,7 +114,6 @@ class ContrastiveSimulator:
     
     @torch.no_grad()
     def score_batch(self, embeddings: np.ndarray) -> np.ndarray:
-        """Score a batch of embeddings."""
         x = torch.tensor(embeddings, dtype=torch.float32).to(self.device)
         _, logits = self.model(x)
         return torch.sigmoid(logits).cpu().numpy()
@@ -145,7 +140,6 @@ class ContrastiveSimulator:
         print(f"  Threshold: {self.threshold}")
         print(f"  Smoothing window: {smoothing_window}")
         
-        # Score all frames in batches
         print("\nScoring frames...")
         start_time = time.time()
         
@@ -161,7 +155,6 @@ class ContrastiveSimulator:
         elapsed = time.time() - start_time
         print(f"  Completed in {elapsed:.1f}s ({n_frames/elapsed:.0f} fps)")
         
-        # Apply smoothing and threshold
         predictions = []
         recent_scores = []
         
@@ -179,7 +172,6 @@ class ContrastiveSimulator:
         
         predictions = np.array(predictions)
         
-        # Compute metrics
         return self._compute_metrics(all_scores, predictions, labels, fps)
     
     def _compute_metrics(self, scores, predictions, labels, fps) -> SimulationResults:
@@ -193,7 +185,6 @@ class ContrastiveSimulator:
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         
-        # Event-level analysis
         violence_events = []
         in_event = False
         event_start = 0
@@ -208,7 +199,6 @@ class ContrastiveSimulator:
         if in_event:
             violence_events.append((event_start, len(labels) - 1))
         
-        # Detection and lead times
         detected = 0
         lead_times = []
         horizon_frames = int(30 * fps)
@@ -226,7 +216,6 @@ class ContrastiveSimulator:
                             lead_times.append(lead_time)
                         break
         
-        # False alarms
         false_alarms = 0
         in_alarm = False
         for pred, label in zip(predictions, labels):
@@ -277,7 +266,6 @@ def main():
     
     results.print_summary()
     
-    # Save
     with open(Path(args.output_dir) / 'results.json', 'w') as f:
         json.dump({
             'threshold': results.threshold,

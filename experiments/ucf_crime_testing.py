@@ -1,26 +1,12 @@
-"""
-ucf_crime_testing.py
-=====================
-Evaluates all trained models on the UCF-Crime dataset to measure cross-domain
-generalization. UCF-Crime has different annotation structure from XD-Violence,
-so this script handles both formats.
+"""Cross-domain test: train on XD-Violence embeddings, evaluate on UCF-Crime (LR, LSTM, LDA-calibrated).
 
-What it does:
-  1. Loads UCF-Crime embeddings (VLM or raw features)
-  2. Maps UCF-Crime labels to binary violent/non-violent
-  3. Runs all trained models: LSTM, Logistic Regression, Transformer
-  4. Computes per-video and aggregate AUC, AP, and false alarm rate
-  5. Computes LDA distribution shift (how far UCF-Crime is from XD-Violence)
-  6. Tries LDA-based calibration to partially correct for the shift
+Without --ucf_labels, video-level labels are inferred from UCF filenames.
 
 Usage:
     python ucf_crime_testing.py \
         --ucf_embeddings data/processed/vlm_emb/ucf_crime \
-        --ucf_labels data/processed/labels_multih/ucf_crime \
-        --xd_embeddings data/processed/vlm_emb \
-        --xd_labels data/processed/labels_multih \
-        --lstm_checkpoint outputs/outputs_temporal/best_temporal_model.pt \
-        --transformer_checkpoint results/transformer_model.pt
+        --xd_embeddings data/processed/vlm_emb --xd_labels data/processed/labels_multih \
+        --lstm_checkpoint outputs/outputs_temporal/best_temporal_model.pt
 """
 
 import argparse
@@ -39,11 +25,6 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore")
 
 
-# ──────────────────────────────────────────────
-# UCF-Crime label mapping
-# ──────────────────────────────────────────────
-
-# UCF-Crime anomaly categories (all are "violent" or at-risk events)
 UCF_CRIME_VIOLENT_CATEGORIES = {
     "Abuse", "Arrest", "Arson", "Assault", "Burglary", "Explosion",
     "Fighting", "RoadAccidents", "Robbery", "Shooting", "Shoplifting",
@@ -57,33 +38,22 @@ UCF_ANTICIPATION_CATEGORIES = {
 
 
 def infer_ucf_label_from_filename(filename: str) -> Tuple[int, str]:
-    """
-    UCF-Crime filenames often contain the category name.
-    Returns (label, category) where label=1 if violent, 0 if normal.
-    """
+    """Infer (label, category) from a UCF filename; label is -1 when undetermined."""
     fname = Path(filename).stem.lower()
     for cat in UCF_CRIME_VIOLENT_CATEGORIES:
         if cat.lower() in fname:
             return 1, cat
     if "normal" in fname or "background" in fname:
         return 0, "Normal"
-    return -1, "Unknown"  # -1 = can't determine
+    return -1, "Unknown"
 
-
-# ──────────────────────────────────────────────
-# Data loading
-# ──────────────────────────────────────────────
 
 def load_ucf_pairs(
     emb_dir: Path,
     labels_dir: Optional[Path] = None,
     max_videos: int = 500,
 ) -> List[Tuple[np.ndarray, np.ndarray, str]]:
-    """
-    Load UCF-Crime embedding/label pairs.
-    If labels_dir is None, tries to infer labels from filenames.
-    Returns list of (emb, labels, video_name).
-    """
+    """Return (emb, labels, video_name) per video; falls back to video-level labels from filenames."""
     pairs = []
     emb_files = sorted(emb_dir.rglob("*.npz"))[:max_videos]
 
@@ -91,7 +61,6 @@ def load_ucf_pairs(
         vid = vf.stem
         label_found = False
 
-        # Try loading from labels dir
         if labels_dir is not None:
             for candidate in [
                 labels_dir / f"{vid}.npy",
@@ -111,13 +80,11 @@ def load_ucf_pairs(
                         pass
                     break
 
-        # Fall back to filename-based labels
         if not label_found:
             inferred_label, cat = infer_ucf_label_from_filename(vid)
             if inferred_label >= 0:
                 try:
                     emb = np.load(vf)["emb"].astype(np.float32)
-                    # Assign uniform label for the whole video
                     lbl = np.full(len(emb), inferred_label, dtype=int)
                     pairs.append((emb, lbl, vid))
                 except Exception:
@@ -148,34 +115,24 @@ def load_xd_pairs(emb_dir: Path, labels_dir: Path, max_videos: int = 300):
     return pairs
 
 
-# ──────────────────────────────────────────────
-# Distribution shift analysis
-# ──────────────────────────────────────────────
-
 def measure_distribution_shift(xd_embeddings: np.ndarray, ucf_embeddings: np.ndarray) -> Dict:
-    """
-    Quantify the distribution shift between XD-Violence and UCF-Crime embeddings.
-    Uses LDA projection and per-dimension statistics.
-    """
+    """Mean L2/cosine shift and per-dimension standardized shift between two embedding sets."""
     results = {}
 
-    # Mean shift
     xd_mean = xd_embeddings.mean(axis=0)
     ucf_mean = ucf_embeddings.mean(axis=0)
     mean_l2 = float(np.linalg.norm(xd_mean - ucf_mean))
     results["mean_l2_shift"] = mean_l2
 
-    # Cosine similarity between means
     cos_sim = float(
         np.dot(xd_mean, ucf_mean) / (np.linalg.norm(xd_mean) * np.linalg.norm(ucf_mean) + 1e-8)
     )
     results["mean_cosine_similarity"] = cos_sim
 
-    # Dimension-wise shift (how many dims differ significantly)
     xd_std = xd_embeddings.std(axis=0) + 1e-8
     ucf_std = ucf_embeddings.std(axis=0) + 1e-8
     pooled = np.sqrt((xd_std ** 2 + ucf_std ** 2) / 2)
-    shift_d = np.abs(xd_mean - ucf_mean) / pooled  # normalized shift per dim
+    shift_d = np.abs(xd_mean - ucf_mean) / pooled
     results["dims_shifted_gt_0.5"] = int((shift_d > 0.5).sum())
     results["dims_shifted_gt_1.0"] = int((shift_d > 1.0).sum())
     results["mean_dim_shift"] = float(shift_d.mean())
@@ -183,32 +140,19 @@ def measure_distribution_shift(xd_embeddings: np.ndarray, ucf_embeddings: np.nda
     return results
 
 
-# ──────────────────────────────────────────────
-# LDA calibration
-# ──────────────────────────────────────────────
-
 def lda_calibrate(
-    source_emb: np.ndarray,  # XD-Violence embeddings (training distribution)
+    source_emb: np.ndarray,
     source_labels: np.ndarray,
-    target_emb: np.ndarray,  # UCF-Crime embeddings (target distribution)
+    target_emb: np.ndarray,
 ) -> np.ndarray:
-    """
-    Fit LDA on source, project both domains, then rescale target to match
-    source's mean and std on the LDA axis. This partially corrects for shift.
-    Returns calibrated target embeddings in the LDA subspace (1-dim).
-    """
+    """Fit LDA on source and rescale the target projection to the source mean/std; returns (tgt, src, lda)."""
     lda = LinearDiscriminantAnalysis(n_components=1)
     src_lda = lda.fit_transform(source_emb, source_labels).flatten()
     tgt_lda = lda.transform(target_emb).flatten()
 
-    # Z-score calibration: normalize target to source's distribution
     tgt_calibrated = (tgt_lda - tgt_lda.mean()) / (tgt_lda.std() + 1e-8) * src_lda.std() + src_lda.mean()
     return tgt_calibrated, src_lda, lda
 
-
-# ──────────────────────────────────────────────
-# Model evaluation
-# ──────────────────────────────────────────────
 
 def eval_logistic_regression_cross_domain(
     xd_pairs, ucf_pairs, use_calibration: bool = False
@@ -261,7 +205,6 @@ def eval_lstm_cross_domain(checkpoint_path: Path, xd_pairs, ucf_pairs, seq_len=3
         print(f"  [SKIP] {e}")
         return float("nan"), float("nan"), []
 
-    # Get scaler from XD training data
     X_xd = np.vstack([p[0] for p in xd_pairs])
     scaler = StandardScaler()
     scaler.fit(X_xd)
@@ -306,10 +249,7 @@ def eval_lstm_cross_domain(checkpoint_path: Path, xd_pairs, ucf_pairs, seq_len=3
 
 
 def eval_lda_calibrated(xd_pairs, ucf_pairs):
-    """
-    Train LDA on XD-Violence, calibrate UCF-Crime embeddings to training distribution,
-    then score with a simple threshold on the LDA projection.
-    """
+    """Score UCF videos with a sigmoid over the per-video calibrated LDA projection fitted on XD."""
     X_xd = np.vstack([p[0] for p in xd_pairs])
     y_xd = np.concatenate([p[1] for p in xd_pairs])
 
@@ -319,7 +259,6 @@ def eval_lda_calibrated(xd_pairs, ucf_pairs):
     for emb, lbl, vid in ucf_pairs:
         calibrated_lda, src_lda, lda_model = lda_calibrate(X_xd, y_xd, emb)
 
-        # Convert LDA score to probability using sigmoid calibration
         v_mean_lda = src_lda[y_xd == 1].mean()
         nv_mean_lda = src_lda[y_xd == 0].mean()
         midpoint = (v_mean_lda + nv_mean_lda) / 2
@@ -342,15 +281,8 @@ def eval_lda_calibrated(xd_pairs, ucf_pairs):
     return agg_auc, agg_ap, per_video_results
 
 
-# ──────────────────────────────────────────────
-# False alarm rate analysis
-# ──────────────────────────────────────────────
-
 def false_alarm_analysis(per_video_results: List[Dict], threshold: float = 0.5) -> Dict:
-    """
-    Compute event-level false alarm stats for normal videos.
-    A false alarm = any video labeled 0 (normal) where score > threshold.
-    """
+    """False-alarm rate over normal videos (known bug: thresholds per-video AUC, not scores)."""
     normal_videos = [r for r in per_video_results if r["label"] == 0]
     if not normal_videos:
         return {}
@@ -363,10 +295,6 @@ def false_alarm_analysis(per_video_results: List[Dict], threshold: float = 0.5) 
         "false_alarm_rate": fa_rate,
     }
 
-
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()
@@ -389,7 +317,6 @@ def main():
     print("UCF-CRIME CROSS-DOMAIN EVALUATION")
     print("=" * 65)
 
-    # Load data
     print(f"\nLoading XD-Violence (train source)...")
     if not args.xd_embeddings.exists():
         print(f"  WARNING: {args.xd_embeddings} not found")
@@ -417,7 +344,6 @@ def main():
         print("\nInsufficient data. Exiting.")
         return
 
-    # Distribution shift analysis
     print("\n[Distribution Shift Analysis]")
     X_xd_all = np.vstack([p[0] for p in xd_pairs])
     X_ucf_all = np.vstack([p[0] for p in ucf_pairs])
@@ -430,7 +356,6 @@ def main():
 
     all_results = []
 
-    # LR baseline (no calibration)
     print("\n[1] Logistic Regression (XD-trained, UCF-tested)")
     auc, ap, per_vid = eval_logistic_regression_cross_domain(xd_pairs, ucf_pairs)
     fa = false_alarm_analysis(per_vid)
@@ -439,7 +364,6 @@ def main():
         print(f"  False alarm rate: {fa['false_alarm_rate']*100:.1f}%  ({fa['false_alarms']}/{fa['n_normal_videos']})")
     all_results.append({"model": "LR_xd_to_ucf", "auc": auc, "ap": ap, **fa})
 
-    # LSTM (XD-trained, UCF-tested)
     print("\n[2] LSTM (XD-trained, UCF-tested)")
     auc, ap, per_vid = eval_lstm_cross_domain(args.lstm_checkpoint, xd_pairs, ucf_pairs, device=device)
     fa = false_alarm_analysis(per_vid)
@@ -448,7 +372,6 @@ def main():
         print(f"  False alarm rate: {fa['false_alarm_rate']*100:.1f}%  ({fa['false_alarms']}/{fa['n_normal_videos']})")
     all_results.append({"model": "LSTM_xd_to_ucf", "auc": auc, "ap": ap, **fa})
 
-    # LDA calibrated
     print("\n[3] LDA-calibrated LR (distribution shift correction)")
     auc, ap, per_vid = eval_lda_calibrated(xd_pairs, ucf_pairs)
     fa = false_alarm_analysis(per_vid)
@@ -457,7 +380,6 @@ def main():
         print(f"  False alarm rate: {fa['false_alarm_rate']*100:.1f}%  ({fa['false_alarms']}/{fa['n_normal_videos']})")
     all_results.append({"model": "LDA_calibrated_xd_to_ucf", "auc": auc, "ap": ap, **fa})
 
-    # Summary
     print("\n" + "=" * 65)
     print("CROSS-DOMAIN SUMMARY (XD-Violence → UCF-Crime)")
     print("=" * 65)
@@ -467,7 +389,6 @@ def main():
         fa_str = f"{r.get('false_alarm_rate', float('nan'))*100:.1f}%" if r.get('false_alarm_rate') is not None else "N/A"
         print(f"  {r['model']:<33} {r['auc']:>8.4f} {r['ap']:>8.4f} {fa_str:>10}")
 
-    # Save
     import csv
     fieldnames = list({k for r in all_results for k in r.keys()})
     with open(args.output, "w", newline="") as f:

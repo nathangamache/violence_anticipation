@@ -6,7 +6,6 @@ def export():
     print("[Export] Loading model...")
     model = ViolenceTransformer().cuda().eval()
 
-    # Dummy input: 30 frames of synthetic graph data
     seq_dummy = [{
         "nodes": torch.randn(5, 770).cuda(),
         "edges": torch.tensor([[0, 1, 0.1]], dtype=torch.float32).cuda(),

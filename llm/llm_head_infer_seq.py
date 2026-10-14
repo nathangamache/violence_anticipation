@@ -1,35 +1,10 @@
 #!/usr/bin/env python3
-"""
-Video-level LLM decision head inference.
+"""Video-level LLM head: ask Qwen2.5-3B-Instruct for strict JSON {"label", "risk"} per llm_data/{split}.jsonl row.
 
-Current setup:
-- Each line in llm_data/{split}.jsonl corresponds to ONE video clip.
-- Schema (example):
+Reports MSE, ROC-AUC and accuracy at --bin_thresh and writes llm_data/{split}_seq_preds_qwen.jsonl.
 
-  {
-    "id": "GoldenEye.1995__#00-24-53_00-25-06_label_B1-0-0",
-    "source": "xd_violence",
-    "label": 0,
-    "event_frame": 0,
-    "total_frames": 313,
-    "fps": 24.0,
-    "prompt": "...Scene graph summary... Question: Does this video contain physical violence...?",
-    "response": "non-violent"   # (from a previous run, can be ignored)
-  }
-
-This script:
-- Loads train.jsonl or val.jsonl.
-- For each example, uses the existing `prompt` and appends strict JSON-output
-  instructions.
-- Calls Qwen2.5-3B-Instruct to get:
-
-    {"label": "violent" or "non-violent", "risk": <float 0-1>}
-
-- Evaluates video-level:
-    * MSE (between numeric risk and 0/1 ground-truth label)
-    * ROC-AUC (using risk as the score)
-    * Accuracy (thresholding risk at 0.5, or via label string)
-- Saves detailed predictions to llm_data/{split}_seq_preds_qwen.jsonl
+Usage:
+    python -m llm.llm_head_infer_seq --split val --data_dir llm_data --model_path <local or HF path> --device cuda:0
 """
 
 import os
@@ -43,9 +18,6 @@ from sklearn.metrics import roc_auc_score
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-# ---------------------------------------------------------------------
-# JSONL helpers
-# ---------------------------------------------------------------------
 def load_jsonl(path):
     data = []
     with open(path, "r") as f:
@@ -63,22 +35,8 @@ def save_jsonl(path, records):
             f.write(json.dumps(r) + "\n")
 
 
-# ---------------------------------------------------------------------
-# Prompt + parsing
-# ---------------------------------------------------------------------
 def build_prompt_for_example(example):
-    """
-    Take the existing 'prompt' field and append strict JSON-output instructions.
-
-    The original prompt already explains:
-      - The dataset
-      - The scene graph summary over time
-      - The question: violent vs non-violent
-
-    We now force the model to output ONLY a JSON object with:
-      - label: "violent" or "non-violent"
-      - risk: float in [0,1]
-    """
+    """Append strict JSON-output instructions to the example's existing prompt."""
     base_prompt = example["prompt"].rstrip()
 
     extra = [
@@ -100,15 +58,9 @@ def build_prompt_for_example(example):
 
 
 def parse_llm_json(text):
-    """
-    Extract {"label": ..., "risk": ...} from the LLM output text.
-
-    Returns:
-      (label_str, risk_float) or (None, None) if parsing fails.
-    """
+    """Return (label, risk clipped to [0, 1]) from the first {...} in text, or (None, None)."""
     import re
 
-    # Find first {...} blob
     m = re.search(r"\{.*\}", text, flags=re.DOTALL)
     if not m:
         return None, None
@@ -128,22 +80,16 @@ def parse_llm_json(text):
 
     label_norm = label.strip().lower()
 
-    # Try to coerce risk to float
     try:
         risk_float = float(risk)
     except (TypeError, ValueError):
-        # If risk missing / bad, we can't use this prediction
         return None, None
 
-    # Clamp risk to [0,1] just in case
     risk_float = float(np.clip(risk_float, 0.0, 1.0))
 
     return label_norm, risk_float
 
 
-# ---------------------------------------------------------------------
-# Main inference logic
-# ---------------------------------------------------------------------
 def run_video_llm_inference(
     jsonl_path,
     model_path,
@@ -160,7 +106,6 @@ def run_video_llm_inference(
         examples = examples[:max_examples]
         print(f"[Subsample] Using first {len(examples)} examples")
 
-    # Load tokenizer + model
     print(f"[LLM] Loading Qwen from: {model_path}")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
 
@@ -182,11 +127,10 @@ def run_video_llm_inference(
     for ex in tqdm(examples, desc="Videos", dynamic_ncols=True):
         vid_id = ex.get("id")
         src = ex.get("source", None)
-        target_label = int(ex.get("label", 0))  # 0 = non-violent, 1 = violent
+        target_label = int(ex.get("label", 0))
 
         prompt = build_prompt_for_example(ex)
 
-        # Tokenize
         inputs = tokenizer(
             prompt,
             return_tensors="pt",
@@ -202,7 +146,6 @@ def run_video_llm_inference(
                 temperature=0.0,
             )
 
-        # Only decode the new tokens after the prompt
         generated_ids = output_ids[0, inputs["input_ids"].shape[1]:]
         text = tokenizer.decode(generated_ids, skip_special_tokens=True)
 
@@ -229,21 +172,17 @@ def run_video_llm_inference(
     if not all_scores:
         raise RuntimeError("[LLM] No usable predictions parsed from outputs.")
 
-    scores = np.array(all_scores, dtype=np.float32)   # [N_examples], in [0,1]
-    targets = np.array(all_targets, dtype=np.int32)   # [N_examples], 0/1
+    scores = np.array(all_scores, dtype=np.float32)
+    targets = np.array(all_targets, dtype=np.int32)
 
-    # Metrics
     mse = float(np.mean((scores - targets) ** 2))
 
-    # ROC-AUC
     if np.unique(targets).size < 2:
         print("[LLM] Only one class in labels; ROC-AUC undefined.")
         auc = float("nan")
     else:
         auc = float(roc_auc_score(targets, scores))
 
-    # Accuracy (using risk threshold OR label string)
-    # We'll just threshold risk:
     pred_binary = (scores >= bin_thresh).astype(np.int32)
     acc = float(np.mean(pred_binary == targets))
 
@@ -266,9 +205,6 @@ def run_video_llm_inference(
     }
 
 
-# ---------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -331,7 +267,6 @@ def main():
         max_new_tokens=args.max_new_tokens,
     )
 
-    # Save detailed predictions JSONL alongside the dataset
     out_path = os.path.join(args.data_dir, f"{args.split}_seq_preds_qwen.jsonl")
     save_jsonl(out_path, metrics["records"])
     print(f"[Save] Wrote predictions JSONL → {out_path}")

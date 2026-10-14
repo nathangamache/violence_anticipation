@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""
-Diagnostic script - v3 for Nathan's nested directory structure
-
-Structure:
-- vlm_emb/xd_violence/*.npz
-- vlm_emb/ucf_crime/*.npz
-- labels_multih/*.npy (flat structure)
-
-Index files contain: [{"graph_path": "...", "label_path": "..."}, ...]
-"""
+"""Report per-split load stats (missing files, frames, positive rate) for an embeddings dir and a labels dir."""
 
 import argparse
 import json
@@ -22,7 +13,6 @@ import numpy as np
 
 
 def extract_video_name(item) -> str:
-    """Extract video name from index item."""
     if isinstance(item, dict):
         path = item.get('graph_path') or item.get('label_path', '')
         return Path(path).stem
@@ -32,22 +22,18 @@ def extract_video_name(item) -> str:
 
 
 def classify_video_source(video_id: str) -> str:
-    """Classify video source from its ID."""
     if '_x264' in video_id:
         return 'ucf_crime'
     if video_id.startswith('v='):
         return 'xd_violence'
     if re.search(r'\d{4}__#', video_id) or '__#' in video_id:
-        return 'xd_violence'  # Movies are in XD-Violence
+        return 'xd_violence'
     return 'unknown'
 
 
 def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]:
-    """Find embedding file in nested directory structure."""
-    # Determine which subdirectory based on video name
     source = classify_video_source(video_name)
     
-    # Try direct path first
     for subdir in [source, 'ucf_crime', 'xd_violence', '']:
         for ext in ['.npz', '.npy']:
             if subdir:
@@ -61,14 +47,11 @@ def find_embedding_file(video_name: str, embeddings_dir: Path) -> Optional[Path]
 
 
 def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
-    """Find label file (supports flat and nested structure)."""
-    # Try flat structure first (labels_multih/*.npy)
     for ext in ['.npy', '.npz']:
         path = labels_dir / f"{video_name}{ext}"
         if path.exists():
             return path
     
-    # Try nested structure
     source = classify_video_source(video_name)
     for subdir in [source, 'ucf_crime', 'xd_violence']:
         for ext in ['.npy', '.npz', '.jsonl']:
@@ -80,11 +63,9 @@ def find_label_file(video_name: str, labels_dir: Path) -> Optional[Path]:
 
 
 def load_embedding(path: Path) -> Optional[np.ndarray]:
-    """Load embedding from .npy or .npz file."""
     try:
         if path.suffix == '.npz':
             data = np.load(path)
-            # NPZ files have named arrays - find the embedding
             keys = list(data.keys())
             if 'embedding' in keys:
                 return data['embedding']
@@ -95,7 +76,6 @@ def load_embedding(path: Path) -> Optional[np.ndarray]:
             elif len(keys) == 1:
                 return data[keys[0]]
             else:
-                # Return first array that looks like embeddings
                 for k in keys:
                     arr = data[k]
                     if arr.ndim >= 1:
@@ -108,15 +88,12 @@ def load_embedding(path: Path) -> Optional[np.ndarray]:
 
 
 def load_labels(path: Path) -> Optional[np.ndarray]:
-    """Load labels from .npy, .npz, or .jsonl file."""
     try:
         if path.suffix == '.jsonl':
-            # Parse JSONL - each line is a JSON object
             labels = []
             with open(path) as f:
                 for line in f:
                     obj = json.loads(line)
-                    # Assuming each line has a 'label' or 'violent' field
                     if 'label' in obj:
                         labels.append(obj['label'])
                     elif 'violent' in obj:
@@ -141,14 +118,12 @@ def load_labels(path: Path) -> Optional[np.ndarray]:
 
 
 def scan_directory_structure(base_dir: Path):
-    """Scan and report directory structure."""
     print(f"\nScanning {base_dir}:")
     
     if not base_dir.exists():
         print(f"  ERROR: Directory does not exist!")
         return
     
-    # Check for subdirectories
     subdirs = [d for d in base_dir.iterdir() if d.is_dir()]
     if subdirs:
         print(f"  Subdirectories: {[d.name for d in subdirs]}")
@@ -162,7 +137,6 @@ def scan_directory_structure(base_dir: Path):
             if files:
                 print(f"      Sample files: {[f.name for f in files[:3]]}")
     
-    # Check for files in root
     root_files = [f for f in base_dir.iterdir() if f.is_file()]
     if root_files:
         extensions = defaultdict(int)
@@ -179,7 +153,6 @@ def load_dataset_stats(
     horizon_sec: float = 30.0,
     fps: float = 1.0,
 ) -> Dict:
-    """Load and compute statistics for a dataset split."""
     
     stats = {
         'n_videos': 0,
@@ -196,7 +169,6 @@ def load_dataset_stats(
     horizon_frames = int(horizon_sec * fps)
     video_names = [extract_video_name(item) for item in video_items]
     
-    # Debug first few
     print(f"\n  Processing {len(video_names)} videos...")
     if video_names:
         print(f"  Sample names: {video_names[:3]}")
@@ -207,7 +179,7 @@ def load_dataset_stats(
         
         if emb_path is None:
             stats['missing_emb'] += 1
-            if i < 3:  # Debug first few missing
+            if i < 3:
                 print(f"    Missing embedding for: {vid}")
             continue
         
@@ -223,17 +195,14 @@ def load_dataset_stats(
             continue
         
         try:
-            # Handle multi-dimensional labels
             if labels.ndim > 1:
                 labels = labels.max(axis=1) if labels.shape[1] > 1 else labels.squeeze()
             
             labels = (labels > 0).astype(float)
             
-            # Align lengths
             min_len = min(len(embeddings), len(labels))
             labels = labels[:min_len]
             
-            # Compute anticipation labels
             anticipation_labels = []
             for t in range(min_len):
                 future_end = min(t + horizon_frames, min_len)
@@ -286,7 +255,6 @@ def main():
     args = parser.parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     
-    # Load indices
     with open(args.train_index) as f:
         train_items = json.load(f)
     with open(args.val_index) as f:
@@ -296,14 +264,12 @@ def main():
     
     print(f"Loaded indices: {len(train_items)} train, {len(val_items)} val, {len(test_items)} test")
     
-    # Scan directory structures
     embeddings_dir = Path(args.embeddings_dir)
     labels_dir = Path(args.labels_dir)
     
     scan_directory_structure(embeddings_dir)
     scan_directory_structure(labels_dir)
     
-    # Process each split
     print("\n" + "="*70)
     print("TRAIN SPLIT")
     train_stats = load_dataset_stats(train_items, embeddings_dir, labels_dir, args.horizon_sec, args.fps)
@@ -316,7 +282,6 @@ def main():
     print("TEST SPLIT")
     test_stats = load_dataset_stats(test_items, embeddings_dir, labels_dir, args.horizon_sec, args.fps)
     
-    # Summary
     print("\n" + "="*70)
     print("SUMMARY")
     print("="*70)
@@ -326,12 +291,10 @@ def main():
         print(f"  Videos: {stats['n_videos']}, Frames: {stats['n_frames']:,}, Pos rate: {stats['pos_rate']:.2%}")
         print(f"  Source distribution: {dict(stats['source_dist'])}")
     
-    # Check embedding dimensions
     if train_stats['per_video']:
         shapes = [v['emb_shape'] for v in train_stats['per_video'][:5]]
         print(f"\nEmbedding shapes (sample): {shapes}")
     
-    # Recommendations
     print("\n" + "="*70)
     print("NEXT STEPS")
     print("="*70)

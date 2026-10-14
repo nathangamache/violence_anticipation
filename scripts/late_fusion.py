@@ -1,25 +1,13 @@
 #!/usr/bin/env python3
-"""
-Late Fusion for Violence Anticipation
-
-Trains separate models for each modality (VLM, Audio, Pose) and combines
-their predictions at inference time using various fusion strategies:
-- max: Take maximum probability across modalities
-- mean: Average probabilities
-- weighted: Weighted average (learnable or fixed)
-- learned: Train a small fusion network on top
-
-This avoids the issue of one modality's noise drowning out another in early fusion.
+"""Late fusion of per-modality (VLM, audio, pose) LSTM scores, so one modality's noise cannot swamp another.
 
 Usage:
-    # Step 1: Train individual models (if not already done)
     python scripts/late_fusion.py --mode train_individual \
         --vlm_dir data/processed/vlm_emb \
         --audio_dir data/processed/audio_features \
         --labels_dir data/processed/labels_multih \
         --output_dir outputs/late_fusion
 
-    # Step 2: Evaluate with late fusion
     python scripts/late_fusion.py --mode evaluate \
         --vlm_model outputs/late_fusion/vlm_model/best_temporal_model.pt \
         --audio_model outputs/late_fusion/audio_model/best_temporal_model.pt \
@@ -28,7 +16,6 @@ Usage:
         --fusion_strategy weighted \
         --output_dir final/late_fusion_eval
 
-    # Step 3: Grid search for optimal weights
     python scripts/late_fusion.py --mode optimize_weights \
         --vlm_model outputs/late_fusion/vlm_model/best_temporal_model.pt \
         --audio_model outputs/late_fusion/audio_model/best_temporal_model.pt \
@@ -52,20 +39,12 @@ import torch
 import torch.nn as nn
 
 
-# ==============================================================================
-# Model Loading
-# ==============================================================================
-
 class TemporalLSTMWithEncoder(nn.Module):
-    """
-    Temporal LSTM model with frame encoder and attention.
-    This matches the architecture used in train_temporal_model.py
-    """
+    """BiLSTM with frame encoder and attention pooling, keyed like the train_temporal_model.py checkpoints."""
     
     def __init__(self, input_dim: int, hidden_dim: int = 128, num_layers: int = 2, dropout: float = 0.3, encoder_dim: int = 256):
         super().__init__()
         
-        # Frame encoder to reduce dimensionality
         self.frame_encoder = nn.Sequential(
             nn.Linear(input_dim, encoder_dim),
             nn.LayerNorm(encoder_dim),
@@ -76,20 +55,17 @@ class TemporalLSTMWithEncoder(nn.Module):
             nn.ReLU(),
         )
         
-        # Bidirectional LSTM
         self.lstm = nn.LSTM(
             encoder_dim, hidden_dim, num_layers,
             batch_first=True, dropout=dropout if num_layers > 1 else 0, bidirectional=True
         )
         
-        # Attention mechanism
         self.attention = nn.Sequential(
             nn.Linear(hidden_dim * 2, 64),
             nn.Tanh(),
             nn.Linear(64, 1),
         )
         
-        # Classifier
         self.classifier = nn.Sequential(
             nn.Linear(hidden_dim * 2, 64),
             nn.ReLU(),
@@ -101,15 +77,12 @@ class TemporalLSTMWithEncoder(nn.Module):
     def forward(self, x):
         batch_size, seq_len, _ = x.shape
         
-        # Encode each frame
         x = x.view(-1, x.shape[-1])
         x = self.frame_encoder(x)
         x = x.view(batch_size, seq_len, -1)
         
-        # LSTM
         lstm_out, _ = self.lstm(x)
         
-        # Attention
         attn_weights = self.attention(lstm_out)
         attn_weights = torch.softmax(attn_weights, dim=1)
         context = torch.sum(attn_weights * lstm_out, dim=1)
@@ -118,7 +91,7 @@ class TemporalLSTMWithEncoder(nn.Module):
 
 
 class SimpleLSTM(nn.Module):
-    """Simple LSTM without frame encoder (for smaller input dims like audio)."""
+    """BiLSTM on the last hidden state, without a frame encoder (for small inputs such as audio)."""
     
     def __init__(self, input_dim: int, hidden_dim: int = 128, num_layers: int = 2, dropout: float = 0.3):
         super().__init__()
@@ -144,24 +117,20 @@ def load_model(model_path: Path, device: str = 'cuda:0') -> Tuple[nn.Module, dic
     """Load a trained model from checkpoint, auto-detecting architecture."""
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     
-    # Get model config
     config = checkpoint.get('config', {})
     state_dict = checkpoint['model_state_dict']
     
-    # Detect architecture from state dict keys
     has_frame_encoder = any('frame_encoder' in k for k in state_dict.keys())
     
-    # Get dimensions from state dict
     if has_frame_encoder:
         input_dim = state_dict['frame_encoder.0.weight'].shape[1]
         encoder_dim = state_dict['frame_encoder.0.weight'].shape[0]
         hidden_dim = state_dict['lstm.weight_hh_l0'].shape[1]
     else:
         input_dim = state_dict['lstm.weight_ih_l0'].shape[1]
-        encoder_dim = 256  # default
+        encoder_dim = 256
         hidden_dim = state_dict['lstm.weight_hh_l0'].shape[1]
     
-    # Count LSTM layers
     num_layers = sum(1 for k in state_dict.keys() if 'lstm.weight_ih_l' in k and 'reverse' not in k)
     
     config['input_dim'] = input_dim
@@ -173,7 +142,6 @@ def load_model(model_path: Path, device: str = 'cuda:0') -> Tuple[nn.Module, dic
     print(f"  Detected architecture: {'TemporalLSTMWithEncoder' if has_frame_encoder else 'SimpleLSTM'}")
     print(f"  Input dim: {input_dim}, Encoder dim: {encoder_dim}, Hidden dim: {hidden_dim}, Layers: {num_layers}")
     
-    # Create model with correct architecture
     if has_frame_encoder:
         model = TemporalLSTMWithEncoder(input_dim, hidden_dim, num_layers, encoder_dim=encoder_dim)
     else:
@@ -190,10 +158,8 @@ def load_simulation(sim_path: Path) -> Dict:
     """Load a prebuilt simulation file."""
     data = np.load(sim_path, allow_pickle=True)
     
-    # Print available keys for debugging
     print(f"  Simulation keys: {list(data.keys())}")
     
-    # Handle different key names
     embeddings = data.get('embeddings', data.get('emb', data.get('arr_0', None)))
     frame_labels = data.get('frame_labels', data.get('labels', None))
     anticipation_labels = data.get('anticipation_labels', data.get('ant_labels', None))
@@ -201,7 +167,6 @@ def load_simulation(sim_path: Path) -> Dict:
     video_names = data.get('video_names', None)
     fps = float(data.get('fps', 1.0))
     
-    # If no anticipation labels, create them from frame labels
     if anticipation_labels is None and frame_labels is not None:
         print("  Creating anticipation labels from frame labels...")
         horizon_frames = int(30 * fps)  # 30 second horizon
@@ -210,7 +175,6 @@ def load_simulation(sim_path: Path) -> Dict:
             future_end = min(t + horizon_frames, len(frame_labels))
             anticipation_labels[t] = frame_labels[t:future_end].max()
     
-    # If no video boundaries, create a single boundary for the whole simulation
     if video_boundaries is None:
         print("  No video boundaries found, treating as single video...")
         video_boundaries = np.array([[0, len(embeddings)]])
@@ -225,10 +189,6 @@ def load_simulation(sim_path: Path) -> Dict:
     }
 
 
-# ==============================================================================
-# Inference
-# ==============================================================================
-
 def run_inference(
     model: nn.Module,
     embeddings: np.ndarray,
@@ -236,19 +196,17 @@ def run_inference(
     device: str = 'cuda:0',
     batch_size: int = 256,
 ) -> np.ndarray:
-    """Run inference on embeddings and return frame-level predictions."""
+    """Score every frame with a zero-padded causal window of sequence_length frames."""
     model.eval()
     n_frames = len(embeddings)
     predictions = np.zeros(n_frames, dtype=np.float32)
     
-    # Pad beginning
     pad_size = sequence_length - 1
     padded = np.vstack([
         np.zeros((pad_size, embeddings.shape[1]), dtype=np.float32),
         embeddings
     ])
     
-    # Create sequences
     sequences = []
     for i in range(n_frames):
         seq = padded[i:i + sequence_length]
@@ -256,7 +214,6 @@ def run_inference(
     
     sequences = np.array(sequences)
     
-    # Batch inference
     with torch.no_grad():
         for i in range(0, n_frames, batch_size):
             batch = torch.tensor(sequences[i:i + batch_size], dtype=torch.float32, device=device)
@@ -266,38 +223,22 @@ def run_inference(
     return predictions
 
 
-# ==============================================================================
-# Late Fusion Strategies
-# ==============================================================================
-
 def fuse_predictions(
     predictions: Dict[str, np.ndarray],
     strategy: str = 'max',
     weights: Optional[Dict[str, float]] = None,
 ) -> np.ndarray:
-    """
-    Fuse predictions from multiple modalities.
-    
-    Args:
-        predictions: Dict mapping modality name to prediction array
-        strategy: Fusion strategy ('max', 'mean', 'weighted', 'product')
-        weights: Optional weights for weighted fusion
-        
-    Returns:
-        Fused predictions array
-    """
-    # Check lengths and align if needed
+    """Fuse per-modality score arrays (truncated to the shortest) with the given strategy."""
     lengths = {k: len(v) for k, v in predictions.items()}
     print(f"  Prediction lengths: {lengths}")
     
     if len(set(lengths.values())) > 1:
-        # Different lengths - truncate to shortest
         min_len = min(lengths.values())
         print(f"  Truncating to shortest length: {min_len}")
         predictions = {k: v[:min_len] for k, v in predictions.items()}
     
     pred_arrays = [predictions[k] for k in sorted(predictions.keys())]
-    pred_stack = np.stack(pred_arrays, axis=0)  # Shape: [n_modalities, n_frames]
+    pred_stack = np.stack(pred_arrays, axis=0)  # [n_modalities, n_frames]
     
     if strategy == 'max':
         return np.max(pred_stack, axis=0)
@@ -319,20 +260,15 @@ def fuse_predictions(
         return fused
     
     elif strategy == 'product':
-        # Geometric mean - good for independent classifiers
+        # Geometric mean.
         return np.power(np.prod(pred_stack, axis=0), 1.0 / len(pred_arrays))
     
     elif strategy == 'noisy_or':
-        # P(violence) = 1 - product(1 - P_i)
         return 1 - np.prod(1 - pred_stack, axis=0)
     
     else:
         raise ValueError(f"Unknown fusion strategy: {strategy}")
 
-
-# ==============================================================================
-# Evaluation
-# ==============================================================================
 
 def resample_to_timeline(
     values: np.ndarray,
@@ -340,20 +276,16 @@ def resample_to_timeline(
     dst_len: int,
     dst_fps: float,
 ) -> np.ndarray:
-    """
-    Resample a 1D prediction array from src_fps to dst_fps with length dst_len,
-    using time-based interpolation.
-    """
+    """Linearly interpolate a 1D score array from src_fps onto a dst_len timeline at dst_fps."""
     values = np.asarray(values, dtype=np.float32).reshape(-1)
 
     if dst_len <= 0:
         return np.asarray([], dtype=np.float32)
 
-    # Fast path
     if len(values) == dst_len and abs(float(src_fps) - float(dst_fps)) < 1e-9:
         return values
 
-    # If fps is invalid or empty stream, fall back to truncate/pad
+    # Invalid fps or empty stream: fall back to truncate/pad.
     if float(src_fps) <= 0 or float(dst_fps) <= 0 or len(values) == 0:
         out = np.zeros(dst_len, dtype=np.float32)
         n = min(dst_len, len(values))
@@ -366,11 +298,10 @@ def resample_to_timeline(
     src_fps = float(src_fps)
     dst_fps = float(dst_fps)
 
-    # time axis (seconds)
     src_t = np.arange(len(values), dtype=np.float64) / src_fps
     dst_t = np.arange(dst_len, dtype=np.float64) / dst_fps
 
-    # Only resample over overlap, clamp to last available src time
+    # Clamp to the last available source time instead of extrapolating.
     last_t = float(src_t[-1]) if len(src_t) > 0 else 0.0
     if last_t <= 0.0:
         # degenerate stream (length 1)
@@ -387,10 +318,7 @@ def convert_boundaries_to_ref(
     dst_fps: float,
     dst_len: int,
 ) -> np.ndarray:
-    """
-    Convert [start,end] boundaries expressed in src index units (src_fps)
-    into dst index units (dst_fps), clipped to [0,dst_len].
-    """
+    """Convert [start, end] index boundaries from src_fps to dst_fps units, clipped to [0, dst_len]."""
     if dst_len <= 0:
         return np.array([[0, 0]], dtype=np.int64)
 
@@ -409,16 +337,14 @@ def convert_boundaries_to_ref(
         s = float(s)
         e = float(e)
 
-        # Convert indices -> seconds
         if src_fps > 0:
             s_t = s / src_fps
             e_t = e / src_fps
         else:
-            # If fps unknown, treat as already in "seconds-ish" and map proportionally
+            # Unknown fps: treat indices as seconds.
             s_t = s
             e_t = e
 
-        # seconds -> dst indices
         if dst_fps > 0:
             s_ref = int(round(s_t * dst_fps))
             e_ref = int(round(e_t * dst_fps))
@@ -455,7 +381,6 @@ def evaluate_predictions(
     frame_labels = np.asarray(frame_labels).reshape(-1)
     anticipation_labels = np.asarray(anticipation_labels).reshape(-1)
 
-    # Hard safety: align lengths
     min_len = min(len(predictions), len(frame_labels), len(anticipation_labels))
     if min_len <= 0:
         return {
@@ -482,10 +407,8 @@ def evaluate_predictions(
     if fps <= 0:
         fps = 1.0
 
-    # Clip/normalize boundaries to current length
     video_boundaries = convert_boundaries_to_ref(video_boundaries, fps, fps, min_len)
 
-    # Classification metrics
     try:
         roc_auc = roc_auc_score(anticipation_labels, predictions)
     except Exception:
@@ -497,10 +420,8 @@ def evaluate_predictions(
     except Exception:
         pr_auc = 0.0
 
-    # Operational metrics
     total_duration = (len(predictions) / fps) / 3600.0  # hours
 
-    # Find violence events (segments) using frame_labels within each video boundary
     events = []
     for start, end in video_boundaries:
         start = int(max(0, start))
@@ -530,7 +451,6 @@ def evaluate_predictions(
                 'global_end': end,
             })
 
-    # Check detections within anticipation window
     horizon_frames = int(float(horizon_sec) * fps)
     detected = 0
     lead_times = []
@@ -551,7 +471,7 @@ def evaluate_predictions(
             lead_time_frames = max(0, ev['global_start'] - first_det_global)
             lead_times.append(lead_time_frames / fps)
 
-    # False alarms: rising edges in non-anticipation regions
+    # False alarm = rising edge of the alert outside anticipation regions.
     false_alarms = 0
     alert_active = False
 
@@ -604,10 +524,6 @@ def threshold_sweep(
     return results
 
 
-# ==============================================================================
-# Weight Optimization
-# ==============================================================================
-
 def optimize_weights(
     predictions: Dict[str, np.ndarray],
     frame_labels: np.ndarray,
@@ -618,22 +534,10 @@ def optimize_weights(
     constraint_metric: str = 'fa_per_hour',
     constraint_max: float = 10.0,
 ) -> Tuple[Dict[str, float], Dict]:
-    """
-    Grid search for optimal fusion weights.
-    
-    Args:
-        predictions: Dict of modality predictions
-        target_metric: Metric to maximize
-        constraint_metric: Metric to constrain
-        constraint_max: Maximum value for constraint
-        
-    Returns:
-        best_weights, best_metrics
-    """
+    """Grid-search 2-modality weights and thresholds maximising target_metric under constraint_max."""
     modalities = list(predictions.keys())
     
     if len(modalities) == 2:
-        # Grid search for 2 modalities
         best_score = -float('inf')
         best_weights = None
         best_metrics = None
@@ -645,14 +549,12 @@ def optimize_weights(
             
             fused = fuse_predictions(predictions, 'weighted', weights)
             
-            # Try multiple thresholds
             for thresh in [0.3, 0.4, 0.5, 0.6, 0.7]:
                 metrics = evaluate_predictions(
                     fused, frame_labels, anticipation_labels,
                     video_boundaries, thresh, fps
                 )
                 
-                # Check constraint
                 if metrics[constraint_metric] > constraint_max:
                     continue
                 
@@ -669,8 +571,7 @@ def optimize_weights(
         return best_weights, best_metrics
     
     else:
-        # For more modalities, use random search or Bayesian optimization
-        # For now, just use equal weights
+        # No search implemented for more than 2 modalities: equal weights.
         weights = {m: 1.0 / len(modalities) for m in modalities}
         fused = fuse_predictions(predictions, 'weighted', weights)
         metrics = evaluate_predictions(
@@ -679,10 +580,6 @@ def optimize_weights(
         )
         return weights, metrics
 
-
-# ==============================================================================
-# Main Functions
-# ==============================================================================
 
 def train_individual_models(
     vlm_dir: Optional[Path],
@@ -696,10 +593,9 @@ def train_individual_models(
     source_filter: str,
     device: str = 'cuda:0',
 ):
-    """Train individual models for each modality."""
+    """Train one temporal model per modality by shelling out to training/train_temporal_model.py."""
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Feature dimensions
     dims = {'vlm': 3584, 'audio': 91, 'pose': 540}
     
     modalities = []
@@ -795,7 +691,6 @@ def evaluate_late_fusion(
         per_mod_fps[name] = float(sim_data.get('fps', 1.0))
         per_mod_boundaries[name] = sim_data.get('video_boundaries', None)
 
-        # Pick labels from the first modality that actually has them
         if frame_labels is None and sim_data.get('frame_labels', None) is not None:
             frame_labels = sim_data['frame_labels']
             anticipation_labels = sim_data['anticipation_labels']
@@ -820,7 +715,7 @@ def evaluate_late_fusion(
 
     ref_len = int(len(frame_labels))
 
-    # Use overlap-in-time across modalities so we don't invent extra time at the end
+    # Evaluate only the time span all modalities cover.
     end_times = [ref_len / max(ref_fps, 1e-9)]
     for m in predictions.keys():
         m_fps = float(per_mod_fps.get(m, ref_fps))
@@ -831,12 +726,10 @@ def evaluate_late_fusion(
     common_end = float(min(end_times))
     ref_len = max(1, int(np.floor(common_end * ref_fps)))
 
-    # Truncate labels to reference length
     frame_labels = frame_labels[:ref_len]
     anticipation_labels = anticipation_labels[:ref_len]
 
-    # Choose best boundaries:
-    # - If the label source only had a dummy single boundary, try to steal real boundaries from another modality (audio usually).
+    # If the label source only has a single dummy boundary, borrow real ones from another modality (usually audio).
     vb = video_boundaries
     vb_is_dummy = (
         vb is None or
@@ -852,21 +745,18 @@ def evaluate_late_fusion(
 
     video_boundaries = convert_boundaries_to_ref(vb, ref_fps, ref_fps, ref_len)
 
-    # Align every modality's predictions onto the reference timeline
     for m in list(predictions.keys()):
         m_fps = float(per_mod_fps.get(m, ref_fps))
         if m_fps <= 0:
             m_fps = ref_fps
         predictions[m] = resample_to_timeline(predictions[m], m_fps, ref_len, ref_fps)
 
-    fps = ref_fps  # use aligned fps going forward
+    fps = ref_fps
 
     print(f"\nFusing {list(predictions.keys())} with strategy: {fusion_strategy}")
 
-    # Fuse predictions (they should now all match ref_len)
     fused = fuse_predictions(predictions, fusion_strategy, weights)
 
-    # Evaluate
     results = {'individual': {}, 'fused': {}, 'fusion_strategy': fusion_strategy, 'weights': weights}
 
     for name, preds in predictions.items():
@@ -895,11 +785,9 @@ def evaluate_late_fusion(
     print(f"  Lead time: {best['avg_lead_time_sec']:.1f}s")
     print(f"  ROC-AUC: {best['roc_auc']:.4f}")
 
-    # Save results
     with open(output_dir / 'late_fusion_results.json', 'w') as f:
         json.dump(results, f, indent=2)
 
-    # Save predictions (aligned)
     np.savez_compressed(
         output_dir / 'predictions.npz',
         **{f'{k}_preds': v for k, v in predictions.items()},
@@ -927,7 +815,7 @@ def run_weight_optimization(
 
     predictions: Dict[str, np.ndarray] = {}
 
-    # --- Load VLM (reference labels/timeline) ---
+    # VLM sim provides the reference labels and timeline.
     print("Loading VLM model...")
     vlm_model, vlm_config = load_model(vlm_model_path, device)
     vlm_sim = load_simulation(vlm_sim_path)
@@ -942,7 +830,6 @@ def run_weight_optimization(
     if ref_fps <= 0:
         ref_fps = 1.0
 
-    # --- Load Audio ---
     print("Loading Audio model...")
     audio_model, audio_config = load_model(audio_model_path, device)
     audio_sim = load_simulation(audio_sim_path)
@@ -954,7 +841,6 @@ def run_weight_optimization(
     if audio_fps <= 0:
         audio_fps = ref_fps
 
-    # --- Overlap-in-time alignment ---
     ref_len = int(len(frame_labels))
     end_ref = ref_len / max(ref_fps, 1e-9)
     end_audio = len(audio_preds) / max(audio_fps, 1e-9)
@@ -964,14 +850,13 @@ def run_weight_optimization(
     frame_labels = frame_labels[:ref_len]
     anticipation_labels = anticipation_labels[:ref_len]
 
-    # Prefer audio boundaries if they exist and are more informative
+    # Audio sims carry real per-video boundaries; prefer them when present.
     audio_boundaries = audio_sim.get('video_boundaries', None)
     if audio_boundaries is not None and np.asarray(audio_boundaries).ndim == 2 and len(audio_boundaries) > 1:
         video_boundaries = convert_boundaries_to_ref(audio_boundaries, audio_fps, ref_fps, ref_len)
     else:
         video_boundaries = convert_boundaries_to_ref(video_boundaries, ref_fps, ref_fps, ref_len)
 
-    # Align predictions
     predictions['vlm'] = np.asarray(vlm_preds, dtype=np.float32).reshape(-1)[:ref_len]
     predictions['audio'] = resample_to_timeline(audio_preds, audio_fps, ref_len, ref_fps)
 
@@ -1018,39 +903,30 @@ def run_weight_optimization(
     print(f"\nResults saved to {output_dir}")
 
 
-# ==============================================================================
-# Main
-# ==============================================================================
-
 def main():
     parser = argparse.ArgumentParser(description="Late fusion for violence anticipation")
     parser.add_argument('--mode', type=str, required=True,
                         choices=['train_individual', 'evaluate', 'optimize_weights'])
     
-    # Directories
     parser.add_argument('--vlm_dir', type=str, default=None)
     parser.add_argument('--audio_dir', type=str, default=None)
     parser.add_argument('--pose_dir', type=str, default=None)
     parser.add_argument('--labels_dir', type=str, default='data/processed/labels_multih')
     parser.add_argument('--output_dir', type=str, default='outputs/late_fusion')
     
-    # Model paths
     parser.add_argument('--vlm_model', type=str, default=None)
     parser.add_argument('--audio_model', type=str, default=None)
     parser.add_argument('--pose_model', type=str, default=None)
     
-    # Simulation paths
     parser.add_argument('--vlm_sim', type=str, default=None)
     parser.add_argument('--audio_sim', type=str, default=None)
     parser.add_argument('--pose_sim', type=str, default=None)
     
-    # Training params
     parser.add_argument('--train_index', type=str, default='train_index.json')
     parser.add_argument('--val_index', type=str, default='val_index.json')
     parser.add_argument('--test_index', type=str, default='test_index.json')
     parser.add_argument('--source_filter', type=str, default='xd_violence')
     
-    # Fusion params
     parser.add_argument('--fusion_strategy', type=str, default='max',
                         choices=['max', 'mean', 'weighted', 'product', 'noisy_or'])
     parser.add_argument('--vlm_weight', type=float, default=0.7)

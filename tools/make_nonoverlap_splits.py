@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Union index files and re-split them 80/10/10 by group id so no clip id lands in two splits."""
 import argparse
 import json
 import os
@@ -7,11 +8,6 @@ import re
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
-# Try to extract a stable "video/clip id" from an index item.
-# Priority:
-#   1) explicit id keys if present
-#   2) basename of any known path-like key
-#   3) fallback: hashable normalized json string (last resort)
 ID_KEYS = ("video_id", "vid_id", "id", "uid", "name")
 PATH_KEYS = ("npz_path", "emb_path", "jsonl_path", "path", "graph_path", "feat_path", "label_path")
 
@@ -20,12 +16,11 @@ def _basename_no_ext(p: str) -> str:
     return os.path.splitext(base)[0]
 
 def infer_group_id(item: Dict[str, Any], strip_regex: str | None = None) -> str:
-    # 1) direct id keys
+    """Explicit id key, else basename of the first path key (minus strip_regex), else the item's JSON."""
     for k in ID_KEYS:
         if k in item and item[k]:
             return str(item[k])
 
-    # 2) common path keys
     for k in PATH_KEYS:
         if k in item and item[k]:
             gid = _basename_no_ext(str(item[k]))
@@ -33,7 +28,6 @@ def infer_group_id(item: Dict[str, Any], strip_regex: str | None = None) -> str:
                 gid = re.sub(strip_regex, "", gid)
             return gid
 
-    # 3) fallback (should almost never be needed)
     return json.dumps(item, sort_keys=True)
 
 def load_items(path: str) -> List[Dict[str, Any]]:
@@ -44,8 +38,6 @@ def load_items(path: str) -> List[Dict[str, Any]]:
     return data
 
 def stable_item_key(item: Dict[str, Any]) -> str:
-    # Dedup based on a stable signature.
-    # Prefer a path key if present; else fallback to normalized json.
     for k in PATH_KEYS:
         if k in item and item[k]:
             return f"{k}:{item[k]}"
@@ -92,21 +84,18 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
     random.seed(args.seed)
 
-    # 1) load + union
     all_items: List[Dict[str, Any]] = []
     for p in args.inputs:
         items = load_items(p)
         print(f"[Load] {p}: {len(items)} items")
         all_items.extend(items)
 
-    # 2) dedupe items
     uniq = {}
     for it in all_items:
         uniq[stable_item_key(it)] = it
     all_items = list(uniq.values())
     print(f"[Union] unique items: {len(all_items)}")
 
-    # 3) group by video/clip id
     groups: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for it in all_items:
         gid = infer_group_id(it, strip_regex=args.strip_regex)
@@ -116,7 +105,6 @@ def main():
     random.shuffle(group_ids)
     print(f"[Group] unique group_ids (videos/clips): {len(group_ids)}")
 
-    # 4) split groups (non-overlapping by construction)
     train_g, val_g, test_g = split_groups(group_ids, args.train, args.val, args.test)
 
     def materialize(gids: List[str]) -> List[Dict[str, Any]]:
@@ -133,7 +121,6 @@ def main():
     print(f"[Split] val   groups={len(val_g)} items={len(val_items)}")
     print(f"[Split] test  groups={len(test_g)} items={len(test_items)}")
 
-    # 5) write outputs
     out_train = os.path.join(args.out_dir, "train_index.json")
     out_val   = os.path.join(args.out_dir, "val_index.json")
     out_test  = os.path.join(args.out_dir, "test_index.json")
@@ -144,7 +131,6 @@ def main():
             json.dump(items, f, indent=2)
         print(f"[Write] {p}: {len(items)} items")
 
-    # 6) sanity check overlaps at group-id level
     train_set = set(train_g)
     val_set   = set(val_g)
     test_set  = set(test_g)

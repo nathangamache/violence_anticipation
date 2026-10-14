@@ -1,6 +1,4 @@
-"""
-Real-Time Violence Anticipation Pipeline
-RTSP ingestion + Qwen2.5-VL embeddings (GPU0) + LSTM inference (GPU1)
+"""Live violence anticipation: RTSP capture, Qwen2.5-VL embeddings (GPU0), BiLSTM inference (GPU1).
 
 Usage:
     python rtsp_inference.py --rtsp rtsp://username:password@192.168.1.x:554/stream \
@@ -28,9 +26,6 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-# ─────────────────────────────────────────────
-# Logging
-# ─────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -42,12 +37,8 @@ logging.basicConfig(
 log = logging.getLogger("ViolenceAnticipation")
 
 
-# ─────────────────────────────────────────────
-# Data containers
-# ─────────────────────────────────────────────
 @dataclass
 class Frame:
-    """A captured frame with metadata."""
     image: np.ndarray          # BGR from OpenCV
     timestamp: float           # time.time()
     frame_idx: int
@@ -55,7 +46,6 @@ class Frame:
 
 @dataclass
 class EmbeddedFrame:
-    """A frame with its VLM embedding attached."""
     embedding: torch.Tensor    # shape: (3584,) on CPU
     timestamp: float
     frame_idx: int
@@ -63,25 +53,16 @@ class EmbeddedFrame:
 
 @dataclass
 class Prediction:
-    """Model output for a sequence."""
     score: float               # violence probability 0–1
-    is_alert: bool             # threshold exceeded
+    is_alert: bool
     timestamp: float
     frame_idx: int
-    lead_time_budget: float    # seconds until assumed event if sustained alert
+    lead_time_budget: float
 
 
-# ─────────────────────────────────────────────
-# Model definition — matches checkpoint exactly
-#
-# Confirmed architecture from inspect_checkpoint.py:
-#   frame_encoder:  Linear(3584→256) + LN + ReLU + Dropout
-#                   Linear(256→256)  + LN + ReLU + Dropout   (2-block encoder)
-#   lstm:           Bidirectional LSTM, hidden=128, 2 layers  (output dim = 256)
-#   attention:      Linear(256→64) + Tanh + Linear(64→1) → softmax weights
-#   classifier:     Linear(256→64) + ReLU + Dropout + Linear(64→1) + Sigmoid
-# ─────────────────────────────────────────────
 class ViolenceLSTM(nn.Module):
+    """BiLSTM + attention head; module indices must line up with the temporal-model checkpoint keys."""
+
     def __init__(
         self,
         input_dim: int = 3584,
@@ -94,19 +75,17 @@ class ViolenceLSTM(nn.Module):
         super().__init__()
         self.sequence_length = sequence_length
 
-        # 2-block frame encoder  (matches frame_encoder.0/1/4/5 in checkpoint)
         self.frame_encoder = nn.Sequential(
-            nn.Linear(input_dim, encoder_dim),   # .0
-            nn.LayerNorm(encoder_dim),            # .1
-            nn.ReLU(),                            # .2
-            nn.Dropout(dropout),                  # .3
-            nn.Linear(encoder_dim, encoder_dim),  # .4
-            nn.LayerNorm(encoder_dim),            # .5
-            nn.ReLU(),                            # .6
-            nn.Dropout(dropout),                  # .7
+            nn.Linear(input_dim, encoder_dim),
+            nn.LayerNorm(encoder_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(encoder_dim, encoder_dim),
+            nn.LayerNorm(encoder_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
         )
 
-        # Bidirectional LSTM  (output dim = lstm_hidden * 2 = 256)
         self.lstm = nn.LSTM(
             input_size=encoder_dim,
             hidden_size=lstm_hidden,
@@ -115,40 +94,32 @@ class ViolenceLSTM(nn.Module):
             bidirectional=True,
             dropout=dropout if num_layers > 1 else 0.0,
         )
-        lstm_out_dim = lstm_hidden * 2  # 256
+        lstm_out_dim = lstm_hidden * 2
 
-        # Attention over time steps  (matches attention.0/2 in checkpoint)
         self.attention = nn.Sequential(
-            nn.Linear(lstm_out_dim, 64),  # .0
-            nn.Tanh(),                    # .1
-            nn.Linear(64, 1),            # .2
+            nn.Linear(lstm_out_dim, 64),
+            nn.Tanh(),
+            nn.Linear(64, 1),
         )
 
-        # Classifier  (matches classifier.0/3 in checkpoint)
         self.classifier = nn.Sequential(
-            nn.Linear(lstm_out_dim, 64),  # .0
-            nn.ReLU(),                    # .1
-            nn.Dropout(dropout),          # .2
-            nn.Linear(64, 1),            # .3
-            nn.Sigmoid(),                 # .4
+            nn.Linear(lstm_out_dim, 64),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(64, 1),
+            nn.Sigmoid(),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        x: (batch, seq_len, input_dim)
-        returns: (batch, 1) violence probability
-        """
+        """(B, T, input_dim) -> (B, 1) violence probability."""
         B, T, D = x.shape
 
-        # Encode each frame independently
         x_flat = x.reshape(B * T, D)
         encoded = self.frame_encoder(x_flat)       # (B*T, encoder_dim)
         encoded = encoded.reshape(B, T, -1)        # (B, T, encoder_dim)
 
-        # Bidirectional LSTM over sequence
         lstm_out, _ = self.lstm(encoded)           # (B, T, lstm_hidden*2)
 
-        # Attention pooling
         attn_scores = self.attention(lstm_out)     # (B, T, 1)
         attn_weights = torch.softmax(attn_scores, dim=1)  # (B, T, 1)
         context = (attn_weights * lstm_out).sum(dim=1)    # (B, lstm_hidden*2)
@@ -156,14 +127,8 @@ class ViolenceLSTM(nn.Module):
         return self.classifier(context)            # (B, 1)
 
 
-# ─────────────────────────────────────────────
-# Thread 1: RTSP Frame Capture
-# ─────────────────────────────────────────────
 class RTSPCapture(threading.Thread):
-    """
-    Continuously reads from an RTSP stream, dropping frames to maintain
-    the target sample rate. Puts Frame objects onto a queue.
-    """
+    """Reads an RTSP stream and queues one Frame per 1/target_fps seconds, reconnecting on loss."""
 
     def __init__(
         self,
@@ -223,14 +188,13 @@ class RTSPCapture(threading.Thread):
             self.frame_idx += 1
             now = time.time()
 
-            # Only pass frames that meet sample interval
             if (now - last_sample_time) < self.sample_interval:
                 self.frames_dropped += 1
                 continue
 
             last_sample_time = now
 
-            # Drop oldest if queue is full (prefer freshness)
+            # Prefer freshness: drop the oldest frame when the queue is full.
             if self.frame_queue.qsize() >= self.max_queue_size:
                 try:
                     self.frame_queue.get_nowait()
@@ -257,13 +221,8 @@ class RTSPCapture(threading.Thread):
         log.info("[Capture] Thread stopped.")
 
 
-# ─────────────────────────────────────────────
-# Thread 2: VLM Embedding Extraction (GPU 0)
-# ─────────────────────────────────────────────
 class EmbeddingExtractor(threading.Thread):
-    """
-    Loads Qwen2.5-VL on GPU 0, consumes Frame objects, produces EmbeddedFrame objects.
-    """
+    """Runs Qwen2.5-VL on GPU 0, turning queued Frames into EmbeddedFrames."""
 
     def __init__(
         self,
@@ -312,19 +271,11 @@ class EmbeddingExtractor(threading.Thread):
 
     @torch.no_grad()
     def _extract_embedding(self, frame: Frame) -> torch.Tensor:
-        """
-        Extract VLM visual embedding for a single frame.
-        Returns a (3584,) tensor on CPU.
-
-        Uses the correct Qwen2.5-VL two-step processor API:
-          1. apply_chat_template() → prompt string (no image, no tensors)
-          2. processor(text=..., images=...) → proper input dict
-        """
-        # Convert BGR → RGB PIL
+        """Return the mean-pooled last hidden state for one frame as a (3584,) CPU tensor."""
         rgb = cv2.cvtColor(frame.image, cv2.COLOR_BGR2RGB)
         pil_img = Image.fromarray(rgb).resize(self.target_size, Image.LANCZOS)
 
-        # Step 1: build prompt string — image placeholder, NO PIL object here
+        # Image placeholder only: the PIL image goes to processor(), not apply_chat_template().
         messages = [
             {
                 "role": "user",
@@ -340,23 +291,19 @@ class EmbeddingExtractor(threading.Thread):
             add_generation_prompt=False,
         )
 
-        # Step 2: process text + image → proper input dict
         inputs = self.processor(
             text=prompt,
             images=pil_img,
             return_tensors="pt",
         )
 
-        # Step 3: move all tensors to GPU
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
-        # Step 4: forward pass with hidden states (no generation needed)
         outputs = self.model(
             **inputs,
             output_hidden_states=True,
         )
 
-        # Mean-pool last hidden state over sequence → (hidden_dim,)
         last_hidden = outputs.hidden_states[-1]   # (1, seq_len, hidden_dim)
         embedding = last_hidden[0].mean(dim=0)    # (hidden_dim,)
 
@@ -401,15 +348,8 @@ class EmbeddingExtractor(threading.Thread):
         log.info("[Embedder] Thread stopped.")
 
 
-# ─────────────────────────────────────────────
-# Thread 3: LSTM Inference + Alert (GPU 1)
-# ─────────────────────────────────────────────
 class LSTMInference(threading.Thread):
-    """
-    Loads the LSTM student model on GPU 1.
-    Maintains a rolling sequence buffer and runs inference when full.
-    Emits Prediction objects and triggers alert callbacks.
-    """
+    """Runs ViolenceLSTM on GPU 1 over a rolling embedding buffer and fires alert callbacks."""
 
     def __init__(
         self,
@@ -445,7 +385,6 @@ class LSTMInference(threading.Thread):
         log.info(f"Loading LSTM model on {self.device}...")
         checkpoint = torch.load(self.lstm_checkpoint, map_location="cpu", weights_only=False)
 
-        # Detect checkpoint format
         if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
             state_dict = checkpoint["model_state_dict"]
             saved_kwargs = checkpoint.get("model_config", {})
@@ -469,8 +408,6 @@ class LSTMInference(threading.Thread):
 
     @torch.no_grad()
     def _run_inference(self) -> float:
-        """Run LSTM on current buffer, return violence probability."""
-        # Stack buffer → (1, seq_len, 3584)
         seq = torch.stack(list(self.buffer), dim=0).unsqueeze(0).to(self.device)
         prob = self.model(seq)           # (1, 1)
         return prob.item()
@@ -486,7 +423,6 @@ class LSTMInference(threading.Thread):
 
             self.buffer.append(ef.embedding)
 
-            # Only infer when buffer is full (we have a complete sequence)
             if len(self.buffer) < self.sequence_length:
                 log.debug(
                     f"[LSTM] Buffer filling: {len(self.buffer)}/{self.sequence_length}"
@@ -516,7 +452,6 @@ class LSTMInference(threading.Thread):
                 f"inference={inference_ms:.1f}ms"
             )
 
-            # Fire alert with cooldown to avoid alert flooding
             if is_alert and (now - self.last_alert_time) > self.alert_cooldown:
                 self.last_alert_time = now
                 self.alerts_fired += 1
@@ -531,14 +466,8 @@ class LSTMInference(threading.Thread):
         )
 
 
-# ─────────────────────────────────────────────
-# Alert Handler
-# ─────────────────────────────────────────────
 class AlertHandler:
-    """
-    Handles violence alerts. Extend this for email, SMS, webhook, etc.
-    Currently: console log + optional frame snapshot save.
-    """
+    """Logs alerts and, when given a frame, saves a snapshot."""
 
     def __init__(self, snapshot_dir: Optional[str] = None):
         self.snapshot_dir = Path(snapshot_dir) if snapshot_dir else None
@@ -571,30 +500,22 @@ class AlertHandler:
             log.info(f"  {a['timestamp']} | score={a['score']:.4f} | frame={a['frame_idx']}")
 
 
-# ─────────────────────────────────────────────
-# Pipeline Orchestrator
-# ─────────────────────────────────────────────
 class ViolenceAnticipationPipeline:
-    """
-    Wires together all threads and manages lifecycle.
-    """
+    """Wires the capture, embedding and inference threads together and manages their lifecycle."""
 
     def __init__(self, args):
         self.args = args
         self.alert_handler = AlertHandler(snapshot_dir=args.snapshot_dir)
 
-        # Queues connecting the threads
         self.frame_queue = queue.Queue(maxsize=60)
         self.embed_queue = queue.Queue(maxsize=120)
 
-        # Thread 1: RTSP capture
         self.capture = RTSPCapture(
             rtsp_url=args.rtsp,
             frame_queue=self.frame_queue,
             target_fps=args.fps,
         )
 
-        # Thread 2: VLM embeddings on GPU 0
         self.embedder = EmbeddingExtractor(
             vlm_checkpoint=args.vlm_checkpoint,
             frame_queue=self.frame_queue,
@@ -603,7 +524,6 @@ class ViolenceAnticipationPipeline:
             target_size=(args.frame_size, args.frame_size),
         )
 
-        # Thread 3: LSTM inference on GPU 1
         self.inferencer = LSTMInference(
             lstm_checkpoint=args.lstm_checkpoint,
             embed_queue=self.embed_queue,
@@ -624,9 +544,9 @@ class ViolenceAnticipationPipeline:
         log.info(f"  Alert threshold: {self.args.threshold}")
         log.info(f"  Alert cooldown:  {self.args.alert_cooldown}s")
 
-        self.inferencer.start()   # Load models first (takes time)
+        self.inferencer.start()   # model loading is slow, start consumers first
         self.embedder.start()
-        time.sleep(2)             # Give model loading a head start
+        time.sleep(2)
         self.capture.start()
         self._running = True
         log.info("Pipeline running. Press Ctrl+C to stop.")
@@ -645,7 +565,6 @@ class ViolenceAnticipationPipeline:
     def run_forever(self):
         self.start()
 
-        # Handle Ctrl+C gracefully
         def _sig_handler(sig, frame):
             log.info("Interrupt received, stopping...")
             self.stop()
@@ -654,7 +573,6 @@ class ViolenceAnticipationPipeline:
         signal.signal(signal.SIGINT, _sig_handler)
         signal.signal(signal.SIGTERM, _sig_handler)
 
-        # Keep main thread alive, print periodic stats
         try:
             while True:
                 time.sleep(30)
@@ -671,9 +589,6 @@ class ViolenceAnticipationPipeline:
             pass
 
 
-# ─────────────────────────────────────────────
-# Entry point
-# ─────────────────────────────────────────────
 def parse_args():
     p = argparse.ArgumentParser(description="Real-Time Violence Anticipation Pipeline")
     p.add_argument(

@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
-"""
-Evaluate temporal model with smoothing and cooldown options.
+"""Evaluate the temporal LSTM on a simulation stream with consecutive-frame smoothing and alert cooldown.
 
-Usage:
-    python scripts/evaluate_with_smoothing.py \
-        --model_path outputs/outputs_temporal/best_temporal_model.pt \
-        --sim_path simulation_data/xd_violence_vlm_matched.npz \
-        --threshold 0.3 \
-        --smoothing_window 3 \
-        --alert_cooldown 30 \
-        --output_dir ./final/smoothing_test \
-        --device cuda:0
+Usage (add --sweep to grid over threshold, window and cooldown):
+    python scripts/evaluate_with_smoothing.py --model_path outputs/outputs_temporal/best_temporal_model.pt \
+        --sim_path simulation_data/xd_violence_vlm_matched.npz --threshold 0.3 --smoothing_window 3 \
+        --alert_cooldown 30 --output_dir ./final/smoothing_test --device cuda:0
 """
 
 import argparse
@@ -23,10 +17,6 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-
-# ==============================================================================
-# Model Definition (must match training)
-# ==============================================================================
 
 class TemporalViolenceModel(nn.Module):
     """Temporal LSTM model matching train_temporal_model.py architecture."""
@@ -97,7 +87,6 @@ def load_model(model_path: str, device: str) -> Tuple[nn.Module, dict]:
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     state_dict = checkpoint['model_state_dict']
     
-    # Detect dimensions from state dict
     input_dim = state_dict['frame_encoder.0.weight'].shape[1]
     hidden_dim = state_dict['frame_encoder.0.weight'].shape[0]
     lstm_hidden = state_dict['lstm.weight_hh_l0'].shape[1]
@@ -124,10 +113,6 @@ def load_model(model_path: str, device: str) -> Tuple[nn.Module, dict]:
     return model, config
 
 
-# ==============================================================================
-# Inference with Smoothing
-# ==============================================================================
-
 def run_inference(
     model: nn.Module,
     embeddings: np.ndarray,
@@ -135,12 +120,11 @@ def run_inference(
     device: str = 'cuda:0',
     batch_size: int = 256,
 ) -> np.ndarray:
-    """Run inference and return raw scores."""
+    """Sigmoid score per frame from its trailing sequence_length window (zero-padded at the start)."""
     model.eval()
     n_frames = len(embeddings)
     scores = np.zeros(n_frames, dtype=np.float32)
     
-    # Pad beginning
     pad_size = sequence_length - 1
     padded = np.vstack([
         np.zeros((pad_size, embeddings.shape[1]), dtype=np.float32),
@@ -165,14 +149,10 @@ def run_inference(
 
 
 def apply_smoothing(scores: np.ndarray, threshold: float, window_size: int) -> np.ndarray:
-    """
-    Apply temporal smoothing: require window_size consecutive frames above threshold.
-    Returns binary predictions.
-    """
+    """Binary predictions: 1 once window_size consecutive scores reach threshold."""
     n = len(scores)
     predictions = np.zeros(n, dtype=np.int32)
     
-    # Count consecutive frames above threshold
     consecutive = 0
     
     for i in range(n):
@@ -187,9 +167,7 @@ def apply_smoothing(scores: np.ndarray, threshold: float, window_size: int) -> n
 
 
 def apply_cooldown(predictions: np.ndarray, cooldown_frames: int) -> np.ndarray:
-    """
-    Apply alert cooldown: after an alert, suppress for cooldown_frames.
-    """
+    """After an alert, suppress further alerts for cooldown_frames."""
     result = np.zeros_like(predictions)
     last_alert = -cooldown_frames - 1
     
@@ -201,12 +179,8 @@ def apply_cooldown(predictions: np.ndarray, cooldown_frames: int) -> np.ndarray:
     return result
 
 
-# ==============================================================================
-# Evaluation
-# ==============================================================================
-
 def find_violence_events(frame_labels: np.ndarray) -> List[Tuple[int, int]]:
-    """Find contiguous violence events."""
+    """Inclusive (start, end) runs of positive frame_labels."""
     events = []
     in_event = False
     event_start = 0
@@ -233,10 +207,8 @@ def evaluate(
     fps: float = 1.0,
     horizon_sec: float = 30.0,
 ) -> Dict:
-    """Compute evaluation metrics."""
     from sklearn.metrics import roc_auc_score, average_precision_score, confusion_matrix
     
-    # Classification metrics on anticipation labels
     try:
         roc_auc = roc_auc_score(anticipation_labels, scores)
     except:
@@ -247,7 +219,6 @@ def evaluate(
     except:
         pr_auc = 0.0
     
-    # Confusion matrix
     cm = confusion_matrix(anticipation_labels, predictions, labels=[0, 1])
     tn, fp, fn, tp = cm.ravel()
     
@@ -255,7 +226,6 @@ def evaluate(
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     
-    # Event-level analysis
     events = find_violence_events(frame_labels)
     horizon_frames = int(horizon_sec * fps)
     
@@ -263,18 +233,16 @@ def evaluate(
     lead_times = []
     
     for start, end in events:
-        # Check window [start - horizon, end]
         check_start = max(0, start - horizon_frames)
         window_preds = predictions[check_start:end + 1]
         
         if window_preds.max() > 0:
             detected_events += 1
-            # Find first detection
             first_det = np.argmax(window_preds > 0)
             lead_time = max(0, start - (check_start + first_det)) / fps
             lead_times.append(lead_time)
     
-    # False alarms (rising edges in non-anticipation regions)
+    # false alarm = rising edge of predictions outside anticipation_labels
     false_alarms = 0
     alert_active = False
     
@@ -329,14 +297,11 @@ def sweep_parameters(
     for thresh in thresholds:
         for window in smoothing_windows:
             for cooldown in cooldowns:
-                # Apply smoothing
                 preds = apply_smoothing(scores, thresh, window)
                 
-                # Apply cooldown
                 if cooldown > 0:
                     preds = apply_cooldown(preds, cooldown)
                 
-                # Evaluate
                 metrics = evaluate(scores, preds, frame_labels, anticipation_labels, fps)
                 
                 results.append({
@@ -370,12 +335,10 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Load model
     print(f"Loading model from {args.model_path}...")
     model, config = load_model(args.model_path, args.device)
     print(f"  Input dim: {config['input_dim']}, LSTM hidden: {config['lstm_hidden']}")
     
-    # Load simulation
     print(f"Loading simulation from {args.sim_path}...")
     sim = np.load(args.sim_path, allow_pickle=True)
     embeddings = sim['embeddings']
@@ -386,7 +349,6 @@ def main():
     print(f"  Frames: {len(embeddings):,}, Duration: {len(embeddings)/fps/3600:.2f}h")
     print(f"  Violence frames: {(frame_labels > 0).sum():,}")
     
-    # Run inference
     print("\nRunning inference...")
     scores = run_inference(
         model, embeddings,
@@ -394,24 +356,19 @@ def main():
         device=args.device,
     )
     
-    # Save raw scores
     np.save(output_dir / 'scores.npy', scores)
     
     if args.sweep:
-        # Sweep all parameters
         print("\nSweeping parameters...")
         results = sweep_parameters(scores, frame_labels, anticipation_labels, fps)
         
-        # Save results
         with open(output_dir / 'sweep_results.json', 'w') as f:
             json.dump(results, f, indent=2)
         
-        # Find best configurations
         print("\n" + "="*70)
         print("BEST CONFIGURATIONS")
         print("="*70)
         
-        # Best detection rate with FA < 5/hr
         valid = [r for r in results if r['fa_per_hour'] < 5]
         if valid:
             best = max(valid, key=lambda x: x['detection_rate'])
@@ -419,7 +376,6 @@ def main():
             print(f"  θ={best['threshold']}, w={best['smoothing_window']}, cd={best['cooldown']}")
             print(f"  Detection: {best['detection_rate']*100:.1f}%, FA/hr: {best['fa_per_hour']:.1f}, Lead: {best['avg_lead_time_sec']:.1f}s")
         
-        # Best detection with FA < 1/hr
         valid = [r for r in results if r['fa_per_hour'] < 1]
         if valid:
             best = max(valid, key=lambda x: x['detection_rate'])
@@ -427,7 +383,6 @@ def main():
             print(f"  θ={best['threshold']}, w={best['smoothing_window']}, cd={best['cooldown']}")
             print(f"  Detection: {best['detection_rate']*100:.1f}%, FA/hr: {best['fa_per_hour']:.1f}, Lead: {best['avg_lead_time_sec']:.1f}s")
         
-        # Lowest FA with detection > 90%
         valid = [r for r in results if r['detection_rate'] > 0.9]
         if valid:
             best = min(valid, key=lambda x: x['fa_per_hour'])
@@ -436,7 +391,6 @@ def main():
             print(f"  Detection: {best['detection_rate']*100:.1f}%, FA/hr: {best['fa_per_hour']:.1f}, Lead: {best['avg_lead_time_sec']:.1f}s")
     
     else:
-        # Single evaluation
         print(f"\nApplying smoothing (window={args.smoothing_window}, cooldown={args.alert_cooldown})...")
         
         predictions = apply_smoothing(scores, args.threshold, args.smoothing_window)
@@ -457,7 +411,6 @@ def main():
         print(f"Events: {metrics['detected_events']}/{metrics['n_events']}")
         print(f"ROC-AUC: {metrics['roc_auc']:.4f}")
         
-        # Save results
         results = {
             'config': {
                 'threshold': args.threshold,

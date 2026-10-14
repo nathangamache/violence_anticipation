@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""
-Live Simulator for Temporal Violence Model
+"""Replay a pre-built simulation through the temporal LSTM over a sliding window and report alarm metrics.
 
-This simulator processes the pre-built simulation using the temporal (LSTM) model
-which looks at sequences of frames instead of single frames.
+Usage:
+    python sim/temporal_simulator.py --model_path outputs/outputs_temporal/best_temporal_model.pt \
+        --prebuilt_sim simulation_data/xd_violence_8hr_sim.npz [--threshold 0.388 | --target_fa_per_hour 0.5]
 """
 
 import argparse
@@ -33,9 +33,7 @@ from sklearn.metrics import (
 )
 
 
-# ==============================================================================
-# Temporal Model (must match training)
-# ==============================================================================
+# Must match training/train_temporal_model.py::TemporalViolenceModel.
 class TemporalViolenceModel(nn.Module):
     def __init__(
         self,
@@ -108,9 +106,6 @@ class TemporalViolenceModel(nn.Module):
         return logits
 
 
-# ==============================================================================
-# Simulation Results
-# ==============================================================================
 @dataclass 
 class SimulationResults:
     timestamps: List[float]
@@ -178,9 +173,6 @@ class SimulationResults:
                 print(f"  Event detection rate: {detection_rate:.1%}")
 
 
-# ==============================================================================
-# Temporal Simulator
-# ==============================================================================
 class TemporalSimulator:
     def __init__(
         self,
@@ -195,7 +187,6 @@ class TemporalSimulator:
         self.sequence_length = sequence_length
         self.fps = fps
         
-        # Load model
         print(f"Loading temporal model from {model_path}...")
         checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         
@@ -217,20 +208,13 @@ class TemporalSimulator:
     
     @torch.no_grad()
     def process_sequence(self, embeddings: np.ndarray) -> float:
-        """Process a sequence of embeddings and return violence probability."""
         x = torch.tensor(embeddings, dtype=torch.float32).unsqueeze(0).to(self.device)
         logit = self.model(x)
         score = torch.sigmoid(logit).cpu().item()
         return score
     
     def run_simulation(self, sim_path: str, stride: int = 1) -> SimulationResults:
-        """
-        Run simulation on pre-built data using sliding window.
-        
-        Args:
-            sim_path: Path to NPZ file with embeddings and labels
-            stride: How many frames to advance between predictions
-        """
+        """Score each full window (advancing by `stride`), labelled by the window's last step."""
         print("\n" + "="*70)
         print("RUNNING TEMPORAL MODEL SIMULATION")
         print("="*70)
@@ -248,7 +232,6 @@ class TemporalSimulator:
         print(f"  Sequence length: {self.sequence_length}")
         print(f"  Stride: {stride}")
         
-        # Process with sliding window
         print("\nProcessing sequences...")
         start_time = time.time()
         
@@ -257,21 +240,16 @@ class TemporalSimulator:
         predictions = []
         ground_truth = []
         
-        # We'll make a prediction for each position where we have a full sequence
         n_sequences = (n_frames - self.sequence_length) // stride + 1
         
         for i, start_idx in enumerate(range(0, n_frames - self.sequence_length + 1, stride)):
             end_idx = start_idx + self.sequence_length
             
-            # Get sequence
             seq = embeddings[start_idx:end_idx]
             
-            # Predict
             score = self.process_sequence(seq)
             pred = 1 if score >= self.threshold else 0
             
-            # The label for this sequence: is there violence at the end or upcoming?
-            # Use the label at the last frame of the sequence
             label = int(anticipation_labels[end_idx - 1])
             
             timestamps.append(end_idx / fps)
@@ -318,7 +296,6 @@ class TemporalSimulator:
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         
-        # Event-level analysis
         violence_events = []
         in_event = False
         event_start = 0
@@ -334,10 +311,9 @@ class TemporalSimulator:
         if in_event:
             violence_events.append((event_start, len(ground_truth) - 1))
         
-        # Count detected events
         detected_events = 0
         lead_times = []
-        horizon_frames = int(30 * fps)  # 30 second horizon
+        horizon_frames = int(30 * fps)
         
         for start, end in violence_events:
             check_start = max(0, start - horizon_frames)
@@ -352,7 +328,6 @@ class TemporalSimulator:
                             lead_times.append(lead_time)
                         break
         
-        # Count false alarms
         false_alarms = 0
         in_alarm = False
         
@@ -384,7 +359,7 @@ class TemporalSimulator:
         )
     
     def find_optimal_threshold(self, sim_path: str, target_fa_per_hour: float = 0.5) -> float:
-        """Find threshold that achieves target false alarm rate."""
+        """Pick the threshold exceeded by target_fa_per_hour * hours negative windows (sampled every 5 steps)."""
         print(f"\nFinding threshold for {target_fa_per_hour} FA/hr...")
         
         data = np.load(sim_path)
@@ -395,7 +370,6 @@ class TemporalSimulator:
         n_frames = len(embeddings)
         duration_hours = n_frames / fps / 3600
         
-        # Collect all scores
         all_scores = []
         all_labels = []
         
@@ -410,13 +384,11 @@ class TemporalSimulator:
         all_scores = np.array(all_scores)
         all_labels = np.array(all_labels)
         
-        # Find threshold that gives target FA rate
         n_neg = (all_labels == 0).sum()
         target_fp = int(target_fa_per_hour * duration_hours)
         
-        # Sort scores and find threshold
         neg_scores = all_scores[all_labels == 0]
-        neg_scores_sorted = np.sort(neg_scores)[::-1]  # Descending
+        neg_scores_sorted = np.sort(neg_scores)[::-1]
         
         if target_fp < len(neg_scores_sorted):
             threshold = neg_scores_sorted[target_fp]
@@ -444,14 +416,12 @@ def main():
     
     os.makedirs(args.output_dir, exist_ok=True)
     
-    # Initialize simulator
     simulator = TemporalSimulator(
         model_path=args.model_path,
         device=args.device,
         threshold=args.threshold or 0.5,
     )
     
-    # Auto-select threshold if not provided
     if args.threshold is None:
         threshold = simulator.find_optimal_threshold(
             args.prebuilt_sim, 
@@ -459,13 +429,10 @@ def main():
         )
         simulator.threshold = threshold
     
-    # Run simulation
     results = simulator.run_simulation(args.prebuilt_sim, stride=args.stride)
     
-    # Print results
     results.print_summary()
     
-    # Save results
     results_dict = {
         'threshold': results.threshold,
         'roc_auc': results.roc_auc,

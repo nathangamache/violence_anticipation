@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""
-Build multi-horizon anticipation labels.
+"""Build multi-horizon anticipation labels: <out_dir>/<vid_id>.npy [T, K] in {0, 1}.
 
-Outputs: <out_dir>/<vid_id>.npy with shape [T, K]
-  - values: 0.0 or 1.0
-  - ignored: -1.0 (inside violence segment)
-
-Also writes: <out_dir>/labels_info.json
+With --ignore_inside_segments, steps inside a violence segment are -1. Also writes <out_dir>/labels_info.json.
 """
 
 import argparse
@@ -19,9 +14,6 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 
-# ---------------------------
-# Metadata + temporal parsing
-# ---------------------------
 def load_metadata(meta_dir: str) -> Dict[str, dict]:
     meta = {}
     for fname in ["xd_violence.json", "ucf_crime.json", "kinetics.json"]:
@@ -79,7 +71,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
     if not path or not os.path.exists(path):
         return segs
 
-    # JSON
     if path.lower().endswith(".json"):
         with open(path, "r") as f:
             data = json.load(f)
@@ -107,7 +98,6 @@ def parse_xd_temporal(path: str) -> Dict[str, List[Tuple[float, float]]]:
                         segs[kk] = out
         return segs
 
-    # text / CSV-ish
     float_re = re.compile(r"-?\d+(?:\.\d+)?")
     with open(path, "r", errors="ignore") as f:
         for line in f:
@@ -154,9 +144,7 @@ def xd_segments_to_seconds(
     total_frames: int,
     units: str = "auto",
 ) -> List[Tuple[float, float]]:
-    """
-    Convert XD segment start/end to seconds using same heuristics you used elsewhere.
-    """
+    """Convert XD segments to seconds; units="auto" infers normalized, seconds or frames."""
     if not segs:
         return []
     if fps <= 0:
@@ -192,15 +180,11 @@ def xd_segments_to_seconds(
     return out
 
 
-# ---------------------------
-# Graph length (T) reading
-# ---------------------------
 def get_T_from_graph(graphs_dir: Path, vid_id: str) -> Optional[int]:
     npy = graphs_dir / f"{vid_id}.npy"
     pt  = graphs_dir / f"{vid_id}.pt"
     gpath = npy if npy.exists() else pt
     if not gpath.exists():
-        # try aliases
         for k in _alias_keys(vid_id):
             npy = graphs_dir / f"{k}.npy"
             pt  = graphs_dir / f"{k}.pt"
@@ -248,7 +232,6 @@ def main():
     ap.add_argument("--horizons_sec", default="2,5,10,20,30,60,120")
     ap.add_argument("--ignore_inside_segments", action="store_true", help="Set -1 when t lies inside a violence segment (recommended).")
 
-    # sharding if you ever want it
     ap.add_argument("--rank", type=int, default=0)
     ap.add_argument("--world_size", type=int, default=1)
 
@@ -267,13 +250,11 @@ def main():
     horizons = parse_horizons(args.horizons_sec)
     K = len(horizons)
 
-    # list vids from graphs_dir (ground truth of what exists)
     graph_files = [p.name for p in graphs_dir.iterdir() if p.name.endswith(".npy") or p.name.endswith(".pt")]
     vid_ids_all = sorted([os.path.splitext(f)[0] for f in graph_files])
     vid_ids = vid_ids_all[args.rank::args.world_size]
     print(f"[Index] graphs={len(graph_files)} shard vids={len(vid_ids)} rank={args.rank}/{args.world_size}")
 
-    # write config
     with (out_dir / "labels_info.json").open("w") as f:
         json.dump(
             {
@@ -294,7 +275,6 @@ def main():
     for vid_id in vid_ids:
         info = meta.get(vid_id, None)
         if info is None:
-            # try aliases
             for k in _alias_keys(vid_id):
                 if k in meta:
                     info = meta[k]
@@ -309,7 +289,6 @@ def main():
         if fps <= 0:
             fps = 25.0
         if total_frames <= 0:
-            # can't map t->sec reliably, skip
             n_skipped += 1
             continue
 
@@ -318,7 +297,6 @@ def main():
             n_skipped += 1
             continue
 
-        # get segments in seconds (start,end)
         segs_sec: List[Tuple[float, float]] = []
         if source == "ucf_crime":
             segs = None
@@ -338,16 +316,13 @@ def main():
             if segs:
                 segs_sec = xd_segments_to_seconds(segs, fps=fps, total_frames=total_frames, units=args.xd_units)
 
-        # precompute starts and fast inside-check
         starts = [s for (s, _e) in segs_sec]
-        # Optional: inside check
         def inside_any(tsec: float) -> bool:
             for (s, e) in segs_sec:
                 if s <= tsec <= e:
                     return True
             return False
 
-        # next-start lookup
         def next_start(tsec: float) -> Optional[float]:
             for s in starts:
                 if s >= tsec:
@@ -366,12 +341,10 @@ def main():
 
             s = next_start(tsec) if starts else None
             if s is None:
-                # no upcoming violence start => negative for all horizons
                 y[t, :] = 0.0
                 continue
 
             d = float(s - tsec)  # seconds until next segment start
-            # multi-horizon labels
             for k, h in enumerate(horizons):
                 y[t, k] = 1.0 if d <= float(h) else 0.0
 
