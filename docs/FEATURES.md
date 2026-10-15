@@ -2066,3 +2066,156 @@ extraction keeps adding files, so re-run `--v2 --rescore` after it finishes (ide
 `--device`. The phase prompts are weak on UBI fights (pooled tick AUROC in-violence vs calm >10 s before onset:
 phase_violence 0.61, raised_fists 0.62, push 0.60, phase_tension 0.54, phase_faceoff 0.48, phase_calm 0.47 vs v1
 brawl 0.66): do not treat them as anticipation cues; judge them only through VA30, with `ctx_*` as shortcut detectors.
+
+## vlm_escalation v3: no-context conflict ratings and hidden states
+
+Status handoff, 2026-10-15:
+
+- **BLOCKED_PHASE0**, not a quality NO-GO: the 50 HIVAU and 30 official spot-check verdicts remain empty; the audio-type audit is not supplied. `MODALITY_PLAN.md` §6.1 explicitly says “blocking; CPU or human; no new GPU job”.
+- Pulled the frozen registration, evaluator extensions and no-context aggression reference from master. Pinned inputs and current missing prerequisites are in `benchmark/results/vlm_escalation_smoke_protocol/preflight.json`.
+- Extractor v3 implements arms A/B/C, independent queries, shared-prefix option scoring, float16 intermediate states, and float32 per-update distillation targets.
+- Tiny CPU Qwen2.5/Qwen3 checks pass: cached/full-prefix selected-logit differences <1.7e-7; `io.check_causal` max difference **0** for ratings and hidden states of A/B/C. Pretrained BF16 GPU causality is still pending.
+- No v3 timing, contamination, pilot quality, per-source quality, or GO decision has been measured. No winning model or arm is claimed.
+- Phase C GPU use in this protocol: **0 h**; conservatively reserve **1 h** for all earlier exploratory work, leaving **34 h** within the 35 h cap.
+- Earlier all-fold exploratory smoke is excluded from selection under the fold-1 freeze. Its two unpushed commits remain in the original `va_vlm` clone; this handoff uses the fresh `va_vlm_protocol` clone and does not publish those results.
+- Runner registration, pilot P manifest, probe/layer sweep, paired reference evaluation, and GO-controlled extraction of the rest of S remain with the lead after prerequisites. No bulk job was launched.
+
+### Results and cost status
+
+| Model | Supported arms | v3 GPU timing / 240 h cost | Matched (30,120] AUROC / Success@30 / per-source results |
+|---|---|---|---|
+| Qwen2.5-VL-3B-Instruct | A, B | Pending timing gate | Not measured |
+| Local Qwen2.5-VL-7B-Instruct | A, B | Pending timing gate | Not measured |
+| Qwen3-VL-8B-Instruct (protocol default) | A, B, C | Pending timing gate | Not measured |
+
+The requested 10x realtime target would cost **24 GPU-h / 240 video-h** and **4.67 GPU-h / 46.7 video-h**
+(an illustrative 16.7 h of eligible positives plus 30 h of negatives). These are arithmetic targets, not measured
+throughput. At realtime factor R, cost is video hours / R. The timing helper computes actual decoder-inclusive
+query latency and projects 12.5 h pilot, 30 h remaining screen, 46.7 h subset, and 240 h full costs. Loading the
+model is excluded from latency but charged to the budget ledger. Pilot hours must be recomputed from the frozen
+P manifest; the three-arm sum and contamination queries must fit the **remaining 34 GPU-h**, not 35 h per arm.
+If projections exceed it, follow §6.7: drop A first, then reduce pilot negatives to 100 with recorded provenance.
+
+The primary comparison is the no-context `aggression_level` reference in `docs/VA30.md` §11, on exactly shared
+screening videos/ticks; `b_teacher` is an additional control. Published five-fold reference aggregates are not
+substitutes for a newly restricted 0/2/3/4 comparison. Report matched M1 (30,120], clean remaining >=60 s), M8,
+G2/G3, real/movie and per-source results, and Success@30 at validation-selected 1/2/5 FA/h with achieved rates,
+position null and random on the same universe. Use the new screen harness to exclude fold 1 from **training,
+validation and testing**. No matched superiority or scale-up decision is available yet.
+
+### Prompts and computation
+
+`anticipation/features/vlm_escalation.py`, `VERSION=3`, `PROMPT_VERSION=conflict-phases-v3`. Six ordinal severity
+stages are calm, tension, argument, face-off, hostile contact, and violence. Intervention and separation are
+parallel state cues, with backing away, conciliatory/apology gestures and successful intervention. This preserves
+all eight conflict phases without forcing a hot intervention to have lower ordinal severity. The 16 cues cover
+face-to-face arguing/visible shouting, gesturing, approach/following, intrusion, squaring up, push/grab,
+intervention, crowd circle, filming, weapon, retreat, person down, current violence, conciliatory gestures,
+separation and successful intervention. Ordinary proximity, sports and play are explicitly excluded. Silent
+clips do not establish words or audible shouting. These definitions follow `research/escalation_precursors.md`
+and `research/cue_extractors.md` §5.1.4, including the two-sided interpretation of intervention and retreat.
+
+A uses one frame at t every 2 s. B uses eight 1 fps frames [t-7,t] every 2 s and adds a separately hashed
+fight-within-60-s forecast question. C uses 32 frames [t-124,t] at 4 s intervals plus four recent 1 fps frames,
+every 8 s; its trajectory cues cover repeated approach, >1 min conflict, restrained agitation, leaving/returning,
+and failed intervention. C truncates unavailable history at zero and retains both scheduled copies of the last
+frame. Available history is explicit metadata/target provenance, never an extra feature column. Qwen3 video
+metadata encodes actual relative timestamps. Qwen2.5 C is rejected because its uniform-fps input cannot encode
+these irregular times faithfully. Resolution is at most 448 px before processor rounding. Qwen3's processor
+uses a total-frame pixel budget; the code scales that budget by frame count to avoid inadvertently shrinking a
+36-frame query to a tiny total image area.
+
+Each query starts a new visual/text prefix and a new KV cache. Frames are encoded once; a fixed question batch
+branches from that prefix to independently score stage digits 0-5 and yes/no digits 1/0. No question receives
+another question's answer. RoPE continuation positions ignore left-padding gaps. The cache, verdicts and hidden
+states are discarded between queries. Optional rationales use a separate greedy generation and never feed scores.
+The X→Y→X CPU check gives identical X ratings and states. There is no prior verdict, video ID or absolute video
+position in the prompt. Logits are normalized over allowed options at temperature 1. These are constrained
+option probabilities, **not empirically calibrated probabilities of future violence**. Optional `calibration=blank`
+subtracts content-free logits, without labels; any temperature fitting must use validation only.
+
+The raw scalar is the expectation of fixed stage weights [0,.2,.4,.6,.8,1]. De-escalation can lower the stage;
+intervention or retreat alone does not apply an arbitrary negative risk weight. The trained probe is still the
+planned primary readout, with the raw ordinal scalar a secondary zero-shot control.
+
+### File contract and hidden-state readout
+
+Rating NPZ: `t_sec` float32 1 Hz ticks starting at 1; `feat` float16 [T,D]; `valid` bool [T]; JSON `meta` with
+columns, full questions/context, prompt hash/version, model ID/revision, config and update schedule. D is 23
+(A), 24 (B), or 28 (C). Updates sample-and-hold to 1 Hz, without interpolation. `meta.window_sec` includes the
+maximum clip history plus hold interval. Decode failures have invalid rows. A non-default query start leaves
+prior ticks invalid, and allows only the preceding scheduled update to initialize the first requested tick.
+
+Hidden NPZ uses the same ticks, separate validity, and four H-wide groups: visual-token mean then non-affine
+LayerNorm, and last stage-prompt token then LayerNorm, at decoder-block outputs **18 and 27** (one-based,
+before final model norm). Hooks retain only those aggregate vectors. All other hidden states are released;
+`column_groups` identifies layer/kind boundaries. Store both layers now; choose a layer/readout using only
+validation in screening folds 0/2/3/4. No probe, PLS32 or logistic C sweep has been run. Integrate these exports
+with the frozen P1 probe grids; screen hidden states separately for collection/position shortcuts.
+
+`extract_all` returns both contract tuples. `extract_and_save` writes both NPZ streams plus
+`.targets.parquet` (one row/update, float32 stage/cue probabilities, risk, validity, gating and history) and
+`.rationales.json` (default zero samples; set `rationale_samples` for inspection). All files are atomically
+replaced. Model/config/arm variants require separate output names; never overwrite or merge model variants.
+The helper `export_scores.py` produces the requested `video_id,t_sec,score,fold=-1,seed=0` table from valid risk
+ticks and checks homogeneous model/prompt/config provenance before writing it.
+
+Pose gating is opt-in (`pose_gating=true`, explicit `pose_path`): it skips only when causal `pose_raw` frames
+in [t-7,t] are all valid with no tracked detections. Missing coverage raises; it is never assumed empty. Gated
+ratings are calm with valid=true, while hidden rows have valid=false. Ablate this policy on **all** pilot UCF
+events because misses on small people may erase the signal. Default ungated extraction avoids silently assuming
+an ablation outcome.
+
+Lead's `REGISTRY` line, after the ordered pilot gates (the shared runner was not edited):
+
+```python
+"vlm_escalation": ExtractorSpec("anticipation.features.vlm_escalation", outputs=("vlm_escalation", "vlm_escalation_hidden"), saver="extract_and_save", default_device="cuda:1"),
+```
+
+### Reproduction and next step
+
+CPU checks and reports live under `benchmark/results/vlm_escalation_smoke_protocol/`:
+`tiny_hf_checks.json`, `contract_checks.json`, `protocol_checks.json`. The tiny models use actual HF
+architectures/processors and random CPU weights, not downloaded pretrained GPU weights. Synthetic media checks
+all six rating/hidden arm combinations with `io.check_causal` (nine earlier ticks each, atol=0), target/NPZ dtypes,
+empty-video dimensions, missing hidden validity under gating, and query independence. Budget/provenance tests
+verify fold-1/unknown-ID rejection, conservative orphan reservations, cross-model resume rejection, permutation
+controls, and cost units. Re-run pretrained BF16 causality in the initial permitted GPU chunk before pilot P.
+
+```bash
+PY=.venv/bin/python
+export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 PYTHONPATH=.
+P=benchmark/results/vlm_escalation_smoke_protocol
+nice -n 10 "$PY" "$P/check_tiny_hf.py"
+nice -n 10 "$PY" "$P/check_protocol.py"
+nice -n 10 "$PY" "$P/protocol.py" preflight --phase0-manifest "$P/phase0_evidence.json"
+```
+
+`phase0_evidence.json` pins available registration/reference/audit/H1-manifest artifacts by SHA256, including
+**unapplied** mask proposals. It does not adopt masks or assert human/auditory review. Update the audio evidence
+and completed spot-checks when their owners finish; the preflight checks artifact presence/provenance plus
+review completion, not the scientific validity of those reviews.
+
+After READY, the timing helper accepts `timing --arm A|B|C --model MODEL --manifest QUERY.csv
+--manifest-sha256 SHA --phase0-manifest EVIDENCE.json --out-dir RUN_DIR`. It records exactly 200 queries/arm,
+resumes within 20 min chunks, checks server load, selects only physical cuda:1 and charges a locked shared
+`benchmark/results/vlm_escalation_smoke_protocol/budget.json`, regardless of result out-dir. Keep that
+**one shared ledger for Phase C**; use separate `--out-dir` values for model result files. Stage records are
+model-scoped, so timing one model cannot qualify another model for contamination. Do not reset the ledger or
+select a fresh budget path for another arm/model. No separate
+venv or package changes are needed. A manifest has unique `video_id,path,t_sec` rows, and every ID is checked
+against folds_v2 before any media opens. Model startup and crashes are charged conservatively; a SIGALRM bounds
+the chunk to at most 1500 s. A process stuck inside CUDA may return control late, so retain headroom.
+
+`contamination` is enabled only after 200 A/B/C timing queries for the same Qwen3 model. Its frozen CSV adds
+`category`, `group` (`violent` or `h1`), and `calm_verified=true`, for at least 1000 distinct UCF videos. It uses
+only calm first frames, 14 single-token UCF category choices, and a 10,000-shuffle accuracy test within each
+stratum (Bonferroni alpha=.025). The frame verification and manifest selection are not automated. Fewer than
+1000 records never marks the stage complete. Identity-level recognition is not proof of training membership;
+the flag is a reason to require UBI/new-hold-out checks, as the plan specifies.
+
+The helper deliberately does not launch P or S: connect the frozen pilot manifest and screen harness next,
+run the planned probes and reference comparison, and persist the §6.7 GO/no-go before any extraction outside P.
+For a GO, require paired M1 gain CI lower >0 or G3 PASS against reference FAIL, G2 not FAIL, S_real M1 >=.60
+with lower CI >.50, and the contamination policy; choose among passing arms by M8 then cost. No such decision
+has been made. Distillation remains conditional on that GO and uses the per-update targets already exported.

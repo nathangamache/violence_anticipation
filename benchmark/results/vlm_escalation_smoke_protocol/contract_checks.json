@@ -1,0 +1,39 @@
+{
+  "causality": {
+    "A:vlm_escalation": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    },
+    "A:vlm_escalation_hidden": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    },
+    "B:vlm_escalation": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    },
+    "B:vlm_escalation_hidden": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    },
+    "C:vlm_escalation": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    },
+    "C:vlm_escalation_hidden": {
+      "ticks_compared": 9,
+      "max_abs_diff": 0.0,
+      "causal": true
+    }
+  },
+  "no_context_x_y_x": true,
+  "npz_and_targets_contract": true,
+  "empty_output_fixed_dim": true,
+  "pose_gated_hidden_invalid": true,
+  "model": "random tiny Qwen3 CPU; not pretrained GPU validation"
+}

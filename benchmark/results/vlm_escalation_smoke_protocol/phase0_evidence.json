@@ -1,0 +1,31 @@
+{
+  "screen_set": {
+    "path": "benchmark/screens/screen_set_v1.json",
+    "sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"
+  },
+  "screen_summary": {
+    "path": "benchmark/screens/summary.md",
+    "sha256": "f1b066bfc362f4c86302fa98cd88a18278927396eda9a4377fe29feb3e89a0d9"
+  },
+  "aggression_reference": {
+    "path": "benchmark/results/b_aggression_nocontext/implementation_manifest.json",
+    "sha256": "26bbd32df9de061cb04040d891df375b767e9e123b47b642c99f80d1e3a108bd"
+  },
+  "early_contact_audit": {
+    "path": "benchmark/audits/phase0_nocontext_v1/early_frames_proposal.csv",
+    "sha256": "d0b80fcc33ff1e9582c289fc6db269e2dd01d04d2f09267ceaf82bf129945ebb"
+  },
+  "ucf_soft_masks": {
+    "path": "benchmark/audits/phase0_nocontext_v1/uca_soft_masks_proposal.json",
+    "sha256": "10391e7ad491a8b4b17d9d0c7e821badf58e7717946b801d3a4c48f784f2f265"
+  },
+  "h1_manifest": {
+    "path": "benchmark/extract_manifest_v2.csv",
+    "sha256": "6f6ae759329b98509c86913cbb0135678237f247d8b1a31a5afd2dbf3de5289a"
+  },
+  "audio_type_audit": {
+    "path": "__pending_audio_type_audit__",
+    "sha256": null
+  },
+  "note": "Unapplied label proposals are pinned for provenance; this file does not adopt masks or declare Phase 0 complete."
+}

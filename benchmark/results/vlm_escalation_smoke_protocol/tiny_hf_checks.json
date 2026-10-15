@@ -1,0 +1,47 @@
+[
+  {
+    "model_type": "qwen2_5_vl",
+    "arm": "A",
+    "max_abs_logit_diff": 9.685754776000977e-08,
+    "hidden_dim": 256,
+    "finite": true,
+    "dtype": "float32",
+    "device": "cpu"
+  },
+  {
+    "model_type": "qwen2_5_vl",
+    "arm": "B",
+    "max_abs_logit_diff": 9.988434612751007e-08,
+    "hidden_dim": 256,
+    "finite": true,
+    "dtype": "float32",
+    "device": "cpu"
+  },
+  {
+    "model_type": "qwen3_vl",
+    "arm": "A",
+    "max_abs_logit_diff": 1.341104507446289e-07,
+    "hidden_dim": 256,
+    "finite": true,
+    "dtype": "float32",
+    "device": "cpu"
+  },
+  {
+    "model_type": "qwen3_vl",
+    "arm": "B",
+    "max_abs_logit_diff": 1.6391277313232422e-07,
+    "hidden_dim": 256,
+    "finite": true,
+    "dtype": "float32",
+    "device": "cpu"
+  },
+  {
+    "model_type": "qwen3_vl",
+    "arm": "C",
+    "max_abs_logit_diff": 1.341104507446289e-07,
+    "hidden_dim": 256,
+    "finite": true,
+    "dtype": "float32",
+    "device": "cpu"
+  }
+]

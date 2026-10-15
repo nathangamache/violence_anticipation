@@ -1,0 +1,8 @@
+{
+  "phase0_blocks_before_gpu_or_budget": true,
+  "fold1_and_unknown_rejected": true,
+  "budget_reservation_and_recovery": true,
+  "provenance_mixing_rejected": true,
+  "permutation_controls": true,
+  "cost_units": true
+}
