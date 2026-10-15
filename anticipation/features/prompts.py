@@ -1,59 +1,10 @@
-"""Text-prompt concept scores per 1 Hz tick (extractor ``siglip2_prompts``) and the versioned prompt list.
+"""Text-prompt concept scores per 1 Hz tick (extractor ``siglip2_prompts``) and the versioned prompt lists.
 
-What
-    ``PROMPTS`` is a list of ``(key, group, text)``. For every tick, ``feat[t, j]`` is the cosine similarity
-    between the L2-normalized SigLIP 2 image embedding of the frame at t (extractor ``siglip2``, see
-    siglip.py) and the L2-normalized text embedding of ``PROMPTS[j]``. window_sec = 0 (one frame at t), so the
-    scores are causal by construction. D = len(PROMPTS).
-
-    Groups:
-      escalation    pre-violence cues that can lead an attack by 5 to 120 s (arguing, pointing, squaring up,
-                    approaching, shoving, crowd forming, people being held back, weapon shown)
-      violence_now  concurrent cues (punching, kicking, brawl, wrestling on the ground). Expected to rise only
-                    at or after onset; useful as a detection auxiliary and for onset QA, not as a lead cue.
-      calm          contrasts (calm street, people talking calmly, empty store, traffic)
-      context       camera type and provenance (CCTV, dashcam, bodycam, phone, movie scene, news, captions).
-                    These are scene priors and shortcut detectors: a model that leans on them is probably
-                    learning provenance, not escalation (BASELINE.md section 6.5, B-scene0).
-
-    SigLIP scores are sigmoid-trained, so a probability-like score is ``sigmoid(logit_scale * cos +
-    logit_bias)``; both constants are stored in ``meta`` as the float32 checkpoint values (``logit_scale``
-    109.894, ``logit_bias`` -15.9326; version 1 files stored bf16-rounded 108.5 / -15.9375). Most prompts stay
-    far below 0.5 on real frames; use cosines (or z-scores per prompt) as model inputs.
-
-Editing the prompts (versioning)
-    Edit ``PROMPTS`` and bump ``PROMPT_SET_VERSION``. Every feature file stores the version, the sha1 of the
-    prompt list (``prompt_set_hash``) and the full list in ``meta["prompts"]``; a mismatch between the code and
-    the cache (prompt hash, this extractor's ``VERSION``, or the ``siglip2`` version the scores were computed
-    from, ``meta["backbone_version"]``) is detected by ``--rescore`` and by ``check_cache``. Keys are stable
-    column names: do not reuse a key for a different meaning. Re-scoring does not need the video: ``--rescore`` recomputes every
-    ``siglip2_prompts`` file from the cached ``siglip2`` embeddings in seconds.
-
-One-decode entry points (recommended for bulk extraction)
-    ``extract_multi(path, device)``  -> {"siglip2": ..., "siglip2_prompts": ...}
-    ``extract_visual(path, device)`` -> {"vjepa2_l": ..., "siglip2": ..., "siglip2_prompts": ...}; SigLIP reuses
-    the frames V-JEPA already decoded. Each value is ``(t_sec, feat, valid, meta)``. Outputs are bitwise
-    identical to the single-extractor functions.
-    ``extract_and_save(path, video_id, device, **cfg)`` (registry ``visual``) also writes the three files.
-    Config routing for these two (``split_visual_cfg``): keys only V-JEPA knows go to V-JEPA; the decode keys
-    ``decode_threads`` and ``chunk_ticks`` go to V-JEPA, which does the only decode; ``dtype`` and ``batch_size``
-    go to both models; ``vjepa_cfg={...}`` / ``siglip_cfg={...}`` set a key for one model only and win (from the
-    runner: ``--cfg 'vjepa_cfg={"batch_size": 32}'``). Unknown keys are listed in every meta's ``ignored_cfg``;
-    the effective per-model config is in ``meta["cfg"]``.
-
-Version 2 (``siglip2_prompts_v2``, ``PROMPTS_V2``, ``PROMPT_SET_VERSION_V2``)
-    22 concepts, each with 3 phrasings whose normalized text embeddings are averaged; rescored on CPU from cached
-    ``siglip2`` files only (``--rescore --v2``). The v1 constants and outputs are unchanged (docs/FEATURES.md).
-
-Usage
-    .venv/bin/python -m anticipation.features.prompts --list
+Usage (spec: docs/FEATURES.md, "Prompt set" and "siglip2_prompts_v2"):
+    .venv/bin/python -m anticipation.features.prompts --list [--v2]
     .venv/bin/python -m anticipation.features.prompts VIDEO.mp4 --device cuda:1 [--video-id xd/<stem>] [--check-causal 60]
     .venv/bin/python -m anticipation.features.prompts VIDEO.mp4 --device cuda:1 --all-visual --video-id xd/<stem>
-    .venv/bin/python -m anticipation.features.prompts --rescore --device cuda:1    # all cached siglip2 files
-
-    from anticipation.features import prompts
-    t_sec, feat, valid, meta = prompts.extract(path, device="cuda:1")
-    outs = prompts.extract_visual(path, device="cuda:1")
+    .venv/bin/python -m anticipation.features.prompts --rescore [--v2] [--device cuda:1] [--force]
 """
 
 import argparse
@@ -70,13 +21,11 @@ from anticipation.features import io, siglip, vjepa
 
 BACKBONE = siglip.EXTRACTOR
 EXTRACTOR = f"{BACKBONE}_prompts"
-VERSION = 2  # 2: float32 logit_scale / logit_bias in meta, computed from siglip2 version 2 embeddings
+VERSION = 2
 PROMPT_SET_VERSION = "v1"
 DEFAULTS = dict(siglip.DEFAULTS)
 
-# (key, group, text). Keep texts short, concrete and visual: SigLIP sees one frame, not motion or sound.
 PROMPTS = [
-    # ---- escalation: pre-violence interpersonal cues ----
     ("argue_face_to_face", "escalation", "two people arguing face to face"),
     ("argue_street", "escalation", "two men arguing angrily on the street"),
     ("point_aggressive", "escalation", "a man pointing aggressively at another man"),
@@ -104,7 +53,6 @@ PROMPTS = [
     ("knife_shown", "escalation", "a person holding a knife"),
     ("gun_shown", "escalation", "a person pointing a gun"),
     ("bat_shown", "escalation", "a person holding a baseball bat as a weapon"),
-    # ---- violence_now: concurrent cues (detection, onset QA) ----
     ("punching", "violence_now", "people punching each other"),
     ("kick_ground", "violence_now", "a person kicking someone lying on the ground"),
     ("wrestle_ground", "violence_now", "two people wrestling on the ground"),
@@ -113,7 +61,6 @@ PROMPTS = [
     ("knocked_down", "violence_now", "a person knocked down after being hit"),
     ("police_tackle", "violence_now", "police officers tackling and restraining a person"),
     ("panic_run", "violence_now", "people running away in panic"),
-    # ---- calm: contrasts ----
     ("calm_street", "calm", "a calm street with people walking"),
     ("talk_calm", "calm", "people talking calmly and laughing"),
     ("handshake", "calm", "two people shaking hands"),
@@ -126,7 +73,6 @@ PROMPTS = [
     ("office_work", "calm", "people working quietly in an office"),
     ("sports_play", "calm", "people playing a sport together"),
     ("party_dance", "calm", "people dancing at a party"),
-    # ---- context: camera, setting and provenance ----
     ("cctv_store", "context", "a security camera view of a store"),
     ("cctv_grainy", "context", "grainy black and white surveillance camera footage"),
     ("dashcam", "context", "a dashcam view from inside a car"),
@@ -153,8 +99,6 @@ EXTRACTOR_V2 = f"{EXTRACTOR}_v2"
 VERSION_V2 = 2
 PROMPT_SET_VERSION_V2 = "v2"
 
-# (key, group, [phrasings]); the concept embedding is the L2-normalized mean of its phrasings' normalized embeddings.
-# Context concepts exist only as shortcut detectors (BASELINE.md section 6.5).
 PROMPTS_V2 = [
     ("phase_calm", "conflict_phase", ["people calmly going about their day", "a relaxed peaceful scene with people talking",
                                        "people standing around casually and chatting"]),
@@ -368,18 +312,12 @@ def extract(video_path, device="cuda:1", **cfg):
     return extract_multi(video_path, device, **cfg)[EXTRACTOR]
 
 
-_DECODE_KEYS = ("decode_threads", "chunk_ticks")   # used by the model that decodes (V-JEPA in extract_visual)
-_SHARED_KEYS = ("dtype", "batch_size")             # applied to both models
+_DECODE_KEYS = ("decode_threads", "chunk_ticks")
+_SHARED_KEYS = ("dtype", "batch_size")
 
 
 def split_visual_cfg(cfg, vjepa_cfg=None, siglip_cfg=None):
-    """Route ``extract_visual`` config keys to the two models: ``(vjepa_cfg, siglip_cfg, ignored)``.
-
-    Flat ``cfg`` keys: V-JEPA-only keys (``window_sec``, ``num_frames``, ``mid_layer``, ``crop``) and the decode
-    keys (``decode_threads``, ``chunk_ticks``) go to V-JEPA, which does the only decode; ``dtype`` and
-    ``batch_size`` go to both. ``vjepa_cfg`` / ``siglip_cfg`` set a key for one model and win over flat keys.
-    ``ignored`` lists keys no model uses here, including SigLIP decode keys (SigLIP does not decode).
-    """
+    """Route ``extract_visual`` config keys to the two models: ``(vjepa_cfg, siglip_cfg, ignored)``."""
     vjepa_cfg, siglip_cfg = dict(vjepa_cfg or {}), dict(siglip_cfg or {})
     vkeys, skeys = set(vjepa.DEFAULTS), set(_SHARED_KEYS)
     v = {k: x for k, x in cfg.items() if k in vkeys}
@@ -393,14 +331,7 @@ def split_visual_cfg(cfg, vjepa_cfg=None, siglip_cfg=None):
 
 
 def extract_visual(video_path, device="cuda:1", vjepa_cfg=None, siglip_cfg=None, **cfg):
-    """All three visual extractors from ONE decode: ``{"vjepa2_l": ..., "siglip2": ..., "siglip2_prompts": ...}``.
-
-    The V-JEPA clip for tick t ends with the frame at t, so SigLIP 2 embeds those already decoded frames
-    (``vjepa.extract(tick_frame_fn=...)``; the SigLIP resize runs in the decode thread). Outputs are bitwise
-    identical to running ``vjepa.extract``, ``siglip.extract`` and ``extract`` separately with the same configs
-    (fixed batch shapes), but the video is decoded once. See ``split_visual_cfg`` for how ``cfg``,
-    ``vjepa_cfg`` and ``siglip_cfg`` reach each model.
-    """
+    """All three visual extractors from one decode: ``{"vjepa2_l": ..., "siglip2": ..., "siglip2_prompts": ...}``."""
     t_start = time.time()
     vcfg, scfg, ignored = split_visual_cfg(cfg, vjepa_cfg, siglip_cfg)
     scfg = {**{k: siglip.DEFAULTS[k] for k in _SHARED_KEYS}, **scfg}
@@ -436,19 +367,14 @@ VISUAL_EXTRACTORS = (vjepa.EXTRACTOR, BACKBONE, EXTRACTOR)
 
 
 def extract_and_save(video_path, video_id, device="cuda:1", vjepa_cfg=None, siglip_cfg=None, **cfg):
-    """Registry ``visual``: one decode, writes vjepa2_l, siglip2 and siglip2_prompts for ``video_id``.
-
-    Same return convention as ``pose.extract_and_save``: ``{"paths": {extractor: path}, "duration_sec": s}``.
-    Config routing as in ``extract_visual`` / ``split_visual_cfg``.
-    """
+    """Registry ``visual``: one decode, saves the three extractors; returns ``{"paths": {...}, "duration_sec": s}``."""
     outs = extract_visual(video_path, device, vjepa_cfg=vjepa_cfg, siglip_cfg=siglip_cfg, **cfg)
     paths = {name: io.save_features(name, video_id, *out) for name, out in outs.items()}
     return dict(paths=paths, duration_sec=outs[EXTRACTOR][3]["duration_sec"])
 
 
 def check_cache(meta, backbone_meta=None):
-    """True if a saved prompts file is current: same prompt list and ``VERSION``, and (if ``backbone_meta`` is
-    given) computed from that ``siglip2`` file's version."""
+    """True if a saved prompts file matches the prompt hash, ``VERSION`` and (if given) the siglip2 file's version."""
     ok = meta.get("prompt_set_hash") == prompt_set_hash() and meta.get("version") == VERSION
     if backbone_meta is not None:
         ok = ok and meta.get("backbone_version") == backbone_meta.get("version")
@@ -461,12 +387,7 @@ def _read_meta(path):
 
 
 def rescore_all(device="cuda:1", dtype="bf16", force=False):
-    """Recompute ``siglip2_prompts`` for every cached ``siglip2`` file (no video decoding). Returns count.
-
-    A prompts file is rewritten when it is missing or stale (``check_cache``) or with ``force``. ``siglip2``
-    files older than ``siglip.VERSION`` are rescored too (the result records ``backbone_version``) but listed
-    in a warning: they need re-extraction from the video.
-    """
+    """Recompute stale or missing ``siglip2_prompts`` files from cached ``siglip2`` files; returns the count."""
     root = os.path.join(io.FEATURE_ROOT, BACKBONE)
     n, old_backbone = 0, []
     for path in sorted(glob.glob(os.path.join(root, "**", "*.npz"), recursive=True)):

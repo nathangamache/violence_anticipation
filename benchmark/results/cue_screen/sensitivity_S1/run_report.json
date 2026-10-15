@@ -1,0 +1,956 @@
+{
+ "prereg": {
+  "path": "benchmark/screens/screen_set_v1.json",
+  "sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"
+ },
+ "screen_folds": [
+  0,
+  2,
+  3,
+  4
+ ],
+ "confirmation_fold": 1,
+ "label_policy": "Frozen v2 labels remain primary. Model-selected visual/UCA masks are proposals only; any approved masks are a versioned, separately labelled sensitivity analysis, never a silent replacement.",
+ "soft_masks": {
+  "applied": true,
+  "variant": "S1",
+  "path": "benchmark/audits/soft_masks_v1.json",
+  "sha256": "68dfc903043b4dbba6eaf326e629b20781f24823f89979b5671696521a288940",
+  "videos": 42,
+  "entries": 47,
+  "entries_in_file": 66,
+  "excluded_reasons": [
+   "uca_weapon_only"
+  ]
+ },
+ "audio_gate": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.",
+ "blocks": [
+  {
+   "name": "pose_interact",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "pose_interact"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "pose_state_identity_free",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "pose_state"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "pose_state_pair_identity_ucf_ubi",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "pose_state",
+    "pose_state_pairs"
+   ],
+   "reason": "pose_state plus the identity-keyed pair stream; UCF and UBI only"
+  },
+  {
+   "name": "siglip2_prompts_v1",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "siglip2_prompts"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "siglip2_prompts_v2",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "siglip2_prompts_v2"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "siglip2",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "siglip2"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "vjepa2_l",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "vjepa2_l"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "motion_no_camera",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "motion"
+   ],
+   "reason": ""
+  },
+  {
+   "name": "motion_camera_shortcut",
+   "phase": "A",
+   "status": "AVAILABLE",
+   "streams": [
+    "motion"
+   ],
+   "reason": "shortcut block"
+  },
+  {
+   "name": "camera_wearer_diagnostic",
+   "phase": "A",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "no extractor or column definition for a camera-wearer diagnostic"
+  },
+  {
+   "name": "audio_dsp",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "audio_dsp"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "ast_events",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "ast_events"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "clap_prompts",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "clap_prompts"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "speech_tox",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "speech_tox"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "voice_affect",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "voice_affect"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "e2v_emb",
+   "phase": "B",
+   "status": "BLOCKED_AUDIO_GATE",
+   "streams": [
+    "e2v_emb"
+   ],
+   "reason": "Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases."
+  },
+  {
+   "name": "overlap_and_duty_cycles",
+   "phase": "B",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "no extractor (speaker overlap and duty cycles need diarization)"
+  },
+  {
+   "name": "dialogue_acts",
+   "phase": "B",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "no extractor (dialogue-act tagging of transcripts)"
+  },
+  {
+   "name": "vlm_single_frame_A",
+   "phase": "C",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "Phase C VLM arm: no extractor or cached outputs"
+  },
+  {
+   "name": "vlm_short_clip_B",
+   "phase": "C",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "Phase C VLM arm: no extractor or cached outputs"
+  },
+  {
+   "name": "vlm_long_window_C",
+   "phase": "C",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "Phase C VLM arm: no extractor or cached outputs"
+  },
+  {
+   "name": "vlm_forecast",
+   "phase": "C",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "Phase C VLM arm: no extractor or cached outputs"
+  },
+  {
+   "name": "vlm_hidden_state_probe",
+   "phase": "C",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "Phase C VLM arm: no extractor or cached outputs"
+  }
+ ],
+ "not_implemented": {
+  "P2_gru": "one-layer GRU (64 units, 3 seeds, G1 PASS only): the event-window MIL loss is not specified enough to implement before any block passes G1",
+  "P1_full_dimensional_L2_sensitivity": "full-dimensional L2 on the windowed wide blocks (1152 or 2048 columns x 9 summaries) is not implemented; only the PLS32 reduction runs",
+  "forward_selection": "greedy fusion with paired M8 gain needs the fused-model trainer",
+  "confirmation_rule": "the single fold-1 evaluation of the fused model; fold 1 is unreachable in this harness by design",
+  "M6_sustained_leads_90_120": "the VA30 evaluator (not modifiable here) reports sustained success at 60 s only",
+  "M6_clean_alarm_time_operating_points": "operating points at 1, 2 and 5 percent clean alarm time are not selectable in the VA30 evaluator, which has FA/h targets (1, 2, 5) only",
+  "M7_same_film_matched_AUROC": "needs a film-level grouping of XD movie clips",
+  "M7_news_and_compilation_exclusion": "needs the compilation/news annotation",
+  "M7_visible_conflict_vs_sudden": "needs a manual annotation",
+  "M8_partial_AMOC_area": "reported by the VA30 evaluator with --m6, not by the screen metrics",
+  "control_aggression_level_no_context": "no score table of an aggression-level reference model is available",
+  "context_cue_G2_exemption": "weapon, police, counter and arrivals cues exempt from G2 only as class-conditional heads; no block sets Block.g2_exempt and the prompt columns are judged inside their blocks; an exempt G2 can never give ANTICIPATION",
+  "control_b_teacher": "no score table of the zero-shot teacher on the screening cohort is available"
+ },
+ "interpretations": {
+  "tail_threshold_source": "the frozen text says tail_train_quantile; the 99.5th percentile is taken on the fold model's clean VALIDATION ticks (training scores are in-sample). Needs a dated hashed amendment before any block outcome is read",
+  "G1_multiplicity": "one Holm family over the M1, standardized-pAUC and first-segment tail-hit tests of every AVAILABLE block of the phase; the sparse route needs its adjusted p < 0.05",
+  "G2_undefined_ratio": "M3p upper < 0.55 is FAIL even when the ratio is undefined; the ratio clauses need a defined ratio",
+  "G1_tail_events": "first-segment events only; the all-segment tail is reported as tail_all_segments"
+ },
+ "implemented_by_delegation": {
+  "M6_event_threshold_CI_200_resamples": "VA30 evaluator with --m6, --threshold_bootstrap from the frozen file",
+  "M6_fa_targets_1_2_5": "VA30 evaluator with --m6, --fa_targets from the frozen file"
+ },
+ "controls": {
+  "b_time_source_fit": "IMPLEMENTED",
+  "nuisance_N_source_time_Bscene0p": "IMPLEMENTED",
+  "shuffled_same_source_clean_video": "IMPLEMENTED",
+  "B_detect": "IMPLEMENTED",
+  "first_frame_broadcast_on_ramp90": "IMPLEMENTED",
+  "aggression_level_no_context": "NOT_AVAILABLE",
+  "b_teacher": "NOT_AVAILABLE"
+ },
+ "counts": {
+  "positive_videos": 379,
+  "events": 446,
+  "first_segment_events": 253,
+  "s_real": 165,
+  "s_long60": 100,
+  "s_ramp": 61,
+  "s_offubi": 74,
+  "s_audio_before_diegetic_filter": 86,
+  "positive_hours": 16.667,
+  "clean_negative_videos": 3220,
+  "clean_negative_hours": 125.689,
+  "h1_videos": 328,
+  "h1p_videos": 102,
+  "events_per_fold": {
+   "0": 130,
+   "2": 101,
+   "3": 109,
+   "4": 106
+  }
+ },
+ "input_notes": [],
+ "agreement": {
+  "disagreements": [
+   {
+    "name": "fold0_test",
+    "frozen": 980,
+    "computed": 1301,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0",
+     "ubi/F_128_0_0_0_0",
+     "ubi/F_132_1_2_0_0",
+     "ubi/F_136_1_0_0_1"
+    ],
+    "n_only_computed": 321
+   },
+   {
+    "name": "fold0_train",
+    "frozen": 2354,
+    "computed": 3219,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_122_1_1_0_0"
+    ],
+    "n_only_computed": 865
+   },
+   {
+    "name": "fold0_val",
+    "frozen": 351,
+    "computed": 482,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_124_1_2_0_0",
+     "ubi/F_147_1_0_1_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_161_0_0_0_0",
+     "ubi/F_162_1_0_1_0",
+     "ubi/F_181_0_0_1_0",
+     "ubi/F_187_0_0_1_0",
+     "ubi/F_33_0_2_0_0"
+    ],
+    "n_only_computed": 131
+   },
+   {
+    "name": "fold2_test",
+    "frozen": 991,
+    "computed": 1324,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_125_0_2_0_0",
+     "ubi/F_130_1_2_0_0",
+     "ubi/F_131_1_2_0_0",
+     "ubi/F_143_0_0_0_0",
+     "ubi/F_168_1_0_1_0"
+    ],
+    "n_only_computed": 333
+   },
+   {
+    "name": "fold2_train",
+    "frozen": 2379,
+    "computed": 3232,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0"
+    ],
+    "n_only_computed": 853
+   },
+   {
+    "name": "fold2_val",
+    "frozen": 315,
+    "computed": 446,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_140_0_0_0_0",
+     "ubi/F_155_0_0_1_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_173_0_0_1_0",
+     "ubi/F_205_0_1_0_0",
+     "ubi/F_208_0_0_0_0",
+     "ubi/F_24_1_0_0_0"
+    ],
+    "n_only_computed": 131
+   },
+   {
+    "name": "fold3_test",
+    "frozen": 968,
+    "computed": 1305,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_133_1_0_0_0",
+     "ubi/F_138_0_0_0_0",
+     "ubi/F_147_1_0_1_0",
+     "ubi/F_155_0_0_1_0",
+     "ubi/F_161_0_0_0_0",
+     "ubi/F_163_0_0_1_0"
+    ],
+    "n_only_computed": 337
+   },
+   {
+    "name": "fold3_train",
+    "frozen": 2360,
+    "computed": 3206,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0"
+    ],
+    "n_only_computed": 846
+   },
+   {
+    "name": "fold3_val",
+    "frozen": 339,
+    "computed": 473,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_128_0_0_0_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_181_0_0_1_0",
+     "ubi/F_193_0_0_1_0",
+     "ubi/F_200_0_0_0_1",
+     "ubi/F_204_1_1_0_0"
+    ],
+    "n_only_computed": 134
+   },
+   {
+    "name": "fold4_test",
+    "frozen": 988,
+    "computed": 1314,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_122_1_1_0_0",
+     "ubi/F_123_1_2_0_0",
+     "ubi/F_124_1_2_0_0",
+     "ubi/F_127_1_2_0_0",
+     "ubi/F_139_0_0_0_0",
+     "ubi/F_142_0_0_0_0"
+    ],
+    "n_only_computed": 326
+   },
+   {
+    "name": "fold4_train",
+    "frozen": 2381,
+    "computed": 3238,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0"
+    ],
+    "n_only_computed": 857
+   },
+   {
+    "name": "fold4_val",
+    "frozen": 318,
+    "computed": 452,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_130_1_2_0_0",
+     "ubi/F_172_1_0_1_0",
+     "ubi/F_173_0_0_1_0",
+     "ubi/F_175_0_1_0_0",
+     "ubi/F_188_0_0_1_1",
+     "ubi/F_209_1_0_0_0",
+     "ubi/F_213_0_1_0_0",
+     "ubi/F_27_0_2_0_0"
+    ],
+    "n_only_computed": 134
+   },
+   {
+    "name": "scored_ticks_per_video",
+    "frozen": 3927,
+    "computed": null,
+    "agree": false,
+    "n_differ": 31,
+    "examples": [
+     [
+      "ucf/Arson041_x264",
+      71,
+      70
+     ],
+     [
+      "ucf/Burglary005_x264",
+      157,
+      156
+     ],
+     [
+      "ucf/Burglary032_x264",
+      43,
+      42
+     ],
+     [
+      "ucf/Burglary061_x264",
+      140,
+      139
+     ],
+     [
+      "ucf/Burglary076_x264",
+      53,
+      52
+     ],
+     [
+      "ucf/Burglary090_x264",
+      47,
+      46
+     ],
+     [
+      "ucf/Explosion002_x264",
+      50,
+      49
+     ],
+     [
+      "ucf/Explosion007_x264",
+      53,
+      52
+     ]
+    ],
+    "max_abs_diff": 1
+   }
+  ],
+  "checks": [
+   {
+    "name": "positive_videos",
+    "frozen": 379,
+    "computed": 379,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "eligible30_events",
+    "frozen": 446,
+    "computed": 446,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "first_events",
+    "frozen": 253,
+    "computed": 253,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "real_first_events",
+    "frozen": 165,
+    "computed": 165,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "long60_first_events",
+    "frozen": 100,
+    "computed": 100,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "ramp90_first_events",
+    "frozen": 61,
+    "computed": 61,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "official_ubi_first_events",
+    "frozen": 74,
+    "computed": 74,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "audio_first_event_candidates",
+    "frozen": 86,
+    "computed": 86,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "clean_cpu_videos",
+    "frozen": 3220,
+    "computed": 3220,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "h1_videos",
+    "frozen": 328,
+    "computed": 328,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "h1p_videos",
+    "frozen": 102,
+    "computed": 102,
+    "agree": true,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [],
+    "n_only_computed": 0
+   },
+   {
+    "name": "clean_vlm_videos_subset_of_clean_cpu",
+    "frozen": 600,
+    "computed": null,
+    "agree": true,
+    "note": "no previous in-code rule; checked as a subset"
+   },
+   {
+    "name": "fold0_test",
+    "frozen": 980,
+    "computed": 1301,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0",
+     "ubi/F_128_0_0_0_0",
+     "ubi/F_132_1_2_0_0",
+     "ubi/F_136_1_0_0_1"
+    ],
+    "n_only_computed": 321
+   },
+   {
+    "name": "fold0_train",
+    "frozen": 2354,
+    "computed": 3219,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_122_1_1_0_0"
+    ],
+    "n_only_computed": 865
+   },
+   {
+    "name": "fold0_val",
+    "frozen": 351,
+    "computed": 482,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_124_1_2_0_0",
+     "ubi/F_147_1_0_1_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_161_0_0_0_0",
+     "ubi/F_162_1_0_1_0",
+     "ubi/F_181_0_0_1_0",
+     "ubi/F_187_0_0_1_0",
+     "ubi/F_33_0_2_0_0"
+    ],
+    "n_only_computed": 131
+   },
+   {
+    "name": "fold2_test",
+    "frozen": 991,
+    "computed": 1324,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_125_0_2_0_0",
+     "ubi/F_130_1_2_0_0",
+     "ubi/F_131_1_2_0_0",
+     "ubi/F_143_0_0_0_0",
+     "ubi/F_168_1_0_1_0"
+    ],
+    "n_only_computed": 333
+   },
+   {
+    "name": "fold2_train",
+    "frozen": 2379,
+    "computed": 3232,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0"
+    ],
+    "n_only_computed": 853
+   },
+   {
+    "name": "fold2_val",
+    "frozen": 315,
+    "computed": 446,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_140_0_0_0_0",
+     "ubi/F_155_0_0_1_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_173_0_0_1_0",
+     "ubi/F_205_0_1_0_0",
+     "ubi/F_208_0_0_0_0",
+     "ubi/F_24_1_0_0_0"
+    ],
+    "n_only_computed": 131
+   },
+   {
+    "name": "fold3_test",
+    "frozen": 968,
+    "computed": 1305,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_133_1_0_0_0",
+     "ubi/F_138_0_0_0_0",
+     "ubi/F_147_1_0_1_0",
+     "ubi/F_155_0_0_1_0",
+     "ubi/F_161_0_0_0_0",
+     "ubi/F_163_0_0_1_0"
+    ],
+    "n_only_computed": 337
+   },
+   {
+    "name": "fold3_train",
+    "frozen": 2360,
+    "computed": 3206,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0",
+     "ubi/F_118_1_2_0_0",
+     "ubi/F_120_1_0_0_0"
+    ],
+    "n_only_computed": 846
+   },
+   {
+    "name": "fold3_val",
+    "frozen": 339,
+    "computed": 473,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_128_0_0_0_0",
+     "ubi/F_157_0_0_1_0",
+     "ubi/F_181_0_0_1_0",
+     "ubi/F_193_0_0_1_0",
+     "ubi/F_200_0_0_0_1",
+     "ubi/F_204_1_1_0_0"
+    ],
+    "n_only_computed": 134
+   },
+   {
+    "name": "fold4_test",
+    "frozen": 988,
+    "computed": 1314,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_105_1_0_0_0",
+     "ubi/F_114_0_0_0_0",
+     "ubi/F_122_1_1_0_0",
+     "ubi/F_123_1_2_0_0",
+     "ubi/F_124_1_2_0_0",
+     "ubi/F_127_1_2_0_0",
+     "ubi/F_139_0_0_0_0",
+     "ubi/F_142_0_0_0_0"
+    ],
+    "n_only_computed": 326
+   },
+   {
+    "name": "fold4_train",
+    "frozen": 2381,
+    "computed": 3238,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_102_0_0_0_1",
+     "ubi/F_103_1_2_0_0",
+     "ubi/F_106_1_2_0_0",
+     "ubi/F_107_1_2_0_0",
+     "ubi/F_10_0_0_0_0",
+     "ubi/F_111_0_0_0_0",
+     "ubi/F_115_1_2_0_0",
+     "ubi/F_117_0_0_0_0"
+    ],
+    "n_only_computed": 857
+   },
+   {
+    "name": "fold4_val",
+    "frozen": 318,
+    "computed": 452,
+    "agree": false,
+    "only_frozen": [],
+    "n_only_frozen": 0,
+    "only_computed": [
+     "ubi/F_130_1_2_0_0",
+     "ubi/F_172_1_0_1_0",
+     "ubi/F_173_0_0_1_0",
+     "ubi/F_175_0_1_0_0",
+     "ubi/F_188_0_0_1_1",
+     "ubi/F_209_1_0_0_0",
+     "ubi/F_213_0_1_0_0",
+     "ubi/F_27_0_2_0_0"
+    ],
+    "n_only_computed": 134
+   },
+   {
+    "name": "scored_ticks_per_video",
+    "frozen": 3927,
+    "computed": null,
+    "agree": false,
+    "n_differ": 31,
+    "examples": [
+     [
+      "ucf/Arson041_x264",
+      71,
+      70
+     ],
+     [
+      "ucf/Burglary005_x264",
+      157,
+      156
+     ],
+     [
+      "ucf/Burglary032_x264",
+      43,
+      42
+     ],
+     [
+      "ucf/Burglary061_x264",
+      140,
+      139
+     ],
+     [
+      "ucf/Burglary076_x264",
+      53,
+      52
+     ],
+     [
+      "ucf/Burglary090_x264",
+      47,
+      46
+     ],
+     [
+      "ucf/Explosion002_x264",
+      50,
+      49
+     ],
+     [
+      "ucf/Explosion007_x264",
+      53,
+      52
+     ]
+    ],
+    "max_abs_diff": 1
+   }
+  ]
+ }
+}

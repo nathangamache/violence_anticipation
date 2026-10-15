@@ -55,3 +55,6 @@ snapshots/
 /legacy/results/
 /legacy/final/
 /legacy/simulation_results*/
+
+# --- Large per-tick screen score tables (regenerable; kept on disk) ---
+benchmark/results/cue_screen/**/*.parquet

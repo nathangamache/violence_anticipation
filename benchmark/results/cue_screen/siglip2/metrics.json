@@ -1,0 +1,2807 @@
+{
+ "m1": {
+  "value": 0.8623030459024525,
+  "ci": [
+   0.8303479063365053,
+   0.8925012031081061
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_30_60": {
+  "value": 0.8631900311743479,
+  "ci": [
+   0.8332135457159591,
+   0.8906380869621414
+  ],
+  "n_pos": 4650,
+  "n_neg": 260570,
+  "n_pos_videos": 246,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_p1s": {
+  "value": 0.8635125419595604,
+  "ci": [
+   0.8314889013336335,
+   0.8946451264896113
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_p1b": {
+  "value": 0.56780631246189,
+  "ci": [
+   0.5248744858632257,
+   0.6155963714986076
+  ],
+  "n_pos": 6764,
+  "n_neg": 249712,
+  "n_pos_videos": 174,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_n": {
+  "value": 0.7844816947150021,
+  "ci": [
+   0.7427114794740426,
+   0.8224696607373395
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_time_source": {
+  "value": 0.47211218565011814,
+  "ci": [
+   0.426907030690736,
+   0.5187772717425235
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.8671328671328671
+ },
+ "m1_shuffled": {
+  "value": 0.5165797668799187,
+  "ci": [
+   0.46250198205971604,
+   0.570409315884984
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.25074925074925075
+ },
+ "m1_b_detect": {
+  "value": 0.8948331823376586,
+  "ci": [
+   0.8662932722320811,
+   0.9215215618741953
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_n_plus_p1": {
+  "value": 0.859806281225718,
+  "ci": [
+   0.8265658359494843,
+   0.8908980691524295
+  ],
+  "n_pos": 8499,
+  "n_neg": 272087,
+  "n_pos_videos": 249,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_p1_late": {
+  "value": 0.8721640742820372,
+  "ci": [
+   0.8368497476790409,
+   0.90402937519339
+  ],
+  "n_pos": 6764,
+  "n_neg": 249712,
+  "n_pos_videos": 174,
+  "p_le_null": 0.000999000999000999
+ },
+ "p1b_gain_over_p1": {
+  "value": -0.3043577618201473,
+  "ci": [
+   -0.35288336019407374,
+   -0.2575338163789479
+  ],
+  "p_le_null": 1.0
+ },
+ "m1_later": {
+  "value": 0.9263555246910845,
+  "ci": [
+   0.8925427962827239,
+   0.9542422081152204
+  ],
+  "n_pos": 4934,
+  "n_neg": 248278,
+  "n_pos_videos": 155,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_near": {
+  "value": 0.9124035651231451,
+  "ci": [
+   0.8887737968848811,
+   0.9338695768782149
+  ],
+  "n_pos": 2420,
+  "n_neg": 230654,
+  "n_pos_videos": 242,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_long": {
+  "value": 0.8619037638638474,
+  "ci": [
+   0.8222068707860675,
+   0.900939689169598
+  ],
+  "n_pos": 3819,
+  "n_neg": 260103,
+  "n_pos_videos": 96,
+  "p_le_null": 0.000999000999000999
+ },
+ "m5_b0_10": {
+  "value": 0.8878898140381297,
+  "ci": [
+   0.8594631332224811,
+   0.9123758164961205
+  ],
+  "n_pos": 2420,
+  "n_neg": 230654,
+  "n_pos_videos": 242,
+  "p_le_null": 0.000999000999000999
+ },
+ "m5_b10_30": {
+  "value": 0.8770310757645593,
+  "ci": [
+   0.846735702282172,
+   0.9041111368792948
+  ],
+  "n_pos": 4840,
+  "n_neg": 267908,
+  "n_pos_videos": 242,
+  "p_le_null": 0.000999000999000999
+ },
+ "m5_b30_60": {
+  "value": 0.8631900311743479,
+  "ci": [
+   0.8332135457159591,
+   0.8906380869621414
+  ],
+  "n_pos": 4650,
+  "n_neg": 260570,
+  "n_pos_videos": 246,
+  "p_le_null": 0.000999000999000999
+ },
+ "m5_b60_120": {
+  "value": 0.8616459552303817,
+  "ci": [
+   0.8215585757005185,
+   0.9005433946342554
+  ],
+  "n_pos": 3849,
+  "n_neg": 260103,
+  "n_pos_videos": 98,
+  "p_le_null": 0.000999000999000999
+ },
+ "m5_ramp": {
+  "n_videos": 61,
+  "share_rising": 0.6229508196721312,
+  "mean_diff": 0.33356915509594626,
+  "wilcoxon_p": 0.020145444206046016
+ },
+ "m4b_first_frame": {
+  "value": 0.8433301807043171,
+  "ci": [
+   0.7881916922023847,
+   0.8942093977724465
+  ],
+  "n_pos": 4911,
+  "n_neg": 272087,
+  "n_pos_videos": 58,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_ramp": {
+  "value": 0.8860034031527585,
+  "ci": [
+   0.8454181254110441,
+   0.9236832269529491
+  ],
+  "n_pos": 4911,
+  "n_neg": 272087,
+  "n_pos_videos": 58,
+  "p_le_null": 0.000999000999000999
+ },
+ "m1_ramp_gain_over_m4b": {
+  "value": 0.042673222448441406,
+  "ci": [
+   0.0014849813049438874,
+   0.09161014297351382
+  ],
+  "p_le_null": 0.024975024975024976
+ },
+ "m1_sparse_pauc": {
+  "value": 0.5704846711543574,
+  "ci": [
+   0.5458924461523624,
+   0.5996200092845827
+  ],
+  "p_le_null": 0.000999000999000999
+ },
+ "events": {
+  "m8": {
+   "value": 0.8936533574848674,
+   "ci": [
+    0.8702999588945096,
+    0.9134973310552843
+   ],
+   "n_events": 446,
+   "p_le_null": 0.000999000999000999
+  },
+  "tail": {
+   "value": 0.3213485693380827,
+   "ci": [
+    0.2720621578692979,
+    0.3743054233277443
+   ],
+   "hit_rate": 0.33910891089108913,
+   "clean_rate": 0.01776034155300642,
+   "n_events": 446,
+   "p_le_null": 0.000999000999000999
+  }
+ },
+ "events_first": {
+  "m8": {
+   "value": 0.8623886921630365,
+   "ci": [
+    0.8307281834080347,
+    0.8898415362531177
+   ],
+   "n_events": 253,
+   "p_le_null": 0.000999000999000999
+  },
+  "tail": {
+   "value": 0.2813603574321772,
+   "ci": [
+    0.22024020103720696,
+    0.3464173480722315
+   ],
+   "hit_rate": 0.3048780487804878,
+   "clean_rate": 0.02351769134831063,
+   "n_events": 253,
+   "p_le_null": 0.000999000999000999
+  }
+ },
+ "events_n": {
+  "m8": {
+   "value": 0.7711311202767006,
+   "ci": [
+    0.7354921100032612,
+    0.8065391676643591
+   ],
+   "n_events": 446,
+   "p_le_null": 0.000999000999000999
+  }
+ },
+ "m8_gain_over_n": {
+  "value": 0.1225222372081668,
+  "ci": [
+   0.08939013531410811,
+   0.15386141026247743
+  ],
+  "p_le_null": 0.000999000999000999
+ },
+ "m4n": {
+  "value": 0.07532458651071594,
+  "ci": [
+   0.033103305174612366,
+   0.11699503894665408
+  ],
+  "p_le_null": 0.001998001998001998
+ },
+ "m1_ucf": {
+  "value": 0.8994421459512394,
+  "ci": [
+   0.847504263546615,
+   0.9459731896491421
+  ],
+  "n_pos": 2815,
+  "n_neg": 47785,
+  "n_pos_videos": 68,
+  "p_le_null": 0.000999000999000999
+ },
+ "m3p": {
+  "value": 0.594074738184313,
+  "ci": [
+   0.48206120972194544,
+   0.711399430052824
+  ],
+  "n_pos": 2885,
+  "n_neg": 3512,
+  "n_pos_videos": 68,
+  "p_le_null": 0.060939060939060936
+ },
+ "m3p_ratio": {
+  "value": 0.23551530337461404,
+  "ci": [
+   -0.04993387668511362,
+   0.5029083042357186
+  ],
+  "p_le_null": 0.971028971028971
+ },
+ "m3_all_h1": {
+  "value": 0.6013882790682454,
+  "ci": [
+   0.5394366126745753,
+   0.6678393036069443
+  ],
+  "n_pos": 7117,
+  "n_neg": 10301,
+  "n_pos_videos": 214,
+  "p_le_null": 0.001998001998001998
+ },
+ "h1_vs_clean": {
+  "value": 0.7800246127998754,
+  "ci": [
+   0.7444358665300341,
+   0.8161103313563874
+  ],
+  "n_pos": 10298,
+  "n_neg": 212404,
+  "n_pos_videos": 320,
+  "p_le_null": 0.000999000999000999
+ },
+ "m3_per_class": {
+  "arson": {
+   "value": 0.3568319420942451,
+   "ci": [
+    0.19511107389018392,
+    0.5365069374440806
+   ],
+   "n_pos": 2284,
+   "n_neg": 508,
+   "n_pos_videos": 64,
+   "p_le_null": 0.9410589410589411
+  },
+  "burglary": {
+   "value": 0.5562843924206451,
+   "ci": [
+    0.36982719366625916,
+    0.750765074663781
+   ],
+   "n_pos": 2885,
+   "n_neg": 964,
+   "n_pos_videos": 68,
+   "p_le_null": 0.28471528471528473
+  },
+  "car_accident": {
+   "value": 0.5880004584689849,
+   "ci": [
+    0.4909618737557779,
+    0.705641054217213
+   ],
+   "n_pos": 4232,
+   "n_neg": 4187,
+   "n_pos_videos": 146,
+   "p_le_null": 0.04095904095904096
+  },
+  "explosion": {
+   "value": 0.5701033433031187,
+   "ci": [
+    0.4645596896312396,
+    0.6733333149727624
+   ],
+   "n_pos": 4874,
+   "n_neg": 2341,
+   "n_pos_videos": 200,
+   "p_le_null": 0.08891108891108891
+  },
+  "road_accident": {
+   "value": 0.6608086912886846,
+   "ci": [
+    0.4688639550518928,
+    0.8735371836618984
+   ],
+   "n_pos": 2199,
+   "n_neg": 360,
+   "n_pos_videos": 67,
+   "p_le_null": 0.05194805194805195
+  },
+  "shoplifting": {
+   "value": 0.7358560752387953,
+   "ci": [
+    0.5514734360726843,
+    0.8635013833325548
+   ],
+   "n_pos": 2433,
+   "n_neg": 507,
+   "n_pos_videos": 68,
+   "p_le_null": 0.006993006993006993
+  },
+  "stealing": {
+   "value": 0.7049002411971229,
+   "ci": [
+    0.5721942396792075,
+    0.8329140353104197
+   ],
+   "n_pos": 2885,
+   "n_neg": 1146,
+   "n_pos_videos": 68,
+   "p_le_null": 0.002997002997002997
+  },
+  "vandalism": {
+   "value": 0.46882778136345926,
+   "ci": [
+    0.26720947836221703,
+    0.7283101066935836
+   ],
+   "n_pos": 2284,
+   "n_neg": 387,
+   "n_pos_videos": 64,
+   "p_le_null": 0.6013986013986014
+  }
+ },
+ "breakdowns": {
+  "s_real": {
+   "value": 0.8853770722307328,
+   "ci": [
+    0.8526780165423526,
+    0.917750301679578
+   ],
+   "n_pos": 6234,
+   "n_neg": 214894,
+   "n_pos_videos": 162,
+   "p_le_null": 0.000999000999000999
+  },
+  "s_offubi": {
+   "value": 0.8845875813078786,
+   "ci": [
+    0.8293803531760546,
+    0.9314650451721201
+   ],
+   "n_pos": 2275,
+   "n_neg": 228641,
+   "n_pos_videos": 74,
+   "p_le_null": 0.000999000999000999
+  },
+  "s_audio": {
+   "value": 0.8540512137081795,
+   "ci": [
+    0.8069781281932554,
+    0.8973717149908379
+   ],
+   "n_pos": 3338,
+   "n_neg": 176951,
+   "n_pos_videos": 84,
+   "p_le_null": 0.000999000999000999
+  },
+  "source_xd_movie": {
+   "value": 0.801406246593968,
+   "ci": [
+    0.7332325844631236,
+    0.8629748800912348
+   ],
+   "n_pos": 2265,
+   "n_neg": 57193,
+   "n_pos_videos": 87,
+   "p_le_null": 0.000999000999000999
+  },
+  "source_xd_youtube": {
+   "value": 0.8377852686642993,
+   "ci": [
+    0.7750621483737673,
+    0.888507700856003
+   ],
+   "n_pos": 2357,
+   "n_neg": 129166,
+   "n_pos_videos": 60,
+   "p_le_null": 0.000999000999000999
+  },
+  "source_ucf": {
+   "value": 0.8994421459512395,
+   "ci": [
+    0.8475042635466155,
+    0.9459731896491426
+   ],
+   "n_pos": 2815,
+   "n_neg": 47785,
+   "n_pos_videos": 68,
+   "p_le_null": 0.000999000999000999
+  },
+  "source_ubi": {
+   "value": 0.965575791536479,
+   "ci": [
+    0.9340213029982606,
+    0.9869531953623449
+   ],
+   "n_pos": 1062,
+   "n_neg": 37943,
+   "n_pos_videos": 34,
+   "p_le_null": 0.000999000999000999
+  },
+  "class_dyadic": {
+   "value": 0.8692789961452998,
+   "ci": [
+    0.829665318932546,
+    0.9067918969701368
+   ],
+   "n_pos": 4916,
+   "n_neg": 272087,
+   "n_pos_videos": 152,
+   "p_le_null": 0.000999000999000999
+  },
+  "class_instrumental": {
+   "value": 0.8396018127648838,
+   "ci": [
+    0.7805748389700786,
+    0.8968740683017727
+   ],
+   "n_pos": 3095,
+   "n_neg": 188354,
+   "n_pos_videos": 91,
+   "p_le_null": 0.000999000999000999
+  },
+  "class_riot": {
+   "value": 0.8570373850901477,
+   "ci": [
+    0.7720351172663319,
+    0.9259865131691923
+   ],
+   "n_pos": 994,
+   "n_neg": 166256,
+   "n_pos_videos": 23,
+   "p_le_null": 0.000999000999000999
+  }
+ },
+ "p0": {
+  "skipped": "wide block"
+ },
+ "coverage": {
+  "events_in_pool": 446,
+  "pool_videos": 3927,
+  "pool_clean_videos": 3220,
+  "pool_h1_videos": 328,
+  "valid_fraction_mean": 1.0,
+  "scene_missing": {
+   "0": [],
+   "2": [],
+   "3": [],
+   "4": []
+  }
+ },
+ "probes": {
+  "0": {
+   "p1": {
+    "C": 0.001,
+    "val_auc": 0.8713516408988804,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8713516408988804,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8693122859226445,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8666367657655166,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8648541524681773,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8648541524681773,
+      "converged": true
+     }
+    ],
+    "n_train": 55018,
+    "n_train_pos": 5018,
+    "n_val": 24479,
+    "val_fallback": false
+   },
+   "p1_near": {
+    "C": 0.001,
+    "val_auc": 0.9647394341040614,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9647394341040614,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.957886195365219,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.941280896359266,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9221711795766303,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9221711795766303,
+      "converged": true
+     }
+    ],
+    "n_train": 51890,
+    "n_train_pos": 1890,
+    "n_val": 16132,
+    "val_fallback": false
+   },
+   "p1_later": {
+    "C": 0.01,
+    "val_auc": 0.9847140398597488,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9840151509681465,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.9847140398597488,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9831484528460289,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9681395787506113,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9590822132610789,
+      "converged": true
+     }
+    ],
+    "n_train": 53362,
+    "n_train_pos": 3362,
+    "n_val": 7903,
+    "val_fallback": false
+   },
+   "b_detect": {
+    "C": 0.001,
+    "val_auc": 0.9756069195862114,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9756069195862114,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.973185648918139,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.97054467092315,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9669323781748548,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9669323781748548,
+      "converged": true
+     }
+    ],
+    "n_train": 57778,
+    "n_train_pos": 7778,
+    "n_val": 30267,
+    "val_fallback": false
+   },
+   "p1s": {
+    "C": 0.001,
+    "val_auc": 0.8717669769665307,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8717669769665307,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8703128083323179,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8672238853845834,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8650123517347049,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8650123517347049,
+      "converged": true
+     }
+    ],
+    "n_train": 55018,
+    "n_train_pos": 5018,
+    "n_val": 24479,
+    "val_fallback": false
+   },
+   "p1b": {
+    "C": 0.001,
+    "val_auc": 0.6153484109917842,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.6153484109917842,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.5960002159184,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.5692226684324333,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.5521378727403086,
+      "converged": false
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.5458090783366599,
+      "converged": false
+     }
+    ],
+    "n_train": 53916,
+    "n_train_pos": 3916,
+    "n_val": 22164,
+    "val_fallback": false
+   },
+   "n_plus_p1": {
+    "C": 0.001,
+    "val_auc": 0.8716687086281758,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8716687086281758,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8628821408361892,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8519971746447672,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8472078397819568,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8472078397819568,
+      "converged": true
+     }
+    ],
+    "n_train": 55018,
+    "n_train_pos": 5018,
+    "n_val": 24479,
+    "val_fallback": false
+   }
+  },
+  "2": {
+   "p1": {
+    "C": 0.001,
+    "val_auc": 0.8933642354549608,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8933642354549608,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8917725782950283,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8915130597813089,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8920743987462378,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8926659893225629,
+      "converged": true
+     }
+    ],
+    "n_train": 56055,
+    "n_train_pos": 6055,
+    "n_val": 19026,
+    "val_fallback": false
+   },
+   "p1_near": {
+    "C": 0.001,
+    "val_auc": 0.880533489418954,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.880533489418954,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8569307298895065,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8306879768312907,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8213674601890352,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8213674601890352,
+      "converged": true
+     }
+    ],
+    "n_train": 52008,
+    "n_train_pos": 2008,
+    "n_val": 10915,
+    "val_fallback": false
+   },
+   "p1_later": {
+    "C": 0.001,
+    "val_auc": 0.9505161883073706,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9505161883073706,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.9325306295861929,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9274831065348006,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9255437745885298,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9255437745885298,
+      "converged": true
+     }
+    ],
+    "n_train": 53541,
+    "n_train_pos": 3541,
+    "n_val": 12231,
+    "val_fallback": false
+   },
+   "b_detect": {
+    "C": 0.001,
+    "val_auc": 0.9709560882339492,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9709560882339492,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.9699706468471734,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9682480602069213,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9661316842220808,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9661316842220808,
+      "converged": true
+     }
+    ],
+    "n_train": 58278,
+    "n_train_pos": 8278,
+    "n_val": 31730,
+    "val_fallback": false
+   },
+   "p1s": {
+    "C": 0.001,
+    "val_auc": 0.8904938714429923,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8904938714429923,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8882625204699076,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8868926794966364,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8856656804636848,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8856656804636848,
+      "converged": true
+     }
+    ],
+    "n_train": 56055,
+    "n_train_pos": 6055,
+    "n_val": 19026,
+    "val_fallback": false
+   },
+   "p1b": {
+    "C": 0.001,
+    "val_auc": 0.6163556442978427,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.6163556442978427,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.582620838928017,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.5234746013765846,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.5037706074498828,
+      "converged": false
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.5007865361218675,
+      "converged": false
+     }
+    ],
+    "n_train": 54874,
+    "n_train_pos": 4874,
+    "n_val": 17257,
+    "val_fallback": false
+   },
+   "n_plus_p1": {
+    "C": 0.001,
+    "val_auc": 0.8989760274678701,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8989760274678701,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8989431943873732,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8960755007024875,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8910617336493158,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8910544851928219,
+      "converged": true
+     }
+    ],
+    "n_train": 56055,
+    "n_train_pos": 6055,
+    "n_val": 19026,
+    "val_fallback": false
+   }
+  },
+  "3": {
+   "p1": {
+    "C": 0.1,
+    "val_auc": 0.8967680453837626,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8958143226579743,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8953313550171761,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8967680453837626,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.896723569737066,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.896723569737066,
+      "converged": true
+     }
+    ],
+    "n_train": 55946,
+    "n_train_pos": 5946,
+    "n_val": 13702,
+    "val_fallback": false
+   },
+   "p1_near": {
+    "C": 0.001,
+    "val_auc": 0.8719636789778424,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8719636789778424,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8719610648754103,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8665460798357306,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8582766011356913,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8433514795762884,
+      "converged": true
+     }
+    ],
+    "n_train": 51953,
+    "n_train_pos": 1953,
+    "n_val": 12879,
+    "val_fallback": false
+   },
+   "p1_later": {
+    "C": 0.001,
+    "val_auc": 0.8720552993412319,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8720552993412319,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8608141940084416,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8252470324160749,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.7943700857903729,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.784450231951695,
+      "converged": true
+     }
+    ],
+    "n_train": 53067,
+    "n_train_pos": 3067,
+    "n_val": 12820,
+    "val_fallback": false
+   },
+   "b_detect": {
+    "C": 0.01,
+    "val_auc": 0.965010119857967,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.96421617089142,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.965010119857967,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9624894385979406,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9593431092987165,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9593431092987165,
+      "converged": true
+     }
+    ],
+    "n_train": 58228,
+    "n_train_pos": 8228,
+    "n_val": 35014,
+    "val_fallback": false
+   },
+   "p1s": {
+    "C": 0.001,
+    "val_auc": 0.8967820562524409,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8967820562524409,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.896271526686272,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8961761603094817,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8934532405840249,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8934532405840249,
+      "converged": true
+     }
+    ],
+    "n_train": 55946,
+    "n_train_pos": 5946,
+    "n_val": 13702,
+    "val_fallback": false
+   },
+   "p1b": {
+    "C": 0.01,
+    "val_auc": 0.6945118271360238,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.6700860120048784,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.6945118271360238,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.6534841983009751,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.5537461084727009,
+      "converged": false
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.5144169533019838,
+      "converged": false
+     }
+    ],
+    "n_train": 54777,
+    "n_train_pos": 4777,
+    "n_val": 11395,
+    "val_fallback": false
+   },
+   "n_plus_p1": {
+    "C": 1.0,
+    "val_auc": 0.9107308940257482,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9054643413143242,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.9054733225682695,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9078986621225476,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9107308940257482,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9107308940257482,
+      "converged": true
+     }
+    ],
+    "n_train": 55946,
+    "n_train_pos": 5946,
+    "n_val": 13702,
+    "val_fallback": false
+   }
+  },
+  "4": {
+   "p1": {
+    "C": 0.001,
+    "val_auc": 0.8798478502816887,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8798478502816887,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8755993389127474,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8698876848492036,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8682042461099853,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8682042461099853,
+      "converged": true
+     }
+    ],
+    "n_train": 55384,
+    "n_train_pos": 5384,
+    "n_val": 17225,
+    "val_fallback": false
+   },
+   "p1_near": {
+    "C": 0.001,
+    "val_auc": 0.8834461868946422,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8834461868946422,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8745852004901239,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.860126174654191,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8438086343839872,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8438086343839872,
+      "converged": true
+     }
+    ],
+    "n_train": 52004,
+    "n_train_pos": 2004,
+    "n_val": 8724,
+    "val_fallback": false
+   },
+   "p1_later": {
+    "C": 1.0,
+    "val_auc": 0.9098257319851366,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8782866168993073,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8964969581535519,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.907414708047296,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.9098257319851366,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9089609099448823,
+      "converged": true
+     }
+    ],
+    "n_train": 53571,
+    "n_train_pos": 3571,
+    "n_val": 7355,
+    "val_fallback": false
+   },
+   "b_detect": {
+    "C": 0.01,
+    "val_auc": 0.938912357947159,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.9376317497755206,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.938912357947159,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.9367787074064208,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.932357880946909,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.9275303364190086,
+      "converged": true
+     }
+    ],
+    "n_train": 57583,
+    "n_train_pos": 7583,
+    "n_val": 27718,
+    "val_fallback": false
+   },
+   "p1s": {
+    "C": 0.001,
+    "val_auc": 0.8777334681412842,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8777334681412842,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8743033800266597,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8693655968388027,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8683175287807948,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8683175287807948,
+      "converged": true
+     }
+    ],
+    "n_train": 55384,
+    "n_train_pos": 5384,
+    "n_val": 17225,
+    "val_fallback": false
+   },
+   "p1b": {
+    "C": 0.001,
+    "val_auc": 0.4842023327206667,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.4842023327206667,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.4754309185038892,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.46250772947368596,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.4517199268929492,
+      "converged": false
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.45080334670880173,
+      "converged": false
+     }
+    ],
+    "n_train": 54177,
+    "n_train_pos": 4177,
+    "n_val": 15195,
+    "val_fallback": false
+   },
+   "n_plus_p1": {
+    "C": 0.001,
+    "val_auc": 0.8960652694786811,
+    "converged": true,
+    "path": [
+     {
+      "C": 0.001,
+      "val_auc": 0.8960652694786811,
+      "converged": true
+     },
+     {
+      "C": 0.01,
+      "val_auc": 0.8867374538072705,
+      "converged": true
+     },
+     {
+      "C": 0.1,
+      "val_auc": 0.8750094717223783,
+      "converged": true
+     },
+     {
+      "C": 1.0,
+      "val_auc": 0.8706960018369571,
+      "converged": true
+     },
+     {
+      "C": 10.0,
+      "val_auc": 0.8706960018369571,
+      "converged": true
+     }
+    ],
+    "n_train": 55384,
+    "n_train_pos": 5384,
+    "n_val": 17225,
+    "val_fallback": false
+   }
+  }
+ },
+ "nuisance": {
+  "0": {
+   "C": 0.001,
+   "val_auc": 0.8277340188861618,
+   "scene_videos_fit": 2354,
+   "scene_missing": []
+  },
+  "2": {
+   "C": 0.1,
+   "val_auc": 0.7421602201970824,
+   "scene_videos_fit": 2379,
+   "scene_missing": []
+  },
+  "3": {
+   "C": 0.1,
+   "val_auc": 0.8423477226645453,
+   "scene_videos_fit": 2360,
+   "scene_missing": []
+  },
+  "4": {
+   "C": 0.001,
+   "val_auc": 0.7851022051058943,
+   "scene_videos_fit": 2381,
+   "scene_missing": []
+  }
+ },
+ "config": {
+  "block": "siglip2",
+  "phase": "A",
+  "streams": [
+   "siglip2"
+  ],
+  "columns": [
+   "siglip2:0",
+   "siglip2:1",
+   "siglip2:2",
+   "siglip2:3",
+   "siglip2:4",
+   "siglip2:5",
+   "siglip2:6",
+   "siglip2:7",
+   "siglip2:8",
+   "siglip2:9",
+   "siglip2:10",
+   "siglip2:11",
+   "siglip2:12",
+   "siglip2:13",
+   "siglip2:14",
+   "siglip2:15",
+   "siglip2:16",
+   "siglip2:17",
+   "siglip2:18",
+   "siglip2:19",
+   "siglip2:20",
+   "siglip2:21",
+   "siglip2:22",
+   "siglip2:23",
+   "siglip2:24",
+   "siglip2:25",
+   "siglip2:26",
+   "siglip2:27",
+   "siglip2:28",
+   "siglip2:29",
+   "siglip2:30",
+   "siglip2:31",
+   "siglip2:32",
+   "siglip2:33",
+   "siglip2:34",
+   "siglip2:35",
+   "siglip2:36",
+   "siglip2:37",
+   "siglip2:38",
+   "siglip2:39",
+   "siglip2:40",
+   "siglip2:41",
+   "siglip2:42",
+   "siglip2:43",
+   "siglip2:44",
+   "siglip2:45",
+   "siglip2:46",
+   "siglip2:47",
+   "siglip2:48",
+   "siglip2:49",
+   "siglip2:50",
+   "siglip2:51",
+   "siglip2:52",
+   "siglip2:53",
+   "siglip2:54",
+   "siglip2:55",
+   "siglip2:56",
+   "siglip2:57",
+   "siglip2:58",
+   "siglip2:59",
+   "siglip2:60",
+   "siglip2:61",
+   "siglip2:62",
+   "siglip2:63",
+   "siglip2:64",
+   "siglip2:65",
+   "siglip2:66",
+   "siglip2:67",
+   "siglip2:68",
+   "siglip2:69",
+   "siglip2:70",
+   "siglip2:71",
+   "siglip2:72",
+   "siglip2:73",
+   "siglip2:74",
+   "siglip2:75",
+   "siglip2:76",
+   "siglip2:77",
+   "siglip2:78",
+   "siglip2:79",
+   "siglip2:80",
+   "siglip2:81",
+   "siglip2:82",
+   "siglip2:83",
+   "siglip2:84",
+   "siglip2:85",
+   "siglip2:86",
+   "siglip2:87",
+   "siglip2:88",
+   "siglip2:89",
+   "siglip2:90",
+   "siglip2:91",
+   "siglip2:92",
+   "siglip2:93",
+   "siglip2:94",
+   "siglip2:95",
+   "siglip2:96",
+   "siglip2:97",
+   "siglip2:98",
+   "siglip2:99",
+   "siglip2:100",
+   "siglip2:101",
+   "siglip2:102",
+   "siglip2:103",
+   "siglip2:104",
+   "siglip2:105",
+   "siglip2:106",
+   "siglip2:107",
+   "siglip2:108",
+   "siglip2:109",
+   "siglip2:110",
+   "siglip2:111",
+   "siglip2:112",
+   "siglip2:113",
+   "siglip2:114",
+   "siglip2:115",
+   "siglip2:116",
+   "siglip2:117",
+   "siglip2:118",
+   "siglip2:119",
+   "siglip2:120",
+   "siglip2:121",
+   "siglip2:122",
+   "siglip2:123",
+   "siglip2:124",
+   "siglip2:125",
+   "siglip2:126",
+   "siglip2:127",
+   "siglip2:128",
+   "siglip2:129",
+   "siglip2:130",
+   "siglip2:131",
+   "siglip2:132",
+   "siglip2:133",
+   "siglip2:134",
+   "siglip2:135",
+   "siglip2:136",
+   "siglip2:137",
+   "siglip2:138",
+   "siglip2:139",
+   "siglip2:140",
+   "siglip2:141",
+   "siglip2:142",
+   "siglip2:143",
+   "siglip2:144",
+   "siglip2:145",
+   "siglip2:146",
+   "siglip2:147",
+   "siglip2:148",
+   "siglip2:149",
+   "siglip2:150",
+   "siglip2:151",
+   "siglip2:152",
+   "siglip2:153",
+   "siglip2:154",
+   "siglip2:155",
+   "siglip2:156",
+   "siglip2:157",
+   "siglip2:158",
+   "siglip2:159",
+   "siglip2:160",
+   "siglip2:161",
+   "siglip2:162",
+   "siglip2:163",
+   "siglip2:164",
+   "siglip2:165",
+   "siglip2:166",
+   "siglip2:167",
+   "siglip2:168",
+   "siglip2:169",
+   "siglip2:170",
+   "siglip2:171",
+   "siglip2:172",
+   "siglip2:173",
+   "siglip2:174",
+   "siglip2:175",
+   "siglip2:176",
+   "siglip2:177",
+   "siglip2:178",
+   "siglip2:179",
+   "siglip2:180",
+   "siglip2:181",
+   "siglip2:182",
+   "siglip2:183",
+   "siglip2:184",
+   "siglip2:185",
+   "siglip2:186",
+   "siglip2:187",
+   "siglip2:188",
+   "siglip2:189",
+   "siglip2:190",
+   "siglip2:191",
+   "siglip2:192",
+   "siglip2:193",
+   "siglip2:194",
+   "siglip2:195",
+   "siglip2:196",
+   "siglip2:197",
+   "siglip2:198",
+   "siglip2:199",
+   "siglip2:200",
+   "siglip2:201",
+   "siglip2:202",
+   "siglip2:203",
+   "siglip2:204",
+   "siglip2:205",
+   "siglip2:206",
+   "siglip2:207",
+   "siglip2:208",
+   "siglip2:209",
+   "siglip2:210",
+   "siglip2:211",
+   "siglip2:212",
+   "siglip2:213",
+   "siglip2:214",
+   "siglip2:215",
+   "siglip2:216",
+   "siglip2:217",
+   "siglip2:218",
+   "siglip2:219",
+   "siglip2:220",
+   "siglip2:221",
+   "siglip2:222",
+   "siglip2:223",
+   "siglip2:224",
+   "siglip2:225",
+   "siglip2:226",
+   "siglip2:227",
+   "siglip2:228",
+   "siglip2:229",
+   "siglip2:230",
+   "siglip2:231",
+   "siglip2:232",
+   "siglip2:233",
+   "siglip2:234",
+   "siglip2:235",
+   "siglip2:236",
+   "siglip2:237",
+   "siglip2:238",
+   "siglip2:239",
+   "siglip2:240",
+   "siglip2:241",
+   "siglip2:242",
+   "siglip2:243",
+   "siglip2:244",
+   "siglip2:245",
+   "siglip2:246",
+   "siglip2:247",
+   "siglip2:248",
+   "siglip2:249",
+   "siglip2:250",
+   "siglip2:251",
+   "siglip2:252",
+   "siglip2:253",
+   "siglip2:254",
+   "siglip2:255",
+   "siglip2:256",
+   "siglip2:257",
+   "siglip2:258",
+   "siglip2:259",
+   "siglip2:260",
+   "siglip2:261",
+   "siglip2:262",
+   "siglip2:263",
+   "siglip2:264",
+   "siglip2:265",
+   "siglip2:266",
+   "siglip2:267",
+   "siglip2:268",
+   "siglip2:269",
+   "siglip2:270",
+   "siglip2:271",
+   "siglip2:272",
+   "siglip2:273",
+   "siglip2:274",
+   "siglip2:275",
+   "siglip2:276",
+   "siglip2:277",
+   "siglip2:278",
+   "siglip2:279",
+   "siglip2:280",
+   "siglip2:281",
+   "siglip2:282",
+   "siglip2:283",
+   "siglip2:284",
+   "siglip2:285",
+   "siglip2:286",
+   "siglip2:287",
+   "siglip2:288",
+   "siglip2:289",
+   "siglip2:290",
+   "siglip2:291",
+   "siglip2:292",
+   "siglip2:293",
+   "siglip2:294",
+   "siglip2:295",
+   "siglip2:296",
+   "siglip2:297",
+   "siglip2:298",
+   "siglip2:299",
+   "siglip2:300",
+   "siglip2:301",
+   "siglip2:302",
+   "siglip2:303",
+   "siglip2:304",
+   "siglip2:305",
+   "siglip2:306",
+   "siglip2:307",
+   "siglip2:308",
+   "siglip2:309",
+   "siglip2:310",
+   "siglip2:311",
+   "siglip2:312",
+   "siglip2:313",
+   "siglip2:314",
+   "siglip2:315",
+   "siglip2:316",
+   "siglip2:317",
+   "siglip2:318",
+   "siglip2:319",
+   "siglip2:320",
+   "siglip2:321",
+   "siglip2:322",
+   "siglip2:323",
+   "siglip2:324",
+   "siglip2:325",
+   "siglip2:326",
+   "siglip2:327",
+   "siglip2:328",
+   "siglip2:329",
+   "siglip2:330",
+   "siglip2:331",
+   "siglip2:332",
+   "siglip2:333",
+   "siglip2:334",
+   "siglip2:335",
+   "siglip2:336",
+   "siglip2:337",
+   "siglip2:338",
+   "siglip2:339",
+   "siglip2:340",
+   "siglip2:341",
+   "siglip2:342",
+   "siglip2:343",
+   "siglip2:344",
+   "siglip2:345",
+   "siglip2:346",
+   "siglip2:347",
+   "siglip2:348",
+   "siglip2:349",
+   "siglip2:350",
+   "siglip2:351",
+   "siglip2:352",
+   "siglip2:353",
+   "siglip2:354",
+   "siglip2:355",
+   "siglip2:356",
+   "siglip2:357",
+   "siglip2:358",
+   "siglip2:359",
+   "siglip2:360",
+   "siglip2:361",
+   "siglip2:362",
+   "siglip2:363",
+   "siglip2:364",
+   "siglip2:365",
+   "siglip2:366",
+   "siglip2:367",
+   "siglip2:368",
+   "siglip2:369",
+   "siglip2:370",
+   "siglip2:371",
+   "siglip2:372",
+   "siglip2:373",
+   "siglip2:374",
+   "siglip2:375",
+   "siglip2:376",
+   "siglip2:377",
+   "siglip2:378",
+   "siglip2:379",
+   "siglip2:380",
+   "siglip2:381",
+   "siglip2:382",
+   "siglip2:383",
+   "siglip2:384",
+   "siglip2:385",
+   "siglip2:386",
+   "siglip2:387",
+   "siglip2:388",
+   "siglip2:389",
+   "siglip2:390",
+   "siglip2:391",
+   "siglip2:392",
+   "siglip2:393",
+   "siglip2:394",
+   "siglip2:395",
+   "siglip2:396",
+   "siglip2:397",
+   "siglip2:398",
+   "siglip2:399",
+   "siglip2:400",
+   "siglip2:401",
+   "siglip2:402",
+   "siglip2:403",
+   "siglip2:404",
+   "siglip2:405",
+   "siglip2:406",
+   "siglip2:407",
+   "siglip2:408",
+   "siglip2:409",
+   "siglip2:410",
+   "siglip2:411",
+   "siglip2:412",
+   "siglip2:413",
+   "siglip2:414",
+   "siglip2:415",
+   "siglip2:416",
+   "siglip2:417",
+   "siglip2:418",
+   "siglip2:419",
+   "siglip2:420",
+   "siglip2:421",
+   "siglip2:422",
+   "siglip2:423",
+   "siglip2:424",
+   "siglip2:425",
+   "siglip2:426",
+   "siglip2:427",
+   "siglip2:428",
+   "siglip2:429",
+   "siglip2:430",
+   "siglip2:431",
+   "siglip2:432",
+   "siglip2:433",
+   "siglip2:434",
+   "siglip2:435",
+   "siglip2:436",
+   "siglip2:437",
+   "siglip2:438",
+   "siglip2:439",
+   "siglip2:440",
+   "siglip2:441",
+   "siglip2:442",
+   "siglip2:443",
+   "siglip2:444",
+   "siglip2:445",
+   "siglip2:446",
+   "siglip2:447",
+   "siglip2:448",
+   "siglip2:449",
+   "siglip2:450",
+   "siglip2:451",
+   "siglip2:452",
+   "siglip2:453",
+   "siglip2:454",
+   "siglip2:455",
+   "siglip2:456",
+   "siglip2:457",
+   "siglip2:458",
+   "siglip2:459",
+   "siglip2:460",
+   "siglip2:461",
+   "siglip2:462",
+   "siglip2:463",
+   "siglip2:464",
+   "siglip2:465",
+   "siglip2:466",
+   "siglip2:467",
+   "siglip2:468",
+   "siglip2:469",
+   "siglip2:470",
+   "siglip2:471",
+   "siglip2:472",
+   "siglip2:473",
+   "siglip2:474",
+   "siglip2:475",
+   "siglip2:476",
+   "siglip2:477",
+   "siglip2:478",
+   "siglip2:479",
+   "siglip2:480",
+   "siglip2:481",
+   "siglip2:482",
+   "siglip2:483",
+   "siglip2:484",
+   "siglip2:485",
+   "siglip2:486",
+   "siglip2:487",
+   "siglip2:488",
+   "siglip2:489",
+   "siglip2:490",
+   "siglip2:491",
+   "siglip2:492",
+   "siglip2:493",
+   "siglip2:494",
+   "siglip2:495",
+   "siglip2:496",
+   "siglip2:497",
+   "siglip2:498",
+   "siglip2:499",
+   "siglip2:500",
+   "siglip2:501",
+   "siglip2:502",
+   "siglip2:503",
+   "siglip2:504",
+   "siglip2:505",
+   "siglip2:506",
+   "siglip2:507",
+   "siglip2:508",
+   "siglip2:509",
+   "siglip2:510",
+   "siglip2:511",
+   "siglip2:512",
+   "siglip2:513",
+   "siglip2:514",
+   "siglip2:515",
+   "siglip2:516",
+   "siglip2:517",
+   "siglip2:518",
+   "siglip2:519",
+   "siglip2:520",
+   "siglip2:521",
+   "siglip2:522",
+   "siglip2:523",
+   "siglip2:524",
+   "siglip2:525",
+   "siglip2:526",
+   "siglip2:527",
+   "siglip2:528",
+   "siglip2:529",
+   "siglip2:530",
+   "siglip2:531",
+   "siglip2:532",
+   "siglip2:533",
+   "siglip2:534",
+   "siglip2:535",
+   "siglip2:536",
+   "siglip2:537",
+   "siglip2:538",
+   "siglip2:539",
+   "siglip2:540",
+   "siglip2:541",
+   "siglip2:542",
+   "siglip2:543",
+   "siglip2:544",
+   "siglip2:545",
+   "siglip2:546",
+   "siglip2:547",
+   "siglip2:548",
+   "siglip2:549",
+   "siglip2:550",
+   "siglip2:551",
+   "siglip2:552",
+   "siglip2:553",
+   "siglip2:554",
+   "siglip2:555",
+   "siglip2:556",
+   "siglip2:557",
+   "siglip2:558",
+   "siglip2:559",
+   "siglip2:560",
+   "siglip2:561",
+   "siglip2:562",
+   "siglip2:563",
+   "siglip2:564",
+   "siglip2:565",
+   "siglip2:566",
+   "siglip2:567",
+   "siglip2:568",
+   "siglip2:569",
+   "siglip2:570",
+   "siglip2:571",
+   "siglip2:572",
+   "siglip2:573",
+   "siglip2:574",
+   "siglip2:575",
+   "siglip2:576",
+   "siglip2:577",
+   "siglip2:578",
+   "siglip2:579",
+   "siglip2:580",
+   "siglip2:581",
+   "siglip2:582",
+   "siglip2:583",
+   "siglip2:584",
+   "siglip2:585",
+   "siglip2:586",
+   "siglip2:587",
+   "siglip2:588",
+   "siglip2:589",
+   "siglip2:590",
+   "siglip2:591",
+   "siglip2:592",
+   "siglip2:593",
+   "siglip2:594",
+   "siglip2:595",
+   "siglip2:596",
+   "siglip2:597",
+   "siglip2:598",
+   "siglip2:599",
+   "siglip2:600",
+   "siglip2:601",
+   "siglip2:602",
+   "siglip2:603",
+   "siglip2:604",
+   "siglip2:605",
+   "siglip2:606",
+   "siglip2:607",
+   "siglip2:608",
+   "siglip2:609",
+   "siglip2:610",
+   "siglip2:611",
+   "siglip2:612",
+   "siglip2:613",
+   "siglip2:614",
+   "siglip2:615",
+   "siglip2:616",
+   "siglip2:617",
+   "siglip2:618",
+   "siglip2:619",
+   "siglip2:620",
+   "siglip2:621",
+   "siglip2:622",
+   "siglip2:623",
+   "siglip2:624",
+   "siglip2:625",
+   "siglip2:626",
+   "siglip2:627",
+   "siglip2:628",
+   "siglip2:629",
+   "siglip2:630",
+   "siglip2:631",
+   "siglip2:632",
+   "siglip2:633",
+   "siglip2:634",
+   "siglip2:635",
+   "siglip2:636",
+   "siglip2:637",
+   "siglip2:638",
+   "siglip2:639",
+   "siglip2:640",
+   "siglip2:641",
+   "siglip2:642",
+   "siglip2:643",
+   "siglip2:644",
+   "siglip2:645",
+   "siglip2:646",
+   "siglip2:647",
+   "siglip2:648",
+   "siglip2:649",
+   "siglip2:650",
+   "siglip2:651",
+   "siglip2:652",
+   "siglip2:653",
+   "siglip2:654",
+   "siglip2:655",
+   "siglip2:656",
+   "siglip2:657",
+   "siglip2:658",
+   "siglip2:659",
+   "siglip2:660",
+   "siglip2:661",
+   "siglip2:662",
+   "siglip2:663",
+   "siglip2:664",
+   "siglip2:665",
+   "siglip2:666",
+   "siglip2:667",
+   "siglip2:668",
+   "siglip2:669",
+   "siglip2:670",
+   "siglip2:671",
+   "siglip2:672",
+   "siglip2:673",
+   "siglip2:674",
+   "siglip2:675",
+   "siglip2:676",
+   "siglip2:677",
+   "siglip2:678",
+   "siglip2:679",
+   "siglip2:680",
+   "siglip2:681",
+   "siglip2:682",
+   "siglip2:683",
+   "siglip2:684",
+   "siglip2:685",
+   "siglip2:686",
+   "siglip2:687",
+   "siglip2:688",
+   "siglip2:689",
+   "siglip2:690",
+   "siglip2:691",
+   "siglip2:692",
+   "siglip2:693",
+   "siglip2:694",
+   "siglip2:695",
+   "siglip2:696",
+   "siglip2:697",
+   "siglip2:698",
+   "siglip2:699",
+   "siglip2:700",
+   "siglip2:701",
+   "siglip2:702",
+   "siglip2:703",
+   "siglip2:704",
+   "siglip2:705",
+   "siglip2:706",
+   "siglip2:707",
+   "siglip2:708",
+   "siglip2:709",
+   "siglip2:710",
+   "siglip2:711",
+   "siglip2:712",
+   "siglip2:713",
+   "siglip2:714",
+   "siglip2:715",
+   "siglip2:716",
+   "siglip2:717",
+   "siglip2:718",
+   "siglip2:719",
+   "siglip2:720",
+   "siglip2:721",
+   "siglip2:722",
+   "siglip2:723",
+   "siglip2:724",
+   "siglip2:725",
+   "siglip2:726",
+   "siglip2:727",
+   "siglip2:728",
+   "siglip2:729",
+   "siglip2:730",
+   "siglip2:731",
+   "siglip2:732",
+   "siglip2:733",
+   "siglip2:734",
+   "siglip2:735",
+   "siglip2:736",
+   "siglip2:737",
+   "siglip2:738",
+   "siglip2:739",
+   "siglip2:740",
+   "siglip2:741",
+   "siglip2:742",
+   "siglip2:743",
+   "siglip2:744",
+   "siglip2:745",
+   "siglip2:746",
+   "siglip2:747",
+   "siglip2:748",
+   "siglip2:749",
+   "siglip2:750",
+   "siglip2:751",
+   "siglip2:752",
+   "siglip2:753",
+   "siglip2:754",
+   "siglip2:755",
+   "siglip2:756",
+   "siglip2:757",
+   "siglip2:758",
+   "siglip2:759",
+   "siglip2:760",
+   "siglip2:761",
+   "siglip2:762",
+   "siglip2:763",
+   "siglip2:764",
+   "siglip2:765",
+   "siglip2:766",
+   "siglip2:767",
+   "siglip2:768",
+   "siglip2:769",
+   "siglip2:770",
+   "siglip2:771",
+   "siglip2:772",
+   "siglip2:773",
+   "siglip2:774",
+   "siglip2:775",
+   "siglip2:776",
+   "siglip2:777",
+   "siglip2:778",
+   "siglip2:779",
+   "siglip2:780",
+   "siglip2:781",
+   "siglip2:782",
+   "siglip2:783",
+   "siglip2:784",
+   "siglip2:785",
+   "siglip2:786",
+   "siglip2:787",
+   "siglip2:788",
+   "siglip2:789",
+   "siglip2:790",
+   "siglip2:791",
+   "siglip2:792",
+   "siglip2:793",
+   "siglip2:794",
+   "siglip2:795",
+   "siglip2:796",
+   "siglip2:797",
+   "siglip2:798",
+   "siglip2:799",
+   "siglip2:800",
+   "siglip2:801",
+   "siglip2:802",
+   "siglip2:803",
+   "siglip2:804",
+   "siglip2:805",
+   "siglip2:806",
+   "siglip2:807",
+   "siglip2:808",
+   "siglip2:809",
+   "siglip2:810",
+   "siglip2:811",
+   "siglip2:812",
+   "siglip2:813",
+   "siglip2:814",
+   "siglip2:815",
+   "siglip2:816",
+   "siglip2:817",
+   "siglip2:818",
+   "siglip2:819",
+   "siglip2:820",
+   "siglip2:821",
+   "siglip2:822",
+   "siglip2:823",
+   "siglip2:824",
+   "siglip2:825",
+   "siglip2:826",
+   "siglip2:827",
+   "siglip2:828",
+   "siglip2:829",
+   "siglip2:830",
+   "siglip2:831",
+   "siglip2:832",
+   "siglip2:833",
+   "siglip2:834",
+   "siglip2:835",
+   "siglip2:836",
+   "siglip2:837",
+   "siglip2:838",
+   "siglip2:839",
+   "siglip2:840",
+   "siglip2:841",
+   "siglip2:842",
+   "siglip2:843",
+   "siglip2:844",
+   "siglip2:845",
+   "siglip2:846",
+   "siglip2:847",
+   "siglip2:848",
+   "siglip2:849",
+   "siglip2:850",
+   "siglip2:851",
+   "siglip2:852",
+   "siglip2:853",
+   "siglip2:854",
+   "siglip2:855",
+   "siglip2:856",
+   "siglip2:857",
+   "siglip2:858",
+   "siglip2:859",
+   "siglip2:860",
+   "siglip2:861",
+   "siglip2:862",
+   "siglip2:863",
+   "siglip2:864",
+   "siglip2:865",
+   "siglip2:866",
+   "siglip2:867",
+   "siglip2:868",
+   "siglip2:869",
+   "siglip2:870",
+   "siglip2:871",
+   "siglip2:872",
+   "siglip2:873",
+   "siglip2:874",
+   "siglip2:875",
+   "siglip2:876",
+   "siglip2:877",
+   "siglip2:878",
+   "siglip2:879",
+   "siglip2:880",
+   "siglip2:881",
+   "siglip2:882",
+   "siglip2:883",
+   "siglip2:884",
+   "siglip2:885",
+   "siglip2:886",
+   "siglip2:887",
+   "siglip2:888",
+   "siglip2:889",
+   "siglip2:890",
+   "siglip2:891",
+   "siglip2:892",
+   "siglip2:893",
+   "siglip2:894",
+   "siglip2:895",
+   "siglip2:896",
+   "siglip2:897",
+   "siglip2:898",
+   "siglip2:899",
+   "siglip2:900",
+   "siglip2:901",
+   "siglip2:902",
+   "siglip2:903",
+   "siglip2:904",
+   "siglip2:905",
+   "siglip2:906",
+   "siglip2:907",
+   "siglip2:908",
+   "siglip2:909",
+   "siglip2:910",
+   "siglip2:911",
+   "siglip2:912",
+   "siglip2:913",
+   "siglip2:914",
+   "siglip2:915",
+   "siglip2:916",
+   "siglip2:917",
+   "siglip2:918",
+   "siglip2:919",
+   "siglip2:920",
+   "siglip2:921",
+   "siglip2:922",
+   "siglip2:923",
+   "siglip2:924",
+   "siglip2:925",
+   "siglip2:926",
+   "siglip2:927",
+   "siglip2:928",
+   "siglip2:929",
+   "siglip2:930",
+   "siglip2:931",
+   "siglip2:932",
+   "siglip2:933",
+   "siglip2:934",
+   "siglip2:935",
+   "siglip2:936",
+   "siglip2:937",
+   "siglip2:938",
+   "siglip2:939",
+   "siglip2:940",
+   "siglip2:941",
+   "siglip2:942",
+   "siglip2:943",
+   "siglip2:944",
+   "siglip2:945",
+   "siglip2:946",
+   "siglip2:947",
+   "siglip2:948",
+   "siglip2:949",
+   "siglip2:950",
+   "siglip2:951",
+   "siglip2:952",
+   "siglip2:953",
+   "siglip2:954",
+   "siglip2:955",
+   "siglip2:956",
+   "siglip2:957",
+   "siglip2:958",
+   "siglip2:959",
+   "siglip2:960",
+   "siglip2:961",
+   "siglip2:962",
+   "siglip2:963",
+   "siglip2:964",
+   "siglip2:965",
+   "siglip2:966",
+   "siglip2:967",
+   "siglip2:968",
+   "siglip2:969",
+   "siglip2:970",
+   "siglip2:971",
+   "siglip2:972",
+   "siglip2:973",
+   "siglip2:974",
+   "siglip2:975",
+   "siglip2:976",
+   "siglip2:977",
+   "siglip2:978",
+   "siglip2:979",
+   "siglip2:980",
+   "siglip2:981",
+   "siglip2:982",
+   "siglip2:983",
+   "siglip2:984",
+   "siglip2:985",
+   "siglip2:986",
+   "siglip2:987",
+   "siglip2:988",
+   "siglip2:989",
+   "siglip2:990",
+   "siglip2:991",
+   "siglip2:992",
+   "siglip2:993",
+   "siglip2:994",
+   "siglip2:995",
+   "siglip2:996",
+   "siglip2:997",
+   "siglip2:998",
+   "siglip2:999",
+   "siglip2:1000",
+   "siglip2:1001",
+   "siglip2:1002",
+   "siglip2:1003",
+   "siglip2:1004",
+   "siglip2:1005",
+   "siglip2:1006",
+   "siglip2:1007",
+   "siglip2:1008",
+   "siglip2:1009",
+   "siglip2:1010",
+   "siglip2:1011",
+   "siglip2:1012",
+   "siglip2:1013",
+   "siglip2:1014",
+   "siglip2:1015",
+   "siglip2:1016",
+   "siglip2:1017",
+   "siglip2:1018",
+   "siglip2:1019",
+   "siglip2:1020",
+   "siglip2:1021",
+   "siglip2:1022",
+   "siglip2:1023",
+   "siglip2:1024",
+   "siglip2:1025",
+   "siglip2:1026",
+   "siglip2:1027",
+   "siglip2:1028",
+   "siglip2:1029",
+   "siglip2:1030",
+   "siglip2:1031",
+   "siglip2:1032",
+   "siglip2:1033",
+   "siglip2:1034",
+   "siglip2:1035",
+   "siglip2:1036",
+   "siglip2:1037",
+   "siglip2:1038",
+   "siglip2:1039",
+   "siglip2:1040",
+   "siglip2:1041",
+   "siglip2:1042",
+   "siglip2:1043",
+   "siglip2:1044",
+   "siglip2:1045",
+   "siglip2:1046",
+   "siglip2:1047",
+   "siglip2:1048",
+   "siglip2:1049",
+   "siglip2:1050",
+   "siglip2:1051",
+   "siglip2:1052",
+   "siglip2:1053",
+   "siglip2:1054",
+   "siglip2:1055",
+   "siglip2:1056",
+   "siglip2:1057",
+   "siglip2:1058",
+   "siglip2:1059",
+   "siglip2:1060",
+   "siglip2:1061",
+   "siglip2:1062",
+   "siglip2:1063",
+   "siglip2:1064",
+   "siglip2:1065",
+   "siglip2:1066",
+   "siglip2:1067",
+   "siglip2:1068",
+   "siglip2:1069",
+   "siglip2:1070",
+   "siglip2:1071",
+   "siglip2:1072",
+   "siglip2:1073",
+   "siglip2:1074",
+   "siglip2:1075",
+   "siglip2:1076",
+   "siglip2:1077",
+   "siglip2:1078",
+   "siglip2:1079",
+   "siglip2:1080",
+   "siglip2:1081",
+   "siglip2:1082",
+   "siglip2:1083",
+   "siglip2:1084",
+   "siglip2:1085",
+   "siglip2:1086",
+   "siglip2:1087",
+   "siglip2:1088",
+   "siglip2:1089",
+   "siglip2:1090",
+   "siglip2:1091",
+   "siglip2:1092",
+   "siglip2:1093",
+   "siglip2:1094",
+   "siglip2:1095",
+   "siglip2:1096",
+   "siglip2:1097",
+   "siglip2:1098",
+   "siglip2:1099",
+   "siglip2:1100",
+   "siglip2:1101",
+   "siglip2:1102",
+   "siglip2:1103",
+   "siglip2:1104",
+   "siglip2:1105",
+   "siglip2:1106",
+   "siglip2:1107",
+   "siglip2:1108",
+   "siglip2:1109",
+   "siglip2:1110",
+   "siglip2:1111",
+   "siglip2:1112",
+   "siglip2:1113",
+   "siglip2:1114",
+   "siglip2:1115",
+   "siglip2:1116",
+   "siglip2:1117",
+   "siglip2:1118",
+   "siglip2:1119",
+   "siglip2:1120",
+   "siglip2:1121",
+   "siglip2:1122",
+   "siglip2:1123",
+   "siglip2:1124",
+   "siglip2:1125",
+   "siglip2:1126",
+   "siglip2:1127",
+   "siglip2:1128",
+   "siglip2:1129",
+   "siglip2:1130",
+   "siglip2:1131",
+   "siglip2:1132",
+   "siglip2:1133",
+   "siglip2:1134",
+   "siglip2:1135",
+   "siglip2:1136",
+   "siglip2:1137",
+   "siglip2:1138",
+   "siglip2:1139",
+   "siglip2:1140",
+   "siglip2:1141",
+   "siglip2:1142",
+   "siglip2:1143",
+   "siglip2:1144",
+   "siglip2:1145",
+   "siglip2:1146",
+   "siglip2:1147",
+   "siglip2:1148",
+   "siglip2:1149",
+   "siglip2:1150",
+   "siglip2:1151"
+  ],
+  "wide": true,
+  "n_boot": 1000,
+  "prereg_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+  "soft_masks": {
+   "applied": false,
+   "path": null,
+   "sha256": null,
+   "videos": 0,
+   "reason": "label_policy: proposed masks are not applied in v2"
+  },
+  "status": "AVAILABLE",
+  "seconds": 291.8,
+  "diegetic_filter_applied": null,
+  "interpretations": {
+   "tail_threshold_source": "the frozen text says tail_train_quantile; the 99.5th percentile is taken on the fold model's clean VALIDATION ticks (training scores are in-sample). Needs a dated hashed amendment before any block outcome is read",
+   "G1_multiplicity": "one Holm family over the M1, standardized-pAUC and first-segment tail-hit tests of every AVAILABLE block of the phase; the sparse route needs its adjusted p < 0.05",
+   "G2_undefined_ratio": "M3p upper < 0.55 is FAIL even when the ratio is undefined; the ratio clauses need a defined ratio",
+   "G1_tail_events": "first-segment events only; the all-segment tail is reported as tail_all_segments"
+  },
+  "cut_stream_incomplete": []
+ }
+}

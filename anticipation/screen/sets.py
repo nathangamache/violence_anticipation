@@ -59,6 +59,41 @@ def load_soft_masks(path=SOFT_MASKS_PATH):
     return {}, {"applied": False, "path": None, "sha256": None, "videos": 0}
 
 
+SENSITIVITY_VARIANTS = {"S1": ("uca_weapon_only",), "S2": ()}
+
+
+class SoftMaskError(RuntimeError):
+    """The soft-mask file is missing or does not match its sidecar sha256."""
+
+
+def load_sensitivity_masks(variant, path=SOFT_MASKS_PATH):
+    """``(masks, info)`` for amendment 03 variant S1 (without ``uca_weapon_only``) or S2 (all entries); refuses a
+    file whose sha256 differs from the one in ``<path>.sha256``."""
+    if variant not in SENSITIVITY_VARIANTS:
+        raise SoftMaskError(f"unknown sensitivity variant {variant!r}")
+    side = path + ".sha256"
+    if not (os.path.isfile(path) and os.path.isfile(side)):
+        raise SoftMaskError(f"soft masks or sidecar missing: {path}")
+    with open(side) as f:
+        want = f.read().split()[0].strip().lower()
+    got = file_sha256(path)
+    if got != want:
+        raise SoftMaskError(f"soft masks sha256 {got} differs from the sidecar {want}")
+    with open(path) as f:
+        raw = {k: v for k, v in json.load(f).items() if k != "meta"}
+    drop = SENSITIVITY_VARIANTS[variant]
+    masks, n_all, n_kept = {}, 0, 0
+    for vid, entries in raw.items():
+        n_all += len(entries)
+        kept = [list(e) for e in entries if e[2] not in drop]
+        n_kept += len(kept)
+        if kept:
+            masks[vid] = kept
+    rel = os.path.relpath(path, REPO_ROOT) if path.startswith(REPO_ROOT) else path
+    return masks, {"applied": True, "variant": variant, "path": rel, "sha256": got, "videos": len(masks),
+                   "entries": n_kept, "entries_in_file": n_all, "excluded_reasons": list(drop)}
+
+
 class ScreenSet:
     """Videos, ticks and events of the screening folds; fold ``frozen_fold`` is unreachable."""
 
@@ -80,6 +115,7 @@ class ScreenSet:
         self.screen_folds = tuple(screen_folds)
         self.frozen_fold = frozen_fold
         self.soft_masks = soft_masks or {}
+        self.sensitivity = None
         self.soft_mask_info = soft_mask_info or {"applied": bool(self.soft_masks), "path": None, "sha256": None,
                                                  "videos": len(self.soft_masks)}
         self.h1 = h1 if h1 is not None else pd.DataFrame(
@@ -92,6 +128,18 @@ class ScreenSet:
         for vid in self.h1.index:
             if vid not in self.split_group:
                 self.split_group[vid] = self.h1.loc[vid, "split_group"] if "split_group" in self.h1 else vid
+
+    def apply_sensitivity(self, masks, info):
+        """Switch on the soft masks of a sensitivity analysis (amendment 03); cached ticks are dropped."""
+        self.soft_masks, self.soft_mask_info = masks, info
+        self.sensitivity = info.get("variant")
+        self._ticks = {}
+
+    def soft_tick_mask(self, vid, t):
+        out = np.zeros(len(t), bool)
+        for s, e, *_ in self.soft_masks.get(vid, []):
+            out |= (t >= s) & (t <= e)
+        return out
 
     def fold_of(self, vid):
         return self.bench.folds.fold_of(vid)
@@ -207,8 +255,7 @@ class ScreenSet:
             n = self.ticks_computed(vid) if nf is None else min(lab.T, nf)
             sl = slice(0, n)
             masked = lab.masked[sl].copy()
-            for s, e, *_ in self.soft_masks.get(vid, []):
-                masked |= (lab.t_sec[sl] >= s) & (lab.t_sec[sl] <= e)
+            masked |= self.soft_tick_mask(vid, lab.t_sec[sl])
             vt = VideoTicks(vid, kind, lab.t_sec[sl], lab.tte[sl], lab.pre_violence[sl], masked,
                             lab.in_violence[sl], lab.remaining[sl], lab.next_event[sl])
         self._ticks[vid] = vt

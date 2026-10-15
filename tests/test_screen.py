@@ -766,3 +766,105 @@ def test_frozen_file_may_not_list_the_confirmation_fold(tmp_path):
     data["fold_membership"]["1"] = {"train": [], "val": [], "test": []}
     with pytest.raises(PR.PreregError, match="confirmation fold"):
         PR.load(write_prereg(tmp_path, data), pinned={})
+
+
+def sens_masks_for(ss, frac_whole=0.5):
+    """Mask the whole 30-120 s window of the first ``frac_whole`` of the violent videos (reason S1-kept) and a tail piece
+    of one more, plus a weapon-only entry on another."""
+    vids = sorted(v for v in ss.video_lists()["positive_videos"])
+    out = {}
+    for v in vids[: int(len(vids) * frac_whole)]:
+        onset = float(ss.events().set_index("video_id").loc[v, "onset"])
+        out[v] = [[onset - 125.0, onset - 25.0, "uca_strike"]]
+    w = vids[-1]
+    out[w] = [[0.0, 400.0, "uca_weapon_only"]]
+    return out
+
+
+def test_sensitivity_masks_load_variants_and_verify_sidecar(tmp_path):
+    m1, i1 = S.load_sensitivity_masks("S1")
+    m2, i2 = S.load_sensitivity_masks("S2")
+    assert i2["entries"] == i2["entries_in_file"] and i1["entries"] < i2["entries"]
+    assert all(e[2] != "uca_weapon_only" for es in m1.values() for e in es)
+    assert any(e[2] == "uca_weapon_only" for es in m2.values() for e in es)
+    assert i1["sha256"] == i2["sha256"] and i1["variant"] == "S1"
+    with pytest.raises(S.SoftMaskError):
+        S.load_sensitivity_masks("S3")
+    import shutil
+
+    shutil.copy(S.SOFT_MASKS_PATH, tmp_path / "m.json")
+    (tmp_path / "m.json.sha256").write_text("0" * 64 + "\n")
+    with pytest.raises(S.SoftMaskError, match="differs"):
+        S.load_sensitivity_masks("S1", str(tmp_path / "m.json"))
+    (tmp_path / "m.json.sha256").unlink()
+    with pytest.raises(S.SoftMaskError, match="missing"):
+        S.load_sensitivity_masks("S1", str(tmp_path / "m.json"))
+
+
+def test_sensitivity_off_leaves_primary_output_unchanged(tmp_path):
+    args = argparse.Namespace(n_boot=100, m2=False, m6=False, require_cut=False)
+    ss, source = build_world(violent_signal=BAND)
+    R.run_block(ss, source, BLOCK, str(tmp_path / "a"), args)
+    ss2, source2 = build_world(violent_signal=BAND)
+    R.run_block(ss2, source2, BLOCK, str(tmp_path / "b"), args)
+    a = json.loads((tmp_path / "a" / "tstream" / "metrics.json").read_text())
+    b = json.loads((tmp_path / "b" / "tstream" / "metrics.json").read_text())
+    assert "sensitivity" not in a and "sensitivity" not in a["config"]
+    for d in (a, b):
+        d["config"].pop("seconds")
+    assert a == b
+    ss3, source3 = build_world(violent_signal=BAND)
+    ss3.apply_sensitivity({"synthetic/not_a_video": [[0, 10, "uca_strike"]]}, {"applied": True, "variant": "S2"})
+    R.run_block(ss3, source3, BLOCK, str(tmp_path / "c"), args)
+    c = json.loads((tmp_path / "c" / "tstream" / "metrics.json").read_text())
+    assert c["m1"] == a["m1"] and c["sensitivity"]["events_losing_whole_window"] == 0
+
+
+def test_sensitivity_counts_lost_windows_and_report(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    ss, source = build_world(violent_signal=BAND)
+    masks = sens_masks_for(ss)
+    pr = SimpleNamespace(sha256="x")
+    monkeypatch.setattr(R.F, "resolve_blocks", lambda p: [{"name": "tstream", "phase": "A", "status": F.AVAILABLE, "reason": ""}])
+    args = argparse.Namespace(n_boot=100, m2=False, m6=False, require_cut=False)
+    R.run_block(ss, source, BLOCK, str(tmp_path), args, "x")
+    n_events = len(ss.events())
+    ss_s, source_s = build_world(violent_signal=BAND)
+    ss_s.apply_sensitivity(masks, {"applied": True, "variant": "S2", "path": "x", "sha256": "y", "videos": len(masks)})
+    sens_root = tmp_path / "sensitivity_S2"
+    R.run_block(ss_s, source_s, BLOCK, str(sens_root), args, "x")
+    m = json.loads((sens_root / "tstream" / "metrics.json").read_text())
+    sv = m["sensitivity"]
+    n_masked_videos = len(masks)
+    assert sv["variant"] == "S2" and sv["events"] == n_events
+    assert sv["events_losing_whole_window"] == n_masked_videos
+    assert sv["events_with_window_ticks"] == n_events
+    assert sv["window_ticks_after"] < sv["window_ticks_before"]
+    assert m["config"]["sensitivity"] == "S2" and m["config"]["soft_masks"]["variant"] == "S2"
+    rep = R.sensitivity_report(str(sens_root), str(tmp_path), ["tstream"], "S2", pr)
+    row = rep["blocks"]["tstream"]
+    p = json.loads((tmp_path / "tstream" / "metrics.json").read_text())["m1"]["value"]
+    assert row["primary_m1"]["value"] == p and abs(row["m1_minus_primary_m1"] - (row["m1"]["value"] - p)) < 1e-12
+    assert rep["used_for_decision"] is False and (sens_root / "sensitivity_report.md").is_file()
+    assert row["events"]["events_losing_whole_window"] == n_masked_videos
+    assert row["g1"]["primary_G1"] and row["g1"]["sensitivity_G1"]
+    assert row["g1"]["signal_explained_by_onset_label_noise"] is False
+
+    with pytest.raises(R.FamilyError, match="another pre-registration"):
+        R.decide(str(sens_root), "A", pr, family=["tstream"])
+
+
+def test_sensitivity_option_is_refused_with_decide(tmp_path):
+    with pytest.raises(SystemExit, match="sensitivity"):
+        R.main(["--sensitivity", "S1", "--decide", "A", "--out", str(tmp_path)])
+
+
+def test_folds_without_confirmation_drops_fold_one(tmp_path):
+    from anticipation.screen import run as R
+    path, fmap = R.folds_without_confirmation(str(tmp_path))
+    from anticipation.data.folds import Folds
+    fo = Folds.load(path)
+    assert fmap == {0: 0, 2: 1, 3: 2, 4: 3}
+    assert fo.n_folds == 4 and set(fo.assignment.values()) == {0, 1, 2, 3}
+    assert all(len(fo.val_ids(f)) > 0 for f in range(4))

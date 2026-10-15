@@ -3,6 +3,7 @@
     nice -n 10 .venv/bin/python -m anticipation.screen.run --dry_run
     nice -n 10 .venv/bin/python -m anticipation.screen.run --phase A --out benchmark/results/cue_screen
     .venv/bin/python -m anticipation.screen.run --decide A --out benchmark/results/cue_screen
+    nice -n 10 .venv/bin/python -m anticipation.screen.run --phase A --sensitivity S1 --out benchmark/results/cue_screen
 """
 
 import os
@@ -21,6 +22,7 @@ import pandas as pd
 from threadpoolctl import threadpool_limits
 
 from anticipation.data.catalog import REPO_ROOT
+from anticipation.data.folds import Folds, content_hash
 from anticipation.eval import va30
 from anticipation.screen import decision as D
 from anticipation.screen import features as F
@@ -140,6 +142,20 @@ def write_scores(out_dir, ss, runner, per_fold, models):
     df.rename(columns={"p1": "score"}).to_parquet(os.path.join(out_dir, "scores.parquet"), index=False)
 
 
+def folds_without_confirmation(out_dir, confirmation=1):
+    """Write a copy of folds_v2 with the confirmation fold removed and later folds renumbered; returns (path, map)."""
+    src = Folds.load()
+    fmap = {f: i for i, f in enumerate(f for f in range(src.n_folds) if f != confirmation)}
+    assignment = {v: fmap[f] for v, f in src.assignment.items() if f in fmap}
+    val = {str(fmap[f]): [v for v in vs if v in assignment] for f, vs in src.val.items() if f in fmap}
+    d = {"name": "folds_v2_without_confirmation", "version": src.d["version"], "n_folds": len(fmap),
+         "assignment": assignment, "val": val, "content_sha256": content_hash(assignment, val)}
+    path = os.path.join(out_dir, "folds_without_confirmation.json")
+    with open(path, "w") as fh:
+        json.dump(d, fh)
+    return path, fmap
+
+
 def run_m6(ss, runner, per_fold, out_dir, n_threshold_boot=200, name="va30", n_boot=1000, fa_targets="1,2,5"):
     rows = []
     for f, sc in per_fold.items():
@@ -151,12 +167,133 @@ def run_m6(ss, runner, per_fold, out_dir, n_threshold_boot=200, name="va30", n_b
                 rows.append(pd.DataFrame({"video_id": v, "t_sec": vt.t, "score": s[:vt.n], "fold": f, "seed": 0}))
     df = pd.concat(rows, ignore_index=True)
     ss.assert_no_frozen(df)
+    folds_path, fmap = folds_without_confirmation(out_dir)
+    df["fold"] = df["fold"].map(fmap)
     path = os.path.join(out_dir, "va30_scores.parquet")
     df.to_parquet(path, index=False)
-    va30.main(["--scores", path, "--out_dir", os.path.join(out_dir, name), "--restrict_to_scored",
+    va30.main(["--scores", path, "--out_dir", os.path.join(out_dir, name), "--folds", folds_path, "--restrict_to_scored",
                "--horizons", S.MANIFEST_V1, "--threshold_bootstrap", str(n_threshold_boot), "--n_boot", str(n_boot),
                "--fa_targets", fa_targets])
     return path
+
+
+def window_loss(ss, pool):
+    """Events whose 30-120 s window ticks are removed by the soft masks (sensitivity runs only)."""
+    ev = pool.events
+    rows = []
+    for k in range(len(ev)):
+        vt = pool.vts[pool.ev_vi[k]]
+        ia, ib = int(pool.ev_ia[k]), min(int(pool.ev_ib[k]), vt.n - 1)
+        if ib < ia:
+            rows.append((0, 0, bool(ev["first"].iloc[k]), str(ev["source_kind"].iloc[k])))
+            continue
+        hard = ss.bench.labels(vt.vid).masked[:vt.n][ia:ib + 1]
+        base = ~hard
+        after = ~vt.masked[ia:ib + 1]
+        rows.append((int(base.sum()), int(after.sum()), bool(ev["first"].iloc[k]), str(ev["source_kind"].iloc[k])))
+    arr = np.array([(a, b) for a, b, _, _ in rows], np.int64).reshape(-1, 2)
+    first = np.array([r[2] for r in rows], bool)
+    had = arr[:, 0] > 0
+    lost = had & (arr[:, 1] == 0)
+    by_src = {}
+    for src in sorted({r[3] for r in rows}):
+        sel = np.array([r[3] == src for r in rows], bool)
+        by_src[src] = {"events_with_window": int((had & sel).sum()), "events_lost": int((lost & sel).sum())}
+    return {"variant": ss.sensitivity, "events": len(rows), "events_with_window_ticks": int(had.sum()),
+            "events_losing_whole_window": int(lost.sum()),
+            "events_partly_masked": int((had & ~lost & (arr[:, 1] < arr[:, 0])).sum()),
+            "first_segment_events_with_window_ticks": int((had & first).sum()),
+            "first_segment_events_losing_whole_window": int((lost & first).sum()),
+            "window_ticks_before": int(arr[:, 0].sum()), "window_ticks_after": int(arr[:, 1].sum()),
+            "by_source": by_src}
+
+
+SENS_KEYS = ("m1", "m1_long", "m3p", "m4n")
+
+
+def _val(m, key):
+    d = (m or {}).get(key)
+    return d.get("value") if isinstance(d, dict) else None
+
+
+def _ci(m, key):
+    d = (m or {}).get(key)
+    return d.get("ci") if isinstance(d, dict) else None
+
+
+def _family_for_decision(root, names, pr):
+    blocks = {}
+    for n in names:
+        p = os.path.join(root, n, "metrics.json")
+        if not os.path.isfile(p):
+            return None
+        with open(p) as fh:
+            m = json.load(fh)
+        if (m.get("config") or {}).get("prereg_sha256") != pr.sha256:
+            return None
+        m["tail"] = (m.get("events_first") or {}).get("tail")
+        blocks[n] = m
+    return blocks
+
+
+def sensitivity_report(sens_root, primary_root, names, variant, pr):
+    """Per block M1 (band), M1-long, M3p, M4n of a sensitivity run, the difference to the primary M1, lost events and
+    the label-noise flag; written next to the sensitivity metrics, never read by ``decide``."""
+    rows, sens_m, prim_m = {}, {}, {}
+    for n in names:
+        sp, pp = (os.path.join(r, n, "metrics.json") for r in (sens_root, primary_root))
+        if not os.path.isfile(sp):
+            continue
+        with open(sp) as fh:
+            sens_m[n] = json.load(fh)
+        if os.path.isfile(pp):
+            with open(pp) as fh:
+                m = json.load(fh)
+            if (m.get("config") or {}).get("prereg_sha256") == pr.sha256:
+                prim_m[n] = m
+    phases = {r["name"]: r["phase"] for r in F.resolve_blocks(pr)}
+    verdict = {}
+    for ph in sorted({phases.get(n) for n in sens_m} - {None}):
+        fam = [n for n in sens_m if phases.get(n) == ph and n in prim_m]
+        if not fam:
+            continue
+        exempt = [n for n in fam if n in F.BLOCKS and F.BLOCKS[n].g2_exempt]
+        sb, pb = _family_for_decision(sens_root, fam, pr), _family_for_decision(primary_root, fam, pr)
+        if not sb or not pb:
+            continue
+        ds, dp = D.decide_phase(sb, exempt), D.decide_phase(pb, exempt)
+        for n in fam:
+            verdict[n] = {"primary_G1": dp[n]["G1"], "sensitivity_G1": ds[n]["G1"], "family": fam,
+                          "signal_explained_by_onset_label_noise": bool(
+                              variant == "S1" and dp[n]["G1"] == "PASS" and ds[n]["G1"] == "FAIL")}
+    for n, m in sens_m.items():
+        pm = prim_m.get(n)
+        row = {k: {"value": _val(m, k), "ci": _ci(m, k)} for k in SENS_KEYS}
+        p1, s1 = _val(pm, "m1"), _val(m, "m1")
+        row["primary_m1"] = {"value": p1, "ci": _ci(pm, "m1")}
+        row["m1_minus_primary_m1"] = None if p1 is None or s1 is None else s1 - p1
+        row["m1_difference_note"] = ("point difference; the primary bootstrap replicates are not stored"
+                                     if pm else "no primary metrics.json from this pre-registration")
+        row["events"] = m.get("sensitivity")
+        row["g1"] = verdict.get(n)
+        rows[n] = row
+    out = {"variant": variant, "primary_class_unchanged": True, "used_for_decision": False,
+           "prereg_sha256": pr.sha256, "blocks": rows}
+    write_json(os.path.join(sens_root, "sensitivity_report.json"), out)
+    fmt = lambda x: "" if x is None else f"{x:.3f}"  # noqa: E731
+    lines = [f"Sensitivity {variant} (secondary, never used for a decision)", "",
+             "| block | M1 | primary M1 | diff | M1-long | M3p | M4n | events with window | lose whole window | G1 primary | G1 sens | label noise |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for n, r in rows.items():
+        e, g = r["events"] or {}, r["g1"] or {}
+        lines.append(f"| {n} | {fmt(r['m1']['value'])} | {fmt(r['primary_m1']['value'])} | {fmt(r['m1_minus_primary_m1'])} | "
+                     f"{fmt(r['m1_long']['value'])} | {fmt(r['m3p']['value'])} | {fmt(r['m4n']['value'])} | "
+                     f"{e.get('events_with_window_ticks', '')} | {e.get('events_losing_whole_window', '')} | "
+                     f"{g.get('primary_G1', '')} | {g.get('sensitivity_G1', '')} | "
+                     f"{'signal explained by onset label noise' if g.get('signal_explained_by_onset_label_noise') else ''} |")
+    with open(os.path.join(sens_root, "sensitivity_report.md"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+    return out
 
 
 def run_block(ss, source, block, out_root, args, prereg_sha=None):
@@ -206,11 +343,16 @@ def run_block(ss, source, block, out_root, args, prereg_sha=None):
         sb = res["breakdowns"]
         res["soundtrack_flag"] = D.soundtrack_flag(sb.get("source_xd_movie").value if sb.get("source_xd_movie") else None,
                                                    sb.get("s_audio").value if sb.get("s_audio") else None)
+    sens = getattr(ss, "sensitivity", None)
+    if sens:
+        res["sensitivity"] = window_loss(ss, pool)
     res["config"] = {"block": block.name, "phase": block.phase, "streams": list(block.streams), "columns": runner.columns,
                      "wide": bool(runner.wide), "n_boot": args.n_boot, "prereg_sha256": prereg_sha,
                      "soft_masks": ss.soft_mask_info, "status": AVAILABLE_STATUS, "seconds": round(time.time() - t0, 1),
                      "diegetic_filter_applied": False if block.audio else None, "interpretations": INTERPRETATIONS,
                      "cut_stream_incomplete": list(runner.cut_incomplete)}
+    if sens:
+        res["config"]["sensitivity"] = sens
     write_json(os.path.join(out_dir, "metrics.json"), res)
     write_scores(out_dir, ss, runner, per_fold, models)
     if args.m6:
@@ -245,6 +387,9 @@ def decide(out_root, phase, pr=None, partial=False, family=None):
         with open(p) as fh:
             m = json.load(fh)
         if pr is not None and (m.get("config") or {}).get("prereg_sha256") != pr.sha256:
+            stale.append(n)
+            continue
+        if (m.get("config") or {}).get("sensitivity"):
             stale.append(n)
             continue
         m["tail"] = (m.get("events_first") or {}).get("tail")
@@ -422,6 +567,9 @@ def main(argv=None):
     ap.add_argument("--m6", action="store_true", help="also score the VA30 event metrics (slow)")
     ap.add_argument("--m2", action="store_true", help="person-count stratified AUROC (needs pose_interact)")
     ap.add_argument("--partial_family", action="store_true", help="with --decide: allow missing blocks (labelled)")
+    ap.add_argument("--sensitivity", choices=sorted(S.SENSITIVITY_VARIANTS), default=None,
+                    help="amendment 03: apply soft_masks_v1.json (S1 without uca_weapon_only, S2 with); writes to "
+                         "<out>/sensitivity_<variant>/ and never feeds --decide")
     ap.add_argument("--feature_root", default=None)
     ap.add_argument("--prereg", default=prereg.PREREG_PATH)
     args = ap.parse_args(argv)
@@ -430,6 +578,18 @@ def main(argv=None):
     args.n_boot = int(pr.data["metrics"]["bootstrap"]["n"])
     args.threshold_boot = int(pr.data["metrics"]["bootstrap"]["threshold_bootstrap"])
     args.fa_targets = ",".join(str(x) for x in pr.data["metrics"]["M6_fa_targets"])
+    if args.sensitivity and (args.decide or args.dry_run):
+        raise SystemExit("--sensitivity cannot be combined with --decide or --dry_run")
+    primary_out = args.out
+    if args.sensitivity:
+        try:
+            masks, info = S.load_sensitivity_masks(args.sensitivity)
+        except S.SoftMaskError as e:
+            raise SystemExit(str(e))
+        ss.apply_sensitivity(masks, info)
+        args.out = os.path.join(primary_out, f"sensitivity_{args.sensitivity}")
+        args.m6 = False
+        log(f"sensitivity {args.sensitivity}: {info['entries']} mask entries on {info['videos']} videos -> {args.out}")
     if args.decide:
         decide(args.out, args.decide, pr, partial=args.partial_family)
         return 0
@@ -465,6 +625,8 @@ def main(argv=None):
     with threadpool_limits(limits=4):
         for b in blocks:
             run_block(ss, source, b, args.out, args, pr.sha256)
+        if args.sensitivity:
+            sensitivity_report(args.out, primary_out, names, args.sensitivity, pr)
     return 0
 
 

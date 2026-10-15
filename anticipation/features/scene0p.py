@@ -1,12 +1,6 @@
 """Static scene prior ``siglip2_scene0p``: SigLIP 2 embedding of the frame at t = 2 s with every person greyed out.
 
-One file per video (not a per-tick stream): FEATURE_ROOT/siglip2_scene0p/<source>/<stem>.npz with
-    emb      float16 [1152]  L2-normalised, same model and preprocessing as ``siglip.py``
-    t_frame  float           time of the frame used (last frame at or before 2.0 s)
-    n_boxes  int             person boxes greyed out
-    meta     JSON            version, model, box source, enlargement, pose frame time, ...
-Boxes come from the latest ``pose_raw`` sample at or before 2.0 s (tracked and untracked detections), enlarged by 10 %
-and filled with mid-grey (128). Videos without ``pose_raw`` are skipped and listed in <root>/_logs/scene0p/missing.txt.
+Output format and box source: docs/FEATURES.md, "scene0p".
 
 Usage (spec: docs/FEATURES.md, "Bulk extraction run v2"):
     python -m anticipation.features.scene0p --selftest [--device cuda:1 --parity xd/<stem>]
@@ -55,7 +49,7 @@ def person_boxes(raw, k):
 
 
 def grey_boxes(frame, boxes, grow=GROW):
-    """Copy of uint8 ``frame`` [H, W, 3] with each box (scaled by ``grow`` about its centre, clipped) set to grey."""
+    """Copy of uint8 ``frame`` [H, W, 3] with each box (grown by ``grow`` about its centre, clipped) set to grey."""
     out = frame.copy()
     h, w = out.shape[:2]
     for x1, y1, x2, y2 in boxes:

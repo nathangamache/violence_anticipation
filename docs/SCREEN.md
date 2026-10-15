@@ -64,6 +64,10 @@ nice -n 10 .venv/bin/python -m anticipation.screen.run --blocks pose_interact,mo
 # 3. Holm adjustment across the phase and the decision classes (refuses unless every AVAILABLE block of the phase has a
 #    metrics.json from this pre-registration; --partial_family writes a PARTIAL_FAMILY-labelled result instead)
 .venv/bin/python -m anticipation.screen.run --decide A --out benchmark/results/cue_screen
+
+# 4. amendment 03 label-mask sensitivity (secondary; run after the primary run of the same blocks, same --out)
+nice -n 10 .venv/bin/python -m anticipation.screen.run --phase A --sensitivity S1 --out benchmark/results/cue_screen
+nice -n 10 .venv/bin/python -m anticipation.screen.run --phase A --sensitivity S2 --out benchmark/results/cue_screen
 ```
 
 There is no `--write_prereg`, `--n_boot`, `--folds` or `--allow_unregistered`: the bootstrap size (1000), seed (0),
@@ -94,10 +98,36 @@ Outputs under `benchmark/results/cue_screen/` (plan 6.9):
   videos; H1 videos are filtered out of train and val). Fold 1 has no membership entry; `ScreenSet` refuses it
   (`FrozenFoldError`) in `test_ids`, `train_ids`, `val_ids`, `ticks`, `FeatureSource.load/has/scene` and
   `assert_no_frozen`, and `prereg.load` rejects a file that lists it.
-* **Label policy.** No proposed masks in v2. A `soft_masks_v1.json` file is ignored (`soft_masks.applied` false with the
-  reason is recorded in `run_report.json` and every `metrics.json`).
+* **Label policy.** No proposed masks in v2. A `soft_masks_v1.json` file is ignored in a primary run (`soft_masks.applied`
+  false with the reason is recorded in `run_report.json` and every `metrics.json`). It is applied only by the
+  amendment 03 sensitivity runs (section 2a).
 * **Audio gate.** Phase B is blocked until an independent diegetic-audio audit is frozen. The six audio blocks have
   extractors but resolve to `BLOCKED_AUDIO_GATE`; running them is refused. `s_audio` flags the 86 candidates only.
+
+### 2a. Label-mask sensitivity (amendment 03; `--sensitivity S1|S2`)
+
+Secondary analysis, never used for a gate or class. `--sensitivity` loads `benchmark/audits/soft_masks_v1.json`, refuses
+it (`SoftMaskError`) unless its sha256 equals the one in `soft_masks_v1.json.sha256`, and sets the soft masks on the
+screening set (`ScreenSet.apply_sensitivity`). Masked seconds (start <= t <= end) become `masked` ticks, exactly like
+the `masked` ticks of `anticipation/data/labels.py`: they leave the positives, the negatives, the probe training and
+the clean validation vector. S1 drops the `uca_weapon_only` entries (47 entries on 42 videos remain), S2 keeps all 66
+entries on 54 videos. H1 videos are unaffected. Same probes, folds, seeds and bootstrap as the primary run.
+
+* **Output:** `<out>/sensitivity_<S1|S2>/`, with the same per-block layout (`metrics.json`, `scores.parquet`,
+  `run_report.json`) plus `sensitivity_report.json` and `sensitivity_report.md`. `metrics.json` carries
+  `config.sensitivity` and a `sensitivity` object; `decide` treats such a file as stale and the option cannot be
+  combined with `--decide` or `--dry_run`. `--m6` is switched off. The primary folder is only read (for the primary M1
+  and G1), never written.
+* **Per block:** M1 (band), M1-long, M3p, M4n (value and CI), the primary M1, `m1_minus_primary_m1` (a point difference;
+  the primary bootstrap replicates are not stored), and the events: `events_with_window_ticks`,
+  `events_losing_whole_window` (every 30-120 s window tick masked; also for first-segment events), `events_partly_masked`,
+  window ticks before and after, and the split by source kind.
+* **Label-noise flag:** for S1, when the primary G1 is PASS and the G1 of the S1 run is FAIL (both Holm families
+  recomputed in memory over the blocks present in both folders), `signal_explained_by_onset_label_noise` is true. The
+  primary class is unchanged.
+* **Real data, no features read (2026-10-15):** S1 removes 1,298 of 15,588 window ticks and 8 of 446 events (5 of the
+  253 first-segment events) lose their whole window; S2 removes 1,562 ticks and 11 events (7 first-segment events).
+  Primary runs are unchanged by the option (a test compares two `metrics.json` files).
 
 ### Disagreements between the previous in-code rules and the frozen file (real data, 2026-10-15)
 
@@ -236,6 +266,11 @@ fails G2; a cue in the last 10 s only is SHORT_HORIZON; window features, slopes,
 first ticks), PLS, Holm, the class table and the frozen G1/G2 variants; P0 directions and the P1b target.
 
 Review fixes (each has a test): tied-score pAUC and the sklearn match, pooled Holm for the sparse route, G2 FAIL with an undefined ratio, the incomplete or stale Holm family, first-segment tail hits, M8 window edges, P1b pairing and windows, cut-stream failure, cut-tick windows, tick-1 scene masking, edge cases, M4b reporting.
+
+Sensitivity tests: S1 drops the weapon-only entries and S2 keeps them, a changed or missing sidecar is refused, an
+unused sensitivity leaves `metrics.json` identical to a plain run, whole-window loss counts and the report (primary M1,
+difference, no decision use) on the synthetic world, `decide` refuses a sensitivity folder, `--sensitivity` with
+`--decide` exits.
 
 Frozen-registration tests: a tampered JSON, tampered sidecar, missing sidecar, forged JSON plus sidecar (pinned hash)
 and a tampered copy passed to `run.main` are all refused before any output is written; the committed file loads, its
