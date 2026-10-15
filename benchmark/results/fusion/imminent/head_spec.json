@@ -1,0 +1,65 @@
+{
+ "head": "imminent",
+ "target": "near: first-segment pre-violence ticks with time to onset in (0, 10] vs clean ticks with >= 60 s left",
+ "blocks": [
+  {
+   "name": "siglip2",
+   "streams": [
+    "siglip2"
+   ],
+   "include": [],
+   "exclude": []
+  }
+ ],
+ "probe_type": "p1",
+ "seed": 0,
+ "p1": {
+  "C": 0.001,
+  "C_rule": "best mean validation M1 over the four screening folds",
+  "C_per_fold": {
+   "0": 0.001,
+   "2": 0.001,
+   "3": 0.001,
+   "4": 0.001
+  },
+  "windows_sec": [
+   10,
+   60,
+   180
+  ],
+  "summaries": [
+   "mean",
+   "max",
+   "fraction_above_clean_train_p95"
+  ],
+  "slopes": false,
+  "wide_threshold": 256,
+  "pls_components": 32,
+  "max_train_pos": 25000,
+  "max_train_neg": 50000,
+  "target": "near: first-segment pre-violence ticks with time to onset in (0, 10] vs clean ticks with >= 60 s left; time_match_weights by source kind x TIME_MATCH_EDGES"
+ },
+ "nuisance": {
+  "C": 0.01,
+  "C_rule": "grid value nearest the median per-fold choice",
+  "scene_pca": 32,
+  "scene_t_sec": 2.0
+ },
+ "p2": null,
+ "calibration": {
+  "source": "out-of-fold scores of the screening-fold models of this spec on the folds_v2 validation slice of fold 1 (a subset of the screening folds)",
+  "scores_file": "imminent/oof_scores.parquet",
+  "scores_sha256": "8fd561c5f8d7d162cc5db161e5bf06d3bac85903aa0481776b439456c3dc1470"
+ },
+ "confirmation_rule": {
+  "m1_near_ci_lower_gt": 0.6,
+  "success10_fa2_threshold_aware_ci_lower_gt_position_null": true,
+  "text": "fold 1 M1-near CI lower > 0.60 and Success@10 at the 2 FA/h validation operating point has a threshold-aware CI lower bound above the position null at the same test FA/h (amendment 05)"
+ },
+ "selection": {
+  "selected_order": [
+   "siglip2"
+  ],
+  "selection_sha256": "236ee958087dec4fb1556870c12c3bde293a96558402e6217b92d1cda23afa3a"
+ }
+}

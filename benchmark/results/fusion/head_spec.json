@@ -1,0 +1,65 @@
+{
+ "head": "early",
+ "target": "band: first-segment pre-violence ticks with time to onset in (30, 120] vs clean ticks with >= 60 s left",
+ "blocks": [
+  {
+   "name": "siglip2_prompts_v1",
+   "streams": [
+    "siglip2_prompts"
+   ],
+   "include": [],
+   "exclude": []
+  }
+ ],
+ "probe_type": "p1",
+ "seed": 0,
+ "p1": {
+  "C": 0.001,
+  "C_rule": "best mean validation M1 over the four screening folds",
+  "C_per_fold": {
+   "0": 0.001,
+   "2": 0.001,
+   "3": 1.0,
+   "4": 0.001
+  },
+  "windows_sec": [
+   10,
+   60,
+   180
+  ],
+  "summaries": [
+   "mean",
+   "max",
+   "fraction_above_clean_train_p95"
+  ],
+  "slopes": false,
+  "wide_threshold": 256,
+  "pls_components": 32,
+  "max_train_pos": 25000,
+  "max_train_neg": 50000,
+  "target": "band: first-segment pre-violence ticks with time to onset in (30, 120] vs clean ticks with >= 60 s left; time_match_weights by source kind x TIME_MATCH_EDGES"
+ },
+ "nuisance": {
+  "C": 0.01,
+  "C_rule": "grid value nearest the median per-fold choice",
+  "scene_pca": 32,
+  "scene_t_sec": 2.0
+ },
+ "p2": null,
+ "calibration": {
+  "source": "out-of-fold scores of the screening-fold models of this spec on the folds_v2 validation slice of fold 1 (a subset of the screening folds)",
+  "scores_file": "oof_scores.parquet",
+  "scores_sha256": "d6b03016a5e48fd304d74f9f1ae4aaadacb8624927bd3d962bbfc6bd8ec8b109"
+ },
+ "confirmation_rule": {
+  "m1_band_ci_lower_gt": 0.5,
+  "m8_gain_over_n_point_gt": 0.0,
+  "text": "fold 1 band M1 CI lower > 0.50 and positive M8 point gain over the nuisance model N"
+ },
+ "selection": {
+  "selected_order": [
+   "siglip2_prompts_v1"
+  ],
+  "selection_sha256": "97822a20247cfa433b6c99b243ab2a0b82f67548479034a8664f4f0cb423cf11"
+ }
+}

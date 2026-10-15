@@ -58,3 +58,4 @@ snapshots/
 
 # --- Large per-tick screen score tables (regenerable; kept on disk) ---
 benchmark/results/cue_screen/**/*.parquet
+benchmark/results/fusion/**/*.parquet
