@@ -20,7 +20,7 @@ All paths below are relative to `data/` = `data/` unless absolute.
 | XD-Violence train, the 4 clips the mirror lacks | HIVAU-70k video tar `backseollgi/HIVAU-70k_XD-Violence` (pinned `f92e63ab`), members fetched with HTTP Range reads | 429 MB (3 files) | `raw_videos/xd_violence_train/recovered_videos/` | **3 of 4 recovered** (NBA, Saving Private Ryan (violent), `v=9eME1y6V-T4`), every video packet readable, NBA frame count = HIVAU's 45,482. **`v=8cTqh9tMz_I__#1_label_A` is truncated in the tar** (no moov atom), so it was rejected and no usable copy is known. Coverage of the official list: **3,953/3,954** | as above |
 | XD-Violence test, 2 clips missing locally | same mirror (`data/video/test_videos/`) | 31 MB | `raw_videos/xd_violence_train/missing_test_videos/` | Done (sha256-verified) | as above |
 | UBI-Fights (1,000 videos, no audio) | `https://socia-lab.di.ubi.pt/EventDetection/UBI_FIGHTS.zip` | 8.12 GB zip, 8.27 GB extracted | `raw_videos/ubi_fights/` | **Complete.** 2,001/2,001 zip members CRC-checked and extracted (216 fight + 784 normal videos, 1,000 label CSVs); 79.0 h; archive deleted afterwards. sha256 of every file now recorded in `manifest.json`. CRC = transfer consistency only, not authenticity (TLS unverified; section 4.1). Took 33 min (0.8 to 8.5 MB/s) | No license stated; cite Degardin and Proenca, IJCB 2020 |
-| NTU CCTV-Fights | rose1.ntu.edu.sg | 7.2 GB | not downloaded | **Request form required** (section 5) | Academic, non-commercial, no redistribution or derived datasets without permission |
+| NTU CCTV-Fights | rose1.ntu.edu.sg | 6.6 GB (original formats) | **received 2026-10-15**, external test set | access granted (section 5) | Academic, non-commercial, no redistribution or derived datasets without permission |
 | DVD (2025) | not public | 500 videos | not downloaded | **Not released**; a subset is only available through the ABAW-10 challenge with a faculty-signed EULA (section 6) | Paper is CC BY-NC-ND 4.0; data terms set by the EULA |
 
 Logs: `logs/xd_train_download.log`, `logs/ubi_fights_download.log` (both end with `DONE`),
@@ -304,9 +304,9 @@ every member was extracted and CRC-verified (`--keep-archive` keeps them).
 
 ---
 
-## 5. NTU CCTV-Fights: access requested 2026-10-14 (awaiting approval)
+## 5. NTU CCTV-Fights: access requested 2026-10-14 (received 2026-10-15)
 
-Status: the owner submitted the request on 2026-10-14; a reply is expected within about two weeks.
+Status: received 2026-10-15 (see the section "NTU CCTV-Fights (received 2026-10-15)" below and docs/EXTERNAL_TEST.md). The steps below are kept as the record of how access was requested.
 
 Page: https://rose1.ntu.edu.sg/dataset/cctvFights/ . 1,000 real fight videos (280 CCTV, 720 non-CCTV), 17.68 h,
 2,414 frame-level fight instances, 7.2 GB. The request page (`/dataset/cctvFights/request`) redirects to a
@@ -325,6 +325,39 @@ one. Steps for the user:
    Technological University, Singapore." and cite Perez, Kot and Rocha, ICASSP 2019.
 5. Once the archive is local, place it under `downloads/cctv_fights/` and extract to
    `raw_videos/cctv_fights/`; then compute the at-least-30 s lead-in subset from the frame annotations.
+
+---
+
+## NTU CCTV-Fights (received 2026-10-15)
+
+Delivered as five zips plus `groundtruth.json` in `downloads/cctv_fights/` (`original_format-001-200.zip` ... `801-1000.zip`,
+6.6 GB, the YouTube originals as `.mp4` / `.webm`, 200 files each). Kept as the **external test set**: never used for
+training, folds or the modality screen. Full description, counts and protocol: docs/EXTERNAL_TEST.md.
+
+- **Layout:** `raw_videos/cctv_fights/videos/fight_XXXX.mp4` (1,000 files). The 242 `.webm` originals were moved to
+  `raw_videos/cctv_fights/videos_original/` and replaced by constant-frame-rate mp4 (see below); the zips stay in
+  `downloads/cctv_fights/`. Do not delete either until the results are final.
+- **Ingest:** `setup/ingest_cctv_fights.py` (verify, transcode, build, overlap, manifest), library code in
+  `anticipation/data/external_cctv.py`. Outputs in `benchmark/external/cctv_fights/` (`videos.csv`, `events.json`,
+  `summary.json`, `overlap_with_main.json`, `transcoded.json`, extraction manifests).
+- **Decode problem found:** every one of the 1,000 files opens in decord, but for 226 of the 242 `.webm` the decord
+  duration was wrong (0.7 s to 315 s against 43 s to 700 s of real footage) because the webm container reports a bogus
+  average frame rate (1000 fps) and a variable frame rate with about 15 real frames per second. A tick clock
+  derived from `frame_idx / fps` would have been silently wrong. All 242 webm were re-encoded to constant-frame-rate mp4
+  at the container's nominal rate with `ffmpeg -r <fps> -vsync cfr -c:v libx264 -crf 16 -preset medium -pix_fmt yuv420p
+  -c:a aac -b:a 128k` (timestamps preserved, frames repeated). After that decord durations match the groundtruth
+  durations for 997 of 1,000 files (within max(1 s, 2 %)); `transcoded.json` records the per-file command and the
+  decord fps and frame count before. The mp4 files are untouched.
+- **Three label-unreliable videos** (`label_reliable = False` in `videos.csv`, excluded from the evaluation set):
+  `fight_0142` (decoded 351.5 s vs groundtruth 344.2 s), `fight_0146` (121.5 s vs 108.0 s) and `fight_0520`
+  (43.7 s vs 80.4 s, both annotated fights at 45 to 55 s lie past the end of the file). The annotations belong to a
+  different cut of the video.
+- **Groundtruth:** `segment` in seconds (this is the only unit used), `subset` (training / validation / testing),
+  `source` CCTV (280) / Mobile (707) / Other (9) / Car (4). `nb_frames` is on a 15 fps grid, not the video frame rate, so
+  it is ignored. `domain` in our catalog is `cctv` or `non_cctv`; the original value is kept in `gt_source`.
+- **Terms:** academic, non-commercial, no redistribution. Videos, features and cached fingerprints stay outside git;
+  only the derived annotation tables in `benchmark/external/cctv_fights/` are committed. Acknowledgement and
+  citation text: section 5, step 4.
 
 ---
 
