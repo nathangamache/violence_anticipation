@@ -41,7 +41,7 @@ class WindowDataset(Dataset):
 
 
 class CausalTemporalModel(nn.Module):
-    def __init__(self, dims, kind="gru", hidden=64, layers=2, heads=4, context=120,
+    def __init__(self, dims, kind="gru", hidden=64, layers=2, heads=4, context=180,
                  modality_dropout=0.15, dropout=0.1, position_control=False):
         super().__init__()
         if kind not in ("gru", "transformer") or not 60 <= context <= 300:

@@ -51,7 +51,7 @@ def parser():
     p.add_argument("--patience", type=int, default=4)
     p.add_argument("--max_train_ticks", type=int, default=20000, help="0 = all usable training ticks")
     p.add_argument("--max_val_ticks", type=int, default=10000, help="checkpoint loss only; thresholds use every val tick")
-    p.add_argument("--context", type=int, choices=range(60, 301), default=120, metavar="60..300")
+    p.add_argument("--context", type=int, choices=range(60, 301), default=180, metavar="60..300")
     p.add_argument("--hidden", type=int, default=64)
     p.add_argument("--layers", type=int, default=2)
     p.add_argument("--heads", type=int, default=4)

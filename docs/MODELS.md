@@ -8,7 +8,7 @@ Status for the lead (2026-10-14):
 - Score tables now contain only timestamps shared by all requested streams; modality valid masks remain separate.
 - Blocker: VA30 fills missing timestamps and uses catalog durations for FA/h; capped negatives are unsafe to evaluate.
 - Blocker: the current real-feature snapshot has 345 videos but only one clean negative; folds 0–3 lack validation negatives.
-- Modality screen is pending clean-negative extraction, the evaluator fix and the incoming modality decision rule.
+- Four new research reports reviewed; screen pending clean negatives, evaluator fix and `MODALITY_PLAN.md` (not yet landed).
 
 `anticipation.train` learns from the cached 1 Hz streams described in [FEATURES.md](FEATURES.md).
 It uses the frozen VA30 folds, shared tick labels and shared evaluator. No raw media or backbone model
@@ -32,7 +32,7 @@ nice -n 10 env OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
 nice -n 10 env OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
   $PY -m anticipation.train \
   --streams vjepa2_l,siglip2_prompts,pose_interact \
-  --model gru --context 120 --device cuda:1 --run_name gru_multistream_v1
+  --model gru --context 180 --device cuda:1 --run_name gru_multistream_v1
 ```
 
 Models: `stats_lgbm`, `stats_logreg`, `gru`, `transformer`, `time_only`. Defaults are all five folds, seeds `0,1,2`,
@@ -50,7 +50,7 @@ of benchmark video IDs, hashes it into the run config and restricts the feature 
 cohort before each modality comparison and reuse it for feature models and the time-only control;
 otherwise extraction progress can make nominally identical stream lists cover different videos.
 
-Additional temporal settings: `--context 60..300`, `--hidden 64`, `--layers 2`, `--heads 4`,
+Additional temporal settings: `--context 60..300` (default 180), `--hidden 64`, `--layers 2`, `--heads 4`,
 `--batch_size 32`, `--lr 0.001`, `--dropout 0.1`, `--modality_dropout 0.15`,
 `--auxiliary_weight 0.2`. `--position_control` explicitly adds elapsed video seconds (scaled by 300
 for temporal heads); leave it off for the primary models. Context-relative positional encodings remain
@@ -229,6 +229,31 @@ lists the 15 stream combinations times two feature models plus the time-only con
 proposal pending the incoming decision rule; none of these real modality-screen jobs has launched.
 Every comparison must show coverage, matched far-window AUROC, Success@30, the position null and the
 random reference together. Different feature coverage is not an apples-to-apples modality comparison.
+
+## Alignment with the modality research
+
+Reviewed the reports that landed with `dfd8f9d`:
+[escalation precursors](research/escalation_precursors.md),
+[modality evidence](research/modality_evidence.md),
+[cue extractors](research/cue_extractors.md), and
+[pre-onset evidence](research/pre_onset_evidence_our_data.md).
+They distinguish a sustained conflict state from a late ramp and static collection priors.
+The statistics baseline already supplies window means/maxima as well as slopes; the temporal default
+is now 180 seconds, with 300 available, following the behavioural report's longer-history recommendation.
+No cue, intervention or retreat is given a hard-coded direction of effect.
+
+Before selecting modalities, extend the frozen-cohort screen with people-present negatives
+(`pose_interact.n_persons_mean >= 2`), a first-frame broadcast of the same score, non-violent-anomaly
+specificity, and within-video lead profiles. These are proposed screen diagnostics, not implemented
+benchmark changes. Require evidence beyond a static scene prior, and inspect official-onset and
+per-source results alongside pooled results. The formal selection rule remains pending
+`MODALITY_PLAN.md`; the 45-run plan is not an authorization to skip those checks.
+
+The report's per-video normalization suggestion is not enabled: this task requires statistics from
+training folds only. Other-anomaly hard-negative training, conflict-phase labels and future-feature
+regression are future controlled extensions; the current trainer retains the benchmark role and
+label boundaries. New escalation, audio, face or object streams can already be named in `--streams`,
+with independent validity masks and extraction metadata hashes, without changing the model registry.
 
 ## Add a model
 

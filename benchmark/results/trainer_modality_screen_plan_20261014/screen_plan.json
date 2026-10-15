@@ -79,7 +79,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l.json"
@@ -198,7 +200,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2.json"
@@ -317,7 +321,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts.json"
@@ -436,7 +442,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact.json"
@@ -555,7 +563,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/motion.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/motion.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/motion.json"
@@ -676,7 +686,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2.json"
@@ -798,7 +810,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2_prompts.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2_prompts.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_siglip2_prompts.json"
@@ -920,7 +934,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_pose_interact.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_pose_interact.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_pose_interact.json"
@@ -1042,7 +1058,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_motion.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_motion.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/vjepa2_l_motion.json"
@@ -1164,7 +1182,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_siglip2_prompts.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_siglip2_prompts.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_siglip2_prompts.json"
@@ -1286,7 +1306,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_pose_interact.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_pose_interact.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_pose_interact.json"
@@ -1408,7 +1430,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_motion.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_motion.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_motion.json"
@@ -1530,7 +1554,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_pose_interact.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_pose_interact.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_pose_interact.json"
@@ -1652,7 +1678,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_motion.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_motion.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/siglip2_prompts_motion.json"
@@ -1774,7 +1802,9 @@
         "--device",
         "cuda:1",
         "--cohort",
-        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact_motion.json"
+        "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact_motion.json",
+        "--context",
+        "180"
       ],
       "status": "blocked_pending_negatives_evaluator_fix_and_modality_plan",
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact_motion.json"
@@ -1820,5 +1850,13 @@
       "cohort": "benchmark/results/trainer_modality_screen_plan_20261014/cohorts/pose_interact_motion.json"
     }
   ],
-  "coverage_checked_utc": "2026-10-15T01:57:46.979788+00:00"
+  "coverage_checked_utc": "2026-10-15T01:57:46.979788+00:00",
+  "research_review_commit": "dfd8f9d",
+  "required_additional_diagnostics": [
+    "people-present matched negatives",
+    "same-score first-frame broadcast",
+    "non-violent-anomaly specificity",
+    "within-video lead profiles",
+    "official-onset and per-source breakdowns"
+  ]
 }
