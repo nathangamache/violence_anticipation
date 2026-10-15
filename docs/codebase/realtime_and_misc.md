@@ -1,8 +1,14 @@
 # Realtime inference, YouTube analysis, and miscellaneous root files
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Scope: `realtime/` (pipeline.py, rtsp_inference.py, inspect_checkpoint.py), `scripts/analyze_youtube.py`,
 `mediamtx.yml`, `progress.sh`, `requirements.txt`, the root-level inference logs, the `probe_clip_01_*` artifacts,
-`analysis_probe_clip_01.png`, `test_video.mp4`, and the installed `.venv` packages. All paths are relative to the repo root
+`analysis_probe_clip_01.png`, `test_video.mp4` (deleted in the 2026-10 cleanup as a byte-identical duplicate of
+`data/anticipation_curation/videos/holdout_025.mp4`), and the installed `.venv` packages. All paths are relative to the repo root
 `.` unless absolute.
 
 Everything below was checked against the code and files, or measured with cheap CPU-only scripts (no GPU, no training).
@@ -48,7 +54,7 @@ Claims marked **(inferred)** are reasoned but not directly verified.
 | `mediamtx.yml` | 8 lines | Config for the MediaMTX RTSP server: path `macbook`, port 554, placeholder creds | Superseded (Section 8) |
 | `progress.sh` | 8 lines | Counts `vlm_emb_violence` vs `vlm_emb` npz files and `vlm_labels_violence` vs `vlm_labels` jsonl files | Utility |
 | `requirements.txt` | 6 packages | Minimal deps for rtsp_inference only | Incomplete (Section 9) |
-| `test_video.mp4` | 416.96 s, 640x360 H.264 29.97 fps + AAC 44.1 kHz stereo, 20.8 MB | Not referenced by any code. Brand `mp42`, creation_time 2023-06-10, so probably a YouTube download (inferred) | Orphan test asset |
+| `test_video.mp4` | 416.96 s, 640x360 H.264 29.97 fps + AAC 44.1 kHz stereo, 20.8 MB | Not referenced by any code. Brand `mp42`, creation_time 2023-06-10, so probably a YouTube download (inferred) | Orphan test asset. Deleted in the 2026-10 cleanup as a byte-identical duplicate of `data/anticipation_curation/videos/holdout_025.mp4` |
 | `test_holdout_025.mp4.part` / `.ytdl` | 0 bytes / 50 bytes | Aborted yt-dlp download (fragment index 0) from Mar 22 2026 | Junk (gitignored) |
 | `snapshots/` | empty | Default `--snapshot_dir` of rtsp_inference. Always empty because of a bug (Section 10, item 6) | |
 
@@ -188,7 +194,7 @@ Pipeline (`main`, line 514):
 Example that reproduces the saved artifacts from the stored embeddings (CPU-safe, no VLM needed):
 
 ```bash
-.venv/bin/python scripts/analyze_youtube.py --video test_video.mp4 \
+.venv/bin/python scripts/analyze_youtube.py --video data/anticipation_curation/videos/holdout_025.mp4 \
     --embeddings probe_clip_01_embeddings.npy --model outputs/outputs_temporal/best_temporal_model.pt \
     --device cpu --threshold 0.65 --plot /tmp/x.png --save-scores /tmp/s.npy
 ```
@@ -367,10 +373,12 @@ Caveats:
 - **`requirements.txt`**: torch>=2.1.0, torchvision>=0.16.0, transformers>=4.37.0, accelerate>=0.26.0, opencv-python>=4.8.0, Pillow>=10.0.0,
   and a commented-out `av`. This covers rtsp_inference.py only. `Qwen2_5_VLForConditionalGeneration` needs transformers 4.49 or later
   (inferred from the release history), and rtsp_inference's `dtype=` kwarg needs a recent version. numpy is not listed.
-- **`.env`**: contains a single key, `YOUTUBE_API_KEY`, used by `curate_anticipation_dataset.py` via python-dotenv. **`youtube_cookies.txt`**
-  holds YouTube cookies for `setup/kinetics_download_relevant.py`. Both are secrets, both are gitignored, and their contents were not read.
-- **`test_video.mp4`**: 6:57 at 640x360, 29.97 fps, with stereo AAC audio. Usable as a quick smoke-test input for analyze_youtube
-  (`--video test_video.mp4`) and for audio pipelines. Its content and labels are unknown.
+- **`.env`**: contains a single key, `YOUTUBE_API_KEY`, used by `setup/curate_youtube.py` via python-dotenv. **`youtube_cookies.txt`**
+  holds YouTube cookies for `setup/kinetics_download_relevant.py`; the 2026-10 cleanup moved it out of the repo to
+  `<cookies file outside the repo>` (directory mode 700, file mode 600). Both are secrets, both are gitignored, and their contents were not read.
+- **`test_video.mp4`** (deleted in the 2026-10 cleanup as a duplicate; the same clip is `data/anticipation_curation/videos/holdout_025.mp4`):
+  6:57 at 640x360, 29.97 fps, with stereo AAC audio. Usable as a quick smoke-test input for analyze_youtube
+  (`--video data/anticipation_curation/videos/holdout_025.mp4`) and for audio pipelines. Its content and labels are unknown.
 
 ---
 
@@ -402,8 +410,8 @@ The method was an AST scan of all 99 `.py` files outside `.venv`, `data`, `model
 | bitsandbytes | bitsandbytes 0.49.2 | tuning/lora_finetune_vlm.py | **no** |
 | clip | OpenAI CLIP, "clip 1.0" (git install; README suggests `clip-anytorch`) | core/extractors.py | **no** |
 | sounddevice | sounddevice 0.5.3 (needs PortAudio) | core/extractors.py (optional) | **no** |
-| yt_dlp | yt-dlp 2026.3.17 (+ yt-dlp-ejs 0.8.0) | analyze_youtube. The CLI is also called via subprocess in curate_anticipation_dataset.py and setup/kinetics_download_relevant.py | **no** |
-| dotenv | python-dotenv 1.2.1 | curate_anticipation_dataset.py (optional) | **no** |
+| yt_dlp | yt-dlp 2026.3.17 (+ yt-dlp-ejs 0.8.0) | analyze_youtube. The CLI is also called via subprocess in setup/curate_youtube.py and setup/kinetics_download_relevant.py | **no** |
+| dotenv | python-dotenv 1.2.1 | setup/curate_youtube.py (optional) | **no** |
 | pydub | **NOT installed** | scripts/check_audio_availability.py (inside try/except, optional) | no |
 | (implicit) | accelerate 1.12.0 | needed for `device_map=` in from_pretrained | yes |
 | (implicit) | onnx 1.19.1 | `torch.onnx.export` in scripts/export_trace_graph.py | no |
@@ -495,7 +503,7 @@ onnx==1.19.1
 - Log per-frame scores to a file (`.npy`/`.csv`) and save alert snapshots, so live sessions can be annotated and scored afterwards.
   Without ground truth, the existing logs cannot answer the false-alarm question.
 - Evaluate on held-out *videos*, at the deployment sampling rate, with lead-time metrics (time of first alert before onset) and
-  false alarms per hour on long negative footage. `probe_clip_01` plus `test_video.mp4` can serve as smoke tests. They are not a benchmark.
+  false alarms per hour on long negative footage. `probe_clip_01` plus `data/anticipation_curation/videos/holdout_025.mp4` (formerly `test_video.mp4`) can serve as smoke tests. They are not a benchmark.
 
 ## Notes moved from code comments
 

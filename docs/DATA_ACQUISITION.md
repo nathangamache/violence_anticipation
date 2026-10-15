@@ -82,6 +82,12 @@ nohup setsid .venv/bin/python -u setup/download_xd_recover.py index \
 If a run dies (network, reboot), rerun the same launcher. XD resumes partial files with a Range request and
 skips files already in `verified.jsonl`; UBI fetches only the chunks missing from `UBI_FIGHTS.zip.chunks`.
 
+YouTube downloads: the account cookies live outside the repo at `<cookies file outside the repo>` (directory
+mode 700, file mode 600; moved there from the repo root in the 2026-10 cleanup). No script reads them by default
+(`setup/curate_youtube.py` calls `yt-dlp` without cookies); for age-restricted or rate-limited videos pass
+`yt-dlp --cookies <cookies file outside the repo>`. Never copy them into the repo or `data/`. They expire around 2026-11/12; export fresh ones into the same file. `YOUTUBE_API_KEY` stays in
+the repo-root `.env` (mode 600, gitignored).
+
 ---
 
 ## 3. XD-Violence train split

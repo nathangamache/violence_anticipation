@@ -40,3 +40,18 @@ lora_finetuned_v2/
 *.part
 *.ytdl
 simulation_data/
+
+# --- Local links, scratch run outputs and default outputs of legacy scripts (run from legacy/) ---
+/legacy/data
+/legacy/models
+inference_*.log
+snapshots/
+/outputs*/
+/runs/
+/results/
+/final/
+/simulation_results*/
+/legacy/outputs*/
+/legacy/results/
+/legacy/final/
+/legacy/simulation_results*/

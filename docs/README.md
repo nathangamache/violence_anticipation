@@ -19,16 +19,16 @@ is real-world: CCTV, bodycam, dashcam/road rage, and phone video of street confr
   embeddings: test ROC-AUC **0.58 to 0.62** for "violence starts within 30 s" (positive rate 0.081),
   XD-Violence-only test AUC **0.50 to 0.56** (chance), median alarm lead **about 8 to 9 s**. See
   [BASELINE.md](BASELINE.md).
-- The impressive numbers in `final/`, `outputs/` and older `results/` folders (AUC 0.93 to 0.99,
+- The impressive numbers in the removed `final/`, `outputs/` and older `results/` folders (AUC 0.93 to 0.99,
   "0 false alarms per hour", "92 % detection") come from label misalignment, leaky splits, simulations
   built mostly from training videos, test-tuned thresholds and lenient event metrics. See
   [EXPERIMENT_HISTORY.md](EXPERIMENT_HISTORY.md) and [codebase/results_inventory.md](codebase/results_inventory.md).
 - The main bottleneck is data. Only **112 of the 640 onset-annotated videos have 30 s or more of footage
   before violence starts** (49 of them interpersonal), and the test splits hold only 10 to 12 of them.
 
-The root `README.md` is **stale**. It describes a graph-transformer system with DeepSORT, real audio,
-ONNX export and passing tests that was never actually built (audit in
-[codebase/core_and_training.md](codebase/core_and_training.md) section 14). Trust `docs/` instead.
+The root `README.md` was rewritten in the 2026-10 cleanup as a short pointer here. Its earlier version described a
+graph-transformer system with DeepSORT, real audio, ONNX export and passing tests that was never actually built
+(audit in [codebase/core_and_training.md](codebase/core_and_training.md) section 14).
 
 ---
 
@@ -47,37 +47,24 @@ ONNX export and passing tests that was never actually built (audit in
 
 ## 3. Repository layout (one line per top-level entry)
 
-Repo root: `.`.
+Repo root: `.`. Layout after the 2026-10 cleanup (section 8).
 
 | Entry | What it holds |
 |---|---|
-| `core/` | Gen-1 graph pipeline: `model.py` (`ViolenceTransformer`, non-causal), `extractors.py` (YOLOv8n, VideoMAE, CLIP; loads models at import), `graph.py`, `utils.py`. |
-| `training/` | `train.py` (gen-1; **overwrites `train_index.json`**), `evaluate.py`, `eval_anticipation.py`, `dataset.py`; gen-2 heads: `train_student_original.py` (**the only correctly aligned trainer**), `train_student.py`, `train_temporal_model.py` (BiLSTM, misaligned labels). |
-| `vlm/` | `qwen_teacher.py`: Qwen2.5-VL-7B wrapper (JSON verdicts, 3584-d image-token embeddings). |
-| `llm/` | Text-LLM decision heads on graph summaries (failed; leaky prompts). |
-| `llm_data/` | `train.jsonl` / `val.jsonl` prompts and prediction files for the text-LLM head. |
-| `scripts/` | Data and label builders (`build_multihorizon_labels.py`, `vlm_label_dataset.py`, `preprocess_anticipation.py`), feature extractors (audio, pose), fusion, `eval_vlm_teacher.py`, `evaluate_with_smoothing.py`, `late_fusion.py`, `analyze_youtube.py`, broken legacy tools (`benchmark.py`, `export_trace_graph.py`). |
-| `setup/` | Metadata builders for UCF-Crime / XD-Violence (`build_xdviolence_metadata.py` has an onset bug), Kinetics download and finetune scripts. |
-| `tuning/` | Contrastive projectors, optical-flow extraction, VLM+flow fusion, LoRA finetune of Qwen2.5-VL, VQA question features, ensemble and contrastive simulators. |
-| `sim/` | "8-hour shift" stream builders and evaluators (`comprehensive_eval.py`, `live_simulator.py`, `temporal_simulator.py`). All have label and metric flaws. |
-| `experiments/` | Mar to Apr 2026 experiment scripts (EMA, algorithm variations, UCF testing, person filtering, cross-dataset, curation pseudo-labelling) and `output/`. |
-| `continuation/` | Time-to-violence ETA heuristic (unused), LDA calibration probe, domain adaptation (never run). |
-| `realtime/` | `rtsp_inference.py` (the only working live path: Qwen embeddings + BiLSTM), `inspect_checkpoint.py`, broken `pipeline.py`. |
-| `tools/` | Split builders and checkers (`make_nonoverlap_splits.py`, `check_split_overlap.py`), debug helpers. |
-| `tests/` | Four stale test files. None pass; `pytest` is not installed. |
-| `configs/` | YAML configs for gen-1. `model.yaml` and `features.yaml` are never read. |
-| `curate_anticipation_dataset.py` | YouTube search/download pipeline that built `data/anticipation_curation/` (92 escalation videos). |
-| `outputs/`, `outputs_fused/`, `runs/`, `results/`, `final/`, `simulation_results*/` | Result folders (metrics JSON/CSV, plots, checkpoints). Inventory and trust levels in [codebase/results_inventory.md](codebase/results_inventory.md). |
-| `simulation_data/` | Stitched evaluation streams (`*.npz`, gitignored, 3.5 GB). **Do not use as a benchmark.** |
-| `checkpoints/`, `best_checkpoints/` | Gen-1 `ViolenceTransformer` epoch checkpoints (Dec 2025, gitignored, no metrics). |
-| `lora_finetuned/`, `lora_finetuned_v2/` | Collapsed LoRA adapters (gitignored, do not reuse). |
-| `logs/`, root `inference_*.log` | VLM extraction, audio extraction, LoRA and RTSP demo logs. |
-| `snapshots/` | Empty alert-snapshot folder of `rtsp_inference.py`. |
-| Root `*.pt`, `*.npy` | Orphaned MLP state dicts (Mar 2), YOLO weights (`yolov8n.pt`, `yolov8m-pose.pt`), `probe_clip_01_*` YouTube probe arrays, `good_video_indices.npy` (unreferenced). |
-| Root `*_index.json` | `train/val/test_index.json` (1438/180/180 clips, **movie-level leakage**); `eval_index.json` is identical to `test_index.json`. |
-| `data` -> `data/` | Symlink to all videos, metadata and features (outside git). |
-| `models` -> `models/` | Symlink to pretrained weights (only `Qwen2.5-VL-7B-Instruct`). |
-| `docs/` | This documentation. |
+| `anticipation/` | New pipeline package: data catalog, onsets, labels, folds (`data/`), VA30 metrics and control baselines (`eval/`), 1 Hz feature extractors (`features/`). |
+| `benchmark/` | VA30 artifacts: `videos.csv`, `events.json`, `folds_v1.json`/`folds_v2.json`, `near_duplicates.json`, `catalog_summary.json`, `results/<baseline>/`. |
+| `baselines/` | Honest gen-2 reference: `train_student_original.py` (B0 trainer, the only correctly aligned legacy trainer) and `reference_runs/` (4 movie-grouped StudentMLP runs + 4 zero-shot Qwen teacher evals). |
+| `docs/` | This documentation: README (index), BASELINE, VA30, FEATURES, DATA_ACQUISITION, EXPERIMENT_HISTORY, REPO_CLEANUP_PLAN, `codebase/` (audit of the pre-cleanup code), `research/`, `figures/`. |
+| `legacy/` | Frozen code kept only as provenance for files in `data/` and for cited numbers; `legacy/README.md` explains how to run it with cwd=`legacy`. Includes the leaky gen-1 clip split `{train,val,test}_index.json`. |
+| `setup/` | Data acquisition: XD train split, UBI-Fights, HIVAU onsets, self-test/verify, `curate_youtube.py` (curated YouTube hold-out). |
+| `tests/` | VA30 unit tests (`python -m pytest tests -q`). |
+| `tools/` | `server_load.py`, `cpu_governor.sh`, `contact_sheet.py`, `check_comment_only_diff.py`. |
+| `data` -> `data/` | Symlink to videos, metadata, features and `archive/` (outside git). |
+| `models` -> `models/` | Symlink to pretrained weights. |
+| `.venv/` | Python 3.10 environment (ignored). |
+| `CLAUDE.md`, `README.md`, `requirements.txt`, `.gitignore` | Agent instructions, short project pointer, dependency list of the kept code, ignore rules. |
+| `.env` | `YOUTUBE_API_KEY` for `setup/curate_youtube.py` (ignored, mode 600). |
+| `yolov8m-pose.pt` | Fallback pose weight hard-coded in `anticipation/features/pose.py` (ignored). |
 
 ---
 
@@ -101,20 +88,24 @@ shapes in [codebase/data_and_labels.md](codebase/data_and_labels.md) sections 1 
 | `processed/{graphs,tracks,actions,scenes,audio,labels}/` | Gen-1 graph pipeline outputs on 40 s windowed clips. | `audio/` is all zeros; `scenes/` leaks post-event frames. Low value. |
 | `windowed/` | 40 s ffmpeg trims around the (buggy) metadata onset. | Inherits the XD metadata bug. |
 
-Pretrained weights: `models/Qwen2.5-VL-7B-Instruct` (16 GB). YOLO weights in the repo root.
+Pretrained weights: `models/Qwen2.5-VL-7B-Instruct` (16 GB). `yolov8m-pose.pt` in the repo root (pose fallback).
 
 ---
 
 ## 5. The main pipelines (by generation)
 
+Legacy entry points run from `legacy/` (cwd=`legacy`, see `legacy/README.md`). "Removed" scripts are recoverable with
+`git show pre-cleanup:<path>`.
+
 | Generation | Dates | Data flow | Entry points | Doc |
 |---|---|---|---|---|
-| 1. Graph transformer | Nov to Dec 2025 | windowed clip -> YOLOv8n boxes + VideoMAE crop embeddings + clip-mean CLIP + zero audio -> per-step graph -> `ViolenceTransformer` | `python -m scripts.preprocess_anticipation`, `python -m training.train` (dangerous), `python -m training.evaluate` | [core_and_training.md](codebase/core_and_training.md) |
-| 2. VLM teacher + embeddings | Jan to Feb 2026 | raw video -> every 5th graph step -> Qwen2.5-VL-7B JSON verdict + 3584-d embedding | `python -m scripts.vlm_label_dataset`, `scripts/eval_vlm_teacher.py` | [vlm_and_llm.md](codebase/vlm_and_llm.md) |
-| 3. Heads on frozen embeddings | Feb 2026 | `vlm_emb` (+ flow/audio/pose) + `labels_multih` -> MLP / BiLSTM / contrastive heads | `training/train_student_original.py` (honest), `training/train_temporal_model.py`, `training/train_student.py`, `tuning/contrastive_*.py` | [temporal_and_student_models.md](codebase/temporal_and_student_models.md) |
-| 4. Multimodal fusion | Feb 2026 | flow / audio / pose extraction -> early concat or late score fusion | `tuning/optical_flow_features.py`, `scripts/audio_feature_extraction.py`, `scripts/pose_feature_extraction.py`, `tuning/fuse_features.py`, `scripts/late_fusion.py` | [audio_pose_flow_fusion.md](codebase/audio_pose_flow_fusion.md) |
-| 5. Simulation and evaluation | Feb to Apr 2026 | per-video embeddings stitched into "8-hour" streams -> event metrics, smoothing sweeps | `sim/comprehensive_eval.py`, `scripts/evaluate_with_smoothing.py`, `experiments/run_experiments.py` | [simulation_and_evaluation.md](codebase/simulation_and_evaluation.md) |
-| 6. Deployment and curation | Feb to Apr 2026 | RTSP or YouTube -> Qwen embedding at 1 fps -> BiLSTM -> alerts; YouTube search -> LSTM pseudo-labels | `realtime/rtsp_inference.py`, `scripts/analyze_youtube.py`, `curate_anticipation_dataset.py`, `experiments/fast_analyze_curation.py` | [realtime_and_misc.md](codebase/realtime_and_misc.md) |
+| 1. Graph transformer | Nov to Dec 2025 | windowed clip -> YOLOv8n boxes + VideoMAE crop embeddings + clip-mean CLIP + zero audio -> per-step graph -> `ViolenceTransformer` | `legacy/scripts/preprocess_anticipation.py`, `legacy/training/train.py` (dangerous), `legacy/training/evaluate.py` | [core_and_training.md](codebase/core_and_training.md) |
+| 2. VLM teacher + embeddings | Jan to Feb 2026 | raw video -> every 5th graph step -> Qwen2.5-VL-7B JSON verdict + 3584-d embedding | `legacy/scripts/vlm_label_dataset.py`, `legacy/scripts/eval_vlm_teacher.py` | [vlm_and_llm.md](codebase/vlm_and_llm.md) |
+| 3. Heads on frozen embeddings | Feb 2026 | `vlm_emb` (+ flow/audio/pose) + `labels_multih` -> MLP / BiLSTM / contrastive heads | `baselines/train_student_original.py` (honest), `legacy/training/train_temporal_model.py`; removed: `training/train_student.py`, `tuning/contrastive_*.py` | [temporal_and_student_models.md](codebase/temporal_and_student_models.md) |
+| 4. Multimodal fusion | Feb 2026 | flow / audio / pose extraction -> early concat or late score fusion | removed (`tuning/optical_flow_features.py`, `scripts/{audio,pose}_feature_extraction.py`, `tuning/fuse_features.py`, `scripts/late_fusion.py`); superseded by `anticipation/features/` | [audio_pose_flow_fusion.md](codebase/audio_pose_flow_fusion.md) |
+| 5. Simulation and evaluation | Feb to Apr 2026 | per-video embeddings stitched into "8-hour" streams -> event metrics, smoothing sweeps | removed (`sim/`, `scripts/evaluate_with_smoothing.py`, `experiments/run_experiments.py`); superseded by `anticipation/eval/` (VA30) | [simulation_and_evaluation.md](codebase/simulation_and_evaluation.md) |
+| 6. Deployment and curation | Feb to Apr 2026 | RTSP or YouTube -> Qwen embedding at 1 fps -> BiLSTM -> alerts; YouTube search -> LSTM pseudo-labels | `legacy/realtime/rtsp_inference.py`, `legacy/scripts/analyze_youtube.py`, `setup/curate_youtube.py` (repo root; `analyze`/`export` need `PYTHONPATH=legacy`), `legacy/experiments/fast_analyze_curation.py` | [realtime_and_misc.md](codebase/realtime_and_misc.md) |
+| 7. VA30 benchmark and 1 Hz features | Oct 2026 | raw annotations -> seconds-based onsets and labels, grouped folds -> causal 1 Hz features -> VA30 metrics | `anticipation/`, `benchmark/`, `setup/download_*`, `setup/build_hivau_onsets.py` | [VA30.md](VA30.md), [FEATURES.md](FEATURES.md), [DATA_ACQUISITION.md](DATA_ACQUISITION.md) |
 
 ---
 
@@ -125,6 +116,10 @@ Pretrained weights: `models/Qwen2.5-VL-7B-Instruct` (16 GB). YOLO weights in the
   the corrected benchmark (VA30) that every new model must be scored on.
 - [EXPERIMENT_HISTORY.md](EXPERIMENT_HISTORY.md): every approach tried, in order, with its score, its
   result folder, and why it failed or plateaued.
+- [VA30.md](VA30.md): the VA30 benchmark (catalog, events, folds, metrics, control baselines).
+- [FEATURES.md](FEATURES.md): the causal 1 Hz feature extractors in `anticipation/features/`.
+- [DATA_ACQUISITION.md](DATA_ACQUISITION.md): downloads of the XD train split, UBI-Fights and HIVAU onsets.
+- [REPO_CLEANUP_PLAN.md](REPO_CLEANUP_PLAN.md): the 2026-10 cleanup plan and its execution record.
 
 ### Codebase (`docs/codebase/`)
 - [data_and_labels.md](codebase/data_and_labels.md): datasets on disk, onset sources, pre-onset statistics,
@@ -156,12 +151,43 @@ Pretrained weights: `models/Qwen2.5-VL-7B-Instruct` (16 GB). YOLO weights in the
 ## 7. Working conventions
 
 - Python: `.venv/bin/python` (Python 3.10,
-  torch 2.5.1+cu121, transformers 4.57.5, ultralytics 8.3.228). `requirements.txt` is incomplete; see
-  [realtime_and_misc.md](codebase/realtime_and_misc.md) section 9 for the real dependency list.
-- Run from the repo root. Package-style scripts (`core`, `training`, `scripts`, `vlm` imports) need
-  `python -m training.train` style invocation.
+  torch 2.5.1+cu121, transformers 4.57.5, ultralytics 8.3.228). `requirements.txt` lists the imports of the
+  kept code (`anticipation/`, `baselines/`, `setup/`, `tools/`, `tests/`) with the venv's installed versions;
+  `legacy/` needs more (see [realtime_and_misc.md](codebase/realtime_and_misc.md) section 9).
+- New code runs from the repo root; legacy code runs from `legacy/` (see `legacy/README.md`).
 - GPUs: two data-centre GPUs. `nvidia-smi` is broken by a driver mismatch, but torch CUDA works. Many scripts
   default to `cuda:1`; pass `--device` explicitly.
-- Never run `python -m training.train` unmodified: it overwrites `train_index.json` with every clip.
-- New evaluation code must follow [BASELINE.md](BASELINE.md) section 6. Do not reuse
-  `simulation_data/*.npz`, `sim/comprehensive_eval.py` event metrics, or the root index split as a benchmark.
+- New evaluation code must follow [BASELINE.md](BASELINE.md) section 6. Do not reuse the archived
+  `simulation_data/*.npz`, the removed `sim/comprehensive_eval.py` event metrics, or `legacy/*_index.json` as a benchmark.
+
+---
+
+## 8. Repository cleanup (2026-10)
+
+Executed on 2026-10-14 following [REPO_CLEANUP_PLAN.md](REPO_CLEANUP_PLAN.md) (with the owner's amendments recorded
+there). The working tree without `.venv/` and `.git/` went from about 6.0 GB to about 0.11 GB.
+
+- **Moved to `legacy/`** (31 tracked files, `git mv`): `core/`, `vlm/`, `training/{train,dataset,evaluate,train_temporal_model}.py`,
+  `configs/{paths,training}.yaml`, the producer scripts in `scripts/` (`preprocess_anticipation`, `generate_labels`,
+  `vlm_label_dataset`, `build_multihorizon_labels`, `build_anticipation_labels`, `eval_vlm_teacher`, `analyze_youtube`),
+  `realtime/{rtsp_inference,inspect_checkpoint}.py`, `experiments/fast_analyze_curation.py`,
+  `setup/build_{ucf_crime,xdviolence}_metadata.py` and the root `{train,val,test}_index.json`.
+- **Moved to `baselines/`**: `training/train_student_original.py` and the honest runs `runs/student_fix1`,
+  `runs/student_fix2`, `outputs/student_mlp`, `results/anticipation_prboost_v3` plus `results/vlm_eval*`
+  (now `baselines/reference_runs/<name>/`). `curate_anticipation_dataset.py` became `setup/curate_youtube.py`.
+- **Removed tracked files** (`git rm`, 840 files: invalid result folders, superseded code, stale tests, logs):
+  recover with `git checkout pre-cleanup -- <path>` (tag `pre-cleanup` = commit 9f14b92; oldest snapshot: commit 2164ca4).
+- **Archived ignored artifacts** (6.1 GB, relative paths preserved, md5-verified): `data/archive/repo_legacy/`
+  (`ARCHIVE_LIST.txt`, `MD5SUMS`, `README.md`). It holds the root MLPs, `yolov8n.pt`, the `probe_clip_01` arrays,
+  `good_video_indices.npy`, all 100 gen-1 epoch checkpoints, every LoRA adapter (best, final and per-epoch),
+  `simulation_data/`, the legacy BiLSTM/contrastive/student weights, projected embeddings, the unique score
+  traces, and the two shell sessions that trained the synthetic MLPs. Grace period 90 days: **purge date
+  2027-01-12**, after a review with the owner.
+- **Backup of the trusted weights**: `data/archive/baseline_weights/` (the four `best.pt` of
+  `baselines/reference_runs/`, with `MD5SUMS`). Never delete it.
+- **Deleted outright** (only regenerable or duplicate data): `test_video.mp4` (byte-identical to
+  `data/anticipation_curation/videos/holdout_025.mp4`), the 11 `final/*/scores.npy` byte-identical to the archived
+  `final/smoothing_sweep/scores.npy`, the empty `.part`/`.ytdl` download stubs, empty folders (`snapshots/`, `.locks/`,
+  `lora_finetuned/worker_*`, three empty `final/` runs) and `__pycache__`/`.pytest_cache`.
+- **Secrets**: `.env` is mode 600; `youtube_cookies.txt` moved out of the repo to `<cookies file outside the repo>`
+  (directory 700, file 600).

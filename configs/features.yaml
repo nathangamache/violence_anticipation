@@ -1,6 +1,0 @@
-features:
-  use_video: true
-  use_audio: true
-  use_scene: true
-  use_actions: true
-  use_tracking: true

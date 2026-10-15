@@ -1,7 +1,15 @@
 # Results inventory: every metric the repo has produced
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 **Audience:** future AI agents and developers who need to know which numbers in this repo can be trusted and what a new model has to beat.
-**Scope:** `final/`, `results/`, `simulation_results*/`, `outputs/`, `outputs_fused/`, `runs/`, `experiments/output/`, `logs/`, `snapshots/`, the root `inference_*.log` files, the root `*.pt`/`*.npy` artifacts, `best_checkpoints/` and `checkpoints/`.
+**Scope:** `final/`, `results/`, `simulation_results*/`, `outputs/`, `outputs_fused/`, `runs/`, `experiments/output/`, `logs/`, `snapshots/`, the root `inference_*.log` files, the root `*.pt`/`*.npy` artifacts, `best_checkpoints/` and `checkpoints/`. In the 2026-10 cleanup all of these left the
+working tree except the four honest student runs and the four teacher evals (now `baselines/reference_runs/`): tracked
+files are recoverable with `git checkout pre-cleanup -- <path>`, ignored weights and arrays are in
+`data/archive/repo_legacy/<same path>` until 2027-01-12.
 **Method:** every metrics JSON/CSV was parsed with the venv Python. The producing scripts were read to learn what each metric means. Shapes, label statistics and split overlap were checked with cheap read-only Python. Anything not verified directly is marked **(inferred)**.
 **Date of audit:** 2026-10-14. File timestamps fall between Dec 2025 and Apr 2026.
 
@@ -11,8 +19,8 @@
 
 | | |
 |---|---|
-| **Strongest reported numbers** | `final/clean_smoothing_sweep` and `final/clean_t02_eval` (Temporal LSTM on the curated "clean" sim): ROC-AUC 0.982–0.985, AP 0.99, 199/200 events detected, **0.0 FA/h**, mean lead 29.2 s. Also `outputs/outputs_temporal` window-level **test AUC 0.991**. The "recommended" operating point in `final/detection_fa_tradeoff.png` is θ=0.3, w=10: 91.9 % detection, 4.87 FA/h, 23.9 s lead. **None of these numbers can be trusted** (see §3). |
-| **Most trustworthy result** | The student MLP from `training/train_student_original.py` on the **movie-grouped split** (`--split_group source_movie`) with the threshold chosen on validation: `runs/student_fix1`, `runs/student_fix2`, `outputs/student_mlp`, `results/anticipation_prboost_v3`. **Test frame-level ROC-AUC is 0.58–0.62 and AP is 0.10–0.16 against a base rate of 0.081.** Val AUC is 0.76–0.82. **XD-only test AUC is 0.50–0.56, which is chance level.** |
+| **Strongest reported numbers** | `final/clean_smoothing_sweep` and `final/clean_t02_eval` (Temporal LSTM on the curated "clean" sim): ROC-AUC 0.982–0.985, AP 0.99, 199/200 events detected, **0.0 FA/h**, mean lead 29.2 s. Also `outputs/outputs_temporal` window-level **test AUC 0.991**. The "recommended" operating point in `final/detection_fa_tradeoff.png` (now [../figures/legacy_invalid_detection_fa_tradeoff.png](../figures/legacy_invalid_detection_fa_tradeoff.png)) is θ=0.3, w=10: 91.9 % detection, 4.87 FA/h, 23.9 s lead. **None of these numbers can be trusted** (see §3). |
+| **Most trustworthy result** | The student MLP from `baselines/train_student_original.py` on the **movie-grouped split** (`--split_group source_movie`) with the threshold chosen on validation: `baselines/reference_runs/student_fix1`, `baselines/reference_runs/student_fix2`, `baselines/reference_runs/student_mlp`, `baselines/reference_runs/anticipation_prboost_v3`. **Test frame-level ROC-AUC is 0.58–0.62 and AP is 0.10–0.16 against a base rate of 0.081.** Val AUC is 0.76–0.82. **XD-only test AUC is 0.50–0.56, which is chance level.** |
 | **Honest summary** | Under leak-free splits, no model in this repo reliably anticipates violence. Under the 30 s definition, the best honest models fire on about 60 % of violent test videos, with a mean lead of about 10 s (p90 about 21 s) and false alarms on about 15 % of normal videos. No artifact measures detection at ≥30 s lead on a correct time base. |
 | **Why the headline numbers are wrong** | (1) Labels are misaligned with the VLM embeddings: they are truncated, not indexed by `t`. (2) "1 step = 1 second" is assumed everywhere, but a VLM step is really 0.2–750 s (median 3.2 s). (3) The 772-video "matched/fused/clean/lowfa" simulations are 81 % **training** videos. (4) Random video splits leak clips from the same movie (44 of the 83 XD test clips share a movie or YouTube source with a training clip). (5) Thresholds were tuned on the test sets. (6) Lead time is capped at 30 s by construction, and an alarm that is always on scores perfectly on the event metrics. |
 
@@ -28,7 +36,7 @@ Read this section before quoting any number. The section and row IDs below refer
 - `sim/build_long_simulation.py`, `training/train_temporal_model.py`, `training/train_student.py`, `scripts/build_fused_features.py`, `experiments/run_experiments.py` and `experiments/algorithm_variations.py` all do `labels.max(axis=1); labels = labels > 0; min_len = min(len(emb), len(labels)); labels = labels[:min_len]`.
   - Embedding step *i* is therefore paired with label row *i*, but it should be paired with label row `t[i] = 5i`. **This is true for 99 % of the 772 XD videos (E < T).**
 - Taking the max over the 7 horizons means `frame_label = 1` when violence starts within the next **120 s**. Steps inside violence (−1) become 0, so they count as *negative*.
-- The only pipelines that index labels correctly are `training/train_student_original.py` (`gt_vec = y_arr[t]`) and `scripts/eval_vlm_teacher.py` (`label_arr[t]`).
+- The only pipelines that index labels correctly are `baselines/train_student_original.py` (`gt_vec = y_arr[t]`) and `scripts/eval_vlm_teacher.py` (`label_arr[t]`).
 
 ### C2. "1 step = 1 second" is false
 - Every simulator, trainer and evaluator hard-codes `fps=1.0`, so a "30 s horizon" means 30 embedding steps and every "lead time in seconds" is really a step count.
@@ -76,6 +84,9 @@ Other evaluators:
 
 ## 2. Evaluation sets (all in `simulation_data/`; stats measured)
 
+All sim files below were moved to `data/archive/repo_legacy/simulation_data/` in the 2026-10
+cleanup (until 2027-01-12). The repo index split is now `legacy/{train,val,test}_index.json`; `eval_index.json` was removed.
+
 | Sim file | Steps × dim | Videos (train/val/test) | Pos rate (antic) | Antic runs | Builder | Problems |
 |---|---|---|---|---|---|---|
 | `xd_violence_8hr_sim.npz` | 32,092 × 3584 (treated as 8.91 h) | XD **test** clips only (inferred: 13 violent clips padded with cycled non-violent test clips) | 1.74 % (557) | 13 (len 30–70) | `sim/build_long_simulation.py` (default `--test_index test_index.json`) | C1, C2, C3 (movie overlap), padding reuses the same normal clips many times. Keys: `embeddings, frame_labels(161 pos, 18 runs), anticipation_labels, fps, horizon_sec`. **The least-contaminated sim; this is the legacy "headline" set.** |
@@ -97,7 +108,7 @@ Other evaluators:
 Other eval sets:
 - **Repo index split** (`train/val/test_index.json`): 1438/180/180 clips. XD clips: 645/70/83; UCF: 793/110/97. `eval_index.json` is identical to `test_index.json`.
   - With `seq_len=30, stride=5` and C1 labels, the XD test split gives only **45 clips with ≥1 window, 1,020 windows, 109 positive windows from 13 videos**. Val: 37 clips, 608 windows, 147 positive windows from 14 videos. Recomputed here.
-- **Student-MLP grouped split** (`runs/student_fix1/splits_manifest.json`; identical in `fix2`, `outputs/student_mlp`, `results/anticipation_prboost_v3`): `source_movie` groups 1072/134/134, videos 1356/156/158.
+- **Student-MLP grouped split** (`baselines/reference_runs/student_fix1/splits_manifest.json`; identical in `fix2`, `baselines/reference_runs/student_mlp`, `baselines/reference_runs/anticipation_prboost_v3`): `source_movie` groups 1072/134/134, videos 1356/156/158.
   - Samples are VLM steps outside violence, labelled with the 30 s column of `labels_multih` (correct `t` indexing).
   - Test: 8,632 samples, base rate 0.081, 39 positive videos. Test XD: 61 videos, 5,468 samples.
 - **Student-MLP random split** (all other `results/anticipation_*`): 1336/167/167 or 1317/165/165 videos, no grouping (C3).
@@ -201,16 +212,16 @@ Note: `evaluate_vlm_matched` (AUC 0.813) and `evaluate_fused` / `evaluate_vlm_au
 
 **Pattern:** validation AUC is 0.53–0.72 for every temporal model, but test AUC is 0.77–0.99. A tiny test set (13 positive videos), movie leakage and oracle thresholds explain the gap (inferred). **Validation is the more honest of the two numbers here.**
 
-### 3F. Student MLP (`training/train_student_original.py`): the only protocol with correct `t` alignment and seconds-based lead times
+### 3F. Student MLP (`baselines/train_student_original.py`): the only protocol with correct `t` alignment and seconds-based lead times
 
 Features are VLM embedding plus hashed VLM-teacher tags (actions 64 + weapons 32 + scene 64), 3744-d. `prboost_v1/v2` use 3746-d and `prboost_v3`/`fix2` use 4034-d. The label is the 30 s column of `labels_multih`; in-violence steps are ignored. Per-source and bucket AUCs below were **recomputed from `per_sample.csv`**.
 
 | Folder | Split | Val AUC (XD) | **Test AUC / AP** (base .081–.109) | Test XD AUC | Test AUC, 30–60 s-before bucket vs no violence within 120 s | Test @ val thr: P / R / F1 | Video-level @ val thr (test) | Trust |
 |---|---|---|---|---|---|---|---|---|
-| `runs/student_fix1` (fbeta thr .709) | **source_movie** | 0.805 (0.824) | **0.582 / 0.159** | 0.521 | 0.605 (XD 0.501) | .109/.270/.156 | 24/40 pos videos alerted in window (60 %), early-false 10 %, **18/118 neg videos FA (15.3 %)**, lead mean 10.0 s / median 7.8 / p90 20.7 | TRUSTED |
-| `runs/student_fix2` (fbeta, 4034-d, min_consec 2) | source_movie | 0.772 (0.813) | 0.599 / 0.142 | 0.497 | 0.584 (0.458) | .085/.266/.128 | 20/40 (50 %), 29/118 neg FA (24.6 %), lead 9.7 s | TRUSTED |
-| `outputs/student_mlp` (f1, meanpool emb) | source_movie | 0.763 (0.809) | **0.622** / 0.151 | 0.564 | 0.611 (0.498) | .126/.423/.195 | 24/40 (60 %), 28/118 neg FA (23.7 %), lead 10.3 s | TRUSTED |
-| `results/anticipation_prboost_v3` (precision_floor) | source_movie | 0.801 (0.828) | 0.587 / 0.095 | 0.495 | 0.623 (0.506) | .034/.088/.050 | 12/40 (30 %), 9/118 neg FA, lead 10.8 s | TRUSTED |
+| `baselines/reference_runs/student_fix1` (fbeta thr .709) | **source_movie** | 0.805 (0.824) | **0.582 / 0.159** | 0.521 | 0.605 (XD 0.501) | .109/.270/.156 | 24/40 pos videos alerted in window (60 %), early-false 10 %, **18/118 neg videos FA (15.3 %)**, lead mean 10.0 s / median 7.8 / p90 20.7 | TRUSTED |
+| `baselines/reference_runs/student_fix2` (fbeta, 4034-d, min_consec 2) | source_movie | 0.772 (0.813) | 0.599 / 0.142 | 0.497 | 0.584 (0.458) | .085/.266/.128 | 20/40 (50 %), 29/118 neg FA (24.6 %), lead 9.7 s | TRUSTED |
+| `baselines/reference_runs/student_mlp` (f1, meanpool emb) | source_movie | 0.763 (0.809) | **0.622** / 0.151 | 0.564 | 0.611 (0.498) | .126/.423/.195 | 24/40 (60 %), 28/118 neg FA (23.7 %), lead 10.3 s | TRUSTED |
+| `baselines/reference_runs/anticipation_prboost_v3` (precision_floor) | source_movie | 0.801 (0.828) | 0.587 / 0.095 | 0.495 | 0.623 (0.506) | .034/.088/.050 | 12/40 (30 %), 9/118 neg FA, lead 10.8 s | TRUSTED |
 | `results/anticipation_prboost_v1` | random | 0.829 | 0.942 / 0.763 | 0.967 | 0.851 (0.932) | .597/.766/.671 | 42/59 (71 %), 29/108 neg FA, lead 8.5 s | INVALID C3 |
 | `results/anticipation_prboost_v2` | random | 0.853 | 0.944 / 0.714 | 0.951 | – | .425/.857/.569 | 40/59, 32/108 neg FA | INVALID C3 |
 | `results/anticipation_multih_hset_v2` | random | 0.839 | 0.930 / 0.750 | 0.950 | – | .531/.757/.624 | 26/59, 8/108 neg FA | INVALID C3 |
@@ -226,10 +237,10 @@ Features are VLM embedding plus hashed VLM-teacher tags (actions 64 + weapons 32
 
 | Folder | GT labels | All AUC / AP (base) | XD AUC / AP | UCF AUC | Notes |
 |---|---|---|---|---|---|
-| `results/vlm_eval` | `data/processed/labels` (current violence) | 0.682 / 0.194 (.106) | **0.776** / 0.308 | 0.497 | 62,580 (score, gt) pairs, `label_arr[t]` alignment is correct. C6: these labels are positive in only 215/500 violent XD clips. |
-| `results/vlm_eval_future_h5` | violence now or in next 5 s | 0.677 / 0.202 | 0.776 / 0.320 | 0.490 | |
-| `results/vlm_eval_future_h10` | now or in next 10 s | 0.672 / 0.206 | 0.776 / 0.327 | 0.484 | |
-| `results/vlm_eval_future_h30` | now or in next 30 s (`scripts/build_anticipation_labels.py`) | 0.662 / 0.216 (.131) | **0.772** / 0.341 | 0.476 | Mostly a detection metric, because the label includes current violence |
+| `baselines/reference_runs/vlm_eval` | `data/processed/labels` (current violence) | 0.682 / 0.194 (.106) | **0.776** / 0.308 | 0.497 | 62,580 (score, gt) pairs, `label_arr[t]` alignment is correct. C6: these labels are positive in only 215/500 violent XD clips. |
+| `baselines/reference_runs/vlm_eval_future_h5` | violence now or in next 5 s | 0.677 / 0.202 | 0.776 / 0.320 | 0.490 | |
+| `baselines/reference_runs/vlm_eval_future_h10` | now or in next 10 s | 0.672 / 0.206 | 0.776 / 0.327 | 0.484 | |
+| `baselines/reference_runs/vlm_eval_future_h30` | now or in next 30 s (`scripts/build_anticipation_labels.py`) | 0.662 / 0.216 (.131) | **0.772** / 0.341 | 0.476 | Mostly a detection metric, because the label includes current violence |
 
 ### 3H. Other experiment artifacts
 
@@ -238,18 +249,24 @@ Features are VLM embedding plus hashed VLM-teacher tags (actions 64 + weapons 32
 | `results/algorithm_comparison.csv` (`experiments/algorithm_variations.py`, Mar 16) | LR 0.631/0.775; Transformer 0.807/0.524; LR + temporal 0.594/0.637; best SlidingWindow_mean_w5 0.844/0.914 (AUC/AP) | INVALID The table mixes metric types: LR and sliding-window rows are per-video mean AUC over videos with both classes, the Transformer row is pooled. Validation = last 20 % of the first 300 alphabetically sorted `vlm_emb` files. With the current data that is **208 UCF videos → 41 UCF val videos** (inferred). C1. AP > AUC signals a high base rate. |
 | `results/ema_results.csv` (`experiments/ema_smoothing.py`) | score-EMA raw 0.6305, best α=0.9 0.619, α=0.1 **0.372**; embedding-EMA raw 0.465, best α=0.9 0.592 | FLAWED EMA never helps |
 | `results/prompt_engineering.csv` (`experiments/prompt_engineering_stats.py --mode offline`) | `lda_auc` **1.0**, Cohen d 0.233, 358 violent / 6631 non-violent | INVALID In-sample LDA in 3584-d is a guaranteed overfit |
-| `results/lda_calibration_results.txt` (`continuation/lda_calibration_complete.py`) | Every calibration (raw, z-score, percentile, CORAL, relative) has `violence_highest: False, anticipation_rises: False` on the YouTube clip `probe_clip_01` | TRUSTED qualitative: LDA does not transfer to real footage |
+| `results/lda_calibration_results.txt` (`continuation/lda_calibration_complete.py`) | Every calibration (raw, z-score, percentile, CORAL, relative) has `violence_highest: False, anticipation_rises: False` on the YouTube clip `probe_clip_01` | TRUSTED qualitative: LDA does not transfer to real footage. The mean LDA score per hand-labelled phase of `probe_clip_01` falls monotonically, safe > anticipation > violence > post, under every calibration: raw 0.510 / 0.423 / 0.404 / 0.172; z-score 0.888 / 0.860 / 0.845 / 0.364; percentile 0.895 / 0.887 / 0.884 / 0.418; CORAL 0.921 / 0.898 / 0.865 / 0.765; within-video relative 0.722 / 0.697 / 0.688 / 0.427. The XD-fitted LDA direction is inverted on real footage. |
 | `probe_clip_01_scores.npy` / `_embeddings.npy` (197 steps; `scripts/analyze_youtube.py --save_scores/--save_embeddings`) + `analysis_probe_clip_01.png` | Mean score: safe (0–6 s) 0.539, anticipation (7–36 s) 0.678, violence (37–45 s) 0.738, post (46 s+) 0.658, post max **0.767** (higher than during violence) | FLAWED n = 1 real video. The ranking is right on average but the scores are not discriminative and a threshold of 0.5 fires everywhere. |
 | `experiments/output/exp1_person_detection/exp1_results.json` (`run_experiments.py --exp1`) | Baseline AUC 0.832 / AP 0.481, FA/h 8.2. With YOLO person masking: AUC 0.812 / AP 0.479, FA/h 10.3. | FLAWED Person filtering made false alarms worse (23 → 29 FA events). 173 test clips. |
 | `experiments/output/exp2_clip_analysis/exp2_unified_metrics.json` (`--exp2`) | All test clips (XD + UCF): AUC 0.699, AP 0.136, det 33/54, FA/h 9.99, lead 11.0 | FLAWED test-tuned threshold, C1/C2 |
 | `experiments/output/exp3_cross_dataset/exp3_all_results.json` (`--exp3`, retrains LSTMs; weights in `*/best_temporal_model.pt`) | xd_only → XD 0.768, UCF 0.538, both 0.726. ucf_only → XD 0.666, UCF 0.531, both 0.616. combined → XD 0.634, UCF 0.463, both 0.587. | FLAWED Train AUC → 0.99 while val AUC stays 0.49–0.61, which is heavy overfitting. Thresholds are test-tuned. |
 | `outputs/qa_feature_test/summary.json` | Question-answer VLM features, 50/50 clips: logistic test AUC **0.486**, weighted-score AUC 0.596 | FLAWED chance |
 | `logs/lora_train_v2.log` / `lora_train_v2_full.log` (`tuning/lora_finetune_vlm.py`, Feb 23) | Qwen2.5-VL LoRA (23.8 M trainable params): val acc **0.4925 (197/400) in every epoch** while loss falls 10.6 → 3.5. Only "valid=225" of 3600 train samples per epoch. | INVALID Collapsed to a constant answer. Outputs are in `lora_finetuned*/` (outside scope). |
-| `results/xd_investigation/` (`experiments/xd_violence_investigation.py`, Mar 16) | 1000 videos; 136 violent; **4 usable for anticipation**; violence starts at clip position 0.019 on average | TRUSTED dataset diagnosis (C6) |
+| `results/xd_investigation/` (`experiments/xd_violence_investigation.py`, Mar 16) | 1000 videos; 136 violent; **4 usable for anticipation**; violence starts at clip position 0.019 on average | FLAWED dataset diagnosis (C6). Internally inconsistent (e.g. Burglary005: 927 violent frames in a 61-frame video; '1000 videos' is the first N of a sorted rglob). The conclusion (little pre-onset context) is confirmed with correct labels in [data_and_labels.md](data_and_labels.md) section 3 and `benchmark/catalog_summary.json` (112 eligible videos). |
 
 ---
 
 ## 4. Folder-by-folder inventory
+
+Every folder in this section was removed from the working tree in the 2026-10 cleanup, except
+`baselines/reference_runs/{student_fix1,student_fix2,student_mlp,anticipation_prboost_v3,vlm_eval*}`. Tracked files:
+`git checkout pre-cleanup -- <path>`. Ignored weights and arrays (`*.pt`, `*.npy`, `*.npz`, `projected_emb/`):
+`data/archive/repo_legacy/<same path>` until 2027-01-12. The 11 duplicate `scores.npy` (see section 7) and the
+empty folders were deleted.
 
 ### `final/` (Feb 23 – Mar 23 2026; 44 subfolders plus `detection_fa_tradeoff.png`)
 - **comprehensive_eval schema** (`model_config`, `classification_metrics`, `operational_metrics`, `confusion_matrix`, `lead_times`, `event_details`, `threshold_sweep` with θ ∈ {0.1, …, 0.9}). Each folder also has 10 PNGs: roc, pr, score_distribution, confusion_matrix, timeline (first hour), lead_time_histogram, threshold_tradeoff, event_analysis, false_alarm_distribution, summary.
@@ -321,24 +338,38 @@ Features are VLM embedding plus hashed VLM-teacher tags (actions 64 + weapons 32
 - `good_video_indices.npy`: int64 [433], indices into the 772-video list (Feb 25). Related to the lowfa/clean subsets (inferred).
 - `probe_clip_01_*`: see §3H.
 
-### Root `*.pt` (checked by listing pickle keys only; no tensors loaded)
-None of these has a producer script in the repo, recorded metrics, or metadata. They are bare `state_dict`s of a `nn.Sequential` called `net`, with parameterized layers at indices 0/3/6(/9). File sizes imply Linear → activation → Dropout blocks starting with a Linear from 3584-d **(inferred)**. This layout is **not** the `StudentMLP` of `train_student_original.py` or `comprehensive_eval.py`, which starts with a LayerNorm at `net.0`. They were saved 2026-03-02 between 10:33 and 13:35, probably from an interactive session **(inferred)**.
+### Root `*.pt` (archived in the 2026-10 cleanup)
+Ten bare `state_dict`s of an `nn.Sequential` named `net` (Linear, ReLU, Dropout blocks; parameterized layers at
+indices 0/3/6(/9)): 3584-d Qwen2.5-VL embedding in, one logit out. They are not the `StudentMLP` of
+`train_student_original.py`, which starts with a LayerNorm. Exact shapes, read from the zip entry sizes:
 
-| File | Size | Layers | Likely hidden width (inferred from size, assuming 3584-d input) |
-|---|---|---|---|
-| `simple_mlp_model.pt` | 3.74 MB | 3 Linear | 256 |
-| `regularized_mlp.pt` | 0.92 MB | 2 Linear | 64 |
-| `full_dataset_mlp.pt` | 1.86 MB | 3 Linear | 128 |
-| `ucf_crime_mlp.pt` | 3.74 MB | 3 Linear | 256 |
-| `anticipation_mlp.pt` | 3.74 MB | 3 Linear | 256 |
-| `full_anticipation_mlp.pt` | 1.86 MB | 3 Linear | 128 |
-| `backward_anticipation_mlp.pt` | 1.86 MB | 3 Linear | 128 |
-| `filtered_anticipation_mlp.pt` | 3.74 MB | 3 Linear | 256 |
-| `synthetic_anticipation_mlp.pt` | 3.74 MB | 3 Linear | 256 |
-| `best_synthetic_anticipation.pt` | 7.63 MB | 4 Linear | 512 |
-| `yolov8n.pt`, `yolov8m-pose.pt` | 6.5 / 53 MB | — | Ultralytics pretrained weights (detector and pose); used by the pose and person-detection scripts |
+| File | Size | Layers |
+|---|---|---|
+| `simple_mlp_model.pt`, `ucf_crime_mlp.pt`, `anticipation_mlp.pt`, `filtered_anticipation_mlp.pt` | 3.74 MB each | 3584-256-64-1 |
+| `synthetic_anticipation_mlp.pt` | 3.74 MB | 3584-256-64-1, Dropout 0.4 |
+| `full_dataset_mlp.pt`, `full_anticipation_mlp.pt`, `backward_anticipation_mlp.pt` | 1.86 MB each | 3584-128-32-1 |
+| `regularized_mlp.pt` | 0.92 MB | 3584-64-1 |
+| `best_synthetic_anticipation.pt` | 7.63 MB | 3584-512-128-32-1, Dropout 0.3 |
 
-**Treat these as orphaned. They cannot be evaluated or reproduced from the repo.**
+All were produced on 2026-03-02 (saved 10:33 to 13:35) by inline `python -c` sessions, never by a repo script.
+- `synthetic_anticipation_mlp.pt` (Adam lr 1e-4, weight decay 1e-3, 30 epochs, cuda:1) and
+  `best_synthetic_anticipation.pt` (Adam lr 5e-5, 50 epochs; the saved checkpoint is the epoch with the best AUC on
+  the held-out 20 %, i.e. selected on the test split, D5) came from two sessions preserved in `~/.bash_history`.
+  They are extracted verbatim to `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/`. The sessions take a
+  violent segment from `vlm_emb` + `labels_multih` with `labels.max(axis=1) > 0` and `labels[:len(emb)]` (D1, D2;
+  really the 120 s pre-onset window). In front of it they splice a random 30 to 60 step non-violent lead-up cut
+  from a different video. The last 30 lead-up steps plus the segment are labelled 1, and 40 to 100 step non-violent
+  chunks serve as negatives. Frames are split randomly 80/20 at frame level (sklearn, `random_state=42`, leaky),
+  and the model was probed on YouTube `probe_clip_01`. The lead-up has no causal relation to the violence, so the
+  "anticipation" label is noise. No metrics survive.
+- The other eight came from earlier sessions the same morning that rolled out of the 2000-line shell history. No
+  producer or metrics survive. The names suggest UCF-only training (`ucf_crime_mlp`), pooled XD + UCF
+  (`full_dataset_mlp`) and a filtered video subset (`filtered_anticipation_mlp`, possibly `good_video_indices.npy`)
+  **(inferred)**.
+
+All ten were moved to `data/archive/repo_legacy/`. Orphaned; do not reuse.
+`yolov8m-pose.pt` (53 MB) stays in the repo root as the fallback of `anticipation/features/pose.py`. `yolov8n.pt`
+(6.5 MB, used only by legacy `core/extractors.py`) was archived.
 
 ### `best_checkpoints/` (Dec 15 2025) and `checkpoints/` (Dec 18 2025)
 `model_epoch{1..40}.pt` and `model_epoch{1..60}.pt`, 11.9 MB each. Written by `training/train.py` (`checkpoints/model_epoch{N}.pt`): the original Graph Transformer + Temporal Transformer from `README.md` / `configs/training.yaml` (60 epochs). **No metrics files survive for these runs.** `training/evaluate.py --checkpoint` can score them (not run here).
@@ -351,13 +382,13 @@ None of these has a producer script in the repo, recorded metrics, or metadata. 
   - `final/clean_smoothing_sweep`: AUC 0.985 / AP 0.992 / 199 of 200 / 0.0 FA/h / 29.2 s.
   - `outputs/outputs_temporal`: test AUC 0.991.
   - `results/anticipation_prboost_v1`: test AUC 0.942, XD 0.967.
-  - The project's own "recommended" point (`final/detection_fa_tradeoff.png`): 91.9 % detection, 4.87 FA/h, about 24 s lead.
+  - The project's own "recommended" point (`final/detection_fa_tradeoff.png`, now [../figures/legacy_invalid_detection_fa_tradeoff.png](../figures/legacy_invalid_detection_fa_tradeoff.png)): 91.9 % detection, 4.87 FA/h, about 24 s lead.
   - **All of these are invalid** (C1–C5).
-- **Most trustworthy:** `runs/student_fix1` and its siblings on the source_movie split. Test AUC 0.58–0.62 and AP ≤ 0.16 (base 0.081); XD-only test is at chance. Video-level: about 60 % of violent test videos alert within 30 s, with 15–25 % of normal videos false-alarming.
+- **Most trustworthy:** `baselines/reference_runs/student_fix1` and its siblings on the source_movie split. Test AUC 0.58–0.62 and AP ≤ 0.16 (base 0.081); XD-only test is at chance. Video-level: about 60 % of violent test videos alert within 30 s, with 15–25 % of normal videos false-alarming.
 - **Suspicious numbers, with reasons:**
   1. `final/clean_*`, `final/lowfa_eval`: 81 % training videos, 63–70 % positives, normal clips removed.
   2. `outputs/*/final_metrics.json`: test AUC 0.89–0.99 against val 0.53–0.72.
-  3. `final/final_evaluation_lstm_2`: always-on alarm (R = 1.0, Acc = 0.018) that still scores 13/13, 1.46 FA/h and 30 s lead.
+  3. `final/final_evaluation_lstm_2`: always-on alarm (R = 1.0, Acc = 0.018) that still scores 13/13, 1.46 FA/h and 30 s lead. Its summary plot is kept as [../figures/legacy_always_on_alarm_artifact.png](../figures/legacy_always_on_alarm_artifact.png).
   4. `final/late_fusion_*`: audio not time-aligned; always-on fused alarm at 0.08–0.11 FA/h; AUC 0.5 / AP 0.0 fallbacks.
   5. Any "30 s lead": capped by construction and often inherited from an alarm that was already on.
   6. `final/eval_diluted_5pct`: AUC 0.945 with lead 0 on every event; negatives are tiled, noised frames, and pre-event context comes from unrelated footage.
@@ -373,12 +404,12 @@ None of these has a producer script in the repo, recorded metrics, or metadata. 
 ## 6. Baseline a new model must beat, and how to measure it
 
 **Primary honest baseline (beat all of these):**
-- **Protocol:** `training/train_student_original.py --task anticipation --labels_dir data/processed/labels_multih --emb_root data/processed/vlm_emb --split_group source_movie --seed 0 --val_frac 0.1 --test_frac 0.1`. The split is the one recorded in `runs/student_fix1/splits_manifest.json` (groups 1072/134/134, videos 1356/156/158). Target = "violence starts within 30 s" (column 4 of `labels_multih`); in-violence steps are excluded.
-- **Frame-level test:** ROC-AUC **0.622** (best, `outputs/student_mlp`), AP **0.159** (best, `runs/student_fix1`), base rate 0.081. XD-only test AUC **0.56** (best).
+- **Protocol:** `baselines/train_student_original.py --task anticipation --labels_dir data/processed/labels_multih --emb_root data/processed/vlm_emb --split_group source_movie --seed 0 --val_frac 0.1 --test_frac 0.1`. The split is the one recorded in `baselines/reference_runs/student_fix1/splits_manifest.json` (groups 1072/134/134, videos 1356/156/158). Target = "violence starts within 30 s" (column 4 of `labels_multih`); in-violence steps are excluded.
+- **Frame-level test:** ROC-AUC **0.622** (best, `baselines/reference_runs/student_mlp`), AP **0.159** (best, `baselines/reference_runs/student_fix1`), base rate 0.081. XD-only test AUC **0.56** (best).
 - **≥30 s anticipation proxy:** AUC for steps 30–60 s before onset versus steps with no violence within 120 s is **0.62** on test (best, `prboost_v3`) and about 0.50 on XD only.
-- **Video-level at val threshold** (`runs/student_fix1`): 24/40 = **60 %** of violent test videos alerted within [onset − 30 s, onset + 1 s]; **15.3 %** of normal test videos with any false alarm; lead mean **10.0 s**, median 7.8 s, p90 20.7 s. Lead is ≤ 31 s by construction, so **detection at ≥30 s lead is effectively 0 %**.
+- **Video-level at val threshold** (`baselines/reference_runs/student_fix1`): 24/40 = **60 %** of violent test videos alerted within [onset − 30 s, onset + 1 s]; **15.3 %** of normal test videos with any false alarm; lead mean **10.0 s**, median 7.8 s, p90 20.7 s. Lead is ≤ 31 s by construction, so **detection at ≥30 s lead is effectively 0 %**.
 
-**No-training reference:** the zero-shot Qwen2.5-VL-7B teacher score reaches XD frame AUC **0.77–0.78** (`results/vlm_eval*`). Its target is detection-ish (current violence or within 30 s), but no training is involved. A trained anticipation model that cannot beat this on a leak-free XD split adds nothing.
+**No-training reference:** the zero-shot Qwen2.5-VL-7B teacher score reaches XD frame AUC **0.77–0.78** (`baselines/reference_runs/vlm_eval*`). Its target is detection-ish (current violence or within 30 s), but no training is involved. A trained anticipation model that cannot beat this on a leak-free XD split adds nothing.
 
 **Legacy comparison only:** on `simulation_data/xd_violence_8hr_sim.npz` with `sim/comprehensive_eval.py`, the bar is:
 - AUC **0.853** / AP **0.242** (VLM student `runs/outputs_xd/best_model.pt`).
@@ -397,19 +428,18 @@ This set has C1/C2/C3/C5 problems, so use it only to show continuity with old re
 
 ## 7. Reusable assets
 
+After the 2026-10 cleanup only the honest runs stay in the repo; leaky or chance-level artifacts were archived (last row).
+
 | Asset | Path | Shape / size | Notes |
 |---|---|---|---|
-| Re-scorable predictions with GT (val + test) | `runs/student_fix1/per_sample.csv` (12,997 rows), `runs/student_fix2/per_sample.csv`, `outputs/student_mlp/per_sample.csv`, `results/anticipation_*/per_sample.csv` | CSV `split, vid_id, source, t, gt, pred_prob_raw, pred_prob_ema` | `t` indexes `labels_multih` rows, so it can be joined with any horizon column. This is how the bucket AUCs above were computed. |
-| Leak-free split manifest | `runs/student_fix1/splits_manifest.json` | JSON with `groups.{train,val,test}` (≤ 5000 names each) | `source_movie` grouping; copy it for new experiments |
-| Student MLP weights | `runs/student_fix1/best.pt`, `outputs/student_mlp/best.pt`, `results/anticipation_*/best.pt` | StudentMLP (`LayerNorm(in) → Linear 256 → GELU → Dropout → Linear 256 → GELU → Dropout → Linear K`); K = 7 for multi-horizon runs, 1 for `preonly` runs | `in_dim` 3744 / 3746 / 4034 |
-| Temporal LSTM checkpoints | `outputs/outputs_temporal*/best_temporal_model.pt`, `outputs_fused/best_temporal_model.pt`, `experiments/output/exp3_cross_dataset/*/best_temporal_model.pt` | dict `{model_state_dict, args, …}` | Trained with C1 labels; reuse with caution |
-| VLM student | `runs/outputs_xd/best_model.pt` etc. | VLMStudentModel | C1 labels |
-| Contrastive projected embeddings | `results/contrastive_results/projected_emb/xd_violence/*.npz`, `outputs/contrastive_v3/projected_emb/xd_violence/*.npz` | 772 files each, `emb [E,256] float16`, about 22 MB | Projection heads were trained on the train index only, but with C1 labels |
-| Test-set projected embeddings | `outputs/contrastive_v1/test_projected.npz` | `embeddings [6781,256]`, `labels`, `scores` | |
-| Saved score traces | `final/high_sensitivity/scores.npy` [47,310], `final/smoothing_sweep/scores.npy` [47,310], `final/clean_smoothing_sweep/scores.npy` [14,052], `final/late_fusion_*/predictions.npz` | float32 | Align with the corresponding `simulation_data/*.npz` |
-| Real-world probe clip | `probe_clip_01_embeddings.npy` [197,3584] float32, `probe_clip_01_scores.npy` [197] | | Hand ground truth in `YT_LABELS` of `continuation/lda_calibration_complete.py`: 0–6 s safe, 7–36 s anticipation, 37–45 s violence, 46 s+ post |
-| Zero-shot teacher per-video scores | `results/vlm_eval*/per_video.csv` | CSV | Baseline reference |
-| Pretrained YOLO | `yolov8n.pt`, `yolov8m-pose.pt` | 6.5 / 53 MB | For person and pose features |
+| Re-scorable predictions with GT (val + test) | `baselines/reference_runs/{student_fix1,student_fix2,student_mlp,anticipation_prboost_v3}/per_sample.csv` (`student_fix1`: 12,997 rows) | CSV `split, vid_id, source, t, gt, pred_prob_raw, pred_prob_ema` | `t` indexes `labels_multih` rows, so it can be joined with any horizon column. This is how the bucket AUCs above were computed. The leaky random-split runs are recoverable with `git checkout pre-cleanup -- results/<name>`. |
+| Leak-free split manifest | `baselines/reference_runs/student_fix1/splits_manifest.json` | JSON with `groups.{train,val,test}` (≤ 5000 names each) | `source_movie` grouping; identical in all four honest runs |
+| Student MLP weights | `baselines/reference_runs/{student_fix1,student_fix2,student_mlp,anticipation_prboost_v3}/best.pt` (backup with `MD5SUMS` in `data/archive/baseline_weights/`) | dict `{model, in_dim}`; StudentMLP (`LayerNorm(in) → Linear H → GELU → Dropout → Linear H → GELU → Dropout → Linear 7`) | `in_dim` 3744 and H 256 (`student_fix1`, `student_mlp`); `in_dim` 4034 and H 512 (`student_fix2`, `prboost_v3`) |
+| Saved score traces | `final/smoothing_sweep/scores.npy` [47,310], `final/clean_smoothing_sweep/scores.npy` [14,052], `final/late_fusion_*/predictions.npz`, now under `archive/repo_legacy/final/`. `final/high_sensitivity/scores.npy` and the 10 `final/smoothing_w*/scores.npy` were byte-identical to `final/smoothing_sweep/scores.npy` (md5 `dfa2ce21fb8bb904ce3bd6ec2be9c638`, the BiLSTM scores on `vlm_matched` before smoothing) and were deleted. | float32 | Align with the corresponding `simulation_data/*.npz` |
+| Real-world probe clip | `data/archive/repo_legacy/probe_clip_01_embeddings.npy` [197,3584] float32, `.../probe_clip_01_scores.npy` [197] | | Hand ground truth in `YT_LABELS` of the removed `continuation/lda_calibration_complete.py` (`git show pre-cleanup:continuation/lda_calibration_complete.py`): 0–6 s safe, 7–36 s anticipation, 37–45 s violence, 46 s+ post |
+| Zero-shot teacher per-video scores | `baselines/reference_runs/vlm_eval*/per_video.csv` | CSV | Baseline reference |
+| Pretrained YOLO | `yolov8m-pose.pt` (repo root, 53 MB) | | Fallback of `anticipation/features/pose.py`. `yolov8n.pt` (6.5 MB, legacy `core/extractors.py` only) was archived; Ultralytics re-downloads it if missing. |
+| Legacy weights (do not reuse) | `data/archive/repo_legacy/<old path>`: Temporal LSTM checkpoints (`outputs/outputs_temporal*/`, `outputs_fused/`, `experiments/output/exp3_cross_dataset/*/`), VLM students (`runs/outputs*/best_model.pt`), contrastive heads and projected embeddings, leaky StudentMLP `results/anticipation_*/best.pt` | | C1 labels and/or leaky splits. Kept until 2027-01-12. |
 
 ---
 
@@ -432,7 +462,7 @@ for f in sorted(glob.glob('final/*/metrics.json')):
 # 2) Per-source / per-bucket AUC from a student run
 import pandas as pd, numpy as np
 from sklearn.metrics import roc_auc_score
-df = pd.read_csv('runs/student_fix1/per_sample.csv'); s = df[df['split'] == 'test']
+df = pd.read_csv('baselines/reference_runs/student_fix1/per_sample.csv'); s = df[df['split'] == 'test']
 Y = np.stack([np.load(f'data/processed/labels_multih/{v}.npy')[t] for v, t in zip(s['vid_id'], s['t'])])
 pos = (Y[:, 5] > 0) & (Y[:, 4] <= 0)   # 30-60 s before onset
 neg = (Y[:, 6] == 0)                   # no violence within 120 s

@@ -1,5 +1,10 @@
 # Simulation and Evaluation Protocol
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Scope: `sim/*.py`, `continuation/*.py`, `scripts/evaluate_with_smoothing.py`, `experiments/*.py`,
 `experiments/README.md`, `experiments/run_all_experiments.sh`.
 

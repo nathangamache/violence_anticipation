@@ -1,5 +1,10 @@
 # VLM / LLM approaches (Qwen2.5-VL teacher, embeddings, QA features, LoRA, LLM text head)
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Audience: future AI agents and developers who need to understand or reuse the vision-language-model (VLM)
 and text-LLM parts of this repo. Everything below was checked against the code and the files on disk on
 2026-10-14 unless it is marked **(inferred)**.
@@ -43,7 +48,7 @@ Repo root: `.` (paths below are relative to it).
 
 | Model | Where | Used by | Notes |
 |---|---|---|---|
-| Qwen2.5-VL-7B-Instruct | `models/Qwen2.5-VL-7B-Instruct` (local) and HF cache `models--Qwen--Qwen2.5-VL-7B-Instruct` | `vlm/qwen_teacher.py`, `tuning/lora_finetune_vlm.py`, `tuning/question_analysis/*`, `realtime/rtsp_inference.py`, `scripts/analyze_youtube.py`, `curate_anticipation_dataset.py`, `experiments/fast_analyze_curation.py`, `experiments/prompt_engineering_stats.py` | hidden_size 3584, vision tower hidden 1280 → merger out 3584. `image_token_id` 151655, `vision_start_token_id` 151652. Preprocessor `max_pixels` 12,845,056, so full-res frames become thousands of visual tokens. |
+| Qwen2.5-VL-7B-Instruct | `models/Qwen2.5-VL-7B-Instruct` (local) and HF cache `models--Qwen--Qwen2.5-VL-7B-Instruct` | `vlm/qwen_teacher.py`, `tuning/lora_finetune_vlm.py`, `tuning/question_analysis/*`, `realtime/rtsp_inference.py`, `scripts/analyze_youtube.py`, `setup/curate_youtube.py`, `experiments/fast_analyze_curation.py`, `experiments/prompt_engineering_stats.py` | hidden_size 3584, vision tower hidden 1280 → merger out 3584. `image_token_id` 151655, `vision_start_token_id` 151652. Preprocessor `max_pixels` 12,845,056, so full-res frames become thousands of visual tokens. |
 | Qwen2.5-VL-3B-Instruct | HF cache only | none found in code | (inferred) downloaded for experiments |
 | Qwen2.5-7B-Instruct (text) | HF cache only | none hard-coded | (inferred) may have produced `llm_data/val_seq_preds_qwen.jsonl`, provenance unknown |
 | Qwen2.5-3B-Instruct (text) | **not present locally** | `llm/llm_embedder.py`, `llm/llm_head_infer*.py`, `realtime/pipeline.py` | `llm_head_infer_seq.py` defaults to `models/Qwen2.5-3B-Instruct`, which does not exist, so it would fail |
@@ -142,7 +147,7 @@ This matches how the label files are indexed, since labels are per *graph timest
 | Dir | Files | Content / provenance |
 |---|---|---|
 | `vlm_labels_old/` + `vlm_emb_old/` (2026-01-29) | 949 ucf + 772 xd | 78,236 records, 44 parse failures, no context/prompt fields. Embeddings are **unnormalised** (norm about 293) and nearly identical across frames (within-video cosine 0.999). Inferred to be the earliest version, which mean-pooled over the whole sequence so the prompt tokens dominated. That is exactly what the docstring of `_extract_embedding` warns against. **Do not use these embeddings.** |
-| `vlm_labels_meanpool/` + `vlm_emb_meanpool/` (2026-02-09) | 949 + 772 | The JSONL is 195 of 200 files byte-identical to `_old`. The embeddings are L2-normalised and different. Inferred: mean over all attended tokens. Used by `outputs/student_mlp` (training area). |
+| `vlm_labels_meanpool/` + `vlm_emb_meanpool/` (2026-02-09) | 949 + 772 | The JSONL is 195 of 200 files byte-identical to `_old`. The embeddings are L2-normalised and different. Inferred: mean over all attended tokens. Used by `baselines/reference_runs/student_mlp` (training area). |
 | `vlm_labels/` + `vlm_emb/{ucf_crime,xd_violence}` (2026-02-16) | 949 + 772 | 78,236 records, `context_mode="both"`, no `prompt_mode` field (so the default/context-aware prompt from an older script version; inferred), 2 parse failures. Keys: `violent, people_count, actions, weapons, scene, temporal_change, notes`. Embeddings `[N,3584]` fp16, norm 1. Inferred to pool the current frame plus one previous frame's image tokens (see §2.2). **This is the default `vlm_emb` used by most later scripts.** |
 | `vlm_labels_violence/` + `vlm_emb_violence/` (2026-02-20) | 949 + 772 | `prompt_mode=violence_embedding`, `context_mode=none`. Keys: `violent, aggression_level, threat_indicators, body_language, actions, weapons, people_count, scene`. Contains duplicate records (see above). Log: `logs/gpu0_final_scan.log`. |
 | `vlm_emb/curated/` | 92 | **Different schema:** `emb` [N,3584] fp16, `t` int64, `raw_frame_idx` int64, `timestamps` float64, `scores` float32 (LSTM scores). Written by `experiments/fast_analyze_curation.py` (§8). Careful: any `rglob("*.npz")` over `vlm_emb/` also picks these up. |
@@ -156,13 +161,13 @@ Within-video cosine between *different* frames is about 0.95 to 0.97 for every u
 
 ## 4. `scripts/eval_vlm_teacher.py` (how good is the zero-shot teacher?)
 
-**Run:** `.venv/bin/python scripts/eval_vlm_teacher.py --jsonl_root data/processed/vlm_labels --labels_dir data/processed/labels --out_dir results/vlm_eval [--skip_parse_failed]`
+**Run:** `.venv/bin/python scripts/eval_vlm_teacher.py --jsonl_root data/processed/vlm_labels --labels_dir data/processed/labels --out_dir baselines/reference_runs/vlm_eval [--skip_parse_failed]`
 
 It pairs each JSONL record's score (`violent.score`, falling back to label yes→1, no→0, otherwise 0.5) with `labels/<vid>.npy[t] >= gt_thresh`.
 It reports global ROC-AUC and PR-AUC, sweeps the F1 threshold (the best threshold is chosen *on the same data*, which is optimistic), compares against an always-positive baseline,
 and writes per-source and per-video CSVs plus plots. Records without a numeric/label score are skipped (`skip_no_score`).
 
-**Stored results** (`results/vlm_eval*/summary.json`). They were computed when `data/processed/vlm_labels` held what is now `vlm_labels_old`
+**Stored results** (`baselines/reference_runs/vlm_eval*/summary.json`). They were computed when `data/processed/vlm_labels` held what is now `vlm_labels_old`
 (the counts match: 44 parse_failed, 15,612 no-score, 62,580 pairs):
 
 | labels_dir | ROC-AUC | PR-AUC | best F1 (thr) | always-pos F1 | UCF AUC | XD AUC |
@@ -214,6 +219,9 @@ Speed was about 2.7 it/s (22 min per epoch on one GPU) and evaluation took about
 
 The `worker_0/` and `worker_1/` folders are empty, so a 2-worker attempt never finished. Each folder has `best_model/`, `final_model/` (adapter plus processor files) and `checkpoint_epoch*/`.
 The `README.md` files in the adapter folders are the empty PEFT model-card template (39 "More Information Needed" fields) and carry no information.
+`lora_finetuned_v2/best_model`'s adapter files are byte-identical to `checkpoint_epoch1` (`best_model` also carries the tokenizer/processor files), consistent with val accuracy never moving.
+In the 2026-10 cleanup every adapter (`best_model`, `final_model`, all `checkpoint_epoch*`) and the history files
+were moved to `archive/repo_legacy/lora_finetuned*/`; the empty `worker_*` folders were deleted.
 
 **Why the LoRA results are meaningless (verified by reading the code and data):**
 1. **The eval feeds the answer to the model.** `val_loader` uses the same `collate_fn_simple`, which builds `input_ids` from `prompt + target`.
@@ -325,8 +333,8 @@ In other words the teacher "disagrees" with the ground truth where the ground tr
 | Place | Teacher output used as | Status / risk |
 |---|---|---|
 | `scripts/vlm_build_student_dataset.py` | **Targets**: `y_violent` (from `violent` label/score, with "yes"→max(score,.5), "no"→min(score,.5), else .5), `y_people` (clipped 0..10), multi-hot `y_actions/y_weapons/y_scenes` (vocabularies built from train+val records, min_count 10). **Inputs**: graph frame features `[1 + 2*node_dim + scene(512) + audio(64)]` (node mean and max). | This is true distillation (graph features → VLM). `data/processed/student/` **does not exist** and nothing reads `*_student.npz` or `vocabs.json`. **Dead code.** It is also slow, because it reloads the full graph `.npy` for every record. |
-| `training/train_student_original.py` (training area) | **Inputs only**: the embedding plus, optionally, `violent.score`, people_count, hashed multi-hot actions/weapons/scene/notes. Targets are the GT `labels_dir`. | No circularity. Example output: `outputs/student_mlp/metrics.json` (`vlm_emb_meanpool` + `vlm_labels_meanpool`, `labels_multih`, feature_dim 3744, split by movie/source). Test ROC-AUC 0.622 and PR-AUC 0.151 at the 30 s horizon (val AUC 0.763). |
-| `curate_anticipation_dataset.py analyze` | **Labels**: the first frame with `stage=="violence"` from the `anticipation_simple` prompt becomes `violence_start_second`, and the first `tension/escalation` becomes `escalation_start_second`. | Superseded (see next row). |
+| `baselines/train_student_original.py` (training area) | **Inputs only**: the embedding plus, optionally, `violent.score`, people_count, hashed multi-hot actions/weapons/scene/notes. Targets are the GT `labels_dir`. | No circularity. Example output: `baselines/reference_runs/student_mlp/metrics.json` (`vlm_emb_meanpool` + `vlm_labels_meanpool`, `labels_multih`, feature_dim 3744, split by movie/source). Test ROC-AUC 0.622 and PR-AUC 0.151 at the 30 s horizon (val AUC 0.763). |
+| `setup/curate_youtube.py analyze` | **Labels**: the first frame with `stage=="violence"` from the `anticipation_simple` prompt becomes `violence_start_second`, and the first `tension/escalation` becomes `escalation_start_second`. | Superseded (see next row). |
 | `experiments/fast_analyze_curation.py` | **Labels**: VLM embeddings (`infer_embedding_only`, prompt `violence_embedding`) are scored by the LSTM `outputs/outputs_temporal/best_temporal_model.pt`, then thresholded (violence ≥0.75, tension ≥0.3) to give the stage timeline and violence/escalation start times. | **This produced all 92 analysed candidates** in `data/anticipation_curation/candidates.json` (each `stage_timeline` entry has `raw_score/score/stage`; notes like `max_score=…, analyzed_at_fps=0.5`). There is no human-verification field. 47 are flagged `has_violence`, and 34 have an anticipation window ≥10 s. **Any model trained or evaluated on these timestamps with VLM-embedding features learns to reproduce the old LSTM. That is circular, and the labels are pseudo-labels, not ground truth.** |
 | `scripts/eval_vlm_teacher.py` | The teacher is compared *against* GT | Fine, but the GT itself is noisy (§7). |
 
@@ -373,7 +381,7 @@ In other words the teacher "disagrees" with the ground truth where the ground tr
 |---|---|---|---|
 | VLM frame embeddings (current default) | `data/processed/vlm_emb/{ucf_crime,xd_violence}/<vid>.npz` | 1721 videos, `emb` fp16 [N≈T/5, 3584], `t`, `raw_frame_idx`; about 487 MB | L2-normalised image-token pool (inferred to include the previous frame). Index labels with `t` (graph timestep). |
 | VLM embeddings, single frame | `data/processed/vlm_emb_violence/...` | same shapes | Pure current-frame pool (context none). This is the cleanest to match at inference via `QwenTeacher.infer_embedding_only`. |
-| VLM embeddings, mean-pool | `data/processed/vlm_emb_meanpool/...` | same shapes | Used by `outputs/student_mlp`. |
+| VLM embeddings, mean-pool | `data/processed/vlm_emb_meanpool/...` | same shapes | Used by `baselines/reference_runs/student_mlp`. |
 | Teacher JSON per frame | `data/processed/vlm_labels*/.../<vid>.jsonl` | ~78k frames per variant | `violent.score` is a free zero-shot detector feature (AUC ~0.67). Actions, weapons, scene and notes are usable as weak text features. Deduplicate by `(vid,t)`. |
 | VLM + audio concat | `data/processed/vlm_audio_features/xd_violence/` | 772 videos, 3675-d | XD only. |
 | Curated YouTube embeddings | `data/processed/vlm_emb/curated/*.npz` | 92 videos, includes `timestamps`, `scores` | Labels are pseudo-labels. Use them only after human annotation. |

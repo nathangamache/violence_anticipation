@@ -1,5 +1,10 @@
 # Data, Datasets, Labels and Splits
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Audience: future AI agents and developers who need to reuse the data in this repo to build a new
 violence-anticipation model (goal: predict violence 30+ s before it starts).
 
@@ -48,7 +53,7 @@ disk (Oct 2026). Anything not directly verified is marked **(inferred)**.
      `sim/create_ucf_crime_simulation.py`, `tuning/contrastive_projection.py` etc. pair embedding `i`
      with label row `i` (`labels[:min_len]`) instead of label row `t[i]`. 15% of XD embedding steps
      get the wrong label and the number of positive steps nearly doubles. Only
-     `training/train_student_original.py` indexes labels by `t` correctly.
+     `baselines/train_student_original.py` indexes labels by `t` correctly.
   3. Those same loaders collapse `[T,7]` with `max(axis=1) > 0`, i.e. they train on the **120 s**
      horizon (not 30 s) and turn the `-1` "inside violence" steps into **negatives**.
   4. 357 UCF videos in violent categories (Abuse/Arrest/Assault/Fighting/Robbery/Shooting) without
@@ -79,8 +84,9 @@ data/        (= <repo>/data)
 
 Repo-root data-ish files: `train_index.json` (1438 items), `val_index.json` (180), `test_index.json`
 (180), `eval_index.json` (identical to test), `good_video_indices.npy` (433 sorted ints, max 766,
-**no code references it**; provenance unknown). `test_video.mp4` at repo root is byte-identical to
-`anticipation_curation/videos/holdout_025.mp4`. `.gitignore` excludes `*.npy`, `*.npz`, `*.mp4`, so
+**no code references it**; provenance unknown). `test_video.mp4` at repo root was byte-identical to
+`anticipation_curation/videos/holdout_025.mp4` and was deleted as a duplicate in the 2026-10 cleanup; the same clip is
+`data/anticipation_curation/videos/holdout_025.mp4`. `.gitignore` excludes `*.npy`, `*.npz`, `*.mp4`, so
 `good_video_indices.npy` and all features/videos are not in git.
 
 Hard-coded paths: almost all setup/preprocessing scripts use
@@ -154,9 +160,9 @@ Audio: 862/1000 files have an audio stream, but a random sample of 16 showed 14 
 
 ### 2.4 Curated YouTube escalation set (`anticipation_curation/`)
 
-* Produced by `curate_anticipation_dataset.py search` + `download` (YouTube Data API key read from
+* Produced by `setup/curate_youtube.py search` + `download` (YouTube Data API key read from
   `.env` `YOUTUBE_API_KEY`, or yt-dlp search fallback), then analyzed by
-  `experiments/fast_analyze_curation.py` (NOT by `curate_anticipation_dataset.py analyze`; the stored
+  `experiments/fast_analyze_curation.py` (NOT by `setup/curate_youtube.py analyze`; the stored
   timeline schema `{frame,timestamp,stage,score,raw_score}` and stage names `ramp_up`/`aftermath`
   only exist in `fast_analyze_curation.py`).
 * `candidates.json`: 97 candidates (created 2026-03-22), 92 downloaded, 5 failed. Duration 241-586 s
@@ -417,7 +423,7 @@ So almost all >= 30 s examples are in train; val/test can not measure 30 s antic
   in place (seed 42). Superseded.
 * `tools/check_split_overlap.py` - checks clip-id overlap of train/val/eval (exact names only;
   passes, but does not detect source-level leakage).
-* `training/train_student_original.py` builds its own split with `--split_group source_movie`
+* `baselines/train_student_original.py` builds its own split with `--split_group source_movie`
   (default) - groups by `source/<part before __#>`, which **does** prevent movie-level leakage.
   It also indexes labels by the npz `t` array (correct alignment). `results/anticipation_preonly_*`
   (447/56/56 videos) appear to come from it (inferred from the metrics.json fields).
@@ -440,7 +446,7 @@ So almost all >= 30 s examples are in train; val/test can not measure 30 s antic
 
 ### Repo root
 
-* `curate_anticipation_dataset.py` - YouTube search/download/analyze/filter/export pipeline for
+* `setup/curate_youtube.py` - YouTube search/download/analyze/filter/export pipeline for
   escalation videos. Subcommands `search` (`--api_key` or `YOUTUBE_API_KEY`), `download`, `analyze`
   (slow Qwen text generation, `prompt_mode=anticipation_simple`), `filter --min_anticipation 10`
   (writes `filtered_candidates.json`), `export` (writes `annotations.json/csv`), `status`.

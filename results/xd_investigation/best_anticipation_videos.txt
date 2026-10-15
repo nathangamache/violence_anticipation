@@ -1,8 +1,0 @@
-# Videos with sufficient pre-violence context for anticipation training
-# Minimum pre-violence window: 5 frames
-# Format: video_name  previolence_frames  total_frames  violence_pct
-
-Burglary005_x264	43	61	29.5
-Black.Hawk.Down.2001__#01-32-40_01-34-00_label_B4-0-0	31	44	29.5
-Explosion043_x264	30	54	44.4
-Shooting046_x264	22	57	61.4

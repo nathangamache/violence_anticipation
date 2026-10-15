@@ -1,6 +1,8 @@
 # Repository cleanup plan
 
-Status: **PLAN ONLY. Nothing has been moved, deleted or edited.** Written 2026-10-14 from four read-only area audits
+Status: **EXECUTED on 2026-10-14** (step 1 commit and tag by the lead; steps 0 and 2 to 11 and the checks of
+step 12 by the cleanup agent; the step 12 commit and push are left to the lead). The owner's amendments in
+section 0 override the plan below wherever they disagree. Plan written 2026-10-14 from four read-only area audits
 (root files; weight and generated-data folders; result folders; legacy source folders) plus a regret check, merged
 here with every conflict resolved. Sizes come from `du`, tracked status from `git ls-files` / `git check-ignore`,
 duplicates from `md5sum` / `cmp`.
@@ -21,6 +23,58 @@ Three things must happen before anything else (details in section 5, steps 0 and
    `rm` would destroy them beyond recovery. Commit them, then tag that commit `pre-cleanup`.
 3. **Pause other agents** working in this repo while the plan runs. `benchmark/results/` was being written at 20:00
    on 2026-10-14.
+
+---
+
+## 0. Execution record and amendments (2026-10-14)
+
+Amendments from the owner and lead, applied during execution:
+
+1. **Nothing unique is deleted.** The plan's DELETE_UNTRACKED and DOCUMENT_THEN_REMOVE items that are unique data
+   were archived instead of removed: all 97 intermediate gen-1 epochs (D2, D3; the whole `checkpoints/` and
+   `best_checkpoints/` folders) and all 8 LoRA per-epoch adapters (`lora_finetuned/checkpoint_epoch{1,2,3}`,
+   `lora_finetuned_v2/checkpoint_epoch{1..5}`). Deleted outright, each after an md5 check where a kept copy exists:
+   `test_video.mp4` (md5 `6f23c7b689d52397fb19c91b63753093`, same as `data/anticipation_curation/videos/holdout_025.mp4`),
+   the 11 duplicate `final/*/scores.npy` (md5 `dfa2ce21fb8bb904ce3bd6ec2be9c638`, same as the archived
+   `final/smoothing_sweep/scores.npy`), the empty `.part`/`.ytdl` stubs, empty folders (`lora_finetuned/worker_{0,1}`,
+   `snapshots/`, `.locks/`, three empty `final/` runs) and `__pycache__`/`.pytest_cache`.
+2. **`youtube_cookies.txt` was not deleted.** It moved to `<cookies file outside the repo>` (directory mode 700,
+   file mode 600, md5 checked); [DATA_ACQUISITION.md](DATA_ACQUISITION.md) section 2 records the path.
+3. **No chmod on data directories.** The "mode 777" reading below came from `ls -l` on the symlink
+   `~/data` (symlinks always show `lrwxrwxrwx`). Its target `<data volume> is
+   755, and `archive/`, `archive/repo_legacy/` and `archive/baseline_weights/` are 755 with `go-w` on their contents.
+4. **Grace period 90 days: purge date 2027-01-12**, recorded in `archive/repo_legacy/README.md` (that file replaces
+   the plan's `README.txt`), in [README.md](README.md) section 8, in `legacy/README.md` and in the `docs/codebase/` banners.
+5. Open questions: Q4 `baselines/reference_runs/` as planned; Q5 `yolov8m-pose.pt` stays in the repo root; Q6
+   `setup/curate_youtube.py` as planned; Q9 the benchmark parquet files were committed in step 1; Q11 `docs/codebase/`
+   stays in place with the pre-cleanup banner; Q13 `requirements.txt` was regenerated from the imports of
+   `anticipation/`, `baselines/`, `setup/`, `tools/`, `tests/`, pinned to the `.venv` versions.
+
+What happened, with sizes:
+
+| Action | Files | Size | Where |
+|---|---|---|---|
+| Synthetic-MLP sessions extracted from `~/.bash_history` (lines 20-207, 209-386, unchanged) | 2 | 12 KB | `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/` (mode 600) |
+| Trusted weights backed up | 4 | 26 MB | `archive/baseline_weights/` (+ `MD5SUMS`) |
+| KEEP relocated with `git mv` | 93 tracked + 4 ignored `best.pt` | 9.4 MB + 26 MB | `baselines/` (train_student_original.py, 8 reference runs) |
+| `curate_anticipation_dataset.py` renamed | 1 | 28 KB | `setup/curate_youtube.py` |
+| Figures kept for docs (D5, D7 copies; D8 `git mv`) | 4 | 0.27 MB | `docs/figures/` |
+| LEGACY_CODE `git mv` | 31 | 0.54 MB | `legacy/` (+ new `legacy/README.md`) |
+| Ignored artifacts archived (plan list + amendment 1), md5-verified (`ARCHIVE_OK`) | 1,791 (+ 2 JSON copies) | 6.14 GB | `archive/repo_legacy/` (`ARCHIVE_LIST.txt`, 76 entries; `MD5SUMS`) |
+| Tracked files removed with `git rm` | 840 | 62.1 MB | recover with `git checkout pre-cleanup -- <path>` |
+| Deleted (duplicates, stubs, empty dirs, caches) | 14 files + caches | 23 MB | none (see amendment 1) |
+
+`archive/` is `data/archive/`. Working tree without `.venv/` and `.git/`:
+108 MB after the cleanup. `git status` shows 838 deletions because rename detection pairs two of the 840 removed
+files with their identical copies in `docs/figures/`. Optional step 11 item 8 (the docstring path in
+`anticipation/features/pose.py`) was not applied, because the feature-extraction run was reading `anticipation/`
+at the time.
+
+Incident during review: running `legacy/setup/build_xdviolence_metadata.py --help` (the script takes no arguments)
+regenerated `data/metadata/xd_violence.json` at 2026-10-14 21:08:30 (new md5 `360644296ea8c48d62eb18b831afdaee`).
+No earlier copy exists to compare byte for byte. Its inputs (`raw_videos/xd_violence/annotations.txt`, `videos/`)
+are unchanged since 2025-11-18. The new file has the documented 798 entries and 226 label=1, and its fps and
+total_frames match `benchmark/videos.csv` for all 798 clips. `legacy/README.md` now warns against running it.
 
 ---
 
@@ -254,8 +308,8 @@ Code (all superseded, broken or documented as invalid; facts in docs/codebase/*.
 |---|---|---|---|
 | `test_video.mp4` | 20 MB | U | yt-dlp test download, byte-identical (md5 `6f23c7b6...`) to `data/anticipation_curation/videos/holdout_025.mp4`. Docs that use it as a smoke-test clip should point to the curated copy. |
 | `test_holdout_025.mp4.part`, `test_holdout_025.mp4.ytdl` | 50 B | U | Empty partial download and resume stub from the failed first attempt. |
-| `youtube_cookies.txt` | 1.2 KB | U | Live Google session cookies (expiry 2026-11/12), mode 664 on a shared server. Its only consumer is removed. Never archive it (the archive tree's parent is mode 777). If future yt-dlp work needs cookies, export fresh ones into a `chmod 600` file outside the repo. |
-| `lora_finetuned_v2/checkpoint_epoch{1..5}/` | 455 MB | U | Per-epoch adapters of a collapsed run (val acc 0.4925 every epoch). `checkpoint_epoch1` is byte-identical to `best_model` (archived). |
+| `youtube_cookies.txt` | 1.2 KB | U | Live Google session cookies (expiry 2026-11/12), mode 664 on a shared server. Its only consumer is removed. Never archive it. If future yt-dlp work needs cookies, export fresh ones into a `chmod 600` file outside the repo. **Amended (section 0): moved to `<cookies file outside the repo>`, not deleted.** |
+| `lora_finetuned_v2/checkpoint_epoch{1..5}/` | 455 MB | U | Per-epoch adapters of a collapsed run (val acc 0.4925 every epoch). `checkpoint_epoch1`'s adapter files are byte-identical to `best_model`'s (`best_model` also carries the tokenizer/processor files; archived). |
 | `lora_finetuned/checkpoint_epoch{1,2,3}/`, `lora_finetuned/worker_0/`, `worker_1/` | 29 MB | U | Intermediate v1 adapters (documented in vlm_and_llm.md 5); `worker_*` are empty. |
 | `final/{final_evaluation_student_mlp, late_fusion_optimization, smoothing_w3_t0.3}/` | 0 | U | Empty dirs from failed runs. |
 | `snapshots/` | 0 | U | Empty; `rtsp_inference.py` recreates it on demand. |
@@ -406,8 +460,8 @@ Also update `docs/codebase/results_inventory.md` sections 0 and 5, which cite `f
   "Internally inconsistent (e.g. Burglary005: 927 violent frames in a 61-frame video; '1000 videos' is the first N of
   a sorted rglob). The conclusion (little pre-onset context) is confirmed with correct labels in
   [data_and_labels.md](data_and_labels.md) section 3 and `benchmark/catalog_summary.json` (112 eligible videos)."
-- `docs/codebase/vlm_and_llm.md` section 5: "`lora_finetuned_v2/best_model` was byte-identical to
-  `checkpoint_epoch1`, consistent with val accuracy never moving. Per-epoch adapters were deleted in the 2026-10
+- `docs/codebase/vlm_and_llm.md` section 5: "`lora_finetuned_v2/best_model`'s adapter files are byte-identical to
+  `checkpoint_epoch1` (`best_model` also carries the tokenizer/processor files), consistent with val accuracy never moving. Per-epoch adapters were deleted in the 2026-10
   cleanup; `best_model`, `final_model` and the history files are in `archive/repo_legacy/lora_finetuned*/`."
 - `docs/codebase/realtime_and_misc.md` (lines 5, 51, 191, 372-373, 498) and `docs/codebase/data_and_labels.md`
   (lines 81-84): `test_video.mp4` was deleted as a duplicate; the same clip is
@@ -813,8 +867,8 @@ the owner wants. Never delete `archive/baseline_weights/`.
 2. **`youtube_cookies.txt`.** Delete it (planned), or move it to a `chmod 600` file outside the repo for future
    yt-dlp work, for example re-downloading curated or age-restricted videos? It held live Google session cookies and
    was readable by every user for 11 months. Consider signing that account out of other sessions.
-3. **`~/data` is mode 777** without the sticky bit, so any server user can rename or delete
-   entries in it, including the archive. Tighten it to 755, unless the 777 mode is intentional for sharing?
+3. **Resolved, no action needed.** The "mode 777" reading came from the symlink `~/data`; its
+   target `<data volume> is 755 (section 0, amendment 3).
 4. **Reference-run location.** The plan moves the honest runs and the teacher evals to `baselines/reference_runs/`
    (cleaner root, about 60 path rewrites done by `sed`). The alternative is to leave `runs/`, `outputs/` and
    `results/` in place with only the honest folders, which needs fewer doc edits but keeps three confusing top-level

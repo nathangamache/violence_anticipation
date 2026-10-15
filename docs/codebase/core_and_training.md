@@ -1,5 +1,10 @@
 # Core model + original training pipeline (ViolenceTransformer)
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Scope: `core/*.py`, `configs/*.yaml`, `training/{dataset,train,evaluate,eval_anticipation}.py`,
 `tests/*.py`, `scripts/{benchmark,export_trace_graph,visualize_graphs,inspect_risk_curves}.py`, the producer
 script `scripts/preprocess_anticipation.py` + `scripts/generate_labels.py` (read because they define the data this
@@ -287,6 +292,12 @@ Command (from the repo root): `python -m training.train`. **Read the warning in 
 **Evidence of training:** 60 complete epochs in `checkpoints/` (matching `epochs: 60`) and 40 in
 `best_checkpoints/` (earlier run). Both have the architecture above (node 772 / scene 512 / audio 64 / 2 layers).
 **No stdout logs, metrics JSON or eval outputs survive.**
+Run timing (file mtimes, recorded before the 2026-10 cleanup): `checkpoints/` epoch 1 was saved 2025-12-18 14:41
+and epoch 60 at 18:05, about 3.5 min per epoch and about 3.5 GPU-h in total. `best_checkpoints/` epoch 1 was saved
+2025-12-15 13:06 and epoch 40 at 15:14, about 3.3 min per epoch and about 2.2 GPU-h. The three epochs in the
+table below are at `data/archive/repo_legacy/checkpoints/model_epoch{10,60}.pt`
+and `.../best_checkpoints/model_epoch40.pt`. The other 97 epochs (1.16 GB, never evaluated) were archived next to
+them, in the same two folders.
 
 **My re-evaluation** (2026-10-14, CPU only, read-only, scratch script not in repo; the code is reproduced below).
 Inputs: `test_index.json` → 168 usable clips, 34,094 steps, 4,231 positive steps (y ≥ 0.5), 28 positive clips.
@@ -324,11 +335,12 @@ Reproduction (CPU, about 5 s per checkpoint plus about 2 min for the causal loop
 
 ```python
 import os, sys, json, numpy as np, torch; os.environ["CUDA_VISIBLE_DEVICES"] = ""
-sys.path.insert(0, REPO); os.chdir(REPO)              # REPO = repo root
+sys.path.insert(0, REPO + "/legacy"); os.chdir(REPO)   # index entries are data/... paths relative to the repo root
+ARCH = "data/archive/repo_legacy"
 from core.model import ViolenceTransformer
 m = ViolenceTransformer(node_dim=772, scene_dim=512, audio_dim=64, hidden_dim=256, num_heads=4, num_layers=2)
-m.load_state_dict(torch.load("checkpoints/model_epoch60.pt", map_location="cpu")); m.eval()
-for it in json.load(open("test_index.json")):
+m.load_state_dict(torch.load(f"{ARCH}/checkpoints/model_epoch60.pt", map_location="cpu")); m.eval()
+for it in json.load(open("legacy/test_index.json")):
     G = np.load(it["graph_path"], allow_pickle=True); L = np.load(it["label_path"]).reshape(-1)
     if min(len(G), len(L)) < 16: continue                       # same filter as GraphSequenceDataset
     frames = [{"nodes": torch.from_numpy(g["nodes"] if isinstance(g["nodes"], np.ndarray) and g["nodes"].ndim == 2
@@ -342,7 +354,8 @@ for it in json.load(open("test_index.json")):
 
 ## 11. Evaluation code — `training/evaluate.py`, `training/eval_anticipation.py`
 
-**`evaluate.py`**: `python -m training.evaluate --ckpt checkpoints/model_epoch60.pt [--bin_thresh 0.5]`
+**`evaluate.py`**: `cd legacy && ../.venv/bin/python -m training.evaluate --ckpt $ARCH/checkpoints/model_epoch60.pt [--bin_thresh 0.5]`
+(needs the `legacy/data -> ../data` symlink described in `legacy/README.md`)
 
 * Uses `./val_index.json` if present; otherwise it builds and **writes `./eval_index.json`** from all graphs.
 * Builds the model with hard-coded `hidden 256, heads 4, layers 2`.

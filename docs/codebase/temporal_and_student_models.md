@@ -1,12 +1,17 @@
 # Temporal and student models (the later training scripts)
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Scope: the main line of modeling work from Feb 2026. These are small heads trained on frozen
 Qwen2.5-VL-7B frame embeddings (plus optional flow, audio, or pose features). The goal is to predict
 violence about 30 s before it starts.
 
 | File | Lines | Role |
 |---|---|---|
-| `training/train_student_original.py` | 2135 | Multi-horizon frame MLP. It aligns labels correctly, splits by movie, and reports video-level alarm stats. **This is the only script in this area whose numbers can be trusted.** |
+| `baselines/train_student_original.py` | 2135 | Multi-horizon frame MLP. It aligns labels correctly, splits by movie, and reports video-level alarm stats. **This is the only script in this area whose numbers can be trusted.** |
 | `training/train_student.py` | 1077 | "Improved" single-frame MLP with focal loss. Labels are misaligned and it uses the leaky index splits. |
 | `training/train_temporal_model.py` | 1119 | BiLSTM + attention over 30-step windows. It is the de-facto "production" model, but labels are misaligned and the evaluation is broken. |
 | `tuning/fuse_features.py` | 346 | Builds the VLM + optical-flow (+QA) concatenated feature files (`data/processed/fused_vlm_flow`). |
@@ -26,7 +31,7 @@ torch CUDA works.
 
 1. **None of the existing models anticipates violence 30 s ahead in any meaningful way.** On a
    leakage-free movie-grouped split, the best model is the `StudentMLP` from
-   `train_student_original.py` (`outputs/student_mlp`, `runs/student_fix1`). It gets **test frame
+   `train_student_original.py` (`baselines/reference_runs/student_mlp`, `baselines/reference_runs/student_fix1`). It gets **test frame
    ROC-AUC 0.58–0.62** and PR-AUC 0.15–0.16, against a positive rate of 0.081. *Within* a source the
    test ROC is about chance (XD 0.51–0.56, UCF 0.51–0.59). The video-level alarm result is that 60% of
    violent test videos get a first alert inside [onset−30 s, onset+1 s], with a **median lead of about
@@ -148,7 +153,7 @@ come from that one clip.
 
 ## 2. Per-script reference
 
-### 2.1 `training/train_student_original.py` (the best-engineered script)
+### 2.1 `baselines/train_student_original.py` (the best-engineered script)
 
 **Purpose.** Frame-level multi-horizon anticipation head. It uses VLM embeddings plus hashed
 structured VLM outputs, with grouped splits, causal smoothing, and video-level alarm evaluation.
@@ -222,9 +227,9 @@ Dropout → Linear(256,K=7). That is about 1.0 M parameters.
 
 **How to run (reconstructed; full argv was never saved).**
 ```bash
-.venv/bin/python training/train_student_original.py --task anticipation \
+.venv/bin/python baselines/train_student_original.py --task anticipation \
   --emb_root data/processed/vlm_emb_meanpool --labels_dir data/processed/labels_multih \
-  --out_dir outputs/student_mlp --select_horizon_sec 30 --threshold_select f1 --device cuda:0
+  --out_dir baselines/reference_runs/student_mlp --select_horizon_sec 30 --threshold_select f1 --device cuda:0
 ```
 
 **Known issues.**
@@ -518,7 +523,7 @@ Even on this lenient metric, at most 13 events are caught at the cost of 60–22
 
 ## 3. Results inventory for `train_student_original.py` runs
 
-Results live in `results/anticipation_*`, `outputs/student_mlp`, and `runs/student_fix*`. "Test @ val
+Results live in `results/anticipation_*`, `baselines/reference_runs/student_mlp`, and `runs/student_fix*`. "Test @ val
 threshold" is leakage-free. For video-level stats, "FirstIn" means the first alert fell in
 [onset−30 s, onset+1 s], "Early" means it fell before that, "NegFA" is the share of negative videos
 with any alert, and "Lead" is the median lead time.
@@ -527,10 +532,10 @@ with any alert, and "Lead" is the median lead time.
 
 | Run (date) | Embeddings | Threshold mode | Val ROC / PR | Test ROC / PR | Test P / R / F1 @ val threshold | Test video: FirstIn / Early / NegFA / Lead |
 |---|---|---|---|---|---|---|
-| `outputs/student_mlp` (02-23) | `vlm_emb_meanpool` (3744) | f1 | 0.763 / 0.410 | **0.622 / 0.151** | 0.13 / 0.42 / 0.19 | 24/40 = 0.60 / 0.125 / 0.237 / 8.9 s |
-| `runs/student_fix1` (02-17) | `vlm_emb` (3744) | fbeta | 0.823 / 0.465 | 0.578 / 0.158 | 0.11 / 0.27 / 0.16 | 0.60 / 0.10 / 0.153 / 7.8 s |
-| `runs/student_fix2` (02-18) | `vlm_emb` (4034) | fbeta | 0.804 / 0.459 | 0.593 / 0.149 | 0.08 / 0.27 / 0.13 | 0.50 / 0.125 / 0.246 / 8.4 s |
-| `results/anticipation_prboost_v3` (02-17) | `vlm_emb` (4034) | precision_floor 0.75, K=2 | 0.818 / 0.456 | 0.562 / 0.096 | 0.03 / 0.09 / 0.05 | 0.30 / 0.05 / 0.076 / 8.9 s |
+| `baselines/reference_runs/student_mlp` (02-23) | `vlm_emb_meanpool` (3744) | f1 | 0.763 / 0.410 | **0.622 / 0.151** | 0.13 / 0.42 / 0.19 | 24/40 = 0.60 / 0.125 / 0.237 / 8.9 s |
+| `baselines/reference_runs/student_fix1` (02-17) | `vlm_emb` (3744) | fbeta | 0.823 / 0.465 | 0.578 / 0.158 | 0.11 / 0.27 / 0.16 | 0.60 / 0.10 / 0.153 / 7.8 s |
+| `baselines/reference_runs/student_fix2` (02-18) | `vlm_emb` (4034) | fbeta | 0.804 / 0.459 | 0.593 / 0.149 | 0.08 / 0.27 / 0.13 | 0.50 / 0.125 / 0.246 / 8.4 s |
+| `baselines/reference_runs/anticipation_prboost_v3` (02-17) | `vlm_emb` (4034) | precision_floor 0.75, K=2 | 0.818 / 0.456 | 0.562 / 0.096 | 0.03 / 0.09 / 0.05 | 0.30 / 0.05 / 0.076 / 8.9 s |
 
 Test positive rate is 0.081, which gives an always-positive F1 of 0.151. So **test F1 at the val
 threshold barely beats predicting "positive" for everything**.
@@ -582,10 +587,10 @@ the best single question ("violence_occurring") has AUC 0.59.
 
 ## 4. Which model is "best", and how good is it
 
-- **Honest best:** `train_student_original.py` → `outputs/student_mlp/best.pt`. It is a frame MLP on
+- **Honest best:** `train_student_original.py` → `baselines/reference_runs/student_mlp/best.pt`. It is a frame MLP on
   mean-pooled VLM embeddings plus hashed VLM tags, with K=7 horizons. On unseen movies its 30-s
   horizon test ROC is 0.62 and PR-AUC is 0.15 (chance is 0.08). It alerts in-window for 60% of violent
-  clips with a median lead of about 9 s, and false-alarms on 24% of non-violent clips. The `runs/student_fix1`
+  clips with a median lead of about 9 s, and false-alarms on 24% of non-violent clips. The `baselines/reference_runs/student_fix1`
   checkpoint is comparable (0.58).
 - **Model actually wired into the tools:** `outputs/outputs_temporal/best_temporal_model.pt`. It was
   selected at epoch 1, with val ROC 0.577. Its test ROC of 0.991 is an artifact (§1.5).
@@ -611,11 +616,11 @@ the best single question ("violence_occurring") has AUC 0.59.
    video-level positives.
 5. Reusable code: `compute_anticipation_video_stats`, `apply_ema_by_video` (causal),
    `metrics_at_threshold`, `sweep_thresholds`, `select_threshold_from_sweep`, `split_group_id`, and
-   `make_splits` (all in `training/train_student_original.py`). `TemporalViolenceModel` is a reasonable
+   `make_splits` (all in `baselines/train_student_original.py`). `TemporalViolenceModel` is a reasonable
    causal-window head *once the data is fixed*.
 6. Remember that XD-Violence clips are short (median about 90 s) and often start near the violence, so
    few clips have 30+ s of non-violent lead-in. A 30-s anticipation target needs long untrimmed
-   footage, or a specific selection of clips with a long lead-in, such as `curate_anticipation_dataset.py`
+   footage, or a specific selection of clips with a long lead-in, such as `setup/curate_youtube.py`
    / `vlm_emb/curated` (see the curation doc).
 
 ## Notes moved from code comments

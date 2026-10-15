@@ -1,9 +1,0 @@
-rtsp: yes
-rtspAddress: :554
-
-paths:
-  macbook:
-    publishUser: username
-    publishPass: password
-    readUser: username
-    readPass: password

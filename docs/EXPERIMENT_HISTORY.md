@@ -4,6 +4,10 @@ Audience: future agents and developers deciding what to build next. This file re
 history from file dates, result folders and code (audit date 2026-10-14). Each approach lists its result
 folder, the reported number, the number that survives scrutiny, and the reason it failed or plateaued.
 Details and evidence live in the per-area docs in [codebase/](codebase/); this file links to them.
+Result folders and scripts are named by their pre-cleanup paths. After the 2026-10 cleanup the surviving code is
+under `legacy/`, the honest runs under `baselines/reference_runs/`, removed tracked files come back with
+`git checkout pre-cleanup -- <path>`, and ignored weights are in `data/archive/repo_legacy/` until 2027-01-12
+([README.md](README.md) section 8).
 
 Conventions:
 - "Reported" = what the folder's metrics file says. "Honest" = after removing leakage, misalignment or
@@ -82,7 +86,9 @@ Conventions:
      75 % of each positive window, labels are a deterministic ramp).
   4. Audio was all zeros; VideoMAE saw single static crops; adjacency was never used.
   5. Labels and windows inherit the XD metadata bug (D7).
-- **Result folders:** `checkpoints/`, `best_checkpoints/` (weights only). Doc: [core_and_training.md](codebase/core_and_training.md).
+- **Result folders:** `checkpoints/`, `best_checkpoints/` (weights only; all 100 epochs archived to
+  `data/archive/repo_legacy/` in the 2026-10 cleanup). Code: `legacy/core/`, `legacy/training/`.
+  Doc: [core_and_training.md](codebase/core_and_training.md).
 
 ### 2.3 Text-LLM decision head (Dec 2025)
 
@@ -100,7 +106,7 @@ Conventions:
   JSON verdict per frame and saved a 3584-d image-token embedding. Four extraction passes:
   `vlm_*_old` (Jan 29), `_meanpool` (Feb 9), default context-both (Feb 16), `_violence` (Feb 20). About 78k
   frames per pass.
-- **Reported (`results/vlm_eval*`, correct `t` alignment, no training):** frame AUC 0.682 overall,
+- **Reported (`baselines/reference_runs/vlm_eval*`, correct `t` alignment, no training):** frame AUC 0.682 overall,
   **XD 0.776**, UCF 0.497 for current violence; 0.662 overall / 0.772 XD for "violence now or within 30 s".
 - **Why it plateaued:**
   - It is a **detector**: AUC falls as the horizon grows (h5 0.677, h10 0.672, h30 0.662).
@@ -113,7 +119,7 @@ Conventions:
 
 ### 2.5 Single-horizon student MLP on pre-onset-only labels (Feb 2 to 10)
 
-- **What:** `training/train_student_original.py` (older version) on `labels_preonly_h30_ignore`
+- **What:** `baselines/train_student_original.py` (older version) on `labels_preonly_h30_ignore`
   (positive in the 30 s before onset, ignore during violence).
 - **Reported:** `results/anticipation_preonly_h30_grace1_ignore{,_fp1..4,_meanpool}`: val AUC 0.48 to 0.55,
   test AUC 0.51 to 0.73; the selected threshold fires on everything (F1 equals the always-positive baseline).
@@ -131,12 +137,18 @@ Conventions:
   test AUC 0.83 to 0.94, XD test AUC up to 0.967.
 - **Why it is invalid:** the split was random per clip; in `prboost_v1`, 46 of 77 test XD clips share a
   movie or YouTube source with training (D4). `hset_v3` picked threshold 1.0 (zero alerts).
+- Controlled leakage demonstration ([random split](figures/roc_random_split_prboost_v1.png) vs
+  [source-movie-grouped split](figures/roc_grouped_split_student_fix1.png)). Both runs use the same trainer
+  (`train_student_original.py`), the same `vlm_emb` + hashed VLM-tag features (3746-d vs 3744-d) and the same 30 s
+  target. With a random per-clip split (`prboost_v1`), test AUC is 0.942 / AP 0.763 (XD 0.967). With the
+  source_movie-grouped split (`student_fix1`), test AUC is 0.578 / AP 0.158 (XD 0.521). Validation AUC barely moves
+  (0.829 vs 0.823). In the random split, 46 of 77 XD test clips share a source movie or YouTube id with training.
 
 ### 2.7 Multi-horizon student MLP with a movie-grouped split: the honest baseline (Feb 17 to 23)
 
 - **What:** the same script with `--split_group source_movie` (groups 1072/134/134, videos 1356/156/158),
   thresholds chosen on val, video-level alarm statistics in seconds.
-- **Result:** `runs/student_fix1`, `runs/student_fix2`, `outputs/student_mlp`, `results/anticipation_prboost_v3`:
+- **Result:** `baselines/reference_runs/student_fix1`, `baselines/reference_runs/student_fix2`, `baselines/reference_runs/student_mlp`, `baselines/reference_runs/anticipation_prboost_v3`:
   **test AUC 0.56 to 0.62, AP 0.10 to 0.16 (base rate 0.081), XD-only test AUC 0.47 to 0.56**, 30 to 60 s
   bucket AUC about 0.61 (about 0.50 on XD); 50 to 60 % of violent test videos first alarm in
   [onset - 30 s, onset + 1 s] with median lead 7.8 to 8.9 s; 15 to 25 % of normal test videos false-alarm.
@@ -180,7 +192,8 @@ Conventions:
 - **LoRA** (`tuning/lora_finetune_vlm.py`, `lora_finetuned_v2/`): val accuracy 0.4925 in every epoch, which
   equals the negative rate. The eval loop feeds prompt + answer into `generate`, the labels mean "violence
   within 120 s" with in-violence frames as "no" (D2), and 71 % of XD frames were fetched past the end of the
-  video (timestep treated as seconds). Nothing loads the adapters.
+  video (timestep treated as seconds). Nothing loads the adapters. All adapters (best, final and per-epoch) were
+  archived to `data/archive/repo_legacy/lora_finetuned*/` in the 2026-10 cleanup.
 - **VQA features** (`outputs/qa_feature_test`): 25 yes/no questions on 50 + 50 frames, logistic AUC 0.486,
   frames misaligned with labels. Never scaled up.
 
@@ -218,10 +231,28 @@ Conventions:
   an always-on alarm scores perfectly (D6). The least-contaminated set, `xd_violence_8hr_sim.npz` (test-only
   XD, 13 events, padding repeated about 5.7x, 12 of 18 onsets with no in-clip context), gives LSTM AUC
   0.834 and VLM-student AUC 0.853 under flawed labels, with 6 to 43 "FA/h".
+
+  ![Always-on alarm artifact](figures/legacy_always_on_alarm_artifact.png)
+  `sim/comprehensive_eval.py` on `xd_violence_8hr_sim.npz` at theta 0.55: the LSTM is positive on 31,506 of 31,535
+  negative steps (accuracy 0.018, ROC-AUC 0.633, AP 0.039). It still scores 13/13 events detected, 1.46 FA/h and a
+  30.0 s mean lead, because an always-on alarm counts as about one false alarm per event window and lead is capped at
+  30 steps (D6).
+
+  ![Claimed trade-off (INVALID)](figures/legacy_invalid_detection_fa_tradeoff.png)
+  What the leaky pipeline claimed (INVALID): the temporal LSTM on `xd_violence_vlm_matched.npz` (772 XD clips,
+  81 % training videos), scored by a `scripts/evaluate_with_smoothing.py` sweep of theta and a centered
+  (non-causal) window w on the evaluated stream, with 1 step treated as 1 s and lead capped at 30. Marked point
+  theta 0.3, w 10: 327/356 = 91.9 % detection, 4.87 FA/h, 23.9 s lead. Honest counterpart
+  (`baselines/reference_runs/student_fix1`, movie-grouped split, val threshold): 24/40 = 60 % of violent test videos
+  alerted within 30 s of onset, median lead 7.8 s, 15.3 % of normal test videos false-alarm, and effectively 0 % at
+  30 s or more of lead.
 - **Ensembles** (`simulation_results_ensemble/*`): 10 to 13 of 13 events at 61 to 87 false alarms.
 - **Cross-domain:** XD-trained LSTM on the UCF sim AUC 0.459 (`final/eval_ucf_crime`).
 - `continuation/time_to_violence.py` anchors its ETA on 26.9 s, which is the capped lead from the leaky
   `final/high_sensitivity` run; it was never integrated.
+- The `simulation_data/*.npz` streams, the saved score traces and the models behind them were archived to
+  `data/archive/repo_legacy/` in the 2026-10 cleanup; the `final/` and `simulation_results*/`
+  metrics are recoverable with `git checkout pre-cleanup -- <path>`.
 - Doc: [simulation_and_evaluation.md](codebase/simulation_and_evaluation.md).
 
 ### 2.14 Live RTSP demo and YouTube probe (Feb 26 to Mar 2)
@@ -234,7 +265,11 @@ Conventions:
   196 s, after the fight.
 - **Why it underperforms:** train/serve skew (ReLU instead of GELU, different prompt and pooling, 1 s
   sampling versus about 3 to 6.6 s training steps, window 32 versus 30) on top of a model with val AUC 0.58.
-- The root `*_mlp.pt` files (Mar 2) have no producer script and no metrics; they are orphaned.
+- The ten root MLP state dicts of Mar 2 are orphaned. Two of them (`synthetic_anticipation_mlp.pt`,
+  `best_synthetic_anticipation.pt`) came from inline `python -c` sessions. Those sessions spliced unrelated
+  non-violent lead-ups in front of violent segments (noise labels), used a frame-level random split, and selected
+  the checkpoint on the test split. The other eight have no surviving producer. None has metrics. All were
+  archived; details in [results_inventory.md](codebase/results_inventory.md), "Root `*.pt`".
 - Doc: [realtime_and_misc.md](codebase/realtime_and_misc.md).
 
 ### 2.15 `experiments/` suite (Mar 16)
@@ -251,7 +286,7 @@ Conventions:
 
 ### 2.16 YouTube curation and pseudo-labelling; final experiments (Mar 22 to Apr 6)
 
-- **What:** `curate_anticipation_dataset.py` downloaded 92 escalation videos (road rage, bodycam, CCTV
+- **What:** `setup/curate_youtube.py` downloaded 92 escalation videos (road rage, bodycam, CCTV
   confrontations; 10 h, all with audio). `experiments/fast_analyze_curation.py` labelled them with the
   default BiLSTM (`violence_start_second`, stage timelines) and saved `vlm_emb/curated/` (Apr 6).
   `experiments/run_experiments.py` exp1 to exp4 (Apr 4 to 5).

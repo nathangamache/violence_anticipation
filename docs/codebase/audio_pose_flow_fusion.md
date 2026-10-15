@@ -1,5 +1,10 @@
 # Audio, Pose, Optical Flow, and Fusion
 
+> Paths in this file describe the tree before the 2026-10 cleanup. Surviving code is under `legacy/<same path>`;
+> the honest runs are under `baselines/reference_runs/`; removed tracked files: `git show pre-cleanup:<path>`;
+> ignored weights and arrays: `data/archive/repo_legacy/<same path>`
+> until 2027-01-12. See [../REPO_CLEANUP_PLAN.md](../REPO_CLEANUP_PLAN.md).
+
 Scope: every non-VLM modality in the repo (audio, YOLOv8 pose, optical flow), plus the scripts that fuse
 them with the Qwen2.5-VL embeddings (early fusion by concatenation, and late fusion of per-modality model scores).
 
