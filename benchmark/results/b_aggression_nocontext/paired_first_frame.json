@@ -1,0 +1,66 @@
+{
+ "all": {
+  "actual": {
+   "value": 0.7487520481350102,
+   "ci": [
+    0.674574578915737,
+    0.805126547316922
+   ],
+   "n_pos": 4547,
+   "n_neg": 23551,
+   "n_pos_videos": 126,
+   "n_neg_videos": 255
+  },
+  "first_frame": {
+   "value": 0.6199216895822307,
+   "ci": [
+    0.5089707287747417,
+    0.7111104473360881
+   ],
+   "n_pos": 4547,
+   "n_neg": 23551,
+   "n_pos_videos": 126,
+   "n_neg_videos": 255
+  },
+  "paired_gain": {
+   "value": 0.12883035855277947,
+   "ci": [
+    0.05555570933964899,
+    0.20951232983579535
+   ]
+  },
+  "matching": "same source/time weights and paired split_group resamples"
+ },
+ "S_ramp90": {
+  "actual": {
+   "value": 0.7984349854112143,
+   "ci": [
+    0.7033002150083546,
+    0.8684933795883512
+   ],
+   "n_pos": 2771,
+   "n_neg": 21017,
+   "n_pos_videos": 32,
+   "n_neg_videos": 255
+  },
+  "first_frame": {
+   "value": 0.626186452362195,
+   "ci": [
+    0.4750406140969245,
+    0.7406620782468806
+   ],
+   "n_pos": 2771,
+   "n_neg": 21017,
+   "n_pos_videos": 32,
+   "n_neg_videos": 255
+  },
+  "paired_gain": {
+   "value": 0.17224853304901933,
+   "ci": [
+    0.07210042296710699,
+    0.29198071611962284
+   ]
+  },
+  "matching": "same source/time weights and paired split_group resamples"
+ }
+}

@@ -143,6 +143,8 @@ def test_opt_in_preserves_all_legacy_results_and_default_config():
     assert 'phase0' not in base['seeds']['0']
     phase0=extended['seeds']['0'].pop('phase0')
     assert phase0['band_auroc']['value']==pytest.approx(1)
+    assert phase0['band_long_auroc']['value']==pytest.approx(1)
+    assert phase0['band_long_auroc']['n_neg_videos']>0
     for result in [base,extended]:result['seeds']['0'].pop('_seconds')
     assert va30._clean_nans(base['seeds'])==va30._clean_nans(extended['seeds'])
     assert base['summary_over_seeds']==extended['summary_over_seeds']
@@ -194,3 +196,16 @@ def test_full_phase0_position_null_is_numeric():
                     quick_cfg(n_boot=12,position_null=True,phase0_metrics=True))
     ops=result['seeds']['0']['phase0']['sustained_warning']['operating_points']
     assert all(isinstance(op['position_null']['60'],float) for op in ops.values())
+
+
+def test_world_movie_breakdowns_hold_pooled_thresholds_and_source_windows():
+    specs=standard_specs(4,4)
+    for i,r in enumerate(specs):r['source_kind']='xd_movie' if i%2 else 'ucf'
+    b=make_bench(specs)
+    result=evaluate(score_table(b,lambda l:((l.tte>30)&(l.tte<=120)).astype(float)),b,
+                    quick_cfg(n_boot=12,position_null=False,phase0_metrics=True))
+    phase=result['seeds']['0']['phase0']
+    for source in ['real_world','movie']:
+        block=phase['breakdowns'][source]
+        assert block['window_max_auroc']['events_matched']==2
+        assert block['event_operating_points']['fa2']['eligible30']['success30']['n']==2

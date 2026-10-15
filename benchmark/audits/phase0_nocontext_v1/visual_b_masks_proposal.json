@@ -1,0 +1,158 @@
+{
+  "status": "PROPOSAL_NOT_APPLIED",
+  "masks": [
+    {
+      "video_id": "ucf/Abuse008_x264",
+      "event_index": 0,
+      "start_sec": 35.8,
+      "end_sec": 130.667,
+      "confidence": "medium",
+      "basis": "Officers are already physically restraining a prone person around 35.8-41.8 s; the annotated onset is a much later interaction at 130.7 s. Force/restraint is visible, but individual blows are small at sheet resolution.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse013_x264",
+      "event_index": 0,
+      "start_sec": 1.3,
+      "end_sec": 114.467,
+      "confidence": "medium",
+      "basis": "A child falls beside an adult during the early classroom sequence, long before 114.5 s. UCA independently describes dragging, throwing and kicking children at 0-6.7 s. This is earlier abuse rather than a 114-second precursor.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse017_x264",
+      "event_index": 0,
+      "start_sec": 5.0,
+      "end_sec": 36.167,
+      "confidence": "high",
+      "basis": "An adult strikes at the small child near the counter; the child falls by 6-7 s. The interaction is physical before the 36.2 s onset; UCA describes repeated hitting in this early interval.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse047_x264",
+      "event_index": 0,
+      "start_sec": 1.9,
+      "end_sec": 38.967,
+      "confidence": "medium",
+      "basis": "The early night-view classroom shows an adult leaning over children on beds; UCA describes hitting both children and hitting one against the wall at 1.9-8.9 s. Later frames switch to a separate daytime sequence near the annotated onset. Caption-supported earlier violence; fine motions are small.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest012_x264",
+      "event_index": 0,
+      "start_sec": 35.333,
+      "end_sec": 131.0,
+      "confidence": "medium",
+      "basis": "A person is already prone in the street amid close physical confrontation in the 35-42 s frames. The separate existing aggression audit reports an earlier beating in this clip; the 131 s onset follows this episode. Individual impacts are small in this sheet.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest016_x264",
+      "event_index": 0,
+      "start_sec": 41.767,
+      "end_sec": 156.533,
+      "confidence": "high",
+      "basis": "A person wielding a long object strikes near the parked car; the other person falls by 42.8 s, over 110 s before the 156.5 s onset. Clear earlier physical violence.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting008_x264",
+      "event_index": 0,
+      "start_sec": 59.3,
+      "end_sec": 332.667,
+      "confidence": "high",
+      "basis": "The 213-220 s frames show a close group with raised sticks and ongoing confrontation. UCA explicitly describes stabbing at 59.3-67.3 s and later beating, long before the 332.7 s onset; the peak occurs after earlier unannotated violence.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting015_x264",
+      "event_index": 0,
+      "start_sec": 84.5,
+      "end_sec": 243.3,
+      "confidence": "medium",
+      "basis": "The high-score 168-174 s shop images alone are unclear. UCA explicitly describes a chair attack at 84.5-95.5 s, well before both the selected window and 243.3 s onset. This is caption-supported earlier violence, not visually confirmed by the peak sheet.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting027_x264",
+      "event_index": 0,
+      "start_sec": 18.6,
+      "end_sec": 82.3,
+      "confidence": "high",
+      "basis": "People exchange forceful lunges/kicks in the street during 18.6-24.6 s; the later group confrontation is annotated at 82.3 s. Physical violence is already present in the lead-in.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting043_x264",
+      "event_index": 0,
+      "start_sec": 16.433,
+      "end_sec": 58.9,
+      "confidence": "high",
+      "basis": "A person reaches/strikes into the van at 16-18 s, followed by a person carrying a long object. UCA describes hitting and repeatedly beating the driver at 17.6-41.6 s, before the annotated 58.9 s onset.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery100_x264",
+      "event_index": 0,
+      "start_sec": 31.4,
+      "end_sec": 134.5,
+      "confidence": "high",
+      "basis": "A person grips another at the neck/head and a forceful struggle occurs around 31-37 s; violence is already underway roughly 100 s before the 134.5 s onset.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery141_x264",
+      "event_index": 0,
+      "start_sec": 23.2,
+      "end_sec": 74.633,
+      "confidence": "high",
+      "basis": "The hooded person seizes another from behind at23-24 s and forces the person down while holding the neck/head at25 s. The attack is already physical about50 s before the annotated onset.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "xd/Fast.Furious.2009__#01-29-10_01-29-55_label_B2-0-0",
+      "event_index": 0,
+      "start_sec": 0.0,
+      "end_sec": 36.5417,
+      "confidence": "high",
+      "basis": "The clip opens on a person on the ground with an apparent kick/assault around0-1 s, then cuts to an entirely different in-car scene before36.5 s. Earlier fictional violence makes the nominal pre-first-onset interval contaminated.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "xd/Kill.Bill.Vol.1.2003__#01-21-39_01-26-55_label_B1-0-0",
+      "event_index": 0,
+      "start_sec": 14.6,
+      "end_sec": 76.2083,
+      "confidence": "low",
+      "basis": "Fast sword encounter/falling-body motion is followed by a bloodied face at14-19 s, well before76 s. Earlier violence is likely, but the exact early strike is not resolved in these sparse cuts; requires lead/human adjudication.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "xd/v=7zEFHKKBA0g__#1_label_B4-0-0",
+      "event_index": 0,
+      "start_sec": 3.958,
+      "end_sec": 49.6667,
+      "confidence": "medium",
+      "basis": "The news intro already shows close physical clash/shoving footage at4 s before cutting among other crowd and police scenes. The49.7 s onset belongs to later footage, so this is an edited recap rather than a continuous pre-conflict lead-in.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "xd/v=Y1hxr1MWLjM__#1_label_B1-0-0",
+      "event_index": 0,
+      "start_sec": 5.583,
+      "end_sec": 80.0,
+      "confidence": "high",
+      "basis": "A person raises/swings a chair into the restaurant confrontation around5-9 s; physical aggression is already present long before the80 s onset, which shows another chair confrontation.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "xd/v=aWPWHU8x6kE__#1_label_B4-0-0",
+      "event_index": 0,
+      "start_sec": 61.75,
+      "end_sec": 140.3333,
+      "confidence": "high",
+      "basis": "The early forest sequence shows a repeated downward weapon/striking action over a prone person at62-66 s, then cuts to a different confrontation near140 s. The footage looks cinematic despite its YouTube source key.",
+      "status": "PROPOSAL_NOT_APPLIED"
+    }
+  ]
+}

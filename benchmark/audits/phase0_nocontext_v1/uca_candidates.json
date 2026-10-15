@@ -1,0 +1,800 @@
+{
+  "status": "PROPOSAL_NOT_APPLIED",
+  "unit": "First violent segment per UCF video; caption end<=onset-10; start>=clear_start; full lead-in, not only120s.",
+  "caption_files": {
+    "data/annotations/uca/json/UCFCrime_Test.json": "8912bc02c1871e177ffc7f45ed54395c0e34e1a8007a474b91309ce8a816f981",
+    "data/annotations/uca/json/UCFCrime_Train.json": "0df6a6e5e1e1b17b87e229edb865c9dea3e23505fd29256a894660687ff4eba2",
+    "data/annotations/uca/json/UCFCrime_Val.json": "f93720c911d0bfb3e8da168c7da43538227f0edcf90258a407856913fcacf559"
+  },
+  "strike_regex": "\\b(hit(?:s|ting)?|punch\\w*|kick\\w*|beat(?:s|ing|en)?|slap\\w*|stab\\w*|fight(?:s|ing)?|strik\\w*|attack\\w*|chok\\w*|strangl\\w*|drag\\w*|wrestl\\w*|push\\w* down|shoot\\w*|shot)\\b",
+  "weapon_regex": "\\b(gun\\w*|pistol\\w*|rifle\\w*|knife|knives|weapon\\w*|threaten\\w*)\\b",
+  "candidates": [
+    {
+      "video_id": "ucf/Abuse011_x264",
+      "event_index": 0,
+      "onset_sec": 32.433,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 9.8,
+          "end_sec": 13.0,
+          "text": "A man faced a house at the corner of the stairs. He dragged the woman outside the door and pulled her hair. The woman lay on the ground."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse013_x264",
+      "event_index": 0,
+      "onset_sec": 114.467,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 0.0,
+          "end_sec": 6.7,
+          "text": " Kindergarten children stood in three rows in the classroom. The teacher twisted their ears and dragged the two children to the wall. One child knelt down by the wall, and the other child was thrown against the wall. After the teacher kicked each of the two children, he kicked the child lying on the ground again, and turned back to the children standing in a row."
+        },
+        {
+          "start_sec": 8.0,
+          "end_sec": 12.1,
+          "text": "The teacher kicked the child lying next to the wall again"
+        },
+        {
+          "start_sec": 12.2,
+          "end_sec": 14.4,
+          "text": "The teacher slapped another little girl on the head with her hand"
+        },
+        {
+          "start_sec": 22.2,
+          "end_sec": 24.3,
+          "text": "The teacher raised his right hand and slapped a child"
+        },
+        {
+          "start_sec": 24.6,
+          "end_sec": 26.5,
+          "text": "The teacher raised his leg and kicked the child sitting on the ground"
+        },
+        {
+          "start_sec": 40.4,
+          "end_sec": 41.4,
+          "text": "The teacher hit the child on the forehead with his finger, and the child was forced to bounce against the wall"
+        },
+        {
+          "start_sec": 46.3,
+          "end_sec": 47.9,
+          "text": "The teacher raised his hand and slapped the child on the right cheek"
+        },
+        {
+          "start_sec": 64.3,
+          "end_sec": 66.3,
+          "text": "The teacher raised his left hand and hit the child next to him with his finger."
+        },
+        {
+          "start_sec": 75.2,
+          "end_sec": 82.5,
+          "text": "The teacher walked from the wall to the front of the team. The child who had just been beaten kept crying and wiped his tears with his hands."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse017_x264",
+      "event_index": 0,
+      "onset_sec": 36.167,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 7.4,
+          "end_sec": 12.5,
+          "text": "The child got up from the ground. A woman wearing a white top hit the child hard on the face. The child immediately started crying."
+        },
+        {
+          "start_sec": 16.9,
+          "end_sec": 21.2,
+          "text": "The woman did not stop and hit the child on the left side of the body so hard that the child almost fell down. The cashier was still playing with his phone and ignored him."
+        },
+        {
+          "start_sec": 21.3,
+          "end_sec": 25.6,
+          "text": "The child wiped his tears with his left hand. The woman wearing a white top next to him hit the child's left hand continuously. The child was still crying."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse018_x264",
+      "event_index": 0,
+      "onset_sec": 55.9,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 2.2,
+          "end_sec": 10.3,
+          "text": " Vehicles were coming and going on the street. A man wearing a black and red shirt and black pants walked to the front of the brown door. There was a brown trash can in the corner in front of the door, and there was a brown trash can next to it. The man walked to the trash can, kicked the white bag, and sat on the wall."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse020_x264",
+      "event_index": 0,
+      "onset_sec": 60.0,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 0.9,
+          "end_sec": 13.9,
+          "text": "A man in a white shirt hit a woman sitting on the bed with his clothes. The woman covered her chest with her right hand, and the man immediately opened the door and went out."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse047_x264",
+      "event_index": 0,
+      "onset_sec": 38.967,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 1.9,
+          "end_sec": 8.9,
+          "text": "In a room, there were many children taking a nap. A teacher squatted in front of the beds of two children, hit them both, and then hit the child against the wall."
+        },
+        {
+          "start_sec": 15.8,
+          "end_sec": 23.4,
+          "text": "A teacher squatted in front of two children's beds, hit each of them, and then hit the child against the wall. The teacher turned around"
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Abuse048_x264",
+      "event_index": 0,
+      "onset_sec": 15.5,
+      "onset_source": "hivau",
+      "eligible30": false,
+      "strike_captions": [
+        {
+          "start_sec": 1.2,
+          "end_sec": 2.3,
+          "text": "A woman wearing a white top slapped an old man sitting in a hospital bed"
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest001_x264",
+      "event_index": 0,
+      "onset_sec": 39.5,
+      "onset_source": "official",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 19.1,
+          "end_sec": 27.8,
+          "text": "The man in white was subdued by two people and dragged out of the left side of the screen."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest006_x264",
+      "event_index": 0,
+      "onset_sec": 40.1,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 16.0,
+          "end_sec": 28.3,
+          "text": "A red car drove up and spun around on the lawn twice before hitting a flagpole."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest008_x264",
+      "event_index": 0,
+      "onset_sec": 125.2,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 50.3,
+          "end_sec": 63.1,
+          "text": "The man in black stood up, walked to the back door, opened it, and beat the man in white."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest016_x264",
+      "event_index": 0,
+      "onset_sec": 156.533,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 42.8,
+          "end_sec": 53.2,
+          "text": "The man in white was hit and fell to the ground after trying to stand up."
+        }
+      ],
+      "weapon_only_captions": [
+        {
+          "start_sec": 37.3,
+          "end_sec": 39.9,
+          "text": "The policeman took out his pistol."
+        },
+        {
+          "start_sec": 58.8,
+          "end_sec": 101.9,
+          "text": "The police moved around the man in white with a gun and spoke on a walkie-talkie."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Arrest039_x264",
+      "event_index": 0,
+      "onset_sec": 240.5,
+      "onset_source": "official",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 54.5,
+          "end_sec": 65.4,
+          "text": "The man in black stepped back and took out two guns."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Assault003_x264",
+      "event_index": 0,
+      "onset_sec": 34.967,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 13.1,
+          "end_sec": 18.1,
+          "text": "A strong man in a dark shirt blocked a man into the corner of the stairwell and beat him violently. The man covered his head with his arms."
+        },
+        {
+          "start_sec": 18.9,
+          "end_sec": 22.9,
+          "text": "Two assailants punched and kicked the man."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Assault027_x264",
+      "event_index": 0,
+      "onset_sec": 132.967,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 80.2,
+          "end_sec": 95.9,
+          "text": "The man suddenly beat the man standing opposite him, and then walked to the counter."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Assault036_x264",
+      "event_index": 0,
+      "onset_sec": 15.533,
+      "onset_source": "hivau",
+      "eligible30": false,
+      "strike_captions": [
+        {
+          "start_sec": 1.4,
+          "end_sec": 3.4,
+          "text": "Two men were standing in the middle of the road. Suddenly, one man punched the other man in the face."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Assault037_x264",
+      "event_index": 0,
+      "onset_sec": 42.867,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 20.6,
+          "end_sec": 25.6,
+          "text": "A man and the woman next to him got into a fight. The man punched the woman in the face and left."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Assault041_x264",
+      "event_index": 0,
+      "onset_sec": 140.9,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 100.4,
+          "end_sec": 105.9,
+          "text": "The shop owner kicked the customer out of the shop."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting008_x264",
+      "event_index": 0,
+      "onset_sec": 332.667,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 59.3,
+          "end_sec": 67.3,
+          "text": "A man in blue rushed to the left with a knife and stabbed another man in black in the abdomen several times"
+        },
+        {
+          "start_sec": 78.3,
+          "end_sec": 89.2,
+          "text": "A man in white came forward with a stick to intercept the two men who were about to leave on motorcycles and beat them"
+        },
+        {
+          "start_sec": 89.3,
+          "end_sec": 128.9,
+          "text": " Then two more people joined the fight"
+        },
+        {
+          "start_sec": 150.1,
+          "end_sec": 160.4,
+          "text": "A man fell to the ground after being stabbed several times in the abdomen by a man on the left."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting015_x264",
+      "event_index": 0,
+      "onset_sec": 243.3,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 84.5,
+          "end_sec": 95.5,
+          "text": "A man rushed out from the left, waved a chair and beat the man in the hat"
+        }
+      ],
+      "weapon_only_captions": [
+        {
+          "start_sec": 73.1,
+          "end_sec": 81.0,
+          "text": "A man wearing a hat broke in and threatened with a knife"
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting031_x264",
+      "event_index": 0,
+      "onset_sec": 127.833,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 66.8,
+          "end_sec": 94.2,
+          "text": "The two men argued after the man in yellow punched"
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Fighting043_x264",
+      "event_index": 0,
+      "onset_sec": 58.9,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 17.6,
+          "end_sec": 26.3,
+          "text": "A man hits the driver"
+        },
+        {
+          "start_sec": 26.3,
+          "end_sec": 41.6,
+          "text": "The man continued to beat the driver, attracting people to watch"
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery006_x264",
+      "event_index": 0,
+      "onset_sec": 43.0,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [
+        {
+          "start_sec": 26.4,
+          "end_sec": 28.6,
+          "text": "The man with the gun fired a shot at the man in the shirt inside the counter."
+        }
+      ],
+      "weapon_only_captions": [
+        {
+          "start_sec": 15.8,
+          "end_sec": 18.3,
+          "text": "The black man raised his pistol and pointed it at the man wearing a shirt at the counter."
+        },
+        {
+          "start_sec": 25.4,
+          "end_sec": 28.6,
+          "text": "The man with the gun suddenly held down the man in black next to him."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery007_x264",
+      "event_index": 0,
+      "onset_sec": 39.767,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 8.3,
+          "end_sec": 12.4,
+          "text": "A man in a green shirt pulled out a pistol and pointed it at the two women and one man opposite."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery017_x264",
+      "event_index": 0,
+      "onset_sec": 87.8,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 42.9,
+          "end_sec": 44.4,
+          "text": "The man in the hat suddenly broke into the counter and forced the man in the blue shirt into the corner with a knife."
+        },
+        {
+          "start_sec": 44.4,
+          "end_sec": 49.1,
+          "text": "The man in the hat forced the man in the blue shirt into the corner with a knife."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery020_x264",
+      "event_index": 0,
+      "onset_sec": 77.467,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 44.3,
+          "end_sec": 46.1,
+          "text": "At this time, the first man in gray clothes who came in took out a gun from his pocket."
+        },
+        {
+          "start_sec": 55.3,
+          "end_sec": 61.2,
+          "text": "Another man in gray raised a gun and threatened the man in yellow."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery021_x264",
+      "event_index": 0,
+      "onset_sec": 36.633,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 7.9,
+          "end_sec": 10.6,
+          "text": "The man in the blue hoodie broke into the checkout counter, and the man in the gray hoodie threatened the clerk with a knife outside the checkout counter."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery027_x264",
+      "event_index": 0,
+      "onset_sec": 129.167,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 70.5,
+          "end_sec": 81.8,
+          "text": "A man holding a gun threatened a man wearing a blue shirt and walked to the counter."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery057_x264",
+      "event_index": 0,
+      "onset_sec": 45.233,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 2.8,
+          "end_sec": 25.0,
+          "text": "A man entered the store with a gun and threatened people in the small room inside the store."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery059_x264",
+      "event_index": 0,
+      "onset_sec": 64.633,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 10.2,
+          "end_sec": 17.7,
+          "text": "Three gangsters entered with guns, and the clerk fled quickly."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery078_x264",
+      "event_index": 0,
+      "onset_sec": 29.3,
+      "onset_source": "hivau",
+      "eligible30": false,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 9.9,
+          "end_sec": 15.8,
+          "text": "A man entered the store with a gun and pointed the gun at the man behind the counter."
+        },
+        {
+          "start_sec": 15.8,
+          "end_sec": 17.4,
+          "text": "The man behind the counter reached for the gun but failed."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery085_x264",
+      "event_index": 0,
+      "onset_sec": 28.433,
+      "onset_source": "hivau",
+      "eligible30": false,
+      "strike_captions": [
+        {
+          "start_sec": 6.9,
+          "end_sec": 18.1,
+          "text": "A man stands in front of the counter while two other men fight."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery098_x264",
+      "event_index": 0,
+      "onset_sec": 290.333,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 52.2,
+          "end_sec": 57.5,
+          "text": "A man with a gun came into the house, followed by another man with something in his hand."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery100_x264",
+      "event_index": 0,
+      "onset_sec": 134.5,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 32.1,
+          "end_sec": 42.5,
+          "text": "The man in white held a gun and pinched the collar of the man in purple. The two clashed. The man in black squatted down and stood up, and then the man in black went out."
+        },
+        {
+          "start_sec": 52.5,
+          "end_sec": 60.5,
+          "text": "The man in white with a gun pushed the man in purple into the checkout counter, and the man in black came in with a black bag."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery124_x264",
+      "event_index": 0,
+      "onset_sec": 161.933,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 41.5,
+          "end_sec": 46.7,
+          "text": "The man outside the counter took out the bag and put it on the table, then took out a pistol and pointed it at the man."
+        },
+        {
+          "start_sec": 48.0,
+          "end_sec": 61.8,
+          "text": "The gun-wielding man and the clerk were wandering and confronting each other at the counter."
+        },
+        {
+          "start_sec": 63.6,
+          "end_sec": 73.4,
+          "text": "The man with the gun turned over and entered the counter to pick up the items on the counter."
+        },
+        {
+          "start_sec": 74.5,
+          "end_sec": 79.3,
+          "text": "The man with the gun followed the clerk into the house."
+        },
+        {
+          "start_sec": 80.3,
+          "end_sec": 84.0,
+          "text": "The man with the gun handed the bag to the clerk and closed the door."
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Robbery136_x264",
+      "event_index": 0,
+      "onset_sec": 30.933,
+      "onset_source": "hivau",
+      "eligible30": false,
+      "strike_captions": [
+        {
+          "start_sec": 9.6,
+          "end_sec": 19.9,
+          "text": "A man bent down and beat a woman and grabbed her things and then pushed her away."
+        }
+      ],
+      "weapon_only_captions": [],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Shooting011_x264",
+      "event_index": 0,
+      "onset_sec": 49.3333,
+      "onset_source": "official",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 26.9,
+          "end_sec": 37.4,
+          "text": "Pointing guns at several ladies"
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    },
+    {
+      "video_id": "ucf/Shooting031_x264",
+      "event_index": 0,
+      "onset_sec": 48.533,
+      "onset_source": "hivau",
+      "eligible30": true,
+      "strike_captions": [],
+      "weapon_only_captions": [
+        {
+          "start_sec": 20.0,
+          "end_sec": 24.3,
+          "text": "The man in white short-sleeves pushed open the glass door and walked into the building and took out a gun from his pants."
+        },
+        {
+          "start_sec": 20.0,
+          "end_sec": 24.3,
+          "text": "A man wearing a blue and white shirt took out a gun and entered the door and ran inside"
+        },
+        {
+          "start_sec": 25.2,
+          "end_sec": 29.3,
+          "text": "The man in a blue and white shirt ran around the first row of chairs to the front desk, holding a gun all the way"
+        }
+      ],
+      "classification": "PENDING_CAPTION_REVIEW",
+      "status": "PROPOSAL_NOT_APPLIED"
+    }
+  ]
+}

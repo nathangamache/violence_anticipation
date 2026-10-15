@@ -118,6 +118,31 @@ def specificity(bench, records, n_boot=1000, broadcast=False):
     return out
 
 
+def paired_broadcast(bench, records, n_boot=1000):
+    ids=sorted(set(bench.eval_ids()) & records.keys())
+    values={}
+    first={}
+    for v in ids:
+        rows=records[v];times=np.array([r['time_sec'] for r in rows]);scores=np.array([r['aggression'] for r in rows])
+        ticks=bench.labels(v).t_sec
+        values[v]=sample_and_hold(times,scores,ticks)
+        first[v]=sample_and_hold(times[:1],scores[:1],ticks)
+    ts=TickSet(bench,ids,values);broadcast=TickSet(bench,ids,first)
+    W=group_weights(ts,n_boot,0)
+    result={}
+    ramp_v=np.array([any(e['index']==0 and e['max_lead']>=90 for e in bench.event_rows(v)) for v in ids])
+    for name,keep in [('all',np.ones(len(ts.t),bool)),('S_ramp90',ts.video_mask(ramp_v))]:
+        pos=~ts.masked & ts.pre & (ts.tte>30)&(ts.tte<=120)&keep
+        neg=ts.clean & ~ts.masked & (ts.remaining>=60)
+        weights,matched=time_match_weights(ts.t,pos,neg,TIME_MATCH_EDGES,source=ts.source_v[ts.vidx])
+        actual=PairAUC(ts.score,ts.vidx,matched,neg,ts.V,neg_w=weights)
+        baseline=PairAUC(broadcast.score,ts.vidx,matched,neg,ts.V,neg_w=weights)
+        result[name]={'actual':actual.stat(W),'first_frame':baseline.stat(W),
+                      'paired_gain':va30.ci(actual.boot(W)-baseline.boot(W),actual.value()-baseline.value()),
+                      'matching':'same source/time weights and paired split_group resamples'}
+    return result
+
+
 def main(argv=None):
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--root',default='data/processed/vlm_labels_violence')
@@ -128,6 +153,8 @@ def main(argv=None):
     ap.add_argument('--export_only',action='store_true')
     args=ap.parse_args(argv)
     va30.N_THREADS=4
+    implementation={str(path):file_sha256(path) for path in map(Path,['anticipation/eval/aggression_reference.py','anticipation/eval/va30.py',
+                    'anticipation/eval/phase0.py','anticipation/data/labels.py'])}
     bench=Benchmark.load('benchmark/folds_v2.json')
     records,coverage=load_records(bench,args.root)
     covered=sorted(set(bench.eval_ids()) & records.keys())
@@ -137,8 +164,11 @@ def main(argv=None):
     pose_root=Path(args.pose_root)
     pose_files={v:file_sha256(pose_root/(v+'.npz')) for v in covered if (pose_root/(v+'.npz')).exists()}
     manifest_path.write_text(json.dumps({'root':str(pose_root),'files':pose_files},indent=2)+'\n')
+    paired_path=Path(args.out_root)/'b_aggression_nocontext'/'paired_first_frame.json'
+    paired_path.write_text(json.dumps(va30._clean_nans(paired_broadcast(bench,records,args.n_boot)),indent=1)+'\n')
     for broadcast,name in [(False,'b_aggression_nocontext'),(True,'b_aggression_nocontext_first_frame')]:
         out=Path(args.out_root)/name;out.mkdir(parents=True,exist_ok=True)
+        (out/'implementation_manifest.json').write_text(json.dumps(implementation,indent=2)+'\n')
         scores=export_scores(bench,records,broadcast)
         scores.to_parquet(out/'scores.parquet',index=False,compression='zstd')
         meta={'model':'Qwen2.5-VL-7B violence_embedding, context none','field':'aggression_level','input_root':args.root,

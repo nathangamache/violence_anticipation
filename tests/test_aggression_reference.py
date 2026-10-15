@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pytest
 
-from anticipation.eval.aggression_reference import export_scores, load_records, specificity
+from anticipation.eval.aggression_reference import export_scores, load_records, specificity, paired_broadcast
 from tests.test_va30 import make_bench
 
 
@@ -59,3 +59,13 @@ def test_people_focused_h1_does_not_reward_road_vs_people_separation():
     assert out['M3p']['value']==pytest.approx(.5)
     assert out['specificity_ratio']['value']==pytest.approx(0)
     assert out['ucf_violent_vs_all_h1']['value']>.5
+
+
+def test_paired_first_frame_control_uses_shared_weights():
+    b=fixture()
+    records={'ucf/v':[dict(time_sec=0,aggression=0),dict(time_sec=30,aggression=1)],
+             'ucf/n':[dict(time_sec=0,aggression=0)]}
+    paired=paired_broadcast(b,records,n_boot=20)['all']
+    assert paired['actual']['value']==pytest.approx(1)
+    assert paired['first_frame']['value']==pytest.approx(.5)
+    assert paired['paired_gain']['value']==pytest.approx(.5)

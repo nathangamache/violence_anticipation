@@ -79,12 +79,15 @@ def person_counts(ts, root):
                     "column": "n_persons_last", "alignment": "exact timestamp only; missing is not zero people"}
 
 
-def window_max_auc(ee, W, first_only=False):
+def window_max_auc(ee, W, first_only=False, event_keep=None):
     ts = ee.ts
     correct, pairs = np.zeros((ts.V, ts.V)), np.zeros((ts.V, ts.V))
     matched, unmatched = 0, 0
     windows = []
-    for j in np.flatnonzero(ee.ev_e30 & (ee.ev_first if first_only else True)):
+    selected = ee.ev_e30 & (ee.ev_first if first_only else True)
+    if event_keep is not None:
+        selected &= event_keep
+    for j in np.flatnonzero(selected):
         i = ee.ev_v[j]
         lo = max(1, int(np.ceil(ee.ev_lo[j] - 1e-9)))
         hi = int(np.floor(ee.ev_on[j] - 30 + 1e-9))
@@ -343,14 +346,32 @@ def compute_phase0(ts, ee, val_ee, cfg, seed, legacy):
     W = group_weights(ts, cfg.n_boot, cfg.boot_seed + 7919 * seed)
     long_v = np.array([any(e["index"] == 0 and e["max_lead"] >= 60 for e in rows) for rows in ts.events])
     out = {"ci_cluster": "split_group (fallback catalog group)",
-           "band_auroc": band_stat(ts, W), "band_long_auroc": band_stat(ts, W, 60, 120, keep=ts.video_mask(long_v)),
+           "band_auroc": band_stat(ts, W), "band_long_auroc": band_stat(ts, W, 60, 120, keep=ts.video_mask(long_v) | ts.clean),
            "band_near_auroc": band_stat(ts, W, 0, 10),
            "window_max_auroc": window_max_auc(ee, W),
            "window_max_first_auroc": window_max_auc(ee, W, True),
            "partial_amoc_0p5_2": partial_amoc(ee, W, [r["theta"] for r in legacy["amoc_curve"]])}
     out["breakdowns"] = {}
+    outcomes = {key:ee.outcomes(np.array([op["theta_per_fold"][str(f)] for f in ts.fold_v]))
+                for key,op in legacy["operating_points"].items()}
     for source, selected in (("real_world", ts.source_v != "xd_movie"), ("movie", ts.source_v == "xd_movie")):
-        out["breakdowns"][source] = band_stat(ts, W, keep=ts.video_mask(selected))
+        block = band_stat(ts, W, keep=ts.video_mask(selected))
+        block["source_proxy"] = "Catalog source kind only; YouTube sources can contain fictional clips or edited news."
+        block["window_max_auroc"] = window_max_auc(ee,W,event_keep=selected[ee.ev_v])
+        curve = {}
+        if cfg.position_null and selected.any():
+            from anticipation.eval.va30 import EventEval, position_null
+            vids = [v for i,v in enumerate(ts.vids) if selected[i]]
+            scores = {v:ts.score[ts.offsets[i]:ts.offsets[i+1]] for i,v in enumerate(ts.vids) if selected[i]}
+            cohort = TickSet(ts.bench,vids,scores)
+            curve = position_null(EventEval(cohort,ee.p))
+        block["event_operating_points"] = {}
+        for key,outcome in outcomes.items():
+            from anticipation.eval.va30 import null_at
+            stat = ee.summarize(outcome,W,ev_mask=selected[ee.ev_v],clean_mask=selected,all_mask=selected)
+            stat["position_null_success30"] = null_at(curve,stat["fa_per_hour_clean"]["value"])
+            block["event_operating_points"][key] = stat
+        out["breakdowns"][source] = block
     if cfg.person_counts_root:
         counts, coverage = person_counts(ts, cfg.person_counts_root)
         bins = np.select([counts == 0, counts == 1, counts == 2, (counts >= 3) & (counts <= 5), counts >= 6],
