@@ -1,5 +1,15 @@
 # Causal anticipation training
 
+Status for the lead (2026-10-14):
+- Framework and initial tests pushed in `a30af89`; 22 trainer checks pass after coordination changes.
+- Models: window statistics + logistic/boosting, causal GRU/Transformer; time-only control added.
+- Checkpoints now use validation source-and-time-matched far-window AUROC, never pooled AUROC.
+- Missing matched validation classes permit one diagnostic epoch only; modality screening requires both.
+- Score tables now contain only timestamps shared by all requested streams; modality valid masks remain separate.
+- Blocker: VA30 fills missing timestamps and uses catalog durations for FA/h; capped negatives are unsafe to evaluate.
+- Blocker: the first real-feature snapshot has 303 videos but only one clean negative; folds 0–3 lack validation negatives.
+- Modality screen is pending clean-negative extraction, the evaluator fix and the incoming modality decision rule.
+
 `anticipation.train` learns from the cached 1 Hz streams described in [FEATURES.md](FEATURES.md).
 It uses the frozen VA30 folds, shared tick labels and shared evaluator. No raw media or backbone model
 is loaded. This framework establishes a reproducible training path; synthetic learning checks are not
@@ -25,7 +35,7 @@ nice -n 10 env OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
   --model gru --context 120 --device cuda:1 --run_name gru_multistream_v1
 ```
 
-Models: `stats_lgbm`, `stats_logreg`, `gru`, `transformer`. Defaults are all five folds, seeds `0,1,2`,
+Models: `stats_lgbm`, `stats_logreg`, `gru`, `transformer`, `time_only`. Defaults are all five folds, seeds `0,1,2`,
 20 epochs, patience 4, four CPU threads and CPU execution. GPU use must be explicit and only `cuda:1`
 is accepted. Set `--threads 1` or `2` when extraction is busy. Every run needs a new `--run_name`;
 existing output directories are never overwritten. `--max_minutes` defaults to 29 and accepts at most
@@ -34,8 +44,8 @@ feature snapshot or VA30 evaluation can run past a check, so keep experiments sm
 
 `--max_train_ticks 20000` and `--max_val_ticks 10000` bound the samples used for fitting/checkpoint
 selection; `0` uses all usable ticks. Sampling is uniform without replacement, separately per seed,
-after splitting and applying task masks. Every test and validation tick is scored, regardless of the
-training/checkpoint sample limits. Reduce tick limits, epochs or hidden width for smoke tests.
+after splitting and applying task masks. Every test and validation tick shared by all required stream timestamp grids is scored,
+regardless of training/checkpoint sample limits. Reduce tick limits, epochs or hidden width for smoke tests.
 
 Additional temporal settings: `--context 60..300`, `--hidden 64`, `--layers 2`, `--heads 4`,
 `--batch_size 32`, `--lr 0.001`, `--dropout 0.1`, `--modality_dropout 0.15`,
@@ -55,8 +65,10 @@ position indirectly; read source/time-matched AUROC and the position null in eve
    before training so extraction progress cannot change membership between folds or seeds.
 3. Streams are joined by exact `t_sec` onto `labels_for_video(...).t_sec`. Missing, invalid or nonfinite
    feature rows become zeros with a false per-stream presence mask. No interpolation or future filling
-   occurs. Missing final ticks do not shorten the catalog timeline. Timestamps must be unique, sorted
-   integer seconds. Per-video extraction metadata and source-file SHA256 values are saved in coverage.
+   occurs. Scores are emitted only at the intersection of required-stream timestamps, including rows
+   where a modality's valid mask is false (for example absent audio). Snapshots retain the 1 Hz grid up
+   to the last common feature timestamp, with gaps masked; labels retain the original catalog duration
+   for right-censoring. Timestamps must be unique, sorted integer seconds. Per-video extraction metadata and source-file SHA256 values are saved in coverage.
 4. Per-dimension means and population standard deviations use valid feature ticks of the current
    training folds only. Validation/test statistics never participate. Invalid rows remain zero after
    normalization. There is no whole-video normalization. A zero-variance dimension has minimum scale
@@ -90,7 +102,8 @@ and negatives with no onset within 120 seconds, as in VA30's per-horizon metrics
 warnings are not trained as false alarms. This output is a conditional classification probability;
 it is not guaranteed to be calibrated to unconditional P(onset within 30 seconds). VA30 still reports
 its Brier/reliability diagnostics on the full horizon population. Checkpoints minimize held-out
-validation log loss, with no internal random validation split and no test-set selection.
+validation source-and-time-matched far-window AUROC, with no internal random validation split
+and no test-set selection. Log loss is retained as a diagnostic only.
 
 ### Temporal models
 
@@ -110,8 +123,8 @@ Hazard bins are `(0,5], (5,10], (10,20], (20,30], (30,45], (45,60]` seconds. BCE
 Positive event-bin terms receive weight `clip(30 / time_to_onset, 0.25, 1)`; survival terms retain unit
 weight, so distant positive events have less influence. Auxiliary violence-now BCE uses observed ticks
 outside excluded spans, including actual violence and aftermath. Total loss is hazard BCE plus
-`auxiliary_weight * now BCE`. AdamW, gradient clipping at 1 and validation-loss early stopping select the
-checkpoint. The hazard score is `1 - product(1 - h_j)` over the first four bins, computed in log space.
+`auxiliary_weight * now BCE`. AdamW and gradient clipping at 1 optimize the loss; validation
+source-and-time-matched far-window AUROC selects the checkpoint. The hazard score is `1 - product(1 - h_j)` over the first four bins, computed in log space.
 The detection head never substitutes for this score.
 
 ## Artifacts and evaluation
@@ -122,7 +135,7 @@ Each run writes `benchmark/results/<run_name>/`:
 |---|---|
 | `run_config.json` | Exact parsed options, command, git commit/dirty state, seeds, benchmark hashes, split membership, run status and evaluation command |
 | `coverage.json` | Accepted video metadata and feature hashes; missing/invalid videos and valid tick counts per stream |
-| `training_history.json` | Backend, best epoch, sample counts and validation loss per fold/seed |
+| `training_history.json` | Backend, best epoch, sample counts, matched validation AUROC and diagnostic losses per fold/seed |
 | `scores.parquet` | `video_id, t_sec, score, fold, seed`; every covered test and validation tick from its fold's selected model |
 | `checkpoints/normalizer_fold*.npz` | Training-fold means, scales and valid tick counts |
 | `checkpoints/fold*_seed*.pkl` or `.pt` | Selected tabular model or temporal state/config/dimensions |
@@ -154,12 +167,63 @@ missing, the trainer preserves all completed scores, records `evaluation_unavail
 it does not invent negatives, move validation videos or use test videos to choose a threshold.
 `--no_eval` explicitly requests scoring alone and records `scored_without_evaluation`.
 
+
+## Shortcut controls and checkpoint selection
+
+`--model time_only --streams <the same streams>` runs the same folds, labels, sample selection,
+validation metric, checkpointing and scoring pipeline, but its classifier sees only elapsed tick time.
+It uses the same boosting backend as `stats_lgbm`; visual values, modality masks, IDs and source labels
+are not classifier inputs. The stream list establishes identical feature coverage for the comparison.
+
+`MatchedValidation` uses the shared evaluator's `time_match_weights` and `TIME_MATCH_EDGES`. Positives
+are unmasked first-event ticks with `30 < time_to_onset <= 60`; negatives are observed clean-negative
+ticks with at least 60 seconds remaining. Matching crosses source kind with time bins (5 seconds up to
+120, the evaluator's wider bins afterward). Non-comparable positives and negatives without positive
+mass have zero metric weight. If capped, validation metric sampling uses fixed seed 0, independent of
+training seed, and never uses test data. `training_history.json` records candidate, sampled and matched
+tick counts. Validation log loss cannot break AUROC ties: the earlier checkpoint wins. If a fold has no
+matched validation positives/negatives, exactly one fixed diagnostic epoch is saved without tuning.
+`--require_validation_metric` rejects such a run before fitting any fold; use it for the modality screen.
+
+`--time_matched_training` pairs positive and negative training ticks within the same source/time bins,
+without replacement, discarding unmatched ticks. Stats positives are `y30`; temporal positives have
+an observed positive hazard bin (onset within 60 seconds). Each matched stratum contributes equal
+positive and negative counts. Temporal violence/aftermath samples remain for the auxiliary head.
+A final optional tick budget is a uniform subsample of this balanced pool, so finite sampling can
+introduce small count differences. Validation and test populations are never balanced or resampled
+for reported scores. This option changes class priors; read the calibration diagnostics accordingly.
+
+## Partial-timeline evaluator blocker
+
+Audited against evaluator commit `a30af89`: `TickSet` reads `duration_v` from the catalog at
+`anticipation/eval/va30.py:280`; `EventEval` computes exposure as catalog duration minus excluded spans
+at line 577. `_collect` at lines 854–877 sample-and-hold fills missing score ticks, including the suffix
+after the last feature. `--restrict_to_scored` at lines 1376–1377 restricts video IDs only. Consequently,
+300 scored seconds of a 3,600-second clean negative can contribute 1 hour rather than 0.0833 hours.
+This changes both thresholds and test FA/h, and the fabricated held tail can affect alarms too.
+
+The trainer does not modify the evaluator. It blocks automatic evaluation when any covered video has
+fewer jointly scored ticks than catalog ticks, saves the exact partial score table and records
+`evaluation_unavailable`. `coverage.json` records catalog/snapshot/scored tick counts; split coverage
+records both actual scored clean hours and catalog hours. Once the lead fixes missing-tick exposure,
+remove the conservative guard in `anticipation.train` and rerun the saved scores with the corrected
+evaluator and `--restrict_to_scored`. No real partial-timeline FA/h or Success@30 numbers are valid yet.
+
+## Modality screen
+
+When negatives and the evaluator fix arrive, screen `vjepa2_l`, `siglip2`, `siglip2_prompts`,
+`pose_interact`, `motion` singly, then pairs, with `stats_lgbm` and `gru`, all five v2 folds and seeds
+`0,1,2`. Keep model/sampling settings identical across streams, require matched validation coverage,
+and include the time-only control on each compared coverage cohort. Do not select on pooled AUROC or
+test outcomes. Read the incoming `MODALITY_PLAN.md` decision rule before choosing modalities.
+Every comparison must show coverage, matched far-window AUROC, Success@30, the position null and the
+random reference together. Different feature coverage is not an apples-to-apples modality comparison.
+
 ## Add a model
 
 Implement the new model under `anticipation/models/`, add its name to the CLI choices and route it in
 `train_run`. Reuse `FeatureStore`, `Normalizer`, `sample_ticks`, shared labels and the fold split lists.
-Return one finite probability per catalog tick. Fit and select only on the supplied training and
-validation sets, preserve test/validation fold provenance, and save the selected checkpoint and history.
+Return one finite score per jointly observed tick. Fit only on training data, select on matched far-window validation AUROC, preserve test/validation fold provenance, and save the selected checkpoint and history.
 Add the model to the synthetic precursor, detection-only and truncation tests before running real data.
 
 `Normalizer.load(path)` restores preprocessing. Tabular checkpoints contain a `StatsModel` with

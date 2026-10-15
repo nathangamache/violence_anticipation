@@ -8,7 +8,6 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 
-from anticipation.models.data import positive_weights
 
 
 def context_window(video, tick, context, normalizer):
@@ -37,7 +36,7 @@ class WindowDataset(Dataset):
         x, present = context_window(v, tick, self.context, self.normalizer)
         return {"streams": x, "present": present, "hazard": v.labels.hazard_target[tick].astype(np.float32),
                 "now": np.float32(v.labels.in_violence[tick]), "now_valid": np.float32(not v.labels.excluded[tick]),
-                "weight": positive_weights(v.labels)[tick],
+                "weight": np.float32(np.clip(30 / max(v.labels.tte[tick], 30), 0.25, 1) if np.isfinite(v.labels.tte[tick]) else 1),
                 "position": np.float32(v.t_sec[tick] / 300 if self.position_control else 0)}
 
 
@@ -114,7 +113,7 @@ def batch_loss(model, batch, device, auxiliary_weight):
 
 
 def fit_temporal(model, train, val, device="cpu", epochs=20, patience=4, batch_size=32,
-                 lr=1e-3, auxiliary_weight=0.2, seed=0, check_time=lambda: None):
+                 lr=1e-3, auxiliary_weight=0.2, seed=0, check_time=lambda: None, selection_score=None):
     if not len(train) or not len(val):
         raise ValueError("temporal training and validation need usable ticks")
     model.to(device)
@@ -122,7 +121,7 @@ def fit_temporal(model, train, val, device="cpu", epochs=20, patience=4, batch_s
     train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, generator=generator, num_workers=0)
     val_loader = DataLoader(val, batch_size=batch_size, num_workers=0)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    best, stale, history, best_state = float("inf"), 0, [], None
+    best, stale, history, best_state = -float("inf"), 0, [], None
     for epoch in range(epochs):
         model.train()
         total, count = 0.0, 0
@@ -146,13 +145,15 @@ def fit_temporal(model, train, val, device="cpu", epochs=20, patience=4, batch_s
                 n = len(batch["now"])
                 vtotal, vcount = vtotal + float(loss) * n, vcount + n
         value = vtotal / vcount
-        history.append({"epoch": epoch + 1, "train_loss": total / count, "val_loss": value})
-        if value < best - 1e-6:
-            best, stale, model.best_epoch = value, 0, epoch + 1
+        metric = selection_score(model) if selection_score is not None else None
+        history.append({"epoch": epoch + 1, "train_loss": total / count, "val_loss": value,
+                        "val_matched_far_auroc": metric})
+        if metric is None or metric > best + 1e-6:
+            best, stale, model.best_epoch = metric if metric is not None else best, 0, epoch + 1
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         else:
             stale += 1
-        if stale >= patience:
+        if metric is None or stale >= patience:
             break
     if best_state is None:
         raise ValueError("no finite validation checkpoint")
@@ -160,12 +161,13 @@ def fit_temporal(model, train, val, device="cpu", epochs=20, patience=4, batch_s
     return history
 
 
-def predict_temporal(model, video, normalizer, device="cpu", batch_size=32):
+def predict_temporal(model, video, normalizer, device="cpu", batch_size=32, indices=None):
     model.eval()
     out = []
     with torch.no_grad():
-        for start in range(0, len(video.t_sec), batch_size):
-            ix = range(start, min(start + batch_size, len(video.t_sec)))
+        indices = np.arange(len(video.t_sec)) if indices is None else np.asarray(indices, int)
+        for start in range(0, len(indices), batch_size):
+            ix = indices[start:start + batch_size]
             windows = [context_window(video, i, model.context, normalizer) for i in ix]
             xs = [torch.from_numpy(np.stack([w[0][j] for w in windows])).to(device)
                   for j in range(len(video.streams))]
@@ -173,4 +175,4 @@ def predict_temporal(model, video, normalizer, device="cpu", batch_size=32):
             pos = torch.tensor(video.t_sec[list(ix)] / 300, dtype=torch.float32, device=device)
             h, _ = model(xs, present, pos)
             out.append(model.score30(h).cpu().numpy())
-    return np.concatenate(out)
+    return np.concatenate(out) if out else np.zeros(0, np.float32)

@@ -25,6 +25,7 @@ from anticipation.eval import va30
 from anticipation.features import io
 from anticipation.models.data import FeatureStore, Normalizer, sample_ticks
 from anticipation.models.stats import StatsModel, make_table
+from anticipation.models.selection import MatchedValidation
 
 
 def write_json(path, data):
@@ -36,7 +37,7 @@ def write_json(path, data):
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--streams", required=True, help="comma-separated required cached streams")
-    p.add_argument("--model", required=True, choices=["stats_lgbm", "stats_logreg", "gru", "transformer"])
+    p.add_argument("--model", required=True, choices=["stats_lgbm", "stats_logreg", "gru", "transformer", "time_only"])
     p.add_argument("--run_name", required=True)
     p.add_argument("--folds", default=FOLDS_DEFAULT)
     p.add_argument("--videos", default=va30.VIDEOS_CSV)
@@ -59,6 +60,8 @@ def parser():
     p.add_argument("--modality_dropout", type=float, default=0.15)
     p.add_argument("--auxiliary_weight", type=float, default=0.2)
     p.add_argument("--position_control", action="store_true", help="explicit elapsed-time control; off by default")
+    p.add_argument("--time_matched_training", action="store_true", help="match training negatives to positives by source and tick-time bin")
+    p.add_argument("--require_validation_metric", action="store_true", help="stop before fitting if any fold lacks matched validation positives/negatives")
     p.add_argument("--n_boot", type=int, default=1000)
     p.add_argument("--threshold_bootstrap", type=int, default=0)
     p.add_argument("--max_minutes", type=float, default=29, help="training/scoring wall budget, at most 30 minutes")
@@ -74,8 +77,10 @@ def split_coverage(bench, store):
                             ("test", bench.folds.test_ids(f))):
             ids = [v for v in vids if v in store.paths]
             rows = bench.videos.loc[ids]
+            clean = [v for v in ids if bench.videos.loc[v, "role"] == "clean_negative"]
             coverage[str(f)][split] = {"videos": len(ids), "roles": rows.role.value_counts().to_dict(),
-                                       "clean_hours": float(rows.loc[rows.role == "clean_negative", "duration_sec"].sum() / 3600),
+                                       "clean_hours": sum(store.records[v]["scored_ticks"] for v in clean) / 3600,
+                                       "catalog_clean_hours": float(rows.loc[rows.role == "clean_negative", "duration_sec"].sum() / 3600),
                                        "video_ids": ids}
     return coverage
 
@@ -93,24 +98,27 @@ def train_run(args, bench, store, out, config):
         check_time()
         norm = Normalizer.fit(store, ids["train"])
         norm.save(out / "checkpoints" / f"normalizer_fold{fold}.npz")
+        validation = MatchedValidation(store, ids["val"], args.max_val_ticks)
         for seed in config["seeds"]:
             check_time()
             random.seed(seed)
             np.random.seed(seed)
             rng = np.random.default_rng(seed)
-            task = "stats" if args.model.startswith("stats_") else "temporal"
-            selection = {s: sample_ticks(store, ids[s], getattr(args, f"max_{s}_ticks"), rng, task)
+            task = "stats" if args.model.startswith("stats_") or args.model == "time_only" else "temporal"
+            selection = {s: sample_ticks(store, ids[s], getattr(args, f"max_{s}_ticks"), rng, task,
+                                        time_matched=args.time_matched_training and s == "train")
                          for s in ("train", "val")}
             name = f"fold{fold}_seed{seed}"
             if task == "stats":
                 model = StatsModel(args.model, seed, args.threads, args.position_control)
-                model.fit(make_table(store, ids["train"], selection["train"], norm, args.position_control),
-                          make_table(store, ids["val"], selection["val"], norm, args.position_control),
-                          args.epochs, args.patience, check_time=check_time)
+                model.fit(make_table(store, ids["train"], selection["train"], norm, args.position_control, args.model == "time_only"),
+                          make_table(store, ids["val"], selection["val"], norm, args.position_control, args.model == "time_only"),
+                          args.epochs, args.patience, check_time=check_time,
+                          selection_score=lambda m: validation.score(lambda vid, ix: m.predict(store[vid], norm, indices=ix)))
                 with open(out / "checkpoints" / (name + ".pkl"), "wb") as f:
                     pickle.dump(model, f)
                 history, backend = model.history, model.backend
-                predict = lambda v: model.predict(v, norm)
+                predict = lambda v: model.predict(v, norm, indices=np.flatnonzero(v.observed))
             else:
                 import torch
                 from anticipation.models.temporal import CausalTemporalModel, WindowDataset, fit_temporal, predict_temporal
@@ -124,11 +132,13 @@ def train_run(args, bench, store, out, config):
                             for s in ("train", "val")}
                 history = fit_temporal(model, datasets["train"], datasets["val"], args.device, args.epochs,
                                        args.patience, args.batch_size, args.lr, args.auxiliary_weight, seed,
-                                       check_time=check_time)
+                                       check_time=check_time,
+                                       selection_score=lambda m: validation.score(
+                                           lambda vid, ix: predict_temporal(m, store[vid], norm, args.device, args.batch_size, ix)))
                 torch.save({"state_dict": model.state_dict(), "config": vars(args), "dimensions": store.dims,
                             "best_epoch": model.best_epoch}, out / "checkpoints" / (name + ".pt"))
                 backend = args.model
-                predict = lambda v: predict_temporal(model, v, norm, args.device, args.batch_size)
+                predict = lambda v: predict_temporal(model, v, norm, args.device, args.batch_size, np.flatnonzero(v.observed))
             rows = []
             for split in ("test", "val"):
                 for vid in ids[split]:
@@ -137,12 +147,13 @@ def train_run(args, bench, store, out, config):
                     score = predict(v)
                     if not np.isfinite(score).all():
                         raise ValueError(f"non-finite scores for {vid}")
-                    rows.append(pd.DataFrame({"video_id": vid, "t_sec": v.t_sec, "score": score,
+                    rows.append(pd.DataFrame({"video_id": vid, "t_sec": v.t_sec[v.observed], "score": score,
                                               "fold": fold, "seed": seed}))
             path = out / (name + "_scores.parquet")
             pd.concat(rows, ignore_index=True).to_parquet(path, index=False)
             files.append(path)
             histories.append({"fold": fold, "seed": seed, "backend": backend, "best_epoch": model.best_epoch,
+                              "checkpoint_selection": validation.info,
                               "train_ticks": sum(map(len, selection["train"].values())),
                               "val_ticks": sum(map(len, selection["val"].values())), "epochs": history})
             write_json(out / "training_history.json", histories)
@@ -193,14 +204,17 @@ def main(argv=None):
                              "hazard_edges_sec": [0, 5, 10, 20, 30, 45, 60],
                              "positive_hazard_weight": "clip(30 / time_to_onset, 0.25, 1)",
                              "optimizer": "AdamW", "weight_decay": 1e-4, "gradient_clip": 1.0,
-                             "normalizer_scale_floor": 1e-4, "short_context": "repeat first tick"}, "command": [sys.executable, "-m", "anticipation.train", *(argv if argv is not None else sys.argv[1:])],
+                             "normalizer_scale_floor": 1e-4, "short_context": "repeat first tick",
+                             "checkpoint_selection": "validation source_time_matched_far_auroc",
+                             "selection_unavailable": "one fixed diagnostic epoch; no tuning"}, "command": [sys.executable, "-m", "anticipation.train", *(argv if argv is not None else sys.argv[1:])],
               "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
               "git_dirty": subprocess.check_output(["git", "status", "--porcelain"], text=True).splitlines(),
               "created": datetime.datetime.now(datetime.timezone.utc).isoformat(), "seeds": seeds,
               "benchmark": bench.provenance, "status": "snapshotting",
               "normalization": "per-dimension training-fold moments over valid ticks only",
               "score": ("conditional y30 probability: training negatives have no onset within 120 seconds"
-                        if args.model.startswith("stats_") else "P(onset within 30 seconds)"), "restrict_to_scored": True}
+                        if args.model.startswith("stats_") or args.model == "time_only" else "P(onset within 30 seconds)"),
+              "restrict_to_scored": True}
     write_json(out / "run_config.json", config)
     io.FEATURE_ROOT = args.feature_root
     try:
@@ -216,6 +230,8 @@ def main(argv=None):
             missing_clean = [int(f) for f, splits in config["split_coverage"].items()
                              if splits["val"]["clean_hours"] <= 0]
             config["evaluation_readiness"] = {"validation_folds_without_clean_negatives": missing_clean}
+            config["validation_selection"] = {f: MatchedValidation(store, splits["val"]["video_ids"], args.max_val_ticks).info
+                                               for f, splits in config["split_coverage"].items()}
             config["status"] = "training"
             write_json(out / "run_config.json", config)
             print(f"[train] coverage: {coverage['available']}/{coverage['requested']} videos; "
@@ -225,6 +241,8 @@ def main(argv=None):
                       "VA30 threshold evaluation will be unavailable", flush=True)
             if not coverage["available"]:
                 raise ValueError("no videos have the required feature streams; see coverage.json")
+            if args.require_validation_metric and not all(m["available"] for m in config["validation_selection"].values()):
+                raise ValueError("matched validation AUROC unavailable in one or more folds; no models were fitted")
             scores = train_run(args, bench, store, out, config)
             if not args.no_eval:
                 config["evaluation_command"] = [sys.executable, "-m", "anticipation.eval.va30", "--scores", str(scores),
@@ -232,6 +250,11 @@ def main(argv=None):
                     "--n_boot", str(args.n_boot), "--threshold_bootstrap", str(args.threshold_bootstrap),
                     "--restrict_to_scored", "--meta", str(out / "run_config.json")]
                 write_json(out / "run_config.json", config)
+                partial = [vid for vid, rec in store.records.items() if rec["scored_ticks"] < rec["ticks"]]
+                if partial:
+                    config["partial_timeline_videos"] = partial
+                    raise ValueError("VA30 currently uses catalog durations and fills missing ticks; partial-timeline "
+                                     "evaluation is blocked pending the lead's evaluator fix")
                 va30.main(config["evaluation_command"][3:])
             config["status"] = "complete" if not args.no_eval else "scored_without_evaluation"
     except Exception as exc:

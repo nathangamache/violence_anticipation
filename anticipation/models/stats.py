@@ -60,13 +60,14 @@ def window_statistics(video, normalizer, indices=None, position_control=False):
     return out
 
 
-def make_table(store, ids, selection, normalizer, position_control=False):
+def make_table(store, ids, selection, normalizer, position_control=False, time_only=False):
     rows, targets, weights = [], [], []
     for vid in ids:
         ix = selection[vid]
         if len(ix):
             v = store[vid]
-            rows.append(window_statistics(v, normalizer, ix, position_control))
+            rows.append((v.t_sec[ix, None] / 300).astype(np.float32) if time_only else
+                        window_statistics(v, normalizer, ix, position_control))
             targets.append(v.labels.y[30][ix])
             weights.append(np.ones(len(ix), np.float32))
     if not rows:
@@ -80,7 +81,7 @@ class StatsModel:
         self.scaler = StandardScaler(copy=False)
         self.backend = kind
 
-    def fit(self, train, val, epochs=20, patience=4, check_time=lambda: None):
+    def fit(self, train, val, epochs=20, patience=4, check_time=lambda: None, selection_score=None):
         x, y, w = train
         vx, vy, vw = val
         if len(np.unique(y)) < 2:
@@ -100,7 +101,8 @@ class StatsModel:
                 model = HistGradientBoostingClassifier(max_iter=10, max_leaf_nodes=15, learning_rate=0.05,
                                                        early_stopping=False, warm_start=True, random_state=self.seed)
                 self.backend = "sklearn_hist_gradient_boosting"
-        self.history, best, stale = [], float("inf"), 0
+        self.history, best, stale = [], -float("inf"), 0
+        best_model = None
         for epoch in range(epochs):
             check_time()
             if self.backend == "sklearn_hist_gradient_boosting":
@@ -110,25 +112,32 @@ class StatsModel:
                 kwargs = {"init_model": model.booster_} if self.backend == "lightgbm" and epoch else {}
                 model.fit(x, y, sample_weight=w, **kwargs)
             loss = log_loss(vy, model.predict_proba(vx)[:, 1], labels=[0, 1], sample_weight=vw)
-            self.history.append({"epoch": epoch + 1, "val_loss": float(loss)})
-            if loss < best - 1e-6:
-                best, stale, self.best_epoch = loss, 0, epoch + 1
-                self.model = copy.deepcopy(model)
+            self.model = model
+            metric = selection_score(self) if selection_score is not None else None
+            self.history.append({"epoch": epoch + 1, "val_loss": float(loss), "val_matched_far_auroc": metric})
+            if metric is None or metric > best + 1e-6:
+                best, stale, self.best_epoch = metric if metric is not None else best, 0, epoch + 1
+                best_model = copy.deepcopy(model)
             else:
                 stale += 1
-            if stale >= patience:
+            if metric is None or stale >= patience:
                 break
+        self.model = best_model
         return self
 
-    def predict(self, video, normalizer, batch_size=512):
+    def predict(self, video, normalizer, batch_size=512, indices=None):
+        indices = np.arange(len(video.t_sec)) if indices is None else np.asarray(indices, int)
+        if self.kind == "time_only":
+            x = (video.t_sec[indices, None] / 300).astype(np.float32)
+            return self.model.predict_proba(self.scaler.transform(x))[:, 1]
         chunks = []
-        for start in range(0, len(video.t_sec), batch_size):
-            ix = np.arange(start, min(start + batch_size, len(video.t_sec)))
+        for start in range(0, len(indices), batch_size):
+            ix = indices[start:start + batch_size]
             # Statistics need at most 60 past ticks; this bounds memory on long videos.
-            lo = max(0, start - 59)
+            lo = max(0, int(ix[0]) - 59)
             from anticipation.models.data import VideoFeatures
             part = VideoFeatures(video.video_id, video.t_sec[lo:ix[-1] + 1],
                                  [x[lo:ix[-1] + 1] for x in video.streams], video.present[lo:ix[-1] + 1], None)
             x = window_statistics(part, normalizer, ix - lo, self.position_control)
             chunks.append(self.model.predict_proba(self.scaler.transform(x))[:, 1])
-        return np.concatenate(chunks)
+        return np.concatenate(chunks) if chunks else np.zeros(0, np.float32)
