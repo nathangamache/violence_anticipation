@@ -1,5 +1,7 @@
 """Causal first-frame and source/time/scene nuisance controls with an offset residual classifier."""
 
+import json
+
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import expit
@@ -34,7 +36,14 @@ class SceneProvider:
         dimension = None
         for vid in ids:
             try:
-                t, x, valid, meta = loader(stream, vid)
+                if stream == "siglip2_scene0p" and loader is io.load_features:
+                    with np.load(io.feature_path(stream, vid), allow_pickle=False) as z:
+                        meta = json.loads(str(z["meta"]))
+                        t = np.array([float(meta["t_sec"])])
+                        x = z["emb"].astype(np.float32)[None]
+                        valid = np.ones(1, bool)
+                else:
+                    t, x, valid, meta = loader(stream, vid)
             except (OSError, ValueError, KeyError, EOFError):
                 self.missing.append(vid)
                 continue
@@ -45,7 +54,8 @@ class SceneProvider:
             good = index < len(t) and abs(t[index] - anchor_tick) < 1e-4 and valid[index] and np.isfinite(x[index]).all()
             self.anchors[vid] = x[index].astype(np.float32) if good else np.zeros(dimension, np.float32)
             self.present[vid] = bool(good)
-            self.people_masked &= bool(meta.get("people_masked") or meta.get("person_boxes_greyed"))
+            self.people_masked &= bool(meta.get("people_masked") or meta.get("person_boxes_greyed") or
+                                       (meta.get("extractor") == "siglip2_scene0p" and meta.get("box_source") and meta.get("grey") is not None))
             self.hashes[vid] = file_sha256(io.feature_path(stream, vid)) if loader is io.load_features else None
 
 

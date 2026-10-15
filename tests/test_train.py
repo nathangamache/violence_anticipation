@@ -301,7 +301,7 @@ def test_partial_timelines_emit_only_common_ticks_and_block_inflated_hours(tmp_p
         assert rows.t_sec.max() == (179 if bench.videos.loc[vid, "role"] == "clean_negative" else 219)
     config = json.loads((out / "run_config.json").read_text())
     assert config["status"] == "evaluation_unavailable"
-    assert "catalog durations" in config["error"]
+    assert "incomplete joint feature coverage" in config["error"]
 
 
 @pytest.mark.parametrize("kind", ["gru", "transformer"])

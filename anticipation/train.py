@@ -56,7 +56,7 @@ def parser():
     p.add_argument("--event_batch_size", type=int, default=2)
     p.add_argument("--event_ticks", type=int, default=16)
     p.add_argument("--history_dropout", type=float, default=0.25)
-    p.add_argument("--scene_stream", default="siglip2")
+    p.add_argument("--scene_stream", default="siglip2_scene0p")
     p.add_argument("--scene_tick", type=int, default=2)
     p.add_argument("--first_frame_tick", type=int, default=1)
     p.add_argument("--videos", default=va30.VIDEOS_CSV)
@@ -85,7 +85,6 @@ def parser():
     p.add_argument("--n_boot", type=int, default=1000)
     p.add_argument("--threshold_bootstrap", type=int, default=0)
     p.add_argument("--max_minutes", type=float, default=29, help="training/scoring wall budget, at most 30 minutes")
-    p.add_argument("--horizons", default=str(Path(va30.REPO_ROOT) / "benchmark" / "extract_manifest_v1.csv"), help="per-video evaluation horizons passed to VA30")
     p.add_argument("--no_eval", action="store_true", help="save scores without calling VA30")
     return p
 
@@ -239,6 +238,7 @@ def main(argv=None):
         if not registration.is_file() or not registration.with_name("summary.md").is_file():
             raise ValueError("Phase A is blocked until the evaluation agent's screen_set_v1.json and summary.md land")
         json.loads(registration.read_text())
+        raise ValueError("registered Phase A uses anticipation.screen.run; this trainer provides diagnostic models and P2 building blocks")
     if args.phase != "synthetic" and args.context < 180:
         raise ValueError("real-data context must be 180..300 seconds")
     if not 0 <= args.history_dropout <= 1 or min(args.band_weight, args.event_weight) < 0 or min(args.event_ticks, args.event_batch_size) < 1:
