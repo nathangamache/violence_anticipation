@@ -5,7 +5,7 @@ Status (2026-10-15, America/Detroit): **IN PROGRESS; confirmation remains frozen
 | Item | Value |
 |---|---|
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
-| Scan | Calibration running; cuda:0 only, bf16, batch 16 |
+| Scan | Full scan running; calibration complete; cuda:0 only, bf16, batch 16 |
 | Visual review / corrected labels | Not started / not released |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
@@ -50,7 +50,8 @@ Changed labels require two blind passes; reconcile disagreements on fine sheets.
 
 `anticipation.data.apply_corrections` validates source hashes, review completion, original event identity,
 correction direction and the two-pass evidence before writing separate outputs under `benchmark/v3/`.
-It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
+The correction table contains visually reviewed events only; unselected, non-flagged events retain their
+original labels without a claim of visual verification. It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
 existing other-anomaly and cross-clip blockers. A video without remaining violence becomes `unlabelled`,
 never a clean negative. Existing source-film masks are retained; their regeneration is not yet implemented.
 
@@ -63,3 +64,14 @@ Pending the complete scan and visual review. No corrected labels or replacement 
 The screen tests passed (49 tests), as did the correction, routing, blind-review reconciliation and
 registration-rebuild checks (14 tests). No benchmark model result file has been opened. The v2 registration
 alias deliberately refuses to load until the completed registration has a pinned hash.
+
+## Scan calibration checkpoint
+
+The fixed threshold is **0.022977370768785477**. On the calibration sample, strict `P(Yes) > threshold`
+selects 15 of 800 clean-labelled frames (**1.875%**) and 192 of 400 annotated violent frames (**48%**).
+The clean sample fixes the threshold; the violent sample only measures sensitivity. The full event scan
+contains **44,132 frames**. Calibration and the first two event checks took 550.6 seconds; the resumed scan
+has a 9,900-second cumulative runtime cap, leaving room for initial validation within about three GPU-hours.
+
+The first implementation checkpoint is commit `25e7062`. Label curation and registration completion remain
+pending; this checkpoint does not authorise reading fold-1 model outcomes.

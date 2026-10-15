@@ -83,8 +83,9 @@ def main():
     flags = json.loads((args.root / 'flags.json').read_text())
     queue = json.loads((args.root / 'review_queue.json').read_text())
     random = {(r['video_id'], r['event_index']) for r in queue if r['review_reason'] == 'random_nonflagged'}
-    if len(random) != 40:
-        raise ValueError('Exactly 40 non-flagged sample events required')
+    n_nonflagged = sum(not (r['early_violence'] or r['no_violence_at_onset']) for r in flags)
+    if len(random) != min(40, n_nonflagged):
+        raise ValueError('Non-flagged sample size differs from the planned 40-event sample or census')
     reconciliation_path = args.root / 'reconciliations.json'
     reconciliations = json.loads(reconciliation_path.read_text()) if reconciliation_path.exists() else []
     reconciliations = {(r['video_id'], r['event_index']): r for r in reconciliations}
@@ -99,19 +100,23 @@ def main():
     if set(reviews[0]) != set(reviews[1]) or set(reviews[0]) != {
             (r['video_id'], r['event_index']) for r in queue}:
         raise ValueError('Blind review coverage differs from planned queue')
+    corrections = [r for r in corrections if r['visually_reviewed']]
     apply(videos, catalog, corrections)
     shifts = [r['corrected_onset_sec'] - r['original_onset_sec'] for r in corrections
               if r['verdict'] in {'earlier', 'later'}]
     sample = [r for r in corrections if (r['video_id'], r['event_index']) in random]
     counts = Counter((r['verdict'], r['onset_source']) for r in corrections)
-    summary = {'n_events': len(corrections), 'n_visually_reviewed': len(reviews[0]),
+    summary = {'n_events': len(corrections), 'n_scanned_events': len(flags),
+               'n_retained_without_visual_review': len(flags) - len(corrections),
+               'n_visually_reviewed': len(reviews[0]),
                'counts_verdict_by_source': {v: {s: counts[v, s] for s in ('official', 'hivau', 'ubi')}
                                           for v in sorted(VERDICTS)},
                'median_shift_sec': float(np.median(shifts)) if shifts else None,
                'nonflagged_review_n': len(sample),
                'scan_misses': sum(r['verdict'] in {'earlier', 'later', 'no_violence'} for r in sample),
+               'nonflagged_census': n_nonflagged <= 40,
                'sample_unclear': sum(r['verdict'] == 'unclear' for r in sample)}
-    summary['scan_miss_rate'] = summary['scan_misses'] / len(sample)
+    summary['scan_miss_rate'] = summary['scan_misses'] / len(sample) if sample else None
     result = {'version': 3, 'status': 'REVIEW_COMPLETE',
               'source_sha256': {n: hashlib.sha256((Path('benchmark') / n).read_bytes()).hexdigest()
                                 for n in ('videos.csv', 'events.json')},

@@ -107,6 +107,7 @@ def main(argv=None):
             raise ValueError(f'Source hash mismatch: {name}')
     videos, catalog = apply(raw['videos'], catalog, corrections['corrections'])
     raw['videos'] = videos
+    raw['meta']['labels_version'] = 3
     raw['meta']['onset_corrections'] = {'sha256': hashlib.sha256(correction_path.read_bytes()).hexdigest(),
                                        'path': args.corrections, 'version': 3}
     out.mkdir(parents=True, exist_ok=True)

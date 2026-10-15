@@ -29,9 +29,9 @@ def _font(size):
         return ImageFont.load_default()
 
 
-def render_sheets(video_path, out_dir, start=0.0, end=None, step=2.0, cols=6, rows=5, tile_w=256, prefix="coarse"):
+def render_sheets(video_path, out_dir, start=0.0, end=None, step=2.0, cols=6, rows=5, tile_w=256, prefix="coarse", num_threads=4):
     """Write sheets ``<prefix>_<first_t>-<last_t>.jpg`` covering [start, end) and return their paths."""
-    v = Video(video_path)
+    v = Video(video_path, num_threads=num_threads)
     end = v.info.duration_sec if end is None else min(end, v.info.duration_sec)
     times = np.arange(start, end, step)
     if len(times) == 0:
@@ -72,10 +72,11 @@ def main():
     ap.add_argument("--rows", type=int, default=5)
     ap.add_argument("--tile_w", type=int, default=256)
     ap.add_argument("--prefix", default="coarse")
+    ap.add_argument("--num_threads", type=int, default=4, choices=range(1, 5))
     a = ap.parse_args()
-    v = Video(a.video)
+    v = Video(a.video, num_threads=a.num_threads)
     print(f"duration_sec={v.info.duration_sec:.2f} fps={v.info.fps:.3f} size={v.info.width}x{v.info.height}")
-    for p in render_sheets(a.video, a.out_dir, a.start, a.end, a.step, a.cols, a.rows, a.tile_w, a.prefix):
+    for p in render_sheets(a.video, a.out_dir, a.start, a.end, a.step, a.cols, a.rows, a.tile_w, a.prefix, a.num_threads):
         print(p)
 
 

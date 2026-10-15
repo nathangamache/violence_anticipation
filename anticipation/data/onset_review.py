@@ -2,6 +2,8 @@
 
 import argparse
 import csv
+import hashlib
+import os
 import json
 from pathlib import Path
 
@@ -20,6 +22,11 @@ def prepare(root, pass_name, seed):
     videos = json.loads(Path('benchmark/events.json').read_text())['videos']
     out = root / 'blind' / pass_name
     out.mkdir(parents=True, exist_ok=True)
+    metadata = {'seed': seed, 'queue_sha256': hashlib.sha256((root / 'review_queue.json').read_bytes()).hexdigest()}
+    metadata_path = root / f'private_meta_{pass_name}.json'
+    if metadata_path.exists() and json.loads(metadata_path.read_text()) != metadata:
+        raise ValueError('Existing blind pass has a different seed or review queue')
+    dump(metadata_path, metadata)
     order = np.random.default_rng(seed).permutation(len(queue))
     private, public = [], []
     for i, j in enumerate(order):
@@ -33,18 +40,33 @@ def prepare(root, pass_name, seed):
         candidate = item['candidate_onset_sec']
         center = event['onset'] if candidate is None else candidate
         folder = out / blind_id
-        done = folder / 'sheets.json'
+        folder.mkdir(exist_ok=True)
+        alias = folder / 'raw.mp4'
+        if not alias.exists():
+            alias.symlink_to(catalog[vid]['path'])
+        cache_id = hashlib.sha256(f'{vid}:{index}'.encode()).hexdigest()[:20]
+        cache = root / 'sheet_cache' / cache_id
+        cache.mkdir(parents=True, exist_ok=True)
+        done = cache / 'sheets.json'
         if done.exists():
             sheets = json.loads(done.read_text())
         else:
-            coarse = render_sheets(catalog[vid]['path'], str(folder), start=start,
-                                   end=end, step=1, tile_w=256, prefix='coarse')
-            fine = render_sheets(catalog[vid]['path'], str(folder), start=max(0, center - 4),
-                                 end=min(duration, center + 6), step=.5, tile_w=320, prefix='fine')
+            coarse = render_sheets(catalog[vid]['path'], str(cache), start=start,
+                                   end=end, step=1, tile_w=256, prefix='coarse', num_threads=1)
+            fine = render_sheets(catalog[vid]['path'], str(cache), start=max(0, center - 4),
+                                 end=min(duration, center + 6), step=.5, tile_w=320, prefix='fine', num_threads=1)
             sheets = {'coarse': coarse, 'fine': fine}
             dump(done, sheets)
-        public.append({'blind_id': blind_id, 'original_onset_sec': event['onset'],
-                       'sheets': sheets, 'verdict': None, 'corrected_onset_sec': None,
+        linked = {}
+        for kind, paths in sheets.items():
+            linked[kind] = []
+            for path in paths:
+                target = folder / Path(path).name
+                if not target.exists():
+                    os.link(path, target)
+                linked[kind].append(str(target))
+        public.append({'blind_id': blind_id, 'video_path': str(alias), 'original_onset_sec': event['onset'],
+                       'sheets': linked, 'verdict': None, 'corrected_onset_sec': None,
                        'evidence': None, 'needs_expansion': None})
         private.append({'blind_id': blind_id, 'video_id': vid, 'event_index': index,
                         'review_reason': item['review_reason']})
