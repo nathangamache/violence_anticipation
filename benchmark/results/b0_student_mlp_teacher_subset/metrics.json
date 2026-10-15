@@ -1112,7 +1112,7 @@
    "feature_manifest_sha256": "101abe787bf8dd663f1e0f952dd22b9e85ea3193edda52af0bcb070ba869a157",
    "baseline": "b_teacher restricted to exact B0/B-scene0 video subset",
    "teacher_clock": "raw_frame_idx / benchmark/videos.csv fps",
-   "implementation_commit": "eb9e51707b72a273d335d81062afb80e2a6e4b62",
+   "implementation_commit": "6e9eb613671b572d765909f01a695b5c2bc32090",
    "implementation_sha256": "6ad3d5f1ee24f924e07d52250ffa08074247b604abe6e3c9497fdd0d30ac00b4",
    "python": ".venv/bin/python",
    "software": {
@@ -1130,8 +1130,10 @@
    "validation": {
     "command": "python -m pytest tests/test_learned_baselines.py tests/test_va30.py tests/test_va30_fixes.py -q",
     "log": "51 passed in 87.25s (0:01:27)"
-   }
-  }
+   },
+   "pre_rebase_implementation_commit": "eb9e51707b72a273d335d81062afb80e2a6e4b62"
+  },
+  "implementation_commit_after_rebase": "6e9eb613671b572d765909f01a695b5c2bc32090"
  },
  "config": {
   "horizons": [
