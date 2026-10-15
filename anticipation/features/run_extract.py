@@ -109,6 +109,14 @@ REGISTRY = {
     # re-derive pose_interact from existing pose_raw files (CPU); pass --overwrite after changing feature code
     "pose_interact": ExtractorSpec("anticipation.features.pose", outputs=("pose_interact",),
                                    saver="derive_and_save", default_device="cpu"),
+    "pose_state": ExtractorSpec("anticipation.features.pose_state", outputs=("pose_state",),
+                                saver="derive_state", default_device="cpu"),
+    "pose_state_pairs": ExtractorSpec("anticipation.features.pose_state", outputs=("pose_state_pairs",),
+                                      saver="derive_pairs", default_device="cpu"),
+    "pose_state_all": ExtractorSpec("anticipation.features.pose_state", outputs=("pose_state", "pose_state_pairs"),
+                                    saver="derive_and_save", default_device="cpu"),
+    "siglip2_prompts_v2": ExtractorSpec("anticipation.features.prompts", outputs=("siglip2_prompts_v2",),
+                                        saver="rescore_v2_and_save", default_device="cpu"),
     # visual-backbone track ("visual" = all three from one decode; recommended for bulk runs)
     "vjepa2_l": ExtractorSpec("anticipation.features.vjepa"),
     "siglip2": ExtractorSpec("anticipation.features.siglip"),

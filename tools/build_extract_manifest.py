@@ -7,6 +7,9 @@ test, source) cell of --folds; 0 gives the original order.
 Usage (from the repo root; see docs/FEATURES.md "Bulk extraction run v1"):
     nice -n 10 .venv/bin/python tools/build_extract_manifest.py [--workers 3] [--dry_run]
     .venv/bin/python tools/build_extract_manifest.py --reorder_only [--dry_run]   # re-order --out in place, no cuts
+    nice -n 10 .venv/bin/python tools/build_extract_manifest.py --v2 [--workers 3] [--dry_run]
+        # H1 hard negatives: other_anomaly videos with >= 30 s before first_anomaly_sec, cut at
+        # min(first_anomaly_sec + 10, 300) s into cache/trunc_h1; writes benchmark/extract_manifest_v2.csv
 """
 
 import argparse
@@ -28,7 +31,11 @@ DATA_ROOT = "data"
 TRUNC_ROOT = os.path.join(DATA_ROOT, "cache", "trunc300")
 ROLES = ("violent", "holdout", "clean_negative")
 CAP_SEC = 300
+TRUNC_H1_ROOT = os.path.join(DATA_ROOT, "cache", "trunc_h1")
+H1_MIN_LEAD_SEC = 30.0
+H1_AFTER_SEC = 10.0
 SALT = "extract_v1"
+SALT_V2 = "extract_v2"
 EARLY_FRAC = 0.25
 PRIORITY_NAMES = ["violent_eligible30", "violent", "holdout", "clean_negative"]
 COLUMNS = ["video_id", "source", "source_kind", "role", "priority", "eligible30", "has_audio", "path", "duration_sec",
@@ -85,21 +92,21 @@ def arrange(rows, frac, folds_path):
     return sorted(rows, key=key), early
 
 
-def truncate(src, dst):
+def truncate(src, dst, cap=CAP_SEC):
     if os.path.exists(dst):
         return "exists"
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     tmp = dst[:-4] + ".tmp.mp4"
     subprocess.run(["nice", "-n", "10", "ffmpeg", "-v", "error", "-nostdin", "-y", "-i", src, "-map", "0", "-map", "-0:d",
-                    "-c", "copy", "-t", str(CAP_SEC), tmp], check=True)
+                    "-c", "copy", "-t", str(cap), tmp], check=True)
     os.replace(tmp, dst)
     return "made"
 
 
-def verify(r, dst):
-    """Truncated file: same fps, ~300 s, same frames at 0 / 150 / 299 s, audio kept when the source had a stream."""
+def verify(r, dst, cap=CAP_SEC):
+    """Truncated file: same fps, ~cap s, same frames at 0 / cap/2 / cap-1 s, audio kept when the source had a stream."""
     a, b = io.Video(r["path"], num_threads=1), io.Video(dst, num_threads=1)
-    t = [0.0, 150.0, 299.0]
+    t = [0.0, cap / 2, cap - 1.0]
     same = bool((a.frames_at(t) == b.frames_at(t)).all())
     out = dict(dur=b.info.duration_sec, frames=b.info.num_frames, fps=b.info.fps, same_frames=same,
                fps_ok=abs(a.info.fps - b.info.fps) < 1e-6)
@@ -108,9 +115,82 @@ def verify(r, dst):
     if r["has_audio"] == "True":
         wav = io.load_audio(dst)
         out["audio_sec"] = 0.0 if wav is None else wav.size / 16000
-        out["audio_ok"] &= wav is not None and abs(out["audio_sec"] - CAP_SEC) < 1.0
-    out["ok"] = same and out["fps_ok"] and out["audio_ok"] and CAP_SEC - 1 <= out["dur"] <= CAP_SEC + 1
+        out["audio_ok"] &= wav is not None and abs(out["audio_sec"] - cap) < 1.0
+    out["ok"] = same and out["fps_ok"] and out["audio_ok"] and cap - 1 <= out["dur"] <= cap + 1
     return out
+
+
+def h1_cut_sec(r):
+    return min(float(r["first_anomaly_sec"]) + H1_AFTER_SEC, float(CAP_SEC))
+
+
+def h1_rows(catalog):
+    with open(catalog, newline="") as f:
+        rows = [r for r in csv.DictReader(f) if r["role"] == "other_anomaly" and r["first_anomaly_sec"]
+                and float(r["first_anomaly_sec"]) >= H1_MIN_LEAD_SEC]
+    rows.sort(key=lambda r: hashlib.sha256(f"{SALT_V2}:{r['video_id']}".encode()).hexdigest())
+    return rows
+
+
+def main_v2(args):
+    rows = h1_rows(args.catalog)
+    todo = [r for r in rows if h1_cut_sec(r) < float(r["duration_sec"])]
+    print(f"{len(rows)} H1 videos, {len(todo)} to cut, {len(rows) - len(todo)} shorter than their cut point "
+          "(used uncut)", flush=True)
+    if args.dry_run:
+        return 0
+
+    def work(r):
+        cap = h1_cut_sec(r)
+        dst = os.path.join(TRUNC_H1_ROOT, r["video_id"] + ".mp4")
+        try:
+            return r["video_id"], verify_h1(r, dst, cap)
+        except Exception as e:  # noqa: BLE001
+            return r["video_id"], dict(ok=False, error=f"{type(e).__name__}: {e}")
+
+    def verify_h1(r, dst, cap):
+        truncate(r["path"], dst, cap)
+        return verify(r, dst, cap)
+
+    with ThreadPoolExecutor(args.workers) as ex:
+        res = {}
+        for k, (vid, v) in enumerate(ex.map(work, todo)):
+            res[vid] = v
+            if not v["ok"]:
+                print(f"FAIL {vid} {v}", flush=True)
+            if (k + 1) % 50 == 0:
+                print(f"{k + 1}/{len(todo)} cut and verified", flush=True)
+    bad = [vid for vid, v in res.items() if not v["ok"]]
+    if bad:
+        print(f"{len(bad)} truncations failed verification; manifest not written", flush=True)
+        return 1
+
+    out_rows = []
+    for r in rows:
+        o = {c: r.get(c, "") for c in COLUMNS}
+        o.update(priority="h1_hard_negative", eligible30="False", orig_path=r["path"],
+                 orig_duration_sec=r["duration_sec"], cap_sec="", cut_reason="none")
+        if r["video_id"] in res:
+            v = res[r["video_id"]]
+            cap = h1_cut_sec(r)
+            o.update(path=os.path.join(TRUNC_H1_ROOT, r["video_id"] + ".mp4"), duration_sec=f"{v['dur']:.3f}",
+                     num_frames=v["frames"], cap_sec=f"{cap:.3f}",
+                     cut_reason="cap300" if cap >= CAP_SEC else "first_anomaly+10")
+        out_rows.append(o)
+    with open(args.out, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=COLUMNS + ["cut_reason"])
+        w.writeheader()
+        w.writerows(out_rows)
+    print(f"wrote {args.out}: {len(out_rows)} videos, "
+          f"{sum(float(o['duration_sec']) for o in out_rows) / 3600:.2f} h, {sum(o['has_audio'] == 'True' for o in out_rows)} "
+          "with real audio", flush=True)
+    for key in ("source_kind", "cut_reason"):
+        cnt = defaultdict(lambda: [0, 0.0])
+        for o in out_rows:
+            cnt[o[key]][0] += 1
+            cnt[o[key]][1] += float(o["duration_sec"]) / 3600
+        print("  " + "; ".join(f"{k}: {n} videos, {h:.2f} h" for k, (n, h) in sorted(cnt.items())), flush=True)
+    return 0
 
 
 def main():
@@ -119,10 +199,16 @@ def main():
     ap.add_argument("--out", default=os.path.join(REPO, "benchmark", "extract_manifest_v1.csv"))
     ap.add_argument("--folds", default=FOLDS_DEFAULT)
     ap.add_argument("--early_negative_frac", type=float, default=EARLY_FRAC)
+    ap.add_argument("--v2", action="store_true", help="build the H1 hard-negative manifest v2 (default --out changes)")
     ap.add_argument("--reorder_only", action="store_true", help="re-order the rows of --out; no cuts, rows unchanged")
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--dry_run", action="store_true")
     args = ap.parse_args()
+
+    if args.v2:
+        if args.out == ap.get_default("out"):
+            args.out = os.path.join(REPO, "benchmark", "extract_manifest_v2.csv")
+        return main_v2(args)
 
     if args.reorder_only:
         with open(args.out, newline="") as f:

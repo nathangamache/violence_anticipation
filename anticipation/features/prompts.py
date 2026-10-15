@@ -41,6 +41,10 @@ One-decode entry points (recommended for bulk extraction)
     runner: ``--cfg 'vjepa_cfg={"batch_size": 32}'``). Unknown keys are listed in every meta's ``ignored_cfg``;
     the effective per-model config is in ``meta["cfg"]``.
 
+Version 2 (``siglip2_prompts_v2``, ``PROMPTS_V2``, ``PROMPT_SET_VERSION_V2``)
+    22 concepts, each with 3 phrasings whose normalized text embeddings are averaged; rescored on CPU from cached
+    ``siglip2`` files only (``--rescore --v2``). The v1 constants and outputs are unchanged (docs/FEATURES.md).
+
 Usage
     .venv/bin/python -m anticipation.features.prompts --list
     .venv/bin/python -m anticipation.features.prompts VIDEO.mp4 --device cuda:1 [--video-id xd/<stem>] [--check-causal 60]
@@ -57,6 +61,7 @@ import glob
 import hashlib
 import json
 import os
+import sys
 import time
 
 import numpy as np
@@ -142,6 +147,157 @@ def prompt_keys():
 
 def prompt_texts():
     return [t for _, _, t in PROMPTS]
+
+
+EXTRACTOR_V2 = f"{EXTRACTOR}_v2"
+VERSION_V2 = 2
+PROMPT_SET_VERSION_V2 = "v2"
+
+# (key, group, [phrasings]); the concept embedding is the L2-normalized mean of its phrasings' normalized embeddings.
+# Context concepts exist only as shortcut detectors (BASELINE.md section 6.5).
+PROMPTS_V2 = [
+    ("phase_calm", "conflict_phase", ["people calmly going about their day", "a relaxed peaceful scene with people talking",
+                                       "people standing around casually and chatting"]),
+    ("phase_tension", "conflict_phase", ["a tense moment between people", "people looking angry and uneasy at each other",
+                                          "an uncomfortable confrontation about to start"]),
+    ("phase_argument", "conflict_phase", ["two people arguing heatedly", "a person yelling at another person",
+                                           "an angry verbal dispute between people"]),
+    ("phase_faceoff", "conflict_phase", ["two people standing face to face glaring at each other",
+                                          "two men squaring off close together", "a tense standoff between two people"]),
+    ("phase_contact", "conflict_phase", ["people physically bumping and grabbing each other",
+                                          "the first physical contact in a confrontation", "a man shoving another man"]),
+    ("phase_intervention", "conflict_phase", ["a bystander stepping in between two people",
+                                               "friends pulling two people apart", "someone intervening to stop a fight"]),
+    ("phase_separation", "conflict_phase", ["two people being separated and pulled apart",
+                                             "people backing away from each other after a confrontation",
+                                             "a group splitting two people who were arguing"]),
+    ("phase_violence", "conflict_phase", ["people fighting and hitting each other", "a violent physical fight",
+                                           "a person punching and kicking another person"]),
+    ("phase_deescalation", "conflict_phase", ["two angry people calming down", "people shaking hands after an argument",
+                                               "a tense situation ending peacefully"]),
+    ("push", "contact_aggression", ["people pushing each other", "a man pushing another man in the chest",
+                                     "someone shoving a person backward"]),
+    ("grab", "contact_aggression", ["a man grabbing another man", "a person grabbing someone by the collar",
+                                     "one man gripping another man's arm aggressively"]),
+    ("fight_stance", "contact_aggression", ["a man in a fighting stance", "a person getting ready to fight with fists up",
+                                             "two men squaring up in fighting stances"]),
+    ("raised_fists", "contact_aggression", ["raised fists", "a man raising his fist to hit someone",
+                                             "a person with a clenched fist ready to punch"]),
+    ("held_back", "contact_aggression", ["someone being held back", "a man restrained by friends from attacking another",
+                                          "a person being pulled away from a confrontation"]),
+    ("walk_away", "deescalation", ["people walking away from each other", "a man turning and walking away from an argument",
+                                    "two people leaving in opposite directions"]),
+    ("apologize", "deescalation", ["a person apologizing with open hands", "a man holding up his palms to calm things down",
+                                    "someone gesturing peacefully with open hands"]),
+    ("calm_two", "deescalation", ["a bystander calming two people", "a person talking two angry people down",
+                                   "someone mediating between two arguing people"]),
+    ("ctx_cctv", "context", ["a security camera view", "grainy surveillance camera footage from above",
+                              "a fixed CCTV camera recording"]),
+    ("ctx_movie", "context", ["a scene from a movie", "a cinematic film shot with professional lighting",
+                               "a dramatic scene from a hollywood film"]),
+    ("ctx_news", "context", ["a TV news broadcast", "a news reporter on television with a lower third banner",
+                              "footage in a television news report"]),
+    ("ctx_captions", "context", ["a video frame with captions or text overlay", "large subtitles over a video",
+                                  "a screenshot with a text watermark"]),
+    ("ctx_phone", "context", ["a video filmed on a phone", "shaky handheld smartphone footage",
+                               "a vertical video recorded by a bystander"]),
+]
+
+
+def prompt_keys_v2():
+    return [k for k, _, _ in PROMPTS_V2]
+
+
+def prompt_set_hash_v2():
+    return hashlib.sha1(json.dumps([[k, g, t] for k, g, t in PROMPTS_V2]).encode()).hexdigest()[:12]
+
+
+_TEXT_CACHE_V2 = {}
+
+
+def text_embeddings_v2(device="cpu", dtype="fp32"):
+    """Concept embeddings [C, D] (float32 CPU): mean of the L2-normalized phrasing embeddings, re-normalized."""
+    key = (device, dtype, prompt_set_hash_v2())
+    if key not in _TEXT_CACHE_V2:
+        import torch
+
+        flat = [t for _, _, ts in PROMPTS_V2 for t in ts]
+        emb = siglip.embed_texts(flat, device, dtype)
+        out, j = [], 0
+        for _, _, ts in PROMPTS_V2:
+            out.append(torch.nn.functional.normalize(emb[j:j + len(ts)].mean(0), dim=-1))
+            j += len(ts)
+        _TEXT_CACHE_V2[key] = torch.stack(out)
+    return _TEXT_CACHE_V2[key]
+
+
+def _meta_v2(backbone_meta, device, dtype):
+    scale, bias = siglip.logit_params(device, dtype)
+    return dict(
+        extractor=EXTRACTOR_V2, version=VERSION_V2, backbone=BACKBONE, model_id=siglip.MODEL_ID,
+        model_revision=backbone_meta.get("model_revision"), window_sec=0.0, D=len(PROMPTS_V2),
+        columns=prompt_keys_v2(), prompt_set_version=PROMPT_SET_VERSION_V2, prompt_set_hash=prompt_set_hash_v2(),
+        prompts=[{"key": k, "group": g, "texts": t} for k, g, t in PROMPTS_V2],
+        groups=sorted({g for _, g, _ in PROMPTS_V2}), backbone_version=backbone_meta.get("version"),
+        score="cosine(image_emb, concept_emb); concept_emb = normalized mean of normalized phrasing embeddings; "
+              "prob = sigmoid(logit_scale * cos + logit_bias)",
+        logit_scale=scale, logit_bias=bias, text_preprocessing="lowercase, pad to 64 tokens",
+        text_device=device, text_dtype=dtype, v1_text_dtype="bf16 on cuda", video_fps=backbone_meta.get("video_fps"),
+        duration_sec=backbone_meta.get("duration_sec"), n_decode_errors=backbone_meta.get("n_decode_errors"),
+    )
+
+
+def from_backbone_v2(t_sec, image_feat, valid, backbone_meta, device="cpu", dtype="fp32"):
+    """v2 concept scores from already computed ``siglip2`` outputs; invalid ticks are zero."""
+    feat = score(image_feat, text_embeddings_v2(device, dtype))
+    feat[~np.asarray(valid, dtype=bool)] = 0.0
+    return t_sec, feat.astype(np.float16), valid, _meta_v2(backbone_meta, device, dtype)
+
+
+def check_cache_v2(meta, backbone_meta=None):
+    ok = meta.get("prompt_set_hash") == prompt_set_hash_v2() and meta.get("version") == VERSION_V2
+    if backbone_meta is not None:
+        ok = ok and meta.get("backbone_version") == backbone_meta.get("version")
+    return ok
+
+
+def rescore_v2_and_save(video_path, video_id, device="cpu", **cfg):
+    """Registry saver ``siglip2_prompts_v2``: rescore one video from its cached siglip2 file (no decoding)."""
+    t_sec, img, valid, bmeta = io.load_features(BACKBONE, video_id)
+    path = io.save_features(EXTRACTOR_V2, video_id, *from_backbone_v2(t_sec, img, valid, bmeta, device))
+    return dict(paths={EXTRACTOR_V2: path}, duration_sec=bmeta.get("duration_sec"))
+
+
+def coverage_v2():
+    """(n siglip2 files, n current siglip2_prompts_v2 files) so a stale snapshot is visible."""
+    root = os.path.join(io.FEATURE_ROOT, BACKBONE)
+    n_src = n_ok = 0
+    for path in glob.glob(os.path.join(root, "**", "*.npz"), recursive=True):
+        if path.endswith(".tmp.npz"):
+            continue
+        n_src += 1
+        out = io.feature_path(EXTRACTOR_V2, os.path.relpath(path, root)[:-len(".npz")])
+        if os.path.exists(out) and check_cache_v2(_read_meta(out), _read_meta(path)):
+            n_ok += 1
+    return n_src, n_ok
+
+
+def rescore_all_v2(device="cpu", dtype="fp32", force=False):
+    """Recompute ``siglip2_prompts_v2`` for every cached ``siglip2`` file. Returns the number written."""
+    root = os.path.join(io.FEATURE_ROOT, BACKBONE)
+    n = 0
+    for path in sorted(glob.glob(os.path.join(root, "**", "*.npz"), recursive=True)):
+        if path.endswith(".tmp.npz"):
+            continue
+        video_id = os.path.relpath(path, root)[:-len(".npz")]
+        bmeta = _read_meta(path)
+        out_path = io.feature_path(EXTRACTOR_V2, video_id)
+        if not force and os.path.exists(out_path) and check_cache_v2(_read_meta(out_path), bmeta):
+            continue
+        t_sec, img, valid, bmeta = io.load_features(BACKBONE, video_id)
+        io.save_features(EXTRACTOR_V2, video_id, *from_backbone_v2(t_sec, img, valid, bmeta, device, dtype))
+        n += 1
+    return n
 
 
 def prompt_set_hash(prompts=None):
@@ -344,8 +500,21 @@ def main():
     ap.add_argument("--rescore", action="store_true",
                     help="recompute prompt scores for all cached siglip2 files whose prompt hash is stale")
     ap.add_argument("--force", action="store_true", help="with --rescore: rewrite even up-to-date files")
+    ap.add_argument("--v2", action="store_true", help="with --list or --rescore: use the v2 concept set (CPU)")
     args = ap.parse_args()
 
+    if args.v2 and (args.list or args.rescore):
+        if args.list:
+            print(f"prompt set {PROMPT_SET_VERSION_V2} hash {prompt_set_hash_v2()} ({len(PROMPTS_V2)} concepts)")
+            for k, g, t in PROMPTS_V2:
+                print(f"{g:<18s} {k:<20s} {len(t)} phrasings: {t[0]}")
+        else:
+            if args.device.startswith("cuda") and "--device" in sys.argv:
+                raise SystemExit("--v2 --rescore is CPU-only (fp32 text tower); omit --device or pass --device cpu")
+            print("rescored", rescore_all_v2("cpu", force=args.force), "files")
+            n_src, n_ok = coverage_v2()
+            print(f"coverage siglip2_prompts_v2 {n_ok}/{n_src}", "OK" if n_src == n_ok else "INCOMPLETE")
+        return
     if args.list:
         print(f"prompt set {PROMPT_SET_VERSION} hash {prompt_set_hash()} ({len(PROMPTS)} prompts)")
         for j, (k, g, t) in enumerate(PROMPTS):
