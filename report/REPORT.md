@@ -8,7 +8,7 @@
 
 **Submission date: [PLACEHOLDER]**
 
-Draft scope: the related work, problem definition, data, historical analysis, and evaluation protocol are drafted below. The new model, experiments, and conclusions about its performance remain explicitly marked placeholders. Repository facts use the October 14, 2026 snapshot at commit `9f14b92`; the implemented VA30 v2 protocol takes precedence over older planning notes. External references were opened and checked on October 14, 2026; verification details and corrections are in [CITATION_AUDIT.md](CITATION_AUDIT.md).
+Draft scope: the related work, problem definition, data, historical analysis, and evaluation protocol are drafted below. The new model, experiments, and conclusions about its performance remain explicitly marked placeholders. The original benchmark and historical account use the October 14, 2026 snapshot at commit `9f14b92`. This October 15 revision incorporates [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md) and [YOUTUBE_HOLDOUT.md](../docs/YOUTUBE_HOLDOUT.md), read at commit `ae96a14`. The modality decision and screening plan supersede earlier extractor recommendations; the hold-out v1 artifacts supersede preliminary annotation counts. VA30 v2 remains the frozen primary benchmark, with screening and secondary measurement changes identified separately. External references were opened and checked on October 14, 2026; verification details and corrections are in [CITATION_AUDIT.md](CITATION_AUDIT.md).
 
 ## Abstract
 
@@ -109,6 +109,25 @@ Long non-violent lead-ins are scarce. The historical official annotation pool co
 
 The problem is also underdetermined: similar confrontations can escalate, remain verbal, or de-escalate. Camera operators may begin filming because they already expect an incident, and movie clips may contain scripted buildup. Titles, music, source, recording duration, and elapsed clip time can predict labels without localizing escalating behavior. Even a causal model can exploit these correlations. Finally, a model that remembers an earlier fight may rank later pre-event periods highly while never anticipating the first incident. The protocol must test these alternatives explicitly.
 
+### 3.4. Conflict State and Realistic Expectations
+
+The current research formulation is **recognize an ongoing conflict state, then estimate the hazard of physical violence conditional on that state**. An argument, posturing, or sustained engagement may remain approximately steady rather than increasing smoothly toward a blow. A rising cue trajectory is therefore a hypothesis to test, not a prerequisite for warning. State recognition alone is also insufficient: a useful hazard model must distinguish conflicts that become violent from ones that resolve without physical aggression. Sudden attacks and incidents whose buildup is outside the camera's view may offer no usable 30-second cue. Separate dyadic fights from instrumental violence and riots rather than assuming a common escalation sequence. This framing follows [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md), sections 0, 8, and 9.
+
+The updated curated annotation summary reinforces the distinction between available history and visible warning evidence: 36 onsets have at least 30 seconds of continuous same-clip footage, but the median interval from marked visible escalation to onset is only 4.7 seconds across the 156 onsets with an escalation marker. These are different populations and denominators. The latter statistic is conditional on a marker being assigned by frame-only AI annotation; it neither measures audio's possible contribution nor establishes an upper bound on every model. Section 4.6 explains the annotation limits.
+
+Section 9 of the modality plan sets the following **planning expectations, not measured new-model results, guarantees, or validated ceilings**:
+
+| Quantity | Planning expectation | Required interpretation |
+|---|---|---|
+| Matched band/far-window AUROC | 0.65–0.75 | Must survive source/time matching and comparison with a scene nuisance model. |
+| Gain over the scene nuisance model | +0.03 to +0.08 AUROC | An expectation distinct from the pre-registered +0.02 gate; actual gain and paired uncertainty remain unmeasured. |
+| Success@30, all eligible VA30 events, at 1 FA/h | About 10–20% | Compare with the position null and late-event null at the actual test FA/h. |
+| Success@30, non-movie events, at 1 FA/h | About 8–15% | A separate source breakdown, not a projection for the 14-video curated subset. |
+| Success@60 on eligible60 events | At most about 10% expected | A hypothesis about a small sustained-conflict population, not a statistical bound. |
+| Sustained Success@60 / @90 and added lead from audio | Unknown | Require separate measurements and suitable continuous, incident-related audio. |
+
+The plan anticipates better short-horizon performance at 10 and 20 seconds and a greater false-alarm burden on benign real-world confrontations than on VA30's calm negatives. Neither improvement nor the deployment multiplier has been measured here. Minute-scale warnings may be possible only for a minority with a visible sustained conflict. If the screen provides no supported anticipation block, the report must retain the 30-second question as a negative or unresolved finding and emphasize measured short-horizon and shortcut analyses. Conditioning a diagnostic analysis on visible conflict cannot establish general event recall.
+
 ## 4. Data and VA30 Benchmark Construction
 
 ### 4.1. Datasets and Annotation Sources
@@ -121,7 +140,7 @@ The following table describes the committed VA30 v2 catalog, rather than the nom
 | XD movie (`xd_movie`) | 2,194 | 64.62 | 870 | 1,131 | 44.23 | 135 / 143 |
 | XD YouTube (`xd_youtube`) | 2,558 | 151.89 | 666 | 1,215 | 98.31 | 137 / 162 |
 | UBI-Fights (`ubi`) | 973 | 76.06 | 215 | 749 | 68.44 | 69 / 102 |
-| Curated YouTube hold-out (`yt`) | 92 | 9.96 | Excluded | Excluded | Excluded | Not established |
+| Curated YouTube hold-out (`yt`) | 92 | 9.96 | Excluded | Excluded | Excluded | Separate v1 annotation subset; see Section 4.6 |
 | **Total** | **7,696** | **429.15** | **2,129** | **4,010** | **303.53** | **468 / 551** |
 
 Rounded source hours may not sum exactly to the rounded total. Clean-negative hours are catalog durations; masked portions are excluded from the evaluator's exposure denominator. All 92 curated videos are excluded from the evaluated columns. The remaining unevaluated catalog roles are 1,388 other anomalies, 48 unlabelled videos, 28 near-identical duplicates, and one contaminated clip.
@@ -135,7 +154,7 @@ UCF-Crime is an untrimmed surveillance anomaly dataset [1]; XD-Violence includes
 | `ubi` | UBI per-frame 0/1 CSVs converted to intervals at 30 fps; annotation row counts match video frame counts for all 1,000 original files | 215 | 102 |
 | `pseudo` | Legacy LSTM-generated curated YouTube boundaries | 0 in default evaluation | Excluded |
 
-The primary ground-truth artifacts are [videos.csv](../benchmark/videos.csv) and [events.json](../benchmark/events.json). The latter preserves violent segments, other segments, excluded spans, and onset provenance. Normal HIVAU entries contain randomly sampled segments with empty class labels; those segments are not violent events. UCA captions [22] are available as possible supervision but are not used as onset ground truth. Trimmed Kinetics and short violence-classification clips cannot provide 30-second lead-ins and do not form VA30 anticipation events.
+The primary ground-truth artifacts are [videos.csv](../benchmark/videos.csv) and [events.json](../benchmark/events.json). The latter preserves violent segments, other segments, excluded spans, and onset provenance. The curated v1 annotations are a separate artifact and do not add events to VA30's 551-event total. Normal HIVAU entries contain randomly sampled segments with empty class labels; those segments are not violent events. UCA captions [22] are available as possible supervision but are not used as onset ground truth. Trimmed Kinetics and short violence-classification clips cannot provide 30-second lead-ins and do not form VA30 anticipation events.
 
 ### 4.2. Role Assignment, Deduplication, and Contamination Masks
 
@@ -174,15 +193,34 @@ For each test fold, approximately one eighth of the remaining groups form a grou
 | 3 | 1,518 | 432 | 95 / 109 | 805 | 70.8 |
 | 4 | 1,511 | 421 | 95 / 106 | 805 | 57.9 |
 
-The frozen fold content SHA-256 is `8ebdf6ec2e549f4a7c41710c045a66af2823c8498cb60b4377363ccbd03965e6`. Predictions are pooled out of fold: every test video is scored by a model that did not train on its group. The planned learned-model comparison uses three seeds; existing seed-zero controls do not satisfy that learned-model requirement by themselves. Future catalog changes require an explicitly versioned fold file rather than silently changing membership.
+The frozen fold content SHA-256 is `8ebdf6ec2e549f4a7c41710c045a66af2823c8498cb60b4377363ccbd03965e6`. In a five-fold benchmark comparison, predictions are pooled out of fold: every test video is scored by a model that did not train on its group. The modality-selection experiment instead reserves fold 1 for one confirmation and screens only folds 0, 2, 3, and 4, as specified in Section 6.4. Any eventual pooled five-fold result must identify the four screening folds as post-selection evidence. Learned temporal robustness comparisons use three seeds; existing seed-zero controls do not satisfy that requirement by themselves. Future catalog changes require an explicitly versioned fold file rather than silently changing membership.
 
 ### 4.5. Audio Availability, Hold-Out Footage, and Onset Quality
 
 Having an audio stream does not imply usable sound. The catalog checks decoded amplitude for digital silence. Non-silent audio is present in 490 of 1,879 UCF videos, 2,194 of 2,194 XD movie videos, 2,554 of 2,558 XD YouTube videos, zero UBI videos, and 90 of the 92 curated videos. Non-silence still does not establish that speech or sound is related to the incident. Audio availability and quality require explicit masks and separate reporting.
 
-The curated YouTube collection contains approximately ten hours of road-rage, bodycam, CCTV, and confrontation footage, but its onsets were generated by a legacy LSTM. It remains outside every fold and the default evaluation universe. The first 60 seconds were forced into a buildup stage during pseudo-label generation, producing circular and sometimes visibly incorrect labels. This collection can become a separately reported real-world hold-out only after independent human annotation and a provenance-overlap check.
-
 HIVAU's agreement with official test annotations validates parsing, not the independent accuracy of its training onsets: the test entries largely copy official boundaries. One near-duplicate comparison between an official UCF onset and a HIVAU train onset differs by approximately 10.9 seconds. Human review of the prepared 50 HIVAU and 30 official-control contact sheets is pending. Full-universe and official-onset results must therefore be co-primary, with UBI reported separately. No completed human validation is claimed here.
+
+### 4.6. Curated YouTube Hold-Out: Reconciled AI Annotations
+
+The approximately ten-hour, 92-video collection remains outside every VA30 fold and the default evaluation universe. Its original LSTM pseudo-onsets forced the first 60 seconds into buildup and are unsuitable as evaluation ground truth. They are now supplemented by a separate annotation protocol documented in [YOUTUBE_HOLDOUT.md](../docs/YOUTUBE_HOLDOUT.md), with frozen [annotations_v1.json](../benchmark/youtube_holdout/annotations_v1.json) and [summary_v1.json](../benchmark/youtube_holdout/summary_v1.json). At this revision, 76 videos are annotated and 16 remain missing. This is annotation progress, not a model evaluation.
+
+Each video was assessed by two independent AI annotators, blind to one another, followed by a reconciler rechecking disagreements in onset count, video type, or onset times differing by more than two seconds. Annotators used timestamped frame grids at two-second intervals and finer 0.5-second grids around candidate onsets and cuts. The recorded annotator models are Claude Opus 5.5 for 56 videos and Sonnet 5.5 for 20. They judged frames without audio. Reconciliation improves procedural consistency but does not create human ground truth, remove shared model bias, or establish onset accuracy; human spot-checking remains necessary before citing individual incidents.
+
+Annotations divide each video at hard cuts or content switches into incident footage, studio/reporter material, aftermath/interviews, graphics/text, or other content. Camera type and overall video type are recorded separately. Physical onset means the first aggression against a person, including a shove, grab, strike, firing at a person, vehicle used as a weapon, or police use of force. Verbal arguing, pointing, and squaring up are escalation cues with a separate `escalation_start_sec`, not physical onsets. Replays receive separate clips and notes. These distinctions prevent a news introduction or unrelated earlier scene from being counted as continuous precursor footage.
+
+| Annotation finding | v1 count or interval | Denominator / scope |
+|---|---|---|
+| Completed / missing videos | 76 / 16 | Original 92-video collection. |
+| Physical onsets in incident clips | 183 | Annotated portion; not 183 independent source incidents. |
+| Median footage before onset from its clip start | 4.1 s | Those 183 onsets; rounded from the summary. |
+| Onsets with at least 30 s of continuous same-clip footage | 36 in 14 videos | Candidate long-lead evaluation subset; not automatically the tick-aware VA30 eligibility count. |
+| Cameras for those 36 onsets | Phone 16; bodycam 7; CCTV 5; other/broadcast 8 | Onset counts, not video counts; the last group combines seven `other` and one `broadcast` entry. |
+| Visible-escalation-to-onset interval | Median 4.7 s; 75th percentile 17.5 s | 156 onsets with a marked escalation start, observed without sound. |
+
+Only nine annotated videos are classified as a raw single incident. The others comprise 20 news reports, 14 other videos, 12 staged/reenacted videos, 12 bodycam breakdowns/commentaries, and nine compilations. A video can contain incident clips within edited material; footage type, replays, staged content, and annotation confidence must remain explicit in any evaluation. Continuous footage for 30 seconds does not establish a non-violent lead-in, a visible conflict for 30 seconds, or successful prediction. Eligibility, prior violence, duplicate incidents, and tick/alarm timing must be checked before reporting an event denominator.
+
+Evaluate the 14 candidate videos separately from VA30, with each incident clip treated as its own timeline. Reset model history at clip boundaries; features from preceding commentary, replays, or another scene cannot enter the new clip's prediction. Prefer extraction on the clip cuts, and report the scored clips, retained events, clean exposure, exclusions, and uncertainty. Neither model selection, feature screening, thresholds, nor stopping decisions may use this hold-out; any specificity readout is descriptive only. Extend the remaining 16 annotations into a new version without overwriting v1. The older partial hold-out counts and escalation-lead estimates in the modality plan are superseded here by the 76-video annotation summary.
 
 ## 5. Prior Approaches and Why They Failed
 
@@ -216,27 +254,61 @@ The recurring lesson is that more modalities, a temporal head, or additional smo
 
 ## 6. Methods: New Model
 
-**[PLACEHOLDER — proposed design space only; no final architecture, completed training, or performance is asserted.]**
+The methodology follows the evidence-based modality screen in [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md), sections 3–8, which makes inclusion depend on measured signal, specificity, and gain beyond source/scene controls. **[PLACEHOLDER — the final model, completed screening decisions, training configuration, and new-model performance remain unreported.]** The following is the prescribed experiment, not a claim that its prerequisites or gates have been executed.
 
 ### 6.1. Causal Feature Extraction
 
 **[PLACEHOLDER: identify the actual video, frame, pose/tracking, audio, and speech extractors used; checkpoint revisions; frozen versus trainable parameters; preprocessing; output dimensions; and presence/confidence masks.]**
 
-Each feature timestamp must describe media ending at or before the scored tick. Whole-video normalization, future-filled missing values, centered windows, and transcripts containing future speech would violate this constraint. Document available history and handling of absent, silent, noisy, or unintelligible modalities. Candidate streams from Section 2 require empirical ablation rather than assumed inclusion.
+The primary long-lead candidate is vision-based conflict-state semantics, using no-context aggression ratings as a reference and trained probes on video-LLM hidden states and cue log-probabilities as hypotheses. The plan identifies an existing far-window aggression signal but also a scene prior and concentration in a minority of events; it has not established that the proposed probe improves event warnings. Context-carrying decoded verdicts are excluded as input features. Prompts and model versions must be frozen and hashed.
+
+Complementary hypotheses are identity-free pose/contact/engagement aggregates, SigLIP 2 conflict/contact prompts, vocal prosody and conversational dynamics, and speech dialogue acts such as challenges, threats, refusals, and de-escalation. Generic toxicity is not the principal speech target. Motion, V-JEPA 2, and sound-event features are assigned primarily to violence-now and short-horizon heads unless they pass the anticipation screen. Voice emotion remains a low-prior candidate, not a negative control. Face/expression/gaze streams and further generic extractors are not part of the planned long-lead expansion. These are research priorities, not established ablation outcomes.
+
+Each feature timestamp must describe media ending at or before the scored tick. Whole-video normalization, future-filled missing values, centered windows, and transcripts containing future speech would violate this constraint. Reset history at shot cuts, normalize window summaries by available history, and mask missing or low-confidence observations. Audit sound as incident-related, narration, music, or mixed before interpreting an audio feature as evidence of interaction. The vision-only path must stand alone when audio is absent. Event-history features are restricted to continuous single-scene footage and later-event analyses; camera-wearer cues belong in domain-specific experiments.
 
 ### 6.2. Temporal Model and Fusion
 
-**[PLACEHOLDER: give the implemented architecture, history length in seconds, causal attention or recurrence, modality projections, fusion rule, and parameter count. Explain which mechanism is intended to represent change in interaction state.]**
+The proposed two-stage formulation separates `P(conflict active)` from the conditional hazard of physical onset. A conflict-state head can represent sustained engagement even without increasing motion or arousal. The hazard stage considers engagement duration, contact, challenge, audience, asymmetry, intervention, and separation history. Intervention and retreat are state variables with effects to learn, not fixed evidence of safety. Features need source and scene controls because a stable score can otherwise be a stable collection prior.
+
+Candidate fusion uses per-stream normalization, presence masks, and modality dropout. Causal history up to 300 seconds and random history truncation are proposed to reduce dependence on clip start; long memory remains exploratory because only 54 first-segment VA30 events, 45 in screening folds, have at least 120 seconds of usable lead. Slopes are retained as a pre-registered ablation, rather than assuming that all useful cues ramp upward. **[PLACEHOLDER: specify the selected architecture, actual history, projections, fusion rule, and parameter count after the screen.]**
 
 ### 6.3. Objectives and Optimization
 
 **[PLACEHOLDER: specify the actual target and loss, sampling/weighting, optimizer, learning-rate schedule, regularization, seeds, and checkpoint-selection rule.]**
 
-A candidate discrete-time hazard head would use bins `(0,5]`, `(5,10]`, `(10,20]`, `(20,30]`, `(30,45]`, and `(45,60]` seconds, with horizon risk `1 - product(1 - hazard_j)` over the relevant bins. Alternatively, independent horizon heads require an explicit consistency rule. Record which formulation was actually used and how masked/censored ticks contribute. Auxiliary detection or future-feature objectives require separate descriptions and causal inference checks.
+The plan keeps a censored discrete-time hazard formulation and proposes extending the original bins through `(60,90]`, `(90,120]`, `(120,180]`, and `(180,300]` seconds. Horizon risk remains `1 - product(1 - hazard_j)` over the relevant bins. A separate band head estimates onset in `(30,120]`, avoiding a target dominated by the last few seconds before violence.
 
-### 6.4. Ablations and Implementation Record
+An event-level multiple-instance objective would aggregate band scores over `[max(t0 - 120, clear_start), t0 - 30]` using a soft maximum or noisy-OR, compared with clean windows. This permits warning at the part of the lead-in where a conflict state is visible rather than requiring every far tick to carry evidence. The modality plan rejects distance-based down-weighting of far positives because it steers learning toward short leads. Use source/time-matched weighting and maintain masking and censoring. Short-lead events may supervise the conflict-state head without entering the eligible30 evaluation denominator.
 
-**[PLACEHOLDER: record the baseline model and the controlled order of adding motion, interaction, audio, affect, and speech; history-length and objective ablations; any artifact masking; and all training commands/configurations.]** Compare each variant on common coverage, folds, seeds, and validation policy. Extraction throughput and training time must be measured if reported; estimates from research notes are not capstone measurements.
+Future precursor supervision should distinguish conflict, non-strike contact, first strike, and first audible cue. Hindsight state labels may be non-causal training targets only, validated against human timelines; they may never be inference features or labels produced by the same causal scorer whose outputs the model learns to reproduce. Keep VA30 v2 frozen; any human-verified first-strike secondary benchmark requires a declared version. Do not redefine onset around a detector trained on the same uncertain labels.
+
+### 6.4. Pre-Registered Modality Screen
+
+The decision document prescribes screening on VA30 folds 0, 2, 3, and 4, with fold 1 reserved for one confirmation of the selected fused model. Fold 1 must not inform screening fits, tuning, inspection, or stopping decisions. The screening population has 446 eligible events in 373 videos, including 253 first-segment events; 165 of the first segments are non-movie events. There are 86 first-segment real-world audio events before restricting to incident-related audio, so a weak audio result may reflect low power. The curated YouTube hold-out never determines a screening decision.
+
+Before reading block results, the plan requires a hashed `screen_set_v1.json` and a registration recording candidates, probe grids, decision thresholds, and confirmation fold. Prerequisites include the early-contact/onset audit, explicit label-noise masks, HIVAU spot-checking, audio-type audit, a full event-level score of the existing no-context aggression reference, suitable negative coverage, and the specified evaluator extensions. These are requirements for the experiment; this report does not claim they are complete.
+
+The primary probe is L2 logistic regression with `C` selected from `{0.001, 0.01, 0.1, 1, 10}` on each screening fold's validation slice. Inputs summarize the past 10, 60, and 180 seconds by mean, maximum, and duty cycle above a training-derived clean percentile. Slopes and early-baseline subtraction are separate arms; baseline subtraction is not the default because it can erase a conflict already active at clip start. Blocks wider than 256 columns use training-fitted PLS with 32 components, with a full-dimension sensitivity check. The target is first-segment pre-violence ticks with time to onset in `(30,120]` seconds versus time-matched clean ticks. A one-layer causal GRU with 64 units and three seeds is the robustness probe for blocks passing the signal gate.
+
+Controls include source/time scores, same-source shuffled-video features, and a nuisance model `N` using source × time-bin indicators plus a training-reduced embedding of the tick-2 scene with detected people greyed out. Masking people avoids treating a clip that opens mid-conflict as pure scene context. Detection-trained probes, person-count matching, and first-frame broadcasts on sufficiently long-lead clips are diagnostics. H1p, the people-focused non-violent anomaly control, contains 102 screening-fold UCF videos; it is held out of probe training and tests specificity without relying on easier road/explosion scenes.
+
+The registered gates have **PASS, FAIL, and INCONCLUSIVE** outcomes. Differences use paired 95% cluster-bootstrap intervals over `split_group`, with 1,000 resamples. Underpowered evidence must not be called failure or absence of a cue.
+
+| Gate | PASS requirement | FAIL requirement |
+|---|---|---|
+| G1: matched band signal | AUROC point at least 0.58 and lower interval above 0.50, with Holm adjustment across blocks within phase | Upper interval below 0.58. |
+| G2: specificity against H1p | AUROC lower interval above 0.50 and specificity ratio at least 0.5 | Upper interval below 0.55 or ratio below 0.25. |
+| G3: gain beyond scene nuisance `N` | Paired AUROC gain at least +0.02 with lower interval above zero | Upper gain interval below +0.02. |
+
+The specificity ratio is `(AUROC_UCF_vs_H1p - 0.5) / (band_AUROC_UCF - 0.5)`. Other cases are inconclusive. A sparse cue has an alternative G1 route using matched partial AUROC at clean false-positive rate at most 1% or an event-tail hit difference against matched clean windows; use the exact thresholds and exceptions in [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md), section 6.6, without post-result revision. Audio/speech are judged only on the audited audio subset; class-specific context cues have a restricted auxiliary route rather than a general specificity claim.
+
+An anticipation block must pass G1 and G3, with G2 not failed. A provisional block passes G1 without failing G2 or G3 but lacks complete evidence. Blocks whose apparent signal is explained by scene or non-violent anomalies are labeled context/shortcut; short-horizon blocks can feed detection and 10-second heads. Inconclusive blocks remain candidates for better data. Starting with the best anticipation block, add eligible blocks only when paired event-window-max AUROC gain has a lower interval above zero. Event Success@30 is for reporting and ranking, not an extra selection gate. Confirmation on fold 1 requires matched band AUROC lower interval above 0.50 and a positive event-window-max gain over `N`; the plan recognizes that a genuinely independent confirmation still needs new data.
+
+### 6.5. Measurement Extensions and Implementation Record
+
+The fixed VA30 acceptance window cannot credit an alarm starting more than 120 seconds before onset. To test a sustained conflict-state warning separately, the plan specifies `Success_sus@L` for eligible leads `L` of 60, 90, or 120 seconds: an episode starts between `max(clear_start, 2)` and `t0 - L` and stays active through `t0 - 30`. Its operating points are 1%, 2%, and 5% of clean time under alarm, with its own recomputed position null. The proposed watch tier uses up to 5% alarm time; the alarm tier uses Success@30 at 1 FA/h. A persistent watch is not a VA30 alarm success unless it also meets that metric's episode-start rule. These secondary analyses must retain their own evaluator version, denominators, validation policy, and outputs; no sustained-warning result is supplied here.
+
+**[PLACEHOLDER: record completed prerequisites, registration artifact/hash, gate outcomes, selected blocks, fold-1 confirmation, model configurations, measured throughput, and exact commands.]** Compare blocks only on shared coverage, keep all preprocessing within training folds, and label results from the four selection folds as post-selection. Record exclusions and actual alarm burden. If no block survives, report that 30-second anticipation at low FA/h is unsupported by these data, or unresolved where power is insufficient. Preserve the failure finding rather than selecting a favorable metric. Short-horizon and sustained-warning results remain separately labeled measurements.
 
 ## 7. Evaluation Protocol
 
@@ -316,13 +388,13 @@ The committed control analysis illustrates why this is necessary: `b_time_source
 
 Detection is reported separately. The implemented event-detection measure credits an active alarm tick in `[max(t0 - 120, clear_start), event_end]` for any violent event, eligible or not; thus it also credits accepted early alarms and is broader than post-onset-only detection. Detection AUROC compares in-violence ticks against clean-negative ticks. Neither measure replaces Success@30.
 
-Use five-fold pooled out-of-fold predictions and three training seeds. Report 95% cluster-bootstrap intervals using 1,000 video resamples; grouping by source group is an available alternative and should be declared. Do not resample individual frames as independent observations. Default bootstrap intervals hold thresholds fixed and omit validation threshold-selection uncertainty. Add the evaluator's threshold-aware bootstrap, with 200 replicates as used by the controls, which resamples validation and test videos and reselects thresholds. Report seed means and standard deviations without treating seeds as independent datasets.
+For ordinary benchmark comparisons, use five-fold pooled out-of-fold predictions and three training seeds. For the pre-registered modality screen, use only folds 0, 2, 3, and 4 until the single fold-1 confirmation; distinguish confirmation from post-selection pooled results as in Section 6.4. The screen requires 95% cluster-bootstrap intervals over `split_group`, 1,000 resamples, and paired resamples for gains; the original VA30 reports used video clustering, so declare the clustering unit for every comparison. Do not resample individual frames as independent observations. Default bootstrap intervals hold thresholds fixed and omit validation threshold-selection uncertainty. Add the evaluator's threshold-aware bootstrap, with 200 replicates as used by the controls, which resamples validation and test videos and reselects thresholds. Report seed means and standard deviations without treating seeds as independent datasets.
 
-Break down results by XD movie, XD YouTube, UCF, and UBI; interpersonal versus other violence; audio present versus absent; official/HIVAU/UBI onset source; and first versus later events. The official-onset breakdown is co-primary while HIVAU validation is pending. The independently annotated curated hold-out, once available, must have its own results and denominator. Do not infer demographic fairness from source or audio breakdowns.
+Break down results by XD movie, XD YouTube, UCF, and UBI; interpersonal versus other violence; audio present versus absent; official/HIVAU/UBI onset source; and first versus later events. The official-onset breakdown remains co-primary while HIVAU validation is pending; the screen also reports official plus UBI first segments as co-primary. The reconciled AI-annotated curated subset must have separate results and a clip-aware denominator, with its label provenance and human-validation status stated. Never use it to tune a decision. Do not infer demographic fairness from source or audio breakdowns.
 
 Every run must save scores with `video_id`, `t_sec`, `score`, `fold`, and `seed`, including the validation predictions needed for threshold selection. Duplicate keys and non-finite values are errors; incomplete coverage requires an explicit, reported evaluator option and is not directly comparable with complete coverage. Save the source commit, exact commands, fold/catalog/event/score hashes, feature and model configuration, seeds, threshold rule, coverage, and `metrics.json`. Preserve event-level audit output such as `events_op2.csv`.
 
-The final interpretation must require consistent evidence from matched frame ranking, event success above the position null, actual test FA/h, alarm-time fraction, and onset/source breakdowns. Compare the new model with B0 and B-scene0 once available; the existing protocol calls for non-overlapping bootstrap intervals on the far-window comparison. Marginal overlap or failure to exceed a control must be reported without claiming improvement. Strong pooled AUROC alone is insufficient.
+The final interpretation must require consistent evidence from matched frame ranking, event success above the position null, actual test FA/h, alarm-time fraction, and onset/source breakdowns. Compare the new model with B0 and B-scene0 on common coverage; the original benchmark improvement rule called for non-overlapping bootstrap intervals on the far-window comparison. The modality-selection decision instead follows the paired gains and three-outcome gates in Section 6.4; do not substitute the older rule or a favorable event score for the registered gates. Uncertain effects or failure to exceed a control must be reported without claiming improvement. Strong pooled AUROC alone is insufficient.
 
 ## 8. Results
 
@@ -330,9 +402,9 @@ The final interpretation must require consistent evidence from matched frame ran
 
 ### 8.1. Main VA30 Comparison
 
-Each cell must include the metric and its 95% confidence interval where applicable. Use identical coverage for compared rows; report official-onset co-primary results in a companion table. Learned-model rows additionally need the mean and standard deviation over three seeds.
+Each cell must include the metric and its 95% confidence interval where applicable. Use identical coverage for compared rows; report official-onset co-primary results in a companion table. Learned-model rows additionally need the mean and standard deviation over three seeds. Identify the screening-fold, confirmation-fold, and post-selection pooled populations separately; the primary alarm-tier readout is at validation target 1 FA/h, alongside the 2 and 5 FA/h comparisons below.
 
-| Model / control | Coverage and onset set | Far AUROC | Matched far AUROC | AP@30 / tick prevalence | Success@30 at validation target 2 FA/h | Actual test FA/h | Clean alarm-time fraction |
+| Model / control | Coverage and onset set | Far AUROC | Matched far AUROC | AP@30 / tick prevalence | Success@30 at validation target 1 FA/h | Actual test FA/h | Clean alarm-time fraction |
 |---|---|---|---|---|---|---|---|
 | B-prior | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
 | B-time-source | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
@@ -349,7 +421,7 @@ Each cell must include the metric and its 95% confidence interval where applicab
 | 2 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
 | 5 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
 
-**[PLACEHOLDER: include Success@10, Success@0, eligible60/Success@60, separately labeled detection, horizon AUROC/AP, Brier score, reliability, fixed-threshold and threshold-aware intervals, and AMOC/lead-distribution figures from the final evaluator outputs.]**
+**[PLACEHOLDER: include Success@10, Success@20, Success@0, eligible60/Success@60, separately labeled detection, matched band AUROC, horizon AUROC/AP, Brier score, reliability, fixed-threshold and threshold-aware intervals, and AMOC/lead-distribution figures from the final evaluator outputs. Add separately labeled sustained Success@60 / @90 with actual clean alarm-time fraction and their own position nulls.]**
 
 ### 8.3. Ablations and Breakdowns
 
@@ -362,7 +434,9 @@ Each cell must include the metric and its 95% confidence interval where applicab
 | Interpersonal classes; first versus later events | PENDING | PENDING | PENDING | PENDING |
 | Real-world sources versus movie footage | PENDING | PENDING | PENDING | PENDING |
 | Audio present versus absent | PENDING | PENDING | PENDING | PENDING |
-| Independent curated hold-out after human annotation | PENDING | PENDING | PENDING | PENDING |
+| Reconciled AI-annotated curated subset, clip-aware evaluation | PENDING | PENDING | PENDING | PENDING |
+
+**[PLACEHOLDER: add the registered screen's per-block G1/G2/G3 outcomes, paired nuisance-model gains, provisional/inconclusive classifications, and single fold-1 confirmation.]** The annotated subset's 36 long-lead onsets in 14 videos are data statistics; no model Success@30, calibration, or false-alarm result on that subset is supplied here.
 
 ## 9. Discussion
 
@@ -375,6 +449,8 @@ Each cell must include the metric and its 95% confidence interval where applicab
 VA30 combines datasets designed largely for detection. Its long-lead event population is selected and may differ from spontaneous violence with no visible buildup. Onset boundaries can be late, broad, or inconsistent across annotation sources, changing the meaning of a claimed warning. Many eligible events rely on unvalidated HIVAU train labels; official-only estimates are smaller and source-confounded. Multiple events in edited videos need not describe one continuous escalation process. Residual duplicates and unobserved uploader/camera relations may remain despite grouping.
 
 Movie editing, filming selection, source duration, compression, and missing audio create domain differences. The `domain` metadata is best effort, not independently verified camera provenance. A long normal recording can dominate exposure while representing little environmental diversity. Cluster intervals and source breakdowns make these limits visible but do not eliminate them. Retrospective curated footage cannot establish performance or safety on continuous operational surveillance.
+
+The hold-out v1 labels come from AI annotators and a reconciler inspecting frames without sound. Their agreement does not establish independence of model errors or validity against human judgments. The escalation-to-onset distribution excludes events without an escalation marker, and the 36 long-lead onsets may include repeated incidents or prior violence within edited footage. The 14 candidate videos are a small, selected evaluation population with uncertain annotation timing and benign-exposure diversity. Separately report human spot-check outcomes and any exclusions; do not interpret their annotation statistics as measured model performance or as an audio forecasting limit.
 
 ### 10.2. Surveillance and Privacy
 
@@ -394,9 +470,9 @@ False alarms can stigmatize people, divert attention, and contribute to alarm fa
 
 ## 11. Future Work
 
-First, complete the pending onset review and document an annotation definition for the first physical act, reviewer agreement, ambiguous cases, and any corrections. Preserve the original boundaries and version the revised benchmark. Human-annotate the curated collection independently of legacy scores, add provenance-matched benign confrontations and de-escalations, and retain the collection as an external hold-out.
+First, complete the pending onset review and document the first physical act, reviewer agreement, ambiguous cases, and corrections. Human-validate the reconciled AI hold-out labels, and finish the 16 missing videos under the documented protocol in a new annotation version. Preserve v1 and the frozen VA30 boundaries. Add provenance-matched benign confrontations and de-escalations without turning the evaluation hold-out into selection data. Collect human precursor timelines with separate conflict, contact, strike, and audible-cue times.
 
-Second, implement and evaluate the B0 and B-scene0 controls before attributing gains to a complex architecture. Test a small causal model with explicit interaction trajectories, then add motion, audio, and speech through controlled ablations. Evaluate censor-aware objectives, calibrated horizon risks, and auxiliary future-feature training under the same folds and coverage. Validate temporal alignment and causal availability before expensive extraction or training.
+Second, execute the modality plan's prerequisite audits and pre-registered screen, preserving fold 1 for one confirmation. Evaluate source/time and people-masked scene controls before attributing gains to conflict-state features, and keep underpowered modalities inconclusive. Test the conditional hazard and event-band objectives, history-length ablations, and separately versioned sustained-warning measurements. Validate temporal alignment and causal availability before expensive extraction or training. A human sound-off/sound-on forecasting study and long-form incident-related audio are needed to test audio's added lead directly.
 
 Third, collect genuinely continuous footage with long benign exposure and sufficient scene, camera, and social diversity. Evaluate cross-domain transfer, latency, missing modalities, robustness to editing and overlays, and sensitivity to onset shifts. Only after these steps should a separately reviewed prospective study investigate whether warnings help trained human reviewers make safer decisions.
 
