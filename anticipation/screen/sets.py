@@ -355,10 +355,19 @@ def list_sha256(ids):
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
-def load_screen_set(prereg=None, folds=None, horizons=MANIFEST_V1, h1_manifest=MANIFEST_V2, soft_masks_path=SOFT_MASKS_PATH):
+def load_screen_set(prereg=None, folds=None, horizons=MANIFEST_V1, h1_manifest=MANIFEST_V2, soft_masks_path=SOFT_MASKS_PATH,
+                    videos_csv=None, events_json=None):
     """With ``prereg`` the cohorts, intervals and fold memberships come from the frozen file; without it the
     previous in-code rules are used (kept for the agreement check)."""
-    bench = va30.Benchmark.load(folds, horizons=horizons)
+    paths = {}
+    if prereg is not None:
+        prov = prereg.data['provenance']
+        videos_csv = videos_csv or prov.get('videos_csv')
+        events_json = events_json or prov.get('events_json')
+    for key, value in (('videos_csv', videos_csv), ('events_json', events_json)):
+        if value is not None:
+            paths[key] = os.path.join(REPO_ROOT, value) if not os.path.isabs(value) else value
+    bench = va30.Benchmark.load(folds, horizons=horizons, **paths)
     h1 = None
     if h1_manifest and os.path.isfile(h1_manifest):
         m = pd.read_csv(h1_manifest, dtype={"video_id": str})

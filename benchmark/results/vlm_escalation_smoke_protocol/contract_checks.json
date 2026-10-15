@@ -32,6 +32,8 @@
     }
   },
   "no_context_x_y_x": true,
+  "bounded_resume_exact": true,
+  "early_baseline_and_invalid_gap": true,
   "npz_and_targets_contract": true,
   "empty_output_fixed_dim": true,
   "pose_gated_hidden_invalid": true,

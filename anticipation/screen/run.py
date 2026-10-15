@@ -171,7 +171,13 @@ def run_m6(ss, runner, per_fold, out_dir, n_threshold_boot=200, name="va30", n_b
     df["fold"] = df["fold"].map(fmap)
     path = os.path.join(out_dir, "va30_scores.parquet")
     df.to_parquet(path, index=False)
-    va30.main(["--scores", path, "--out_dir", os.path.join(out_dir, name), "--folds", folds_path, "--restrict_to_scored",
+    label_args = []
+    if ss.prereg is not None:
+        for flag, key in (("--videos", "videos_csv"), ("--events", "events_json")):
+            value = ss.prereg.data["provenance"].get(key)
+            if value:
+                label_args.extend([flag, os.path.join(REPO_ROOT, value)])
+    va30.main(label_args + ["--scores", path, "--out_dir", os.path.join(out_dir, name), "--folds", folds_path, "--restrict_to_scored",
                "--horizons", S.MANIFEST_V1, "--threshold_bootstrap", str(n_threshold_boot), "--n_boot", str(n_boot),
                "--fa_targets", fa_targets])
     return path
@@ -498,7 +504,9 @@ def prepare(args):
     fatal, notes = prereg.verify_inputs(pr, ss.bench)
     if fatal:
         raise SystemExit("inputs differ from the pre-registration:\n  " + "\n  ".join(fatal))
-    ref = S.load_screen_set(None, soft_masks_path=None)
+    ref = S.load_screen_set(None, soft_masks_path=None,
+                            videos_csv=pr.data["provenance"].get("videos_csv"),
+                            events_json=pr.data["provenance"].get("events_json"))
     agree = prereg.agreement(pr, ss, ref, ss.bench)
     for c in agree["disagreements"]:
         log("DISAGREEMENT frozen vs previous computation:", {k: v for k, v in c.items() if k not in ("examples",)})
@@ -571,7 +579,7 @@ def main(argv=None):
                     help="amendment 03: apply soft_masks_v1.json (S1 without uca_weapon_only, S2 with); writes to "
                          "<out>/sensitivity_<variant>/ and never feeds --decide")
     ap.add_argument("--feature_root", default=None)
-    ap.add_argument("--prereg", default=prereg.PREREG_PATH)
+    ap.add_argument("--prereg", default=prereg.PREREG_PATH, help="v1 (default), v2, or registration path")
     args = ap.parse_args(argv)
     va30.N_THREADS = 4
     pr, ss, extra = prepare(args)

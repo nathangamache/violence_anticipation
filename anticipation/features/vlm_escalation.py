@@ -8,6 +8,9 @@ import os
 import time
 from contextlib import contextmanager
 
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("RAYON_NUM_THREADS", "4")
+
 import numpy as np
 
 from anticipation.features import io
@@ -65,7 +68,7 @@ FORECAST_QUESTION = "From visible evidence only, will a physical fight start wit
 STAGE_WEIGHTS = np.linspace(0, 1, len(STAGES), dtype=np.float32)
 DEFAULTS = dict(model_id=MODEL_3, arm="B", stride_sec=None, max_pixels=448 * 448, max_edge=448,
                 decode_threads=2, temperature=1.0, calibration="none", hidden_layers=(18, 27),
-                save_hidden=True, rationale_samples=0, rationale_max_tokens=96, pose_gating=False)
+                save_hidden=True, include_early_baseline=True, rationale_samples=0, rationale_max_tokens=96, pose_gating=False)
 
 
 def arm_config(arm, stride_sec=None):
@@ -110,6 +113,25 @@ def hold(samples, values, sample_valid, ticks):
     return out, valid
 
 
+def pose_gate_samples(pose_path, samples):
+    with np.load(pose_path, allow_pickle=False) as z:
+        pt, ptr, tid, pose_ok = z["frame_t"], z["frame_ptr"], z["det_track_id"], z["frame_ok"]
+        meta = json.loads(str(z["meta"])) if "meta" in z else {}
+    gates = np.zeros(len(samples), bool)
+    fps = meta.get("config", meta.get("cfg", {})).get("sample_fps")
+    for i, t in enumerate(samples):
+        left = max(0, t - 7)
+        seen = np.flatnonzero((pt >= left) & (pt <= t))
+        if not len(seen):
+            raise ValueError("Pose gating has no causal coverage for a query")
+        gaps = np.diff(pt[seen].astype(float))
+        step = 1 / fps if fps else (float(np.median(gaps)) if len(gaps) else .2)
+        if pt[seen[0]] > left + step + 1e-4 or pt[seen[-1]] < t - step - 1e-4 or np.any(gaps > 1.5 * step + 1e-4):
+            raise ValueError("Pose gating has incomplete causal window coverage")
+        gates[i] = bool(pose_ok[seen].all() and not any(np.any(tid[ptr[k]:ptr[k+1]] >= 0) for k in seen))
+    return gates
+
+
 def hidden_layout(layers, dim):
     columns, groups = [], []
     for layer in layers:
@@ -126,15 +148,16 @@ class Scorer:
         from transformers import AutoConfig, AutoProcessor, Qwen2_5_VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
         torch.set_num_threads(4)
-        config = AutoConfig.from_pretrained(model_id)
+        config = AutoConfig.from_pretrained(model_id, local_files_only=True)
         self.is_qwen3 = config.model_type == "qwen3_vl"
         self.device, self.max_pixels, self.max_edge = device, max_pixels, max_edge
         self.layers = tuple(layers)
-        self.processor = AutoProcessor.from_pretrained(model_id)
+        self.processor = AutoProcessor.from_pretrained(model_id, local_files_only=True)
         self.processor.tokenizer.padding_side = "left"
         cls = Qwen3VLForConditionalGeneration if self.is_qwen3 else Qwen2_5_VLForConditionalGeneration
         self.model = cls.from_pretrained(model_id, torch_dtype=torch.bfloat16,
-                                         attn_implementation="sdpa").to(device).eval()
+                                         attn_implementation="sdpa", config=config, revision=getattr(config, "_commit_hash", None),
+                                         local_files_only=True).to(device).eval()
         self.attach_hooks()
         self.priors = {}
 
@@ -195,7 +218,7 @@ class Scorer:
             # Qwen3's video size budget covers all frames, unlike Qwen2.5's per-frame budget.
             size = {k: v * len(frames) for k, v in size.items()}
             rel = np.round((times - times[0]) * 1000).astype(int).tolist()
-            kwargs.update(size=size, video_metadata=[dict(fps=1000, total_num_frames=len(frames),
+            kwargs.update(size=size, video_metadata=[dict(fps=1000, total_num_frames=max(rel) + 1,
                                                          frames_indices=rel)] * len(texts))
         else:
             if arm == "C":
@@ -280,7 +303,7 @@ class Scorer:
 def _hidden_size(model_id):
     from transformers import AutoConfig
 
-    return AutoConfig.from_pretrained(model_id).text_config.hidden_size
+    return AutoConfig.from_pretrained(model_id, local_files_only=True).text_config.hidden_size
 
 
 @functools.lru_cache(maxsize=1)
@@ -295,7 +318,7 @@ def extract_all(video_path, device="cuda:1", **cfg):
         raise ValueError("Only cpu or physical cuda:1 is permitted")
     if device == "cuda:1" and os.environ.get("CUDA_VISIBLE_DEVICES"):
         raise ValueError("Unset CUDA_VISIBLE_DEVICES to preserve physical cuda:1")
-    allowed = set(DEFAULTS) | {"max_duration_sec", "sidecar_path", "targets_path", "pose_path", "query_start_sec", "deadline_monotonic"}
+    allowed = set(DEFAULTS) | {"max_duration_sec", "sidecar_path", "targets_path", "pose_path", "query_start_sec", "deadline_monotonic", "checkpoint_path"}
     if set(cfg) - allowed:
         raise ValueError(f"Unknown config keys: {sorted(set(cfg) - allowed)}")
     c = {**DEFAULTS, **{k: v for k, v in cfg.items() if k in DEFAULTS}}
@@ -309,6 +332,8 @@ def extract_all(video_path, device="cuda:1", **cfg):
     ticks = io.tick_times(duration)
     start = max(1, 1 + np.floor((cfg.get("query_start_sec", 1) - 1) / stride) * stride)
     samples = np.arange(start, len(ticks) + 1, stride, dtype=np.float32)
+    if c["include_early_baseline"] and start > 1:
+        samples = np.unique(np.r_[np.arange(1, min(start, 11, len(ticks) + 1), stride), samples]).astype(np.float32)
     questions, columns = questions_and_columns(c["arm"])
     values = np.zeros((len(samples), len(columns)), np.float32)
     valid_samples = np.zeros(len(samples), bool)
@@ -321,51 +346,81 @@ def extract_all(video_path, device="cuda:1", **cfg):
     if c["pose_gating"]:
         if not cfg.get("pose_path"):
             raise ValueError("pose_gating requires an explicit pose_raw NPZ")
-        with np.load(cfg["pose_path"], allow_pickle=False) as z:
-            pt, ptr, tid = z["frame_t"], z["frame_ptr"], z["det_track_id"]
-            pose_ok = z["frame_ok"]
-        for i, t in enumerate(samples):
-            seen = np.flatnonzero((pt >= max(0, t - 7)) & (pt <= t))
-            if not len(seen):
-                raise ValueError("Pose gating has no causal coverage for a query")
-            gated[i] = bool(pose_ok[seen].all() and not any(np.any(tid[ptr[k]:ptr[k+1]] >= 0) for k in seen))
-    started, score_sec = time.perf_counter(), 0.0
-    for i, t in enumerate(samples):
-        if time.perf_counter() >= cfg.get("deadline_monotonic", float("inf")):
-            raise TimeoutError("Bounded GPU chunk expired")
-        if gated[i]:
-            values[i, 0] = 1
+        gated = pose_gate_samples(cfg["pose_path"], samples)
+    checkpoint = cfg.get("checkpoint_path")
+    identity = dict(version=VERSION, cfg=c, duration_sec=duration, start=float(start),
+                    model_revision=getattr(scorer.model.config, "_commit_hash", None) if scorer else None,
+                    media_path=os.path.realpath(video_path), media_size=os.stat(video_path).st_size,
+                    media_mtime_ns=os.stat(video_path).st_mtime_ns,
+                    prompt=hashlib.sha256(json.dumps([CONTEXT, questions]).encode()).hexdigest())
+    if cfg.get("pose_path"):
+        stat = os.stat(cfg["pose_path"])
+        identity["pose"] = [os.path.realpath(cfg["pose_path"]), stat.st_size, stat.st_mtime_ns]
+    identity = json.dumps(identity, sort_keys=True)
+    progress, score_sec = 0, 0.0
+    if checkpoint and os.path.isfile(checkpoint):
+        with np.load(checkpoint, allow_pickle=False) as z:
+            if str(z["identity"]) != identity or not np.array_equal(z["samples"], samples):
+                raise ValueError("Checkpoint inputs or prompt changed")
+            values[:], valid_samples[:], hidden_values[:] = z["values"], z["valid"], z["hidden"]
+            saved = json.loads(str(z["state"]))
+            progress, score_sec = saved["progress"], saved["score_sec"]
+            errors, rationales = saved["errors"], saved["rationales"]
+    started = time.perf_counter()
+    try:
+        for i in range(progress, len(samples)):
+            t = samples[i]
+            if time.perf_counter() >= cfg.get("deadline_monotonic", float("inf")):
+                raise TimeoutError("Bounded GPU chunk expired")
+            if gated[i]:
+                values[i, 0] = 1
+                valid_samples[i] = True
+                progress = i + 1
+                continue
+            times = clip_times(float(t), c["arm"])
+            try:
+                frames = video.frames_at(times)
+            except TimeoutError:
+                raise
+            except Exception as exc:
+                errors.append(dict(t_sec=float(t), error=str(exc)))
+                progress = i + 1
+                continue
+            if device.startswith("cuda"):
+                torch.cuda.synchronize(device)
+            begin = time.perf_counter()
+            values[i], hidden = scorer.score(frames, times, c["arm"], c["temperature"], c["calibration"], bool(layers))
+            if layers:
+                hidden_values[i] = hidden
+            if device.startswith("cuda"):
+                torch.cuda.synchronize(device)
+            score_sec += time.perf_counter() - begin
             valid_samples[i] = True
-            continue
-        times = clip_times(float(t), c["arm"])
-        try:
-            frames = video.frames_at(times)
-        except Exception as exc:
-            errors.append(dict(t_sec=float(t), error=str(exc)))
-            continue
-        if device.startswith("cuda"):
-            torch.cuda.synchronize(device)
-        begin = time.perf_counter()
-        values[i], hidden = scorer.score(frames, times, c["arm"], c["temperature"], c["calibration"], bool(layers))
-        if layers:
-            hidden_values[i] = hidden
-        if device.startswith("cuda"):
-            torch.cuda.synchronize(device)
-        score_sec += time.perf_counter() - begin
-        valid_samples[i] = True
-        if len(rationales) < c["rationale_samples"] and cfg.get("sidecar_path"):
-            rationales.append(dict(t_sec=float(t), frame_times_sec=times.tolist(),
-                                   frame_indices=video.frame_index(times).tolist(),
-                                   rationale=scorer.rationale(frames, times, c["arm"], c["rationale_max_tokens"])))
+            if len(rationales) < c["rationale_samples"] and cfg.get("sidecar_path"):
+                rationales.append(dict(t_sec=float(t), frame_times_sec=times.tolist(),
+                                       frame_indices=video.frame_index(times).tolist(),
+                                       rationale=scorer.rationale(frames, times, c["arm"], c["rationale_max_tokens"])))
+            progress = i + 1
+    except TimeoutError:
+        if checkpoint:
+            os.makedirs(os.path.dirname(os.path.abspath(checkpoint)), exist_ok=True)
+            state = dict(progress=progress, score_sec=score_sec, errors=errors, rationales=rationales)
+            with open(checkpoint + ".tmp", "wb") as f:
+                np.savez_compressed(f, identity=identity, samples=samples, values=values,
+                                    valid=valid_samples, hidden=hidden_values, state=json.dumps(state))
+            os.replace(checkpoint + ".tmp", checkpoint)
+        raise
     feat, valid = hold(samples, values.astype(np.float16), valid_samples, ticks)
     hidden_feat, hidden_valid = hold(samples, hidden_values, valid_samples & ~gated, ticks)
+    gap = (ticks > 10) & (ticks < start) if c["include_early_baseline"] else ticks < start
+    feat[gap], hidden_feat[gap], valid[gap], hidden_valid[gap] = 0, 0, False, False
     prompt_hash = hashlib.sha256(json.dumps([PROMPT_VERSION, CONTEXT, questions]).encode()).hexdigest()
     meta = dict(extractor=EXTRACTOR, version=VERSION, model_id=c["model_id"],
                 model_revision=getattr(scorer.model.config, "_commit_hash", None) if scorer else None,
                 window_sec=max(window, 7 if c["pose_gating"] else 0) + stride, clip_window_sec=window, D=len(columns), columns=columns,
                 prompt_version=PROMPT_VERSION, prompt_sha256=prompt_hash, context=CONTEXT, questions=questions,
                 forecast_prompt_sha256=hashlib.sha256(FORECAST_QUESTION.encode()).hexdigest() if c["arm"] == "B" else None,
-                cfg=c, duration_sec=duration, no_context=True,
+                cfg=c, duration_sec=duration, no_context=True, pose_provenance=json.loads(identity).get("pose"),
                 calibration="restricted single-token option softmax; no empirical forecast calibration", kv_cache_scope="one update only",
                 update_t_sec=samples.tolist(), query_start_sec=float(start), available_history_sec=histories, gated=gated.tolist(),
                 stage_weights=STAGE_WEIGHTS.tolist(), sample_ticks=len(samples),
@@ -395,6 +450,8 @@ def extract_all(video_path, device="cuda:1", **cfg):
     outputs = {EXTRACTOR: (ticks, feat, valid, meta)}
     if layers:
         outputs[HIDDEN_EXTRACTOR] = (ticks, hidden_feat, hidden_valid, hmeta)
+    if checkpoint and os.path.isfile(checkpoint):
+        os.unlink(checkpoint)
     return outputs
 
 
@@ -404,6 +461,7 @@ def extract(video_path, device="cuda:1", **cfg):
 
 def extract_and_save(video_path, video_id, device="cuda:1", output_name=EXTRACTOR, **cfg):
     base = io.feature_path(output_name, video_id)
+    cfg.setdefault("checkpoint_path", base.replace(".npz", ".checkpoint"))
     cfg.setdefault("targets_path", base.replace(".npz", ".targets.parquet"))
     cfg.setdefault("sidecar_path", base.replace(".npz", ".rationales.json"))
     outputs = extract_all(video_path, device, **cfg)

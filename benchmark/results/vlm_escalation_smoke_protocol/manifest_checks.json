@@ -1,0 +1,27 @@
+{
+  "screen": {
+    "videos": 1307,
+    "paths_present": true,
+    "folds_0_2_3_4_only": true
+  },
+  "pilot": {
+    "videos": 352,
+    "paths_present": true,
+    "folds_0_2_3_4_only": true
+  },
+  "rest": {
+    "videos": 977,
+    "paths_present": true,
+    "folds_0_2_3_4_only": true
+  },
+  "timing": {
+    "videos": 200,
+    "paths_present": true,
+    "folds_0_2_3_4_only": true
+  },
+  "contamination": {
+    "videos": 1000,
+    "paths_present": true,
+    "folds_0_2_3_4_only": true
+  }
+}

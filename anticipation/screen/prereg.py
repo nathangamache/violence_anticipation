@@ -10,6 +10,14 @@ from anticipation.data.catalog import REPO_ROOT, file_sha256
 
 PREREG_PATH = os.path.join(REPO_ROOT, "benchmark", "screens", "screen_set_v1.json")
 PINNED_SHA256 = {"screen_set_v1.json": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"}
+REGISTRATIONS = {name: os.path.join(REPO_ROOT, "benchmark", "screens", f"screen_set_{name}.json")
+                 for name in ("v1", "v2")}
+
+
+def resolve_path(value):
+    return REGISTRATIONS.get(value, value)
+
+
 REQUIRED_KEYS = ("version", "status", "screen_folds", "confirmation_fold", "sets", "scored_intervals_sec", "audio_gate",
                  "label_policy", "blocks", "controls", "probes", "nuisance", "metrics", "gates", "classes", "tags",
                  "forward_selection", "fold_membership", "provenance")
@@ -59,6 +67,10 @@ class Prereg:
 def load(path=PREREG_PATH, pinned=None):
     """Read the frozen file; raise PreregError unless its sha256 equals the one in ``<path>.sha256`` (and the pinned
     value for the registered file name)."""
+    path = resolve_path(os.fspath(path))
+    if pinned is None and os.path.basename(path) in {os.path.basename(p) for p in REGISTRATIONS.values()}:
+        if os.path.basename(path) not in PINNED_SHA256:
+            raise PreregError(f"registration has no pinned hash: {path}")
     pinned = PINNED_SHA256 if pinned is None else pinned
     if not os.path.isfile(path):
         raise PreregError(f"no pre-registration at {path}")

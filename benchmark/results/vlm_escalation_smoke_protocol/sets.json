@@ -1,0 +1,40 @@
+{
+  "screen": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/screen_S.csv",
+    "sha256": "84049870ca9e0696045eeb6b301e4b96441908abed8d2fe94b34b85e76d55886",
+    "n": 1307
+  },
+  "pilot": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv",
+    "sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+    "n": 352
+  },
+  "rest": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/rest_S.csv",
+    "sha256": "9784cbc80ee0bf91e067439d781aacc4da4dc568605fbe1ecfca96c1e9b2467f",
+    "n": 977
+  },
+  "timing": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/timing_queries.csv",
+    "sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+    "n": 200
+  },
+  "registration_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+  "screening_folds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "confirmation_fold": 1,
+  "selection": "S_long60 first events + deterministic 150 clean (38 ucf,38 ubi,37 movie,37 youtube) + all H1p",
+  "clean_counts": {
+    "ucf": 38,
+    "ubi": 38,
+    "xd_movie": 37,
+    "xd_youtube": 37
+  },
+  "pilot_hours": 11.795751194444444,
+  "screen_hours": 45.05389547222231,
+  "rest_hours": 34.49382233333336
+}

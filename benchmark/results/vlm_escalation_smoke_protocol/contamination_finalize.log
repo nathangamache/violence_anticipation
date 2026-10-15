@@ -1,0 +1,15 @@
+{
+  "candidates": 1471,
+  "reviewed": 1471,
+  "calm_available": 1048,
+  "groups": {
+    "clean": 515,
+    "h1": 319,
+    "violent": 166
+  },
+  "manifest": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/contamination_queries.csv",
+    "sha256": "67787efaeeddec26a6f436c0c1162dfca22e1978c5bed760571ca5225f902603",
+    "n": 1000
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "realtime": 100.0,
+    "decision": "RUN_PILOT",
+    "arms": "ABC",
+    "clean_videos": 150
+  },
+  {
+    "realtime": 2.1,
+    "decision": "RUN_PILOT",
+    "arms": "BC",
+    "clean_videos": 150
+  },
+  {
+    "realtime": 2.0,
+    "decision": "RUN_PILOT",
+    "arms": "BC",
+    "clean_videos": 100
+  },
+  {
+    "realtime": 0.001,
+    "decision": "NO_GO_COST",
+    "arms": "",
+    "clean_videos": 0
+  }
+]

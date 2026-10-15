@@ -2071,14 +2071,14 @@ brawl 0.66): do not treat them as anticipation cues; judge them only through VA3
 
 Status handoff, 2026-10-15:
 
-- **BLOCKED_PHASE0**, not a quality NO-GO: the 50 HIVAU and 30 official spot-check verdicts remain empty; the audio-type audit is not supplied. `MODALITY_PLAN.md` §6.1 explicitly says “blocking; CPU or human; no new GPU job”.
-- Pulled the frozen registration, evaluator extensions and no-context aggression reference from master. Pinned inputs and current missing prerequisites are in `benchmark/results/vlm_escalation_smoke_protocol/preflight.json`.
+- **Phase 0 cleared by lead follow-up; WAIT_GPU0.** Both GPU 0 <5 GB and the CCTV status log ending in `done` are required before GPU work. The CPU queue checks every 60 s and cannot launch early.
+- Frozen S: **1,307 videos / 45.05 h** (379 positive, 600 clean, 328 H1; H1p is a subset). Frozen P: **352 videos / 11.80 h** (100 S_long60 positives, deterministic 150 clean, all 102 H1p). Manifests and SHA256s are in `benchmark/results/vlm_escalation_smoke_protocol/sets.json`.
 - Extractor v3 implements arms A/B/C, independent queries, shared-prefix option scoring, float16 intermediate states, and float32 per-update distillation targets.
 - Tiny CPU Qwen2.5/Qwen3 checks pass: cached/full-prefix selected-logit differences <1.7e-7; `io.check_causal` max difference **0** for ratings and hidden states of A/B/C. Pretrained BF16 GPU causality is still pending.
-- No v3 timing, contamination, pilot quality, per-source quality, or GO decision has been measured. No winning model or arm is claimed.
+- **GO/no-go: pending pilot and lead harness.** No v3 timing or pilot quality has been measured yet. A/B/C timing is queued; the cost rule permits only §6.7 reductions before contamination/P. The registered Phase C gates will be run by the lead, not this agent.
 - Phase C GPU use in this protocol: **0 h**; conservatively reserve **1 h** for all earlier exploratory work, leaving **34 h** within the 35 h cap.
 - Earlier all-fold exploratory smoke is excluded from selection under the fold-1 freeze. Its two unpushed commits remain in the original `va_vlm` clone; this handoff uses the fresh `va_vlm_protocol` clone and does not publish those results.
-- Runner registration, pilot P manifest, probe/layer sweep, paired reference evaluation, and GO-controlled extraction of the rest of S remain with the lead after prerequisites. No bulk job was launched.
+- Contamination cohort frozen before model outcomes: **1,000 calm first frames**, from 166 violent / 319 H1 / 515 clean UCF videos. All 1,471 candidates were reviewed with blind IDs in one AI pass; 1,048 passed. This is coarse screening, not human ground truth. Only violent/H1 permutation tests decide the contamination flag.
 
 ### Results and cost status
 
@@ -2143,8 +2143,9 @@ planned primary readout, with the raw ordinal scalar a secondary zero-shot contr
 Rating NPZ: `t_sec` float32 1 Hz ticks starting at 1; `feat` float16 [T,D]; `valid` bool [T]; JSON `meta` with
 columns, full questions/context, prompt hash/version, model ID/revision, config and update schedule. D is 23
 (A), 24 (B), or 28 (C). Updates sample-and-hold to 1 Hz, without interpolation. `meta.window_sec` includes the
-maximum clip history plus hold interval. Decode failures have invalid rows. A non-default query start leaves
-prior ticks invalid, and allows only the preceding scheduled update to initialize the first requested tick.
+maximum clip history plus hold interval. Decode failures have invalid rows. A non-default query start preserves scheduled observations in ticks 1-10 for the registered first-frame/P1b controls,
+leaves the gap after tick 10 invalid, and allows the preceding scheduled update to initialize the requested interval.
+Primary pilot evaluation must use the frozen P intervals, not the extra baseline ticks.
 
 Hidden NPZ uses the same ticks, separate validity, and four H-wide groups: visual-token mean then non-affine
 LayerNorm, and last stage-prompt token then LayerNorm, at decoder-block outputs **18 and 27** (one-based,
@@ -2164,7 +2165,9 @@ Pose gating is opt-in (`pose_gating=true`, explicit `pose_path`): it skips only 
 in [t-7,t] are all valid with no tracked detections. Missing coverage raises; it is never assumed empty. Gated
 ratings are calm with valid=true, while hidden rows have valid=false. Ablate this policy on **all** pilot UCF
 events because misses on small people may erase the signal. Default ungated extraction avoids silently assuming
-an ablation outcome.
+an ablation outcome. After all pilot UCF outputs exist, `derive_posegate.py --arm A|B|C` creates the exact
+CPU-derived skip-query ablation for every pilot UCF video, including clean/H1 controls, under `<arm>_posegate`
+and companion hidden streams. Missing/incomplete pose coverage is reported and never assumed empty.
 
 Lead's `REGISTRY` line, after the ordered pilot gates (the shared runner was not edited):
 
@@ -2192,9 +2195,10 @@ nice -n 10 "$PY" "$P/protocol.py" preflight --phase0-manifest "$P/phase0_evidenc
 ```
 
 `phase0_evidence.json` pins available registration/reference/audit/H1-manifest artifacts by SHA256, including
-**unapplied** mask proposals. It does not adopt masks or assert human/auditory review. Update the audio evidence
-and completed spot-checks when their owners finish; the preflight checks artifact presence/provenance plus
-review completion, not the scientific validity of those reviews.
+**unapplied** mask proposals. It does not adopt masks or assert human/auditory review. The versioned onset spot-check CSVs and audio audit are now pinned and preflight is READY. It checks artifact
+presence/provenance and completion, not scientific validity. HIVAU onsets are noisy (12/50 ok versus 18/30 official);
+report official-onset and official/UBI results as co-primary and HIVAU separately. Primary v2 labels stay frozen;
+amendment 03 S1/S2 masks are sensitivity only. Audio amendment 04 does not change these vision-only arms.
 
 After READY, the timing helper accepts `timing --arm A|B|C --model MODEL --manifest QUERY.csv
 --manifest-sha256 SHA --phase0-manifest EVIDENCE.json --out-dir RUN_DIR`. It records exactly 200 queries/arm,
@@ -2202,20 +2206,49 @@ resumes within 20 min chunks, checks server load, selects only physical cuda:1 a
 `benchmark/results/vlm_escalation_smoke_protocol/budget.json`, regardless of result out-dir. Keep that
 **one shared ledger for Phase C**; use separate `--out-dir` values for model result files. Stage records are
 model-scoped, so timing one model cannot qualify another model for contamination. Do not reset the ledger or
-select a fresh budget path for another arm/model. No separate
-venv or package changes are needed. A manifest has unique `video_id,path,t_sec` rows, and every ID is checked
+select a fresh budget path for another arm/model. Cached models/processors are loaded offline, with weight revision tied to the loaded configuration. No separate
+venv or package changes are needed. A timing manifest has unique `video_id,path,t_sec` rows, and every ID is checked
 against folds_v2 before any media opens. Model startup and crashes are charged conservatively; a SIGALRM bounds
 the chunk to at most 1500 s. A process stuck inside CUDA may return control late, so retain headroom.
 
 `contamination` is enabled only after 200 A/B/C timing queries for the same Qwen3 model. Its frozen CSV adds
-`category`, `group` (`violent` or `h1`), and `calm_verified=true`, for at least 1000 distinct UCF videos. It uses
+`category`, `group` (`violent`, `h1`, or descriptive `clean`), and `calm_verified=true`, for 1000 distinct UCF videos. It uses
 only calm first frames, 14 single-token UCF category choices, and a 10,000-shuffle accuracy test within each
-stratum (Bonferroni alpha=.025). The frame verification and manifest selection are not automated. Fewer than
+stratum (Bonferroni alpha=.025). Blind first-frame reviews, reasons for every exclusion, candidate membership and sheet hashes are saved in
+`contamination_reviews.json`, `contamination_candidates.csv`, and `contamination_set.json`. Sheets remain local
+under `contamination_sheets/`; `prepare_contamination.py --render` regenerates their content. Fewer than
 1000 records never marks the stage complete. Identity-level recognition is not proof of training membership;
 the flag is a reason to require UBI/new-hold-out checks, as the plan specifies.
 
-The helper deliberately does not launch P or S: connect the frozen pilot manifest and screen harness next,
-run the planned probes and reference comparison, and persist the §6.7 GO/no-go before any extraction outside P.
-For a GO, require paired M1 gain CI lower >0 or G3 PASS against reference FAIL, G2 not FAIL, S_real M1 >=.60
-with lower CI >.50, and the contamination policy; choose among passing arms by M8 then cost. No such decision
-has been made. Distillation remains conditional on that GO and uses the per-update targets already exported.
+The CPU waiter `queue_timing.py` launches only timing, in bounded GPU-1 chunks, after both start checks pass.
+`queue_pilot.py` waits for timing, freezes `budget_plan.json` using `plan_cost.py`, then runs contamination,
+pretrained causality, and bounded P extraction for the permitted arms. It waits without GPU use for the lead
+GO/no-go artifact before starting the winning arm on S; it never runs the registered gates itself.
+It uses the same locked 35 h ledger for all arms and waits between chunks. `check_pretrained.py` must pass
+pretrained rating/hidden causality before pilot extraction. `extract_chunk.py pilot --arm A|B|C` additionally
+requires completed timing and contamination stages, enforces the start gate again, and writes `features/vlm_a/`,
+`features/vlm_b/`, or `features/vlm_c/`, with companion `<stream>_hidden` files. Interrupted videos retain a
+prompt/model/input-identified `.checkpoint`; resuming is CPU-tested bit-for-bit. Completed files alone are final
+NPZs; checkpoints are never counted as features. The first three videos of each arm save a small rationale sample.
+
+Before launching P, project the three-arm pilot plus the worst candidate rest-of-S cost against the remaining
+ledger, including reload/contamination/causality overhead. Follow §6.7's allowed reductions if needed: drop A,
+then reduce clean negatives to 100. This choice is recorded before contamination or pilot outcomes; no reduction has been
+selected yet. The cost rule uses mean measured throughput, a 15% cost margin, 1 h of reload/check headroom and
+a conservative contamination projection. `check_cost.py` verifies ABC -> BC -> BC/100-clean -> NO_GO_COST
+behavior. An unfit plan stops before contamination/P without spending the remaining budget. Timing reports both cold-query throughput and decoder-open cost amortized over mean pilot duration.
+`rest_S.csv` includes longer full-S intervals for pilot positives, so its 34.49 h projection conservatively
+includes about 1.24 h of recomputation. Winning-arm coverage must be checked against **all** `screen_S.csv` rows.
+
+The lead runs the registered `anticipation.screen` Phase C gates and probes. No gate run or block classification
+is performed by these helpers. After P, publish M1 band/long/near, M4b first-frame and paired M1 gain, M4n versus N,
+M3p specificity, per-source and official-onset results; compare reference rows on exactly the same universe.
+The probability readout, separate hidden-state PLS inputs (layers 18/27, validation only), and B's forecast column
+are present in each cached arm. Registration wiring remains with the lead.
+
+`extract_chunk.py screen --arm WINNER` requires the lead's `go_decision.json`: `decision="GO"`, `winner="A|B|C"`,
+`model_id`, `registration_sha256`, `pilot_manifest_sha256`, `screening_folds=[0,2,3,4]`,
+`confirmation_fold_read=false`, and `harness_report={"path":...,"sha256":...}`. This is the recorded scientific
+GO required by §6.7, not a substitute gate calculation. A NO-GO or missing decision prevents extraction outside P.
+No such decision exists yet. The queued waiter accepts a minimal `{"decision":"NO_GO"}` to end without S.
+Distillation remains conditional on GO and uses the per-update targets already exported.

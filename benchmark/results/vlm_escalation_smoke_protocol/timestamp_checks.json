@@ -1,0 +1,10 @@
+{
+  "B": {
+    "tensors_equal": true,
+    "metadata_total_frames": 7001
+  },
+  "C": {
+    "tensors_equal": true,
+    "metadata_total_frames": 124001
+  }
+}

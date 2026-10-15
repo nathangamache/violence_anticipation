@@ -1,0 +1,6 @@
+contamination_sheets/
+*.lock
+__pycache__/
+queue_timing.log
+start_gate.json
+queue_pilot.log
