@@ -1,6 +1,7 @@
 # Causal anticipation training
 
 Status for the lead (2026-10-14):
+- Evaluator coordination (2026-10-15): screen preregistration landed at `benchmark/screens/screen_set_v1.json`, SHA256 `8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b`. Use screening folds 0/2/3/4 only; exclude fold1 from train and validation too. New evaluator metrics will be additive/opt-in with unchanged defaults; do not start new screen results until Phase 0 references/audits land. `--horizons` is now available on master for capped clean negatives.
 - Framework and initial tests pushed in `a30af89`; 69 suite checks passed; added scalar-stream and cohort checks also pass.
 - Models: window statistics + logistic/boosting, causal GRU/Transformer; time-only control added.
 - Checkpoints now use validation source-and-time-matched far-window AUROC, never pooled AUROC.

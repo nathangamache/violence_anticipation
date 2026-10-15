@@ -37,3 +37,11 @@ Checked October 14, 2026 for [REPORT.md](REPORT.md), against repository snapshot
 ## Repository Evidence
 
 Benchmark counts were checked against the committed `benchmark/catalog_summary.json`; fold counts and content hash against `benchmark/folds_v2.json` and `docs/VA30.md`; historical numbers against `docs/BASELINE.md` and `docs/EXPERIMENT_HISTORY.md`. The report distinguishes documented historical diagnostics, current benchmark controls, proposed methods, and unmeasured new-model results. No model training, feature extraction, video decoding, or benchmark recomputation was performed to prepare this documentation.
+
+## October 15 Follow-Up
+
+The follow-up uses `docs/MODALITY_PLAN.md` and `docs/YOUTUBE_HOLDOUT.md` at commit `ae96a14`, plus the committed `benchmark/youtube_holdout/annotations_v1.json` and `summary_v1.json`. These repository sources support the conflict-state framing, proposed modality priorities, pre-registered screening design, planning expectations, and annotation progress. No external reference was added or its empirical claims expanded.
+
+The hold-out counts distinguish 76 annotated videos from the full 92, 36 same-clip long-lead onsets in 14 videos from the 551 VA30 events, and the 156 escalation-marked onsets underlying the 4.7-second median from the long-lead subset. The annotation protocol uses two AI annotators plus a reconciler, frames only, without human ground-truth validation or audio evidence. Preliminary counts and escalation intervals in the modality decision document are superseded by the newer v1 hold-out artifacts.
+
+Section 9's AUROC and Success@30 ranges are explicitly labeled planning expectations, not results, guaranteed accuracy, or established ceilings. Screening prerequisites and PASS/FAIL/INCONCLUSIVE rules are documented as prescribed work, not completed experiments. Fold 1 is reserved for one confirmation, and the curated hold-out cannot guide selection or tuning. All new-model, screen, and hold-out performance tables remain placeholders.
