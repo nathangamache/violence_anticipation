@@ -1,0 +1,54 @@
+{
+ "siglip2_prompts_v2": {
+  "m1": {
+   "recomputed": 0.8293849880784745,
+   "metrics_json": 0.8293849880785766
+  },
+  "m1_30_60": {
+   "recomputed": 0.8191141857079204,
+   "metrics_json": 0.8191141857079278
+  },
+  "m1_n": {
+   "recomputed": 0.7844816947148809,
+   "metrics_json": 0.7844816947150021
+  },
+  "m1_time_source": {
+   "recomputed": 0.47211218565005575,
+   "metrics_json": 0.47211218565011814
+  },
+  "m1_shuffled": {
+   "recomputed": 0.5104056882962233,
+   "metrics_json": 0.5104056882963925
+  },
+  "m1_n_plus_p1": {
+   "recomputed": 0.8653619419106677,
+   "metrics_json": 0.865361941910768
+  }
+ },
+ "pose_interact": {
+  "m1": {
+   "recomputed": 0.6388199748925809,
+   "metrics_json": 0.6388199748927406
+  },
+  "m1_30_60": {
+   "recomputed": 0.6330284613941277,
+   "metrics_json": 0.6330284613941789
+  },
+  "m1_n": {
+   "recomputed": 0.7844816947148809,
+   "metrics_json": 0.7844816947150021
+  },
+  "m1_time_source": {
+   "recomputed": 0.47211218565005575,
+   "metrics_json": 0.47211218565011814
+  },
+  "m1_shuffled": {
+   "recomputed": 0.5029974619467509,
+   "metrics_json": 0.5029974619469407
+  },
+  "m1_n_plus_p1": {
+   "recomputed": 0.7825397380698287,
+   "metrics_json": 0.7825397380699456
+  }
+ }
+}

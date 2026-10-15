@@ -1,0 +1,16 @@
+import pandas as pd
+R='benchmark/results/cue_screen/audit/'
+L={
+('siglip2_prompts_v2','posband'):"PROV MOVIE CONFLICT CONFLICT UNDERWAY UNDERWAY UNDERWAY UNDERWAY UNDERWAY CONFLICT CONFLICT UNDERWAY MOVIE PROV CONFLICT CONFLICT PROV MOVIE PROV UNDERWAY PROV UNDERWAY MOVIE PROV CONFLICT UNDERWAY UNDERWAY UNDERWAY PROV PROV",
+('siglip2_prompts_v2','clean'):"OTHER COMBAT_CLEAN MOVIE MOVIE MOVIE PROV PROV MOVIE PROV MOVIE PROV MOVIE MOVIE COMBAT_CLEAN PROV MOVIE MOVIE COMBAT_CLEAN MOVIE COMBAT_CLEAN MOVIE MOVIE MOVIE MOVIE COMBAT_CLEAN COMBAT_CLEAN PROV COMBAT_CLEAN PROV MOVIE",
+('siglip2','posband'):"MOVIE PROV PROV PROV PROV PROV CONFLICT MOVIE PROV MOVIE PROV MOVIE PROV MOVIE PROV MOVIE MOVIE CONFLICT PROV PROV PROV PROV MOVIE PROV PROV MOVIE UNDERWAY MOVIE CONFLICT MOVIE",
+('siglip2','clean'):"PROV PROV PROV PROV PROV PROV PROV MOVIE PROV PROV PROV PROV PROV MOVIE MOVIE MOVIE PROV PROV PROV PROV MOVIE PROV MOVIE PROV MOVIE MOVIE MOVIE PROV PROV PROV"}
+import collections
+for (b,k),s in L.items():
+    c=s.split(); d=pd.read_csv(R+f'top_{k}_{b}.csv'); assert len(c)==len(d)==30,(b,k,len(c),len(d))
+    d['reviewer_class']=c; d[['video_id','src','t','tte','score','reviewer_class']].to_csv(R+f'top_{k}_{b}.csv',index=False)
+    print(b,k,dict(collections.Counter(c)))
+ff="CONFLICT PROV CROWD MOVIE MOVIE CROWD CCTV_LOOK CROWD CCTV_LOOK MOVIE CROWD CCTV_LOOK PROV PROV CCTV_LOOK CCTV_LOOK MOVIE CROWD CROWD CONFLICT CCTV_LOOK CONFLICT PROV CCTV_LOOK PROV".split()
+d=pd.read_csv(R+'ramp_first_frame_scores_v2.csv').head(25); assert len(ff)==25
+d['reviewer_class']=ff; d.to_csv(R+'first_frame_top25_v2.csv',index=False)
+print(dict(collections.Counter(ff)))

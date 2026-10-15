@@ -1,0 +1,756 @@
+{
+ "variant": "S2",
+ "primary_class_unchanged": true,
+ "used_for_decision": false,
+ "prereg_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+ "blocks": {
+  "pose_interact": {
+   "m1": {
+    "value": 0.6277807294783634,
+    "ci": [
+     0.584411146860323,
+     0.6653118269344171
+    ]
+   },
+   "m1_long": {
+    "value": 0.6249314428004942,
+    "ci": [
+     0.5642610982849953,
+     0.6765426773474027
+    ]
+   },
+   "m3p": {
+    "value": 0.6238260659176034,
+    "ci": [
+     0.5130045131359734,
+     0.7311734450919855
+    ]
+   },
+   "m4n": {
+    "value": 0.0032464324688900037,
+    "ci": [
+     -0.027670586222905913,
+     0.02986878661249311
+    ]
+   },
+   "primary_m1": {
+    "value": 0.6388199748927406,
+    "ci": [
+     0.5956428872960372,
+     0.6797011529547398
+    ]
+   },
+   "m1_minus_primary_m1": -0.011039245414377175,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "pose_state_identity_free": {
+   "m1": {
+    "value": 0.5606553031873057,
+    "ci": [
+     0.5049176483788167,
+     0.6115935814962757
+    ]
+   },
+   "m1_long": {
+    "value": 0.5385702938065804,
+    "ci": [
+     0.45860379158803766,
+     0.6123717335363019
+    ]
+   },
+   "m3p": {
+    "value": 0.5150240217990993,
+    "ci": [
+     0.3931710743758459,
+     0.6396625668417639
+    ]
+   },
+   "m4n": {
+    "value": -0.06068546636439842,
+    "ci": [
+     -0.11566453181340916,
+     -0.008962761257537392
+    ]
+   },
+   "primary_m1": {
+    "value": 0.559611326881436,
+    "ci": [
+     0.5124807001424466,
+     0.6093635036676922
+    ]
+   },
+   "m1_minus_primary_m1": 0.0010439763058697205,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "INCONCLUSIVE",
+    "sensitivity_G1": "INCONCLUSIVE",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "pose_state_pair_identity_ucf_ubi": {
+   "m1": {
+    "value": 0.5079360743345942,
+    "ci": [
+     0.4344994400584722,
+     0.5784527882104281
+    ]
+   },
+   "m1_long": {
+    "value": 0.48979761160367624,
+    "ci": [
+     0.3800364949414165,
+     0.5846659899015507
+    ]
+   },
+   "m3p": {
+    "value": 0.4580599082706647,
+    "ci": [
+     0.3426122961685693,
+     0.5755683103457547
+    ]
+   },
+   "m4n": {
+    "value": -0.05898399439089985,
+    "ci": [
+     -0.1049015392200319,
+     -0.019440397739054118
+    ]
+   },
+   "primary_m1": {
+    "value": 0.5202225941967902,
+    "ci": [
+     0.4543293340957971,
+     0.5858013583654416
+    ]
+   },
+   "m1_minus_primary_m1": -0.012286519862195977,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 201,
+    "events_with_window_ticks": 201,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 22,
+    "first_segment_events_with_window_ticks": 103,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 7159,
+    "window_ticks_after": 5645,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "INCONCLUSIVE",
+    "sensitivity_G1": "FAIL",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "siglip2_prompts_v1": {
+   "m1": {
+    "value": 0.8143305934944383,
+    "ci": [
+     0.7752406722184808,
+     0.8507750861268971
+    ]
+   },
+   "m1_long": {
+    "value": 0.8220016467639997,
+    "ci": [
+     0.774226169883982,
+     0.8645955496748734
+    ]
+   },
+   "m3p": {
+    "value": 0.5948751059524087,
+    "ci": [
+     0.4690672727137631,
+     0.7097657392012097
+    ]
+   },
+   "m4n": {
+    "value": 0.0705428617142414,
+    "ci": [
+     0.02190591730477646,
+     0.11703563391372532
+    ]
+   },
+   "primary_m1": {
+    "value": 0.8350432744456437,
+    "ci": [
+     0.7991099125497557,
+     0.8662364454417368
+    ]
+   },
+   "m1_minus_primary_m1": -0.020712680951205487,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "siglip2_prompts_v2": {
+   "m1": {
+    "value": 0.8109908371919308,
+    "ci": [
+     0.7767708004107448,
+     0.8404329941265993
+    ]
+   },
+   "m1_long": {
+    "value": 0.822162273620766,
+    "ci": [
+     0.7801805376438358,
+     0.8642781767459463
+    ]
+   },
+   "m3p": {
+    "value": 0.7135864679411347,
+    "ci": [
+     0.6213784699067048,
+     0.7958249233455243
+    ]
+   },
+   "m4n": {
+    "value": 0.09859471187434976,
+    "ci": [
+     0.06320737823127795,
+     0.13473367564885133
+    ]
+   },
+   "primary_m1": {
+    "value": 0.8293849880785766,
+    "ci": [
+     0.7991927504885424,
+     0.8556816253876508
+    ]
+   },
+   "m1_minus_primary_m1": -0.018394150886645866,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "siglip2": {
+   "m1": {
+    "value": 0.8546805650611025,
+    "ci": [
+     0.8208528681189325,
+     0.8879359021397961
+    ]
+   },
+   "m1_long": {
+    "value": 0.8561190672513974,
+    "ci": [
+     0.812478868433306,
+     0.8974444256072974
+    ]
+   },
+   "m3p": {
+    "value": 0.5873498995532337,
+    "ci": [
+     0.45859347063695644,
+     0.7094630541095943
+    ]
+   },
+   "m4n": {
+    "value": 0.09917639534577194,
+    "ci": [
+     0.05130642594031649,
+     0.14667020148434248
+    ]
+   },
+   "primary_m1": {
+    "value": 0.8623030459024525,
+    "ci": [
+     0.8303479063365053,
+     0.8925012031081061
+    ]
+   },
+   "m1_minus_primary_m1": -0.007622480841350088,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "vjepa2_l": {
+   "m1": {
+    "value": 0.7932037730250316,
+    "ci": [
+     0.7582282682767035,
+     0.827730924783253
+    ]
+   },
+   "m1_long": {
+    "value": 0.8153777106295723,
+    "ci": [
+     0.7706511107743934,
+     0.8552081972273612
+    ]
+   },
+   "m3p": {
+    "value": 0.5030097603373315,
+    "ci": [
+     0.39257698475836295,
+     0.6174202488221004
+    ]
+   },
+   "m4n": {
+    "value": 0.03749973776440674,
+    "ci": [
+     -0.015563434991514215,
+     0.09010518135875219
+    ]
+   },
+   "primary_m1": {
+    "value": 0.8014323341590556,
+    "ci": [
+     0.7653903340359758,
+     0.8366854725069025
+    ]
+   },
+   "m1_minus_primary_m1": -0.008228561134023926,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "motion_no_camera": {
+   "m1": {
+    "value": 0.5745271740204668,
+    "ci": [
+     0.5348130875452505,
+     0.6128781533675292
+    ]
+   },
+   "m1_long": {
+    "value": 0.5854439788464402,
+    "ci": [
+     0.5341077628336454,
+     0.6363282696850904
+    ]
+   },
+   "m3p": {
+    "value": 0.6094984480697964,
+    "ci": [
+     0.5087421873570518,
+     0.7024942150029785
+    ]
+   },
+   "m4n": {
+    "value": 0.004861174985763883,
+    "ci": [
+     -0.014617965192157228,
+     0.026615303451231465
+    ]
+   },
+   "primary_m1": {
+    "value": 0.587991844392489,
+    "ci": [
+     0.548962562285138,
+     0.6243714947428904
+    ]
+   },
+   "m1_minus_primary_m1": -0.013464670372022147,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "INCONCLUSIVE",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  },
+  "motion_camera_shortcut": {
+   "m1": {
+    "value": 0.5851786611818727,
+    "ci": [
+     0.5371260274695496,
+     0.6309254925371278
+    ]
+   },
+   "m1_long": {
+    "value": 0.5731319427495415,
+    "ci": [
+     0.5112484914144646,
+     0.6276751027247562
+    ]
+   },
+   "m3p": {
+    "value": 0.6358077593965533,
+    "ci": [
+     0.5285140076762662,
+     0.7210667519144978
+    ]
+   },
+   "m4n": {
+    "value": 0.01156492703973544,
+    "ci": [
+     -0.010309816647895839,
+     0.03321366022938122
+    ]
+   },
+   "primary_m1": {
+    "value": 0.5874799247687481,
+    "ci": [
+     0.5394218527461432,
+     0.6326710697079432
+    ]
+   },
+   "m1_minus_primary_m1": -0.002301263586875435,
+   "m1_difference_note": "point difference; the primary bootstrap replicates are not stored",
+   "events": {
+    "variant": "S2",
+    "events": 446,
+    "events_with_window_ticks": 446,
+    "events_losing_whole_window": 11,
+    "events_partly_masked": 24,
+    "first_segment_events_with_window_ticks": 253,
+    "first_segment_events_losing_whole_window": 7,
+    "window_ticks_before": 15588,
+    "window_ticks_after": 14026,
+    "by_source": {
+     "ubi": {
+      "events_with_window": 86,
+      "events_lost": 0
+     },
+     "ucf": {
+      "events_with_window": 115,
+      "events_lost": 11
+     },
+     "xd_movie": {
+      "events_with_window": 118,
+      "events_lost": 0
+     },
+     "xd_youtube": {
+      "events_with_window": 127,
+      "events_lost": 0
+     }
+    }
+   },
+   "g1": {
+    "primary_G1": "PASS",
+    "sensitivity_G1": "PASS",
+    "family": [
+     "pose_interact",
+     "pose_state_identity_free",
+     "pose_state_pair_identity_ucf_ubi",
+     "siglip2_prompts_v1",
+     "siglip2_prompts_v2",
+     "siglip2",
+     "vjepa2_l",
+     "motion_no_camera",
+     "motion_camera_shortcut"
+    ],
+    "signal_explained_by_onset_label_noise": false
+   }
+  }
+ }
+}
