@@ -31,7 +31,8 @@ thread. Sampling is one second apart from `max(clear_start, onset - 120)` throug
 video boundary. The score is `sigmoid(logp_Yes - logp_No)`, the probability conditional on the two answer tokens;
 it is not the unnormalised vocabulary probability of Yes. Both token log-probabilities are retained.
 
-Calibration samples 800 clean-labelled videos (one random frame each) and 400 annotated violent segments,
+Calibration samples 800 clean-labelled videos (one random frame each), excludes frames inside existing
+catalog hard/soft/other-anomaly masks (14 exclusions; 786 usable clean frames), and samples 400 annotated violent segments,
 without consulting model scores, using seed 301015. The threshold is the higher-interpolated 98th percentile
 of clean scores; the comparison is strict `>`. Report both the empirical clean false-positive rate and the
 annotated-violence sensitivity. These calibration classes can themselves contain label noise. Threshold selection
@@ -62,16 +63,23 @@ Pending the complete scan and visual review. No corrected labels or replacement 
 ## Implementation checks
 
 The screen tests passed (49 tests), as did the correction, routing, blind-review reconciliation and
-registration-rebuild checks (14 tests). No benchmark model result file has been opened. The v2 registration
+registration-rebuild and calibration-mask checks (15 tests). No benchmark model result file has been opened. The v2 registration
 alias deliberately refuses to load until the completed registration has a pinned hash.
 
 ## Scan calibration checkpoint
 
-The fixed threshold is **0.022977370768785477**. On the calibration sample, strict `P(Yes) > threshold`
-selects 15 of 800 clean-labelled frames (**1.875%**) and 192 of 400 annotated violent frames (**48%**).
+The final threshold is **0.01798621006309986**. On the usable calibration sample, strict `P(Yes) > threshold`
+selects 15 of 786 unmasked clean-labelled frames (**1.908%**) and 214 of 400 annotated violent frames (**53.5%**).
 The clean sample fixes the threshold; the violent sample only measures sensitivity. The full event scan
 contains **44,132 frames**. Calibration and the first two event checks took 550.6 seconds; the resumed scan
 has a 9,900-second cumulative runtime cap, leaving room for initial validation within about three GPU-hours.
+
+An initial implementation omitted the catalog exclusion masks from clean calibration. A metadata-only check
+found 14 affected frames among the sampled 800. These were excluded deterministically before visual review,
+and all event flags were recomputed from cached raw-frame probabilities. The superseded threshold was
+0.022977370768785477 (15/800 clean frames, 192/400 annotated violent frames). Both the initial calibration
+and the excluded frame list are retained outside git. This fixes sample eligibility; no screen model score
+was consulted, and no visual-review verdict had been made when the threshold was corrected.
 
 The first implementation checkpoint is commit `25e7062`. Label curation and registration completion remain
 pending; this checkpoint does not authorise reading fold-1 model outcomes.

@@ -92,6 +92,15 @@ class Scorer:
         return out
 
 
+def calibration_usable(row, videos):
+    if row['label'] != 'clean':
+        return True
+    video = videos[row['video_id']]
+    spans = video.get('mask_spans', []) + video.get('soft_mask_spans', [])
+    spans += [[a, b + 10] for a, b in video.get('other_segments', [])]
+    return not any(a <= row['t_sec'] <= b for a, b in spans)
+
+
 def calibration_plan(videos, catalog, seed):
     rng = np.random.default_rng(seed)
     clean = sorted(v for v, row in catalog.items() if row['role'] == 'clean_negative')
@@ -131,7 +140,7 @@ def main():
                 'videos_sha256': hashlib.sha256(Path('benchmark/videos.csv').read_bytes()).hexdigest(),
                 'n_events': len(targets), 'sampling': '1 Hz from max(clear_start,onset-120), inclusive to onset+15',
                 'score': 'P(Yes | Yes or No) = sigmoid(logp_Yes - logp_No)',
-                'clean_fpr_target': 0.02, 'threshold_rule': '98th percentile clean scores, strict >'}
+                'clean_fpr_target': 0.02, 'threshold_rule': '98th percentile unmasked clean scores, strict >'}
     manifest_path = out / 'manifest.json'
     if manifest_path.exists() and json.loads(manifest_path.read_text()) != manifest:
         raise ValueError('Existing scan manifest differs')
@@ -159,10 +168,12 @@ def main():
             dump(checkpoint, scored)
             print(f'calibration {len(scored)}/{len(plan)} elapsed={time.monotonic() - started:.1f}s', flush=True)
         dump(checkpoint, scored)
-        clean = np.array([r['p_yes'] for r in scored if r['label'] == 'clean'])
+        excluded = [r for r in scored if not calibration_usable(r, videos)]
+        dump(out / 'calibration_excluded.json', excluded)
+        clean = np.array([r['p_yes'] for r in scored if r['label'] == 'clean' and calibration_usable(r, videos)])
         violent = np.array([r['p_yes'] for r in scored if r['label'] == 'violent'])
         threshold = float(np.quantile(clean, 0.98, method='higher'))
-        cal = {'threshold': threshold, 'n_clean': len(clean), 'n_violent': len(violent),
+        cal = {'threshold': threshold, 'n_clean': len(clean), 'n_violent': len(violent), 'n_clean_masked_excluded': len(excluded),
                'clean_fpr': float(np.mean(clean > threshold)),
                'annotated_violent_tpr': float(np.mean(violent > threshold)),
                'note': 'Calibration uses annotation classes, not visual ground truth; negatives may contain violence.'}

@@ -157,3 +157,13 @@ def test_blind_reviews_require_reconciliation_and_preserve_unreviewed_status():
     assert result['verdict'] == 'keep'
     assert not result['visually_reviewed']
     assert result['evidence']['basis'] == 'scan_no_flag_not_visually_reviewed'
+
+
+def test_clean_calibration_excludes_catalog_masks():
+    from anticipation.data.onset_scan import calibration_usable
+    videos = {'v': {'mask_spans': [[10, 20]], 'soft_mask_spans': [[30, 40]],
+                    'other_segments': [[50, 55]]}}
+    for t in [10, 15, 20, 35, 60, 65]:
+        assert not calibration_usable({'video_id': 'v', 'label': 'clean', 't_sec': t}, videos)
+    assert calibration_usable({'video_id': 'v', 'label': 'clean', 't_sec': 66}, videos)
+    assert calibration_usable({'video_id': 'v', 'label': 'violent', 't_sec': 15}, videos)
