@@ -103,6 +103,8 @@ class EvalConfig:
     threshold_bootstrap: int = 0           # > 0: also threshold-aware CIs with this many replicates (slow-ish)
     threshold_set: str = "val"             # "val" (default) or "nontest" (fold-agnostic tables only, see docs)
     horizons_csv: str = None               # per-video evaluation horizons (csv: video_id, duration_sec), see docs
+    phase0_metrics: bool = False
+    person_counts_root: str = None
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -385,8 +387,11 @@ def bootstrap_weights(ts, n_boot, seed=0, cluster="video"):
     rng = np.random.default_rng(seed)
     if n_boot <= 0 or ts.V == 0:
         return np.zeros((0, ts.V))
-    if cluster == "group":
-        groups, ginv = np.unique(ts.group_v, return_inverse=True)
+    if cluster in ("group", "split_group"):
+        labels = ts.group_v
+        if cluster == "split_group" and "split_group" in ts.bench.videos:
+            labels = ts.bench.videos.loc[ts.vids, "split_group"].astype(str).values
+        groups, ginv = np.unique(labels, return_inverse=True)
         G = len(groups)
         Wg = rng.multinomial(G, np.full(G, 1.0 / G), size=n_boot).astype(np.float64)
         return Wg[:, ginv]
@@ -828,7 +833,7 @@ class EventEval:
         return res
 
 
-def threshold_aware_bootstrap(val_ee, ee, W, target, n_boot, seed=0, max_grid=300):
+def threshold_aware_bootstrap(val_ee, ee, W, target, n_boot, seed=0, max_grid=300, cluster="video"):
     """CIs for Success@30 and test FA/h that include threshold-selection noise.
 
     In every replicate the validation (threshold-set) videos of every fold are resampled with replacement and
@@ -852,7 +857,10 @@ def threshold_aware_bootstrap(val_ee, ee, W, target, n_boot, seed=0, max_grid=30
         cand = np.r_[np.inf, u]
         Nm = np.stack([vee.fa_counts_clean(np.full(vts.V, c)) for c in cand])           # [K, Vval]
         hrs = np.where(vts.clean_v, vee.hours_out, 0.0)
-        Wv = rng.multinomial(vts.V, np.full(vts.V, 1.0 / vts.V), size=B).astype(float)  # [B, Vval]
+        if cluster == "split_group":
+            Wv = bootstrap_weights(vts, B, seed + 104729 * (f + 1), cluster="split_group")
+        else:
+            Wv = rng.multinomial(vts.V, np.full(vts.V, 1.0 / vts.V), size=B).astype(float)
         with np.errstate(invalid="ignore", divide="ignore"):
             fa = (Wv @ Nm.T) / (Wv @ hrs)[:, None]                                       # [B, K]
         exceed = ~(fa <= target)
@@ -882,7 +890,9 @@ def threshold_aware_bootstrap(val_ee, ee, W, target, n_boot, seed=0, max_grid=30
             "distinct_threshold_sets": len(cache),
             "theta_per_fold_p5_p50_p95": {str(f): [float(x) for x in np.percentile(theta_b[:, f], [5, 50, 95])]
                                           for f in range(nf)},
-            "note": "validation videos resampled and theta re-chosen per replicate; test videos resampled jointly"}
+            "note": ("validation split_groups resampled and theta re-chosen; test split_groups resampled jointly"
+                     if cluster == "split_group" else
+                     "validation videos resampled and theta re-chosen per replicate; test videos resampled jointly")}
 
 
 def choose_threshold(ee, target, max_cand=None, coarse=None):
@@ -1298,7 +1308,7 @@ def evaluate_seed(bench, table, seed, eval_set, cfg, cov):
             op["eligible30_late"]["random_reference_success30"] = 1.0 - np.exp(-far * SUCCESS_WINDOW_SEC / 3600.0)
         if cfg.threshold_bootstrap > 0:
             op["threshold_aware_ci"] = threshold_aware_bootstrap(val_ee, ee, W, target, cfg.threshold_bootstrap,
-                                                                 cfg.boot_seed + 7919 * seed)
+                                                                 cfg.boot_seed + 7919 * seed, cluster=cfg.cluster)
         ops[key] = op
         op_out[key] = (theta_v, out)
     M["operating_points"] = ops
@@ -1320,6 +1330,9 @@ def evaluate_seed(bench, table, seed, eval_set, cfg, cov):
     if cfg.breakdowns:
         M["breakdowns"] = breakdowns(ts, ee, W, cfg, op_out.get("fa2") or next(iter(op_out.values())))
     M["_seconds"] = round(time.time() - t0, 1)
+    if cfg.phase0_metrics:
+        from anticipation.eval.phase0 import compute_phase0
+        M["phase0"] = compute_phase0(ts, ee, val_ee, cfg, seed, M)
     M["_event_table_op2"] = event_rows_table(ts, ee, *(op_out.get("fa2") or next(iter(op_out.values()))))
     return M
 
@@ -1486,7 +1499,8 @@ def evaluate(scores, bench, cfg=None, name=None, extra_meta=None):
         "run": {"created": datetime.datetime.now().isoformat(timespec="seconds"), "git_commit": git_commit(),
                 "command": " ".join(sys.argv), **(extra_meta or {})},
         "config": {**{k: v for k, v in asdict(cfg).items()
-                      if k != "policy" and not (k == "horizons_csv" and v is None)},
+                      if k != "policy" and not (k == "horizons_csv" and v is None)
+                      and not (k in ("phase0_metrics", "person_counts_root") and not v)},
                    "policy": asdict(cfg.policy),
                    "threshold_rule": "per fold: lower theta from +inf over the exact unique scores of the threshold "
                                      "set until its FA/h on clean negatives first exceeds the target; keep the "
@@ -1600,6 +1614,30 @@ def write_report(res, out_dir):
         L += ["", "## Mean and std over seeds", "", "| Metric | mean | std |", "|---|---|---|"]
         for k, v in res["summary_over_seeds"].items():
             L.append(f"| {k} | {_fmt(v['mean'])} | {v['std']:.3f} |")
+    if "phase0" in m:
+        ext = m["phase0"]
+        L += ["", "## Opt-in Phase 0 metrics", "", "CIs resample split_group; legacy metrics above retain their original configuration.",
+              "", "| Metric | Value |", "|---|---|",
+              f"| Band source x time matched AUROC (30,120] | {_fmt(ext['band_auroc'])} |",
+              f"| Long band matched AUROC (60,120] | {_fmt(ext['band_long_auroc'])} |",
+              f"| Event window-max matched AUROC (M8) | {_fmt(ext['window_max_auroc'])} |",
+              f"| First-event window-max AUROC | {_fmt(ext['window_max_first_auroc'])} |",
+              f"| Partial AMOC 0.5..2 FA/h (normalized) | {_fmt(ext['partial_amoc_0p5_2'])} |"]
+        for name, stat in ext["breakdowns"].items():
+            L.append(f"| Band AUROC {name} | {_fmt(stat)} |")
+        people = ext["person_count"]
+        if "coverage" in people:
+            L += [f"| Person-stratified band AUROC (M2) | {_fmt(people['stratified_band_auroc'])} |",
+                  f"| Person-stratified band AUROC, >=2 people | {_fmt(people['at_least_two_band_auroc'])} |",
+                  "", f"Pose coverage: {people['coverage']}"]
+        L += ["", "| Clean time target | Test warning time | Sustained@60 | Position null@60 | Sustained@90 | Position null@90 | Sustained@120 | Position null@120 |",
+              "|---|---|---|---|---|---|---|---|"]
+        for op in ext["sustained_warning"]["operating_points"].values():
+            vals = [f"{100*op['target_clean_time_fraction']:.0f}%", _fmt(op["alarm_time_fraction_clean"], pct=True)]
+            for lead in (60,90,120):
+                null = op["position_null"][str(lead)]
+                vals += [_fmt(op[f"success_sus{lead}"], pct=True), "n/a" if null is None else f"{100*null:.1f}%"]
+            L.append("| " + " | ".join(vals) + " |")
     L += ["", f"Generated {res['run']['created']} by `anticipation/eval/va30.py` (git {str(res['run'].get('git_commit'))[:10]}).", ""]
     with open(os.path.join(out_dir, "report.md"), "w") as f:
         f.write("\n".join(L))
@@ -1702,7 +1740,7 @@ def main(argv=None):
     ap.add_argument("--events", default=EVENTS_JSON)
     ap.add_argument("--n_boot", type=int, default=1000)
     ap.add_argument("--boot_seed", type=int, default=0)
-    ap.add_argument("--cluster", choices=["video", "group"], default="video")
+    ap.add_argument("--cluster", choices=["video", "group", "split_group"], default="video")
     ap.add_argument("--k", type=int, default=2)
     ap.add_argument("--n", type=int, default=3)
     ap.add_argument("--fa_targets", default="1,2,5")
@@ -1720,6 +1758,8 @@ def main(argv=None):
     ap.add_argument("--horizons", default=None,
                     help="csv with video_id,duration_sec (e.g. benchmark/extract_manifest_v1.csv): clean negatives "
                          "listed with a shorter duration than the catalog are evaluated only up to it")
+    ap.add_argument("--phase0_metrics", action="store_true", help="add band, M2, M8 and sustained-warning metrics")
+    ap.add_argument("--person_counts_root", default=None, help="pose_interact root for opt-in M2")
     ap.add_argument("--meta", default=None,
                     help="JSON file merged into metrics.json 'run' (feature set + extraction config, model config, "
                          "training command, seeds): the BASELINE 6.6 reporting template")
@@ -1732,7 +1772,8 @@ def main(argv=None):
                      onset_sources=tuple(args.onset_sources.split(",")), restrict_to_scored=args.restrict_to_scored,
                      allow_missing=args.allow_missing or args.restrict_to_scored, breakdowns=not args.no_breakdowns,
                      position_null=not args.no_position_null, threshold_set=args.threshold_set,
-                     threshold_bootstrap=args.threshold_bootstrap)
+                     threshold_bootstrap=args.threshold_bootstrap, phase0_metrics=args.phase0_metrics,
+                     person_counts_root=args.person_counts_root)
     df = load_scores(args.scores)
     meta = {"scores_file": args.scores, "scores_sha256": file_sha256(args.scores)}
     if args.meta:
