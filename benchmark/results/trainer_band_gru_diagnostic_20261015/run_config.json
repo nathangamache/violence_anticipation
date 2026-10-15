@@ -1,0 +1,604 @@
+{
+  "config": {
+    "streams": "siglip2_prompts",
+    "model": "gru",
+    "run_name": "trainer_band_gru_diagnostic_20261015",
+    "folds": "/data1~/projects/va_trainer/benchmark/folds_v2.json",
+    "phase": "diagnostic",
+    "fold_ids": null,
+    "registration": "benchmark/screens/screen_set_v1.json",
+    "horizons": "benchmark/extract_manifest_v1.csv",
+    "objective": "band",
+    "score_head": "auto",
+    "far_positive_downweight": false,
+    "time_match_weights": true,
+    "band_weight": 1.0,
+    "event_weight": 1.0,
+    "event_batch_size": 2,
+    "event_ticks": 4,
+    "history_dropout": 0.25,
+    "scene_stream": "siglip2_scene0p",
+    "scene_tick": 2,
+    "first_frame_tick": 1,
+    "videos": "/data1~/projects/va_trainer/benchmark/videos.csv",
+    "events": "/data1~/projects/va_trainer/benchmark/events.json",
+    "feature_root": "data/features",
+    "cohort": "benchmark/results/trainer_band_inputs_20261015/cohort.json",
+    "seeds": "0",
+    "device": "cpu",
+    "threads": 2,
+    "epochs": 1,
+    "patience": 4,
+    "max_train_ticks": 256,
+    "max_val_ticks": 128,
+    "context": 180,
+    "hidden": 16,
+    "layers": 1,
+    "heads": 2,
+    "batch_size": 32,
+    "lr": 0.001,
+    "dropout": 0.1,
+    "modality_dropout": 0.15,
+    "auxiliary_weight": 0.2,
+    "position_control": false,
+    "time_matched_training": false,
+    "require_validation_metric": false,
+    "n_boot": 20,
+    "threshold_bootstrap": 0,
+    "max_minutes": 29,
+    "no_eval": false
+  },
+  "packages": {
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "scikit-learn": "1.7.2",
+    "torch": "2.5.1+cu121",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.1",
+    "lightgbm": null
+  },
+  "model_spec": {
+    "statistics_windows_sec": [
+      5,
+      15,
+      30,
+      60
+    ],
+    "logreg_C": 0.1,
+    "logreg_solver": "newton-cg",
+    "boosting_rounds_per_epoch": 10,
+    "tree_leaves": 15,
+    "tree_learning_rate": 0.05,
+    "hazard_edges_sec": [
+      0.0,
+      5.0,
+      10.0,
+      20.0,
+      30.0,
+      45.0,
+      60.0,
+      90.0,
+      120.0,
+      180.0,
+      300.0
+    ],
+    "positive_hazard_weight": "1",
+    "optimizer": "AdamW",
+    "weight_decay": 0.0001,
+    "gradient_clip": 1.0,
+    "normalizer_scale_floor": 0.0001,
+    "short_context": "masked padding; optional random history truncation",
+    "checkpoint_selection": "validation source_time_matched_band_auroc",
+    "selection_unavailable": "one fixed diagnostic epoch; no tuning"
+  },
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "anticipation.train",
+    "--streams",
+    "siglip2_prompts",
+    "--model",
+    "gru",
+    "--run_name",
+    "trainer_band_gru_diagnostic_20261015",
+    "--cohort",
+    "benchmark/results/trainer_band_inputs_20261015/cohort.json",
+    "--seeds",
+    "0",
+    "--epochs",
+    "1",
+    "--context",
+    "180",
+    "--hidden",
+    "16",
+    "--heads",
+    "2",
+    "--layers",
+    "1",
+    "--max_train_ticks",
+    "256",
+    "--max_val_ticks",
+    "128",
+    "--batch_size",
+    "32",
+    "--event_ticks",
+    "4",
+    "--event_batch_size",
+    "2",
+    "--n_boot",
+    "20",
+    "--threads",
+    "2"
+  ],
+  "git_commit": "e857da56bc52363f1333421611fd8a659e3358e2",
+  "git_dirty": [
+    " M anticipation/models/controls.py",
+    " M anticipation/train.py",
+    " M tests/test_train.py",
+    "?? benchmark/results/trainer_band_inputs_20261015/",
+    "?? benchmark/results/trainer_horizon_replay_20261015/",
+    "?? tests/test_train_plan.py"
+  ],
+  "created": "2026-10-15T18:40:43.831477+00:00",
+  "seeds": [
+    0
+  ],
+  "fold_ids": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "score_head": "band",
+  "benchmark": {
+    "folds_path": "benchmark/folds_v2.json",
+    "folds_content_sha256": "8ebdf6ec2e549f4a7c41710c045a66af2823c8498cb60b4377363ccbd03965e6",
+    "videos_csv_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+    "events_json_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+    "video_horizons": {
+      "file": "benchmark/extract_manifest_v1.csv",
+      "sha256": "f531a43df4c06a7395f49cd5ef40b64bd24976b113d7343682f594a316c3b62a",
+      "n_listed": 6231,
+      "n_not_in_catalog": 0,
+      "n_not_shorter_than_catalog": 5578,
+      "n_shortened": 653,
+      "shortened_hours_catalog": 201.058,
+      "shortened_hours_used": 54.427
+    }
+  },
+  "status": "complete",
+  "normalization": "per-dimension training-fold moments over valid ticks only",
+  "score": "onset in (30,120] band",
+  "restrict_to_scored": true,
+  "cohort_sha256": "b40f330dca0916c8582ec7926941d2557854d77f9b28f6ea70b563ae09943904",
+  "split_coverage": {
+    "0": {
+      "train": {
+        "videos": 29,
+        "roles": {
+          "violent": 15,
+          "clean_negative": 14
+        },
+        "clean_hours": 0.23583333333333334,
+        "catalog_clean_hours": 0.24719455555555556,
+        "video_ids": [
+          "ubi/F_0_1_0_0_0",
+          "ubi/F_121_1_0_0_0",
+          "ubi/F_12_1_0_0_0",
+          "ubi/F_13_1_2_0_0",
+          "ubi/F_166_0_0_1_0",
+          "ubi/N_102_1_1_1_0",
+          "ubi/N_103_1_1_1_0",
+          "ubi/N_104_1_1_1_0",
+          "ubi/N_105_0_0_1_0",
+          "ubi/N_109_0_0_1_0",
+          "ubi/N_12_0_0_1_0",
+          "ucf/Abuse011_x264",
+          "ucf/Abuse012_x264",
+          "ucf/Abuse014_x264",
+          "ucf/Abuse015_x264",
+          "ucf/Abuse020_x264",
+          "ucf/Abuse030_x264",
+          "ucf/Arrest007_x264",
+          "ucf/Arrest012_x264",
+          "ucf/Arrest033_x264",
+          "ucf/Arrest051_x264",
+          "ucf/Normal_Videos002_x264",
+          "ucf/Normal_Videos004_x264",
+          "ucf/Normal_Videos005_x264",
+          "ucf/Normal_Videos013_x264",
+          "ucf/Normal_Videos020_x264",
+          "ucf/Normal_Videos022_x264",
+          "ucf/Normal_Videos054_x264",
+          "ucf/Normal_Videos098_x264"
+        ]
+      },
+      "val": {
+        "videos": 11,
+        "roles": {
+          "violent": 6,
+          "clean_negative": 5
+        },
+        "clean_hours": 0.1225,
+        "catalog_clean_hours": 0.12258341666666667,
+        "video_ids": [
+          "ubi/F_100_1_2_0_0",
+          "ubi/F_110_1_2_0_0",
+          "ubi/F_119_0_2_0_0",
+          "ubi/F_148_1_0_1_1",
+          "ubi/N_101_0_0_1_0",
+          "ubi/N_112_1_0_1_0",
+          "ubi/N_113_1_0_1_0",
+          "ucf/Abuse018_x264",
+          "ucf/Assault027_x264",
+          "ucf/Normal_Videos001_x264",
+          "ucf/Normal_Videos049_x264"
+        ]
+      },
+      "test": {
+        "videos": 10,
+        "roles": {
+          "violent": 6,
+          "clean_negative": 4
+        },
+        "clean_hours": 0.049166666666666664,
+        "catalog_clean_hours": 0.04937036111111111,
+        "video_ids": [
+          "ubi/F_104_1_2_0_1",
+          "ubi/F_109_1_2_0_0",
+          "ubi/F_112_0_0_0_0",
+          "ubi/N_0_0_0_1_0",
+          "ubi/N_10_0_0_1_0",
+          "ucf/Abuse004_x264",
+          "ucf/Abuse013_x264",
+          "ucf/Abuse040_x264",
+          "ucf/Normal_Videos053_x264",
+          "ucf/Normal_Videos062_x264"
+        ]
+      }
+    },
+    "2": {
+      "train": {
+        "videos": 24,
+        "roles": {
+          "violent": 12,
+          "clean_negative": 12
+        },
+        "clean_hours": 0.22583333333333333,
+        "catalog_clean_hours": 0.22675008333333335,
+        "video_ids": [
+          "ubi/F_0_1_0_0_0",
+          "ubi/F_104_1_2_0_1",
+          "ubi/F_121_1_0_0_0",
+          "ubi/F_12_1_0_0_0",
+          "ubi/F_166_0_0_1_0",
+          "ubi/N_101_0_0_1_0",
+          "ubi/N_103_1_1_1_0",
+          "ubi/N_105_0_0_1_0",
+          "ubi/N_109_0_0_1_0",
+          "ubi/N_10_0_0_1_0",
+          "ubi/N_112_1_0_1_0",
+          "ucf/Abuse004_x264",
+          "ucf/Abuse013_x264",
+          "ucf/Abuse014_x264",
+          "ucf/Abuse015_x264",
+          "ucf/Abuse030_x264",
+          "ucf/Arrest012_x264",
+          "ucf/Arrest051_x264",
+          "ucf/Normal_Videos002_x264",
+          "ucf/Normal_Videos004_x264",
+          "ucf/Normal_Videos022_x264",
+          "ucf/Normal_Videos049_x264",
+          "ucf/Normal_Videos054_x264",
+          "ucf/Normal_Videos062_x264"
+        ]
+      },
+      "val": {
+        "videos": 10,
+        "roles": {
+          "violent": 5,
+          "clean_negative": 5
+        },
+        "clean_hours": 0.12027777777777778,
+        "catalog_clean_hours": 0.13051852777777778,
+        "video_ids": [
+          "ubi/F_109_1_2_0_0",
+          "ubi/F_112_0_0_0_0",
+          "ubi/F_119_0_2_0_0",
+          "ubi/N_0_0_0_1_0",
+          "ubi/N_12_0_0_1_0",
+          "ucf/Abuse040_x264",
+          "ucf/Arrest007_x264",
+          "ucf/Normal_Videos013_x264",
+          "ucf/Normal_Videos020_x264",
+          "ucf/Normal_Videos053_x264"
+        ]
+      },
+      "test": {
+        "videos": 16,
+        "roles": {
+          "violent": 10,
+          "clean_negative": 6
+        },
+        "clean_hours": 0.06138888888888889,
+        "catalog_clean_hours": 0.06187972222222222,
+        "video_ids": [
+          "ubi/F_100_1_2_0_0",
+          "ubi/F_110_1_2_0_0",
+          "ubi/F_13_1_2_0_0",
+          "ubi/F_148_1_0_1_1",
+          "ubi/N_102_1_1_1_0",
+          "ubi/N_104_1_1_1_0",
+          "ubi/N_113_1_0_1_0",
+          "ucf/Abuse011_x264",
+          "ucf/Abuse012_x264",
+          "ucf/Abuse018_x264",
+          "ucf/Abuse020_x264",
+          "ucf/Arrest033_x264",
+          "ucf/Assault027_x264",
+          "ucf/Normal_Videos001_x264",
+          "ucf/Normal_Videos005_x264",
+          "ucf/Normal_Videos098_x264"
+        ]
+      }
+    },
+    "3": {
+      "train": {
+        "videos": 30,
+        "roles": {
+          "violent": 16,
+          "clean_negative": 14
+        },
+        "clean_hours": 0.23527777777777778,
+        "catalog_clean_hours": 0.24619452777777778,
+        "video_ids": [
+          "ubi/F_0_1_0_0_0",
+          "ubi/F_100_1_2_0_0",
+          "ubi/F_104_1_2_0_1",
+          "ubi/F_109_1_2_0_0",
+          "ubi/F_110_1_2_0_0",
+          "ubi/F_112_0_0_0_0",
+          "ubi/F_121_1_0_0_0",
+          "ubi/N_0_0_0_1_0",
+          "ubi/N_101_0_0_1_0",
+          "ubi/N_102_1_1_1_0",
+          "ubi/N_104_1_1_1_0",
+          "ubi/N_109_0_0_1_0",
+          "ubi/N_12_0_0_1_0",
+          "ucf/Abuse004_x264",
+          "ucf/Abuse011_x264",
+          "ucf/Abuse012_x264",
+          "ucf/Abuse013_x264",
+          "ucf/Abuse014_x264",
+          "ucf/Abuse018_x264",
+          "ucf/Abuse020_x264",
+          "ucf/Abuse040_x264",
+          "ucf/Arrest012_x264",
+          "ucf/Normal_Videos001_x264",
+          "ucf/Normal_Videos002_x264",
+          "ucf/Normal_Videos004_x264",
+          "ucf/Normal_Videos005_x264",
+          "ucf/Normal_Videos013_x264",
+          "ucf/Normal_Videos049_x264",
+          "ucf/Normal_Videos053_x264",
+          "ucf/Normal_Videos062_x264"
+        ]
+      },
+      "val": {
+        "videos": 9,
+        "roles": {
+          "violent": 5,
+          "clean_negative": 4
+        },
+        "clean_hours": 0.07111111111111111,
+        "catalog_clean_hours": 0.07156491666666666,
+        "video_ids": [
+          "ubi/F_13_1_2_0_0",
+          "ubi/F_148_1_0_1_1",
+          "ubi/N_10_0_0_1_0",
+          "ubi/N_113_1_0_1_0",
+          "ucf/Arrest033_x264",
+          "ucf/Arrest051_x264",
+          "ucf/Assault027_x264",
+          "ucf/Normal_Videos054_x264",
+          "ucf/Normal_Videos098_x264"
+        ]
+      },
+      "test": {
+        "videos": 11,
+        "roles": {
+          "violent": 6,
+          "clean_negative": 5
+        },
+        "clean_hours": 0.10111111111111111,
+        "catalog_clean_hours": 0.10138888888888889,
+        "video_ids": [
+          "ubi/F_119_0_2_0_0",
+          "ubi/F_12_1_0_0_0",
+          "ubi/F_166_0_0_1_0",
+          "ubi/N_103_1_1_1_0",
+          "ubi/N_105_0_0_1_0",
+          "ubi/N_112_1_0_1_0",
+          "ucf/Abuse015_x264",
+          "ucf/Abuse030_x264",
+          "ucf/Arrest007_x264",
+          "ucf/Normal_Videos020_x264",
+          "ucf/Normal_Videos022_x264"
+        ]
+      }
+    },
+    "4": {
+      "train": {
+        "videos": 29,
+        "roles": {
+          "violent": 18,
+          "clean_negative": 11
+        },
+        "clean_hours": 0.17,
+        "catalog_clean_hours": 0.17081491666666668,
+        "video_ids": [
+          "ubi/F_100_1_2_0_0",
+          "ubi/F_104_1_2_0_1",
+          "ubi/F_109_1_2_0_0",
+          "ubi/F_110_1_2_0_0",
+          "ubi/F_112_0_0_0_0",
+          "ubi/F_119_0_2_0_0",
+          "ubi/F_12_1_0_0_0",
+          "ubi/F_148_1_0_1_1",
+          "ubi/N_0_0_0_1_0",
+          "ubi/N_102_1_1_1_0",
+          "ubi/N_103_1_1_1_0",
+          "ubi/N_105_0_0_1_0",
+          "ubi/N_112_1_0_1_0",
+          "ubi/N_113_1_0_1_0",
+          "ucf/Abuse004_x264",
+          "ucf/Abuse012_x264",
+          "ucf/Abuse013_x264",
+          "ucf/Abuse015_x264",
+          "ucf/Abuse018_x264",
+          "ucf/Abuse030_x264",
+          "ucf/Abuse040_x264",
+          "ucf/Arrest007_x264",
+          "ucf/Arrest033_x264",
+          "ucf/Assault027_x264",
+          "ucf/Normal_Videos005_x264",
+          "ucf/Normal_Videos020_x264",
+          "ucf/Normal_Videos022_x264",
+          "ucf/Normal_Videos053_x264",
+          "ucf/Normal_Videos098_x264"
+        ]
+      },
+      "val": {
+        "videos": 8,
+        "roles": {
+          "violent": 4,
+          "clean_negative": 4
+        },
+        "clean_hours": 0.041666666666666664,
+        "catalog_clean_hours": 0.04182405555555555,
+        "video_ids": [
+          "ubi/F_13_1_2_0_0",
+          "ubi/F_166_0_0_1_0",
+          "ubi/N_104_1_1_1_0",
+          "ubi/N_10_0_0_1_0",
+          "ucf/Abuse011_x264",
+          "ucf/Abuse020_x264",
+          "ucf/Normal_Videos001_x264",
+          "ucf/Normal_Videos062_x264"
+        ]
+      },
+      "test": {
+        "videos": 13,
+        "roles": {
+          "clean_negative": 8,
+          "violent": 5
+        },
+        "clean_hours": 0.19583333333333333,
+        "catalog_clean_hours": 0.20650936111111112,
+        "video_ids": [
+          "ubi/F_0_1_0_0_0",
+          "ubi/F_121_1_0_0_0",
+          "ubi/N_101_0_0_1_0",
+          "ubi/N_109_0_0_1_0",
+          "ubi/N_12_0_0_1_0",
+          "ucf/Abuse014_x264",
+          "ucf/Arrest012_x264",
+          "ucf/Arrest051_x264",
+          "ucf/Normal_Videos002_x264",
+          "ucf/Normal_Videos004_x264",
+          "ucf/Normal_Videos013_x264",
+          "ucf/Normal_Videos049_x264",
+          "ucf/Normal_Videos054_x264"
+        ]
+      }
+    }
+  },
+  "features": {
+    "streams": [
+      "siglip2_prompts"
+    ],
+    "dimensions": [
+      58
+    ],
+    "manifest": "benchmark/results/trainer_band_gru_diagnostic_20261015/coverage.json",
+    "manifest_sha256": "029681bb746eb8579648a5d304e3d4804bcbb9ea1de42ffe925b2291890801d5"
+  },
+  "evaluation_readiness": {
+    "validation_folds_without_clean_negatives": []
+  },
+  "validation_selection": {
+    "0": {
+      "metric": "source_time_matched_band_auroc",
+      "band_hi": 120,
+      "available": true,
+      "candidate_ticks": 417,
+      "sampled_ticks": 128,
+      "matched_positive_ticks": 40,
+      "matched_negative_ticks": 32,
+      "sampling_seed": 0
+    },
+    "2": {
+      "metric": "source_time_matched_band_auroc",
+      "band_hi": 120,
+      "available": false,
+      "candidate_ticks": 264,
+      "sampled_ticks": 128,
+      "matched_positive_ticks": 0,
+      "matched_negative_ticks": 0,
+      "sampling_seed": 0
+    },
+    "3": {
+      "metric": "source_time_matched_band_auroc",
+      "band_hi": 120,
+      "available": true,
+      "candidate_ticks": 249,
+      "sampled_ticks": 128,
+      "matched_positive_ticks": 28,
+      "matched_negative_ticks": 19,
+      "sampling_seed": 0
+    },
+    "4": {
+      "metric": "source_time_matched_band_auroc",
+      "band_hi": 120,
+      "available": false,
+      "candidate_ticks": 121,
+      "sampled_ticks": 121,
+      "matched_positive_ticks": 0,
+      "matched_negative_ticks": 0,
+      "sampling_seed": 0
+    }
+  },
+  "evaluation_command": [
+    ".venv/bin/python",
+    "-m",
+    "anticipation.models.evaluation",
+    "--scores",
+    "benchmark/results/trainer_band_gru_diagnostic_20261015/scores.parquet",
+    "--out_dir",
+    "benchmark/results/trainer_band_gru_diagnostic_20261015",
+    "--folds",
+    "/data1~/projects/va_trainer/benchmark/folds_v2.json",
+    "--videos",
+    "/data1~/projects/va_trainer/benchmark/videos.csv",
+    "--events",
+    "/data1~/projects/va_trainer/benchmark/events.json",
+    "--n_boot",
+    "20",
+    "--threshold_bootstrap",
+    "0",
+    "--fold_ids",
+    "0,2,3,4",
+    "--threads",
+    "2",
+    "--meta",
+    "benchmark/results/trainer_band_gru_diagnostic_20261015/run_config.json",
+    "--horizons",
+    "benchmark/extract_manifest_v1.csv"
+  ],
+  "evaluation_original_fold_ids": [
+    0,
+    2,
+    3,
+    4
+  ]
+}

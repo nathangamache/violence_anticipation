@@ -5,8 +5,8 @@ Status for the lead (2026-10-15):
 - Fold 1 is excluded from all new training, normalization, validation and evaluation.
 - Section-8 band, extended-hazard, event-bag and causal-history changes are implemented.
 - First-frame, source/time/scene nuisance and frozen-offset residual controls are available.
-- Ten new objective/control tests pass; original learning/causality checks are being reverified.
-- One-epoch 50-video GRU diagnostic and corrected historical-score replay are running.
+- Trainer + VA30 regression suite: 52 passed; expanded objective/control suite: 16 passed.
+- One-epoch GRU diagnostic and corrected frozen historical-model replay completed.
 - Registered Phase A now lives in `anticipation.screen.run`; this trainer does not replace its P1 grid.
 - Person-masked scene controls support `siglip2_scene0p`; unmasked scene streams are diagnostic only.
 
@@ -207,3 +207,36 @@ reference are **unavailable** because validation folds 0–3 have no clean negat
 hyperparameter/checkpoint search and is not part of the modality screen. Checkpoint reload reproduces
 the stored scores (see `checkpoint_reload.json` in the diagnostic and GRU run directories).
 
+The [band GRU diagnostic](../benchmark/results/trainer_band_gru_diagnostic_20261015/report.md)
+uses a frozen 50-video cohort (27 violent, 23 clean), original folds 0/2/3/4, seed 0, one epoch,
+180 s context, 16 hidden units and four ticks per event bag. It is a bounded integration run,
+with 256 training / 128 validation-selection ticks per model and 20 bootstrap replicates,
+not a registered P2 comparison or a hyperparameter search. Training contained 10–15 matched
+positive-event bags per fold. The 12,187 scores include validation slices and test folds.
+
+| Real diagnostic | Far AUROC pooled / matched (30–60 s) | Success@30 | Position null | Random reference | Test FA/h |
+|---|---|---|---|---|---|
+| Band GRU, SigLIP prompts, 50 videos | .571 / .690 | 18.2% | 17.0% | 16.7% | 7.33 |
+
+The operating point targets validation 2 FA/h; this tiny cohort has only 0.41 test clean hours and
+wide intervals. Success@30's interval is 5.8–32.4%, so this does not establish gain over the position
+null. The evaluator's existing Brier/reliability output assumes a 30 s probability and is **not a
+calibration metric for the selected (30,120] band head**. The reported far AUROC is the evaluator's
+30–60 s metric, distinct from the (30,120] checkpoint objective and registered M1.
+
+The [historical SigLIP-prompt replay](../benchmark/results/trainer_horizon_replay_20261015/report.md)
+adds available clean-negative scores using the old frozen tabular checkpoints, without refitting.
+It covers 3,497 videos, 2,118,534 validation/test score rows and 125.86 observed clean-negative hours
+(242.30 catalog hours); 527 evaluated negatives are shortened by the manifest. No fold-1 model or
+video is evaluated, but the original models were trained before the prospective fold-1 freeze.
+The results therefore remain historical diagnostics, not confirmation or registered screen outcomes.
+All three original seeds are retained; the table shows seed means at validation-target 2 FA/h.
+
+| Historical replay | Far AUROC pooled / matched | Success@30 | Position null | Random reference | Test FA/h |
+|---|---|---|---|---|---|
+| Frozen SigLIP prompts stats classifier, 3 seeds | .515 / .504 | 2.8% | 8.5% | 5.1% | 2.10 |
+
+This replay shows no useful anticipation advantage. Twenty bootstrap replicates suffice only for
+this diagnostic; use registered bootstrap settings for scientific comparisons. Both new runs include
+`frozen_fold_check.json`, confirming zero scored videos assigned to real fold 1. The new GRU also
+excludes fold 1 from preprocessing and fitting, unlike the explicitly historical replay checkpoints.

@@ -8,7 +8,7 @@ import torch
 from tests.test_train import synthetic_benchmark, thread_cap
 from anticipation.models.controls import SceneProvider, NuisanceModel, first_frame_features, OffsetLogisticRegression
 from anticipation.models.data import Normalizer, VideoFeatures, sample_ticks
-from anticipation.models.evaluation import evaluation_subset, check_score_coverage
+from anticipation.models.evaluation import evaluation_subset, check_score_coverage, restore_fold_ids
 from anticipation.models.objectives import band_targets, event_bags, TRAIN_HAZARD_EDGES
 from anticipation.models.temporal import (CausalTemporalModel, WindowDataset, EventBagDataset,
                                           event_band_loss, fit_temporal, predict_temporal)
@@ -143,3 +143,70 @@ def test_band_gru_event_training_end_to_end(tmp_path):
                            selection_score=lambda m: .5)
     assert np.isfinite(history[0]['train_loss'])
     assert np.isfinite(predict_temporal(model, store['synthetic/f0v0'], norm, indices=np.array([0, 100]))).all()
+
+
+def test_original_fold_ids_survive_event_report_remapping():
+    result = {"seeds": {"0": {"_event_table_op2": [{"fold": 1}, {"fold": 3}],
+                              "theta_per_fold": {"0": .1, "1": .2}}}}
+    restore_fold_ids(result, [0, 2, 3, 4])
+    assert result["seeds"]["0"]["_event_table_op2"] == [{"fold": 2}, {"fold": 4}]
+    assert result["seeds"]["0"]["theta_per_fold"] == {"0": .1, "2": .2}
+
+
+def test_person_masked_scene_file_contract(tmp_path, monkeypatch):
+    import json
+    from anticipation.features import io
+    monkeypatch.setattr(io, 'FEATURE_ROOT', str(tmp_path))
+    path = tmp_path / 'siglip2_scene0p' / 'synthetic' / 'v.npz'
+    path.parent.mkdir(parents=True)
+    np.savez(path, emb=np.array([1., 2., 3.]), meta=json.dumps(dict(
+        extractor='siglip2_scene0p', t_sec=2., box_source='pose_raw', grey=128)))
+    provider = SceneProvider('siglip2_scene0p', ['synthetic/v'])
+    assert provider.people_masked and provider.present['synthetic/v']
+    np.testing.assert_array_equal(provider.anchors['synthetic/v'], [1, 2, 3])
+
+
+@pytest.mark.parametrize('kind', ['first_frame', 'nuisance', 'residual_logreg'])
+def test_band_controls_fit_and_score(tmp_path, kind):
+    from anticipation.models.stats import StatsModel, make_table
+    bench, store, features, _ = synthetic_benchmark(tmp_path)
+    ids, val = bench.folds.train_ids(0), bench.folds.val_ids(0)
+    norm = Normalizer.fit(store, ids)
+    selection = [sample_ticks(store, group, 256, np.random.default_rng(0), 'stats', objective='band')
+                 for group in (ids, val)]
+    nuisance = None
+    if kind != 'first_frame':
+        provider = SceneProvider('synthetic', bench.eval_ids(), loader=lambda s, v: features[v])
+        nuisance = NuisanceModel(provider, bench.videos.source_kind.to_dict())
+        vids = [v for v, ix in selection[0].items() for _ in ix]
+        times = np.concatenate([store[v].t_sec[ix] for v, ix in selection[0].items()])
+        target = np.concatenate([band_targets(store[v], store.catalog.loc[v, 'role'])[0][ix]
+                                 for v, ix in selection[0].items()])
+        nuisance.fit(ids, vids, times, target, np.ones(len(target)))
+    if kind == 'nuisance':
+        model = nuisance
+    else:
+        model = StatsModel(kind, nuisance=nuisance)
+        tables = [make_table(store, group, selected, norm, objective='band', time_match=True,
+                             first_frame=kind == 'first_frame', nuisance=nuisance)
+                  for group, selected in zip([ids, val], selection)]
+        model.fit(*tables, epochs=1, selection_score=lambda m: .5)
+    score = model.predict(store['synthetic/f0v0'], norm)
+    assert score.shape == (220,) and np.isfinite(score).all()
+
+
+def test_temporal_time_sampling_matches_band_positives(tmp_path):
+    from anticipation.eval.va30 import time_strata
+    bench, store, _, _ = synthetic_benchmark(tmp_path)
+    selected = sample_ticks(store, bench.folds.train_ids(0), 0, np.random.default_rng(0),
+                            'temporal', objective='band', time_matched=True)
+    positive, times = [], []
+    for vid, ix in selected.items():
+        y, valid = band_targets(store[vid], store.catalog.loc[vid, 'role'])
+        ix = ix[valid[ix]]
+        positive.extend(y[ix] > 0)
+        times.extend(store[vid].t_sec[ix])
+    positive = np.array(positive)
+    bins = time_strata(np.array(times))
+    assert positive.any()
+    np.testing.assert_array_equal(np.bincount(bins[positive]), np.bincount(bins[~positive]))

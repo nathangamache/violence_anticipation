@@ -1,0 +1,16 @@
+{
+  "original_model_folds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "scored_video_fold1_count": 0,
+  "score_rows": 2118534,
+  "videos": 3497,
+  "seeds": [
+    0,
+    1,
+    2
+  ]
+}

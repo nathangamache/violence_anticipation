@@ -183,8 +183,11 @@ def sample_ticks(store, ids, limit, rng, task, time_matched=False, objective="ho
             times.extend(v.t_sec[ix])
             sources.extend([str(store.catalog.loc[vid, "source_kind"])] * len(ix))
             target = band_targets(v, store.catalog.loc[vid, "role"])[0] if objective == "band" else v.labels.y[30]
-            positive.extend((target[ix] > 0) if task == "stats" else (v.labels.hazard_target[ix] == 1).any(axis=1))
-            auxiliary.extend(v.labels.masked[ix] if task != "stats" else np.zeros(len(ix), bool))
+            positive.extend((target[ix] > 0) if task == "stats" or objective == "band" else (v.labels.hazard_target[ix] == 1).any(axis=1))
+            if objective == "band" and task != "stats":
+                auxiliary.extend(~band_targets(v, store.catalog.loc[vid, "role"])[1][ix])
+            else:
+                auxiliary.extend(v.labels.masked[ix] if task != "stats" else np.zeros(len(ix), bool))
         strata = time_strata(np.asarray(times), np.asarray(sources))
         positive, auxiliary = np.asarray(positive), np.asarray(auxiliary)
         matched = [np.flatnonzero(auxiliary)]

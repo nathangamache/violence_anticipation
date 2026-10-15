@@ -59,7 +59,10 @@ def restore_fold_ids(result, fold_ids):
         visited.add(id(value))
         if isinstance(value, dict):
             for key, child in list(value.items()):
-                if key in fields and isinstance(child, dict):
+                if key == "_event_table_op2":
+                    for row in child:
+                        row["fold"] = int(mapping[str(row["fold"])])
+                elif key in fields and isinstance(child, dict):
                     value[key] = {mapping.get(str(k), str(k)): v for k, v in child.items()}
                 else:
                     visit(child)
