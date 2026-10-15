@@ -3,7 +3,8 @@
 What
     Resolves a list of videos (from the benchmark manifest or explicit paths), keeps this shard's share, skips
     videos whose outputs already exist, runs the extractor on the rest one by one, and writes the
-    ``io.feature_path(<output>, <video_id>)`` files. A failing video is logged and skipped; it never stops the run.
+    ``io.feature_path(<output>, <video_id>)`` files. A failing video is logged and skipped; only
+    ``--max_consecutive_fail`` failures in a row stop the run (exit status 3).
     Re-running the same command resumes where it stopped (outputs are written atomically, so a killed run never
     leaves a half-written file).
 
@@ -52,6 +53,7 @@ Logs (``data/logs/extract/<extractor>/``, or
     ``shard<i>of<n>.jsonl``: one record per video (status ok / skip / fail, wall seconds, video seconds).
     ``failures.jsonl``: failures from all shards with the traceback (file-locked appends).
     ``--skip_failed`` skips videos already listed in failures.jsonl (avoids re-crashing on corrupt files).
+    Videos with a ``crash`` record (the run died inside them) are always skipped unless ``--retry_crashed``.
 
 Usage
     python -m anticipation.features.run_extract --extractor pose \
@@ -72,6 +74,7 @@ import fcntl
 import importlib
 import json
 import os
+import signal
 import socket
 import sys
 import time
@@ -211,7 +214,7 @@ def read_manifest(path):
 
 
 def collect_videos(args):
-    """Videos selected by the arguments, sorted and de-duplicated by video_id.
+    """Videos selected by the arguments, de-duplicated by video_id and sorted by it (input order with --keep_order).
 
     Raises SystemExit when there is no input, a list file is missing, or the filters leave nothing.
     """
@@ -250,7 +253,7 @@ def collect_videos(args):
         raise SystemExit(f"[run_extract] the selection is empty after --sources {args.sources!r} / --video_ids "
                          f"(sources in the input: {all_sources})")
     seen, uniq = set(), []
-    for v in sorted(videos, key=lambda v: v["video_id"]):
+    for v in videos if args.keep_order else sorted(videos, key=lambda v: v["video_id"]):
         if v["video_id"] not in seen:
             seen.add(v["video_id"])
             uniq.append(v)
@@ -299,17 +302,23 @@ def _append_jsonl(path, rec):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
-def _failed_ids(path):
+def _failed_ids(path, status=None):
     if not os.path.exists(path):
         return set()
     out = set()
     with open(path) as f:
         for ln in f:
             try:
-                out.add(json.loads(ln)["video_id"])
+                r = json.loads(ln)
+                if status is None or r.get("status") == status:
+                    out.add(r["video_id"])
             except (ValueError, KeyError):
                 pass
     return out
+
+
+def _interrupt(signum, frame):
+    raise KeyboardInterrupt
 
 
 def parse_cfg(items):
@@ -417,6 +426,11 @@ def main(argv=None):
     ap.add_argument("--no_version_check", action="store_true",
                     help="skip existing outputs even when their meta version differs from OUTPUT_VERSIONS")
     ap.add_argument("--skip_failed", action="store_true", help="skip videos listed in failures.jsonl")
+    ap.add_argument("--retry_crashed", action="store_true",
+                    help="retry videos with a crash record in failures.jsonl (skipped by default)")
+    ap.add_argument("--max_consecutive_fail", type=int, default=20,
+                    help="exit with status 3 after this many failures in a row (0 = never)")
+    ap.add_argument("--keep_order", action="store_true", help="process videos in input order, not sorted by id")
     ap.add_argument("--limit", type=int, default=0, help="process at most this many videos (smoke tests)")
     ap.add_argument("--cpu_threads", type=int, default=0, help="torch / OpenCV thread cap per process (0 = default)")
     ap.add_argument("--feature_root", default="", help="write under this root instead of io.FEATURE_ROOT (tests)")
@@ -454,10 +468,24 @@ def main(argv=None):
     log_dir = os.path.join(log_root, args.extractor.replace("/", "_"))
     shard_log = os.path.join(log_dir, f"shard{args.shard}of{args.num_shards}.jsonl")
     fail_log = os.path.join(log_dir, "failures.jsonl")
+    current = os.path.join(log_dir, f"shard{args.shard}of{args.num_shards}.current")
 
     selected = collect_videos(args)
     videos = [v for v in selected if shard_of(v["video_id"], args.num_shards) == args.shard]
     skip_failed = _failed_ids(fail_log) if args.skip_failed else set()
+    if not args.retry_crashed:
+        skip_failed |= _failed_ids(fail_log, "crash")
+    if not args.dry_run and os.path.exists(current):
+        with open(current) as f:
+            crashed = f.read().strip()
+        rec = dict(video_id=crashed, extractor=args.extractor, shard=args.shard, num_shards=args.num_shards,
+                   status="crash", time=time.strftime("%Y-%m-%dT%H:%M:%S"),
+                   error="the previous run of this shard died on this video (native crash, kill or stall); "
+                         "skipped until a run with --retry_crashed")
+        _append_jsonl(fail_log, rec)
+        _append_jsonl(shard_log, rec)
+        skip_failed.add(crashed)
+        os.remove(current)
     declared = {} if args.no_version_check else dict(getattr(mod, "OUTPUT_VERSIONS", None) or {})
     versions = {o: declared[o] for o in outputs if o in declared}
     todo, n_skip, n_stale = [], 0, 0
@@ -482,14 +510,18 @@ def main(argv=None):
             print(v["video_id"], v["path"])
         return 0
 
-    n_ok = n_fail = 0
+    n_ok = n_fail = n_consec = 0
     vid_sec = wall_sec = 0.0
     t_start = time.time()
+    os.makedirs(log_dir, exist_ok=True)
+    signal.signal(signal.SIGTERM, _interrupt)
     for i, v in enumerate(todo):
         rec = dict(video_id=v["video_id"], path=v["path"], extractor=args.extractor, shard=args.shard,
                    num_shards=args.num_shards, device=device, host=socket.gethostname(), pid=os.getpid(),
                    time=time.strftime("%Y-%m-%dT%H:%M:%S"))
         t0 = time.time()
+        with open(current, "w") as f:
+            f.write(v["video_id"])
         try:
             if not os.path.exists(v["path"]):
                 raise FileNotFoundError(v["path"])
@@ -498,12 +530,15 @@ def main(argv=None):
             n_ok += 1
             vid_sec += float(dur or 0.0)
             wall_sec += time.time() - t0
+            n_consec = 0
         except KeyboardInterrupt:
+            os.remove(current)
             raise
         except Exception as e:  # one bad video must never stop the run
             rec.update(status="fail", wall_sec=round(time.time() - t0, 3), error=f"{type(e).__name__}: {e}",
                        traceback=traceback.format_exc(limit=8))
             n_fail += 1
+            n_consec += 1
             _append_jsonl(fail_log, rec)
             if "out of memory" in str(e).lower():
                 try:
@@ -512,11 +547,16 @@ def main(argv=None):
                     torch.cuda.empty_cache()
                 except Exception:
                     pass
+        os.remove(current)
         _append_jsonl(shard_log, rec)
         speed = vid_sec / max(wall_sec, 1e-9)
         print(f"[{i + 1}/{len(todo)}] {rec['status']:4s} {v['video_id']} {rec['wall_sec']:.1f}s"
               f"{'' if rec['status'] == 'ok' else ' ' + rec['error'][:200]} | ok={n_ok} fail={n_fail} "
               f"speed={speed:.1f}x realtime", flush=True)
+        if args.max_consecutive_fail and n_consec >= args.max_consecutive_fail:
+            print(f"[run_extract] abort: {n_consec} failures in a row (systemic, e.g. model load or GPU memory); "
+                  f"ok={n_ok} fail={n_fail}", flush=True)
+            return 3
     total = time.time() - t_start
     print(f"[run_extract] done ok={n_ok} fail={n_fail} skip={n_skip} video_sec={vid_sec:.0f} wall={total:.0f}s "
           f"speed={vid_sec / max(total, 1e-9):.1f}x realtime (failures: {fail_log})", flush=True)

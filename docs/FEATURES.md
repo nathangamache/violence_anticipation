@@ -12,6 +12,7 @@ Sections:
 - [Speech content (Whisper transcripts, toxicity, verbal-escalation cues)](#speech-content-whisper-transcripts-toxicity-verbal-escalation-cues)
 - [Pose and interaction (pose_raw, pose_interact)](#pose-and-interaction-pose_raw-pose_interact)
 - [Motion (motion)](#motion-motion)
+- [Bulk extraction run v1 (manifest, queue, lanes)](#bulk-extraction-run-v1)
 
 New tracks: add a `## <Family> (<extractor names>)` section at the end, add it to this list, and register the
 extractor in `run_extract.REGISTRY` (section 0.2).
@@ -94,6 +95,18 @@ Behaviour:
   (all shards, file-locked appends). `--skip_failed` skips ids already in `failures.jsonl`.
 - `--limit N` (smoke tests), `--dry_run` (print the shard's work list), `--cpu_threads k` (caps OpenCV and
   torch threads; use 1 for many parallel CPU shards).
+- **Order:** videos are processed sorted by `video_id` unless `--keep_order` is given; then each shard keeps
+  the manifest's row order (the bulk run uses this to finish the priority videos first).
+- **Native crashes:** before each video the runner writes its id to `shard<i>of<n>.current` in the log
+  directory and removes it afterwards. If a run dies inside a video (segfault, SIGKILL, OOM killer, stall
+  watchdog), the next run of the same shard finds the file, logs that video to `failures.jsonl` with
+  `status: "crash"`, and skips it. Every later run also skips every video with a crash record, so a shard
+  with several always-crashing videos still gets past all of them. `--retry_crashed` retries them (a video
+  that crashes again is recorded again). SIGTERM is turned into a clean stop (the marker is removed, nothing
+  is skipped).
+- **Systemic failures:** after `--max_consecutive_fail` failures in a row (default 20, 0 = never) the runner
+  exits with status 3 instead of failing every remaining video (a model that cannot load, GPU memory held by
+  another job, a missing mount). Re-running retries those videos; they are `fail`, not `crash`, records.
 - Manifest columns used: `video_id` (wins), `path`, `source`. Alternative names are also accepted (see the module
   docstring). Relative paths resolve against the data root, then the repo root.
 
@@ -119,7 +132,10 @@ pass instead exposes `extract_and_save(video_path, video_id, device, **cfg) -> {
 arguments derived from the id use `video_kwargs=(("kwarg", "module_function"),)`. An unregistered dotted
 module path also works (`--extractor anticipation.features.foo`).
 
-### 0.3 Bulk-run recipe (not yet launched)
+### 0.3 Bulk-run recipe (manual)
+
+The bulk run of 2026-10-14 uses the queue in [Bulk extraction run v1](#bulk-extraction-run-v1) instead of the
+commands below; they remain valid for one-off runs.
 
 Long runs must be detached, logged and resumable; re-running the same command after a crash continues.
 Expected wall time for the current manifest (352 h), measured on a shared machine: pose about 5.2 h (68x
@@ -1608,3 +1624,167 @@ What the table shows:
 - `time_since_cut` saturates at 30 s and is 30 on footage without cuts (CCTV).
 - Letterboxed movies: black bars have zero flow and lower `flow_mag_mean` uniformly; use per-video
   normalization.
+
+---
+
+## Bulk extraction run v1
+
+Written 2026-10-14 by the extraction-ops track. Launched 2026-10-14 21:05 with `tools/extract_queue.sh start`;
+stopped and resumed at 21:42 (no outputs lost) to deploy the review fixes: all crashed videos are skipped,
+a shard stops after 20 failures in a row, and 27 cuts were re-made.
+Code: `tools/build_extract_manifest.py` (manifest and 300 s cuts), `tools/extract_queue.sh` (queue),
+`run_extract.py --keep_order` and the crash marker (section 0.2).
+
+### Manifest (`benchmark/extract_manifest_v1.csv`)
+
+Built from `benchmark/videos.csv` (sha256 `5a8f4ad2c38b...`, the catalog that `folds_v2.json` was built from;
+`folds_v2.json` already contains all 973 UBI-Fights videos, so no new fold file was needed):
+
+```bash
+nice -n 10 .venv/bin/python tools/build_extract_manifest.py      # about 13 min, 3 parallel ffmpeg cuts
+```
+
+- **Included roles:** `violent`, `holdout` and `clean_negative` from every source (xd, ucf, ubi, yt).
+  **Excluded:** `other_anomaly` (1388), `unlabelled` (48), `duplicate` (28), `contaminated` (1): 1465 videos,
+  43.2 h.
+- **Columns:** `video_id, source, source_kind, role, priority, eligible30, has_audio, path, duration_sec, fps,
+  num_frames, orig_path, orig_duration_sec, cap_sec`. The runner uses `video_id`, `path` and `source`.
+- **Order (priority groups):** inside each group, rows are sorted by `sha256("extract_v1:" + video_id)`. That is
+  deterministic and mixes the sources. With `--keep_order` every shard finishes the eligible30 videos first.
+
+| Priority | Videos | Hours |
+|---|---|---|
+| `violent_eligible30` | 468 | 33.1 |
+| `violent` (other violent) | 1661 | 39.3 |
+| `holdout` (curated YouTube) | 92 | 10.0 |
+| `clean_negative` | 4010 | 156.9 (303.5 before the cap) |
+| **Total** | **6231** | **239.3** (xd 155.6, ucf 42.3, ubi 31.5, yt 10.0) |
+
+- **Real audio** (`has_audio`, a non-silent track): 4303 videos, **175.7 h** (xd 155.6, ucf 10.3, yt 9.8;
+  UBI has none). The audio steps read a filtered copy, `logs/extract/queue/manifest_audio.csv`, that the
+  queue writes at start. A video without an audio feature file therefore means "no real audio" (`has_audio`
+  False). It does not mean "not extracted".
+- **300 s cap on clean negatives.** 655 clean negatives are longer than 300 s (xd 383, ucf 138, ubi 134;
+  201.2 h, up to 9 h each). They are cut to their first 300 s (54.6 h). Violent and holdout videos are never
+  cut (the longest is 5721 s).
+  - Command: `ffmpeg -i <orig> -map 0 -c copy -t 300` into
+    `data/cache/trunc300/<video_id>.mp4` (22 GB). `-map 0` keeps all
+    streams, including the UCF PNG cover stream and the XD data stream.
+  - 27 XD movie cuts made that way gained a second data stream (`gpmd`, copied from the XD chapter track)
+    and a container duration of 310 to 1229 s. They were re-cut on 2026-10-14 with
+    `-map 0 -map -0:d` (the builder's current command) before any feature was extracted from them. The muxer
+    still writes the chapter list as one text data stream, so all 655 cuts now have the same stream types as
+    their originals and a container duration of at most 300.25 s. The extractors take the duration from
+    decord in any case.
+  - Stream copy is the same cut that `io.check_causal` uses. The decoded frames before the cut are
+    bit-identical, so ticks 1 to 299 of a capped video equal those of the full video. Tick 300 is a boundary
+    tick that can differ slightly: the copied audio ends at 299.95 s and the last frames differ at the cut.
+    Checked with `audio_dsp` and `motion` on `xd/Hear.Me.2009__#01-09-30_01-16-59_label_A` (449 s): max
+    difference 0.0 on ticks 1 to 299, small differences on tick 300 only, identical `valid`.
+  - The manifest `path` points to the cut file. `cap_sec` = 300, and `orig_path` / `orig_duration_sec` keep
+    the original. `duration_sec` and `num_frames` describe the cut file.
+  - `video_id` is unchanged. The features of a capped negative are at the normal path and have T = 300.
+  - Verified on all 655 cuts:
+    - `io.Video` duration 300.00 to 300.08 s, with the same fps as the original;
+    - decoded frames at 0, 150 and 299 s identical to the original;
+    - an audio stream exactly when the original has one;
+    - for the 407 cuts with real audio, the decoded audio is 300 s +/- 1 s.
+- **Evaluation caveat (open).** `anticipation.eval.va30` takes each video's duration from `videos.csv` and
+  requires a score for every tick. A model built on these features has no ticks after 300 s for the 655 capped
+  negatives. Do not use `--allow_missing` for this case: it sample-and-hold fills the gap, which extends the
+  last score over up to 9 h. The evaluator needs a way to score clean negatives on their first `cap_sec`
+  seconds (clean hours then become 156.9 h instead of 303.5 h). The alternative is to extract the rest of those
+  videos later; that is resumable with a manifest that points back to `orig_path`, after deleting the 300-tick
+  files.
+
+### Lanes
+
+All processes run under `nice -n 10`, pinned to cores 0-11 by `taskset`, so the 75 % cap does not depend on
+`tools/cpu_governor.sh` running. Threads are capped with `OMP/MKL/OPENBLAS/NUMEXPR/NUMBA_NUM_THREADS` and
+`--cpu_threads` (2 per GPU process, 1 per CPU process). The visual decoders keep their own 4 decord threads.
+
+| Lane | Steps, in order | Processes | Videos | Speed (x realtime, aggregate) | ETA |
+|---|---|---|---|---|---|
+| `gpu0` (cuda:0, may run at 100 %) | `visual` (`vjepa2_l` + `siglip2` + `siglip2_prompts`, one decode) | 2 | all 6231 (239.3 h) | **34.6 measured** | 6.9 h |
+| | `audio_events` (`ast_events` + `ast_emb` + `clap_prompts`, one pass) | 2 | real audio, 4303 (175.7 h) | about 120 planned | 1.5 h |
+| | `voice` (`voice_affect` + `e2v_emb`) | 2 | real audio | about 90 planned | 2.0 h |
+| | `speech_tox` | 2 | real audio, sources xd, yt, ucf | 12 planned (5 to 25 in the speech section) | 14.6 h (7 to 35) |
+| `gpu1` (cuda:1, light) | `pose` (`pose_raw` + `pose_interact`) | 3 | all 6231 | **43.0 measured** | 5.6 h |
+| `cpu` (starts when `gpu1` is done) | `motion` | 4 | all 6231 | about 110 (4 x 28 in the smoke test) | 2.2 h |
+| | `audio_dsp` | 4 | real audio | about 52 (4 x 13 in the smoke test) | 3.4 h |
+
+Planned rates come from the extractor sections and from the queue smoke test (one video per shard). `status`
+replaces them with measured rates once a step is running.
+
+Measured 7 minutes after launch, with the repo-cleanup jobs of another session also running:
+- Speeds as in the table.
+- The queue used 7.9 cores (instantaneous `top`); the machine was 58 to 66 % busy over all users.
+- GPU memory: cuda:0 10.6 GB, cuda:1 10.4 GB.
+- 0 failures.
+- Each visual process runs at about 17x and each pose process at about 14x.
+
+**ETA:**
+- `gpu1`: done after about 5.6 h (2026-10-15 about 02:45).
+- `cpu`: done after about 11 h (about 08:15).
+- `gpu0`: done after about 25 h (2026-10-15 about 22:00), with a range of 17 to 45 h. Speech speed sets it,
+  because speech slows down under CPU contention.
+- Re-measured 8 minutes after the 21:42 resume (another session's VLM smoke test and pytest also running;
+  machine 69 % busy, queue about 7.4 cores, cuda:0 10.6 GB, cuda:1 19.0 GB with that other job): visual 35.4x,
+  pose 38.0x, 0 failures. New ETAs: `gpu1` about 03:20, `cpu` about 09:15, `gpu0` still about 22:00 on
+  2026-10-15.
+- Order of results: the eligible30 videos (33.1 h of video) have visual and pose features after about one
+  hour. Every later step also processes them first.
+
+Speech uses about 26 GB of GPU memory per process once the MT model is loaded, so about 52 GB on cuda:0 during
+that step. While `visual` runs, cuda:1 carries only the pose detector (about 10 GB, low utilization).
+
+### Commands
+
+```bash
+cd .
+tools/extract_queue.sh start    # detached (setsid nohup); refuses to start twice
+tools/extract_queue.sh status   # lane states, done / total videos and hours, failures, measured speed, ETA per step and lane
+tools/extract_queue.sh stop     # SIGTERM to the process group (clean stop), SIGKILL after 60 s
+.venv/bin/python tools/server_load.py --gpu   # machine load and GPU memory
+# smoke test of the whole queue into a scratch root (1 video per shard, about 2 min)
+EXTRACT_LIMIT=1 EXTRACT_FEATURE_ROOT=/tmp/x/f EXTRACT_LOG=/tmp/x/log tools/extract_queue.sh start
+```
+
+Other environment overrides: `EXTRACT_MANIFEST`, `EXTRACT_CORES` (default `0-11`), `EXTRACT_STALL_SEC` (default
+5400), `EXTRACT_RETRY_SLEEP` (default 600), `EXTRACT_RETRY_CRASHED` (set to 1 to retry crashed videos).
+
+Do not edit `tools/extract_queue.sh` in place while the queue runs: bash reads the script file lazily, so a
+running queue can execute a mix of old and new text. Stop it, edit, and start it again (or replace the file
+by rename, which keeps the running process on the old inode).
+
+### Logs and status
+
+Everything is under `data/logs/extract/`:
+- `<lane>_<step>_shard<i>.log`: runner stdout and stderr, one line per video with the running speed. Each
+  attempt starts with a `=== <time> attempt k` line and ends with `=== <time> exit <rc>`.
+- `<extractor>/shard<i>of<n>.jsonl` and `<extractor>/failures.jsonl`: the runner's records (section 0.2).
+- `queue/status.log`: every step start and finish. `queue/<lane>.status` holds the current state of each lane.
+  `queue/queue.pgid` holds the process group. `queue/queue.log` holds the queue's own stderr: empty, except
+  for bash's one-line notice when a shard dies from a signal (for example `Segmentation fault`).
+
+### Failure handling and resume
+
+- **Python errors:** a video that raises is logged to `failures.jsonl`, and the shard continues.
+- **Native crashes:** a shard that exits with a signal or a status above 1 is restarted, up to 3 attempts. The
+  runner's `.current` marker makes the restart skip the video it died on, and every run skips all videos
+  with a crash record (section 0.2). They show up in the `fail` column of `status`. To retry them once the
+  queue is done: `EXTRACT_RETRY_CRASHED=1 tools/extract_queue.sh start`.
+- **Systemic failures:** a shard with 20 failures in a row exits with status 3 (section 0.2). The queue waits
+  `EXTRACT_RETRY_SLEEP` seconds (default 600) and restarts it, up to 3 attempts; after that the shard gives
+  up and the lane moves on. The likely case is `speech_tox` not fitting next to another user's job on cuda:0
+  (it needs about 52 GB). Check `status` when speech starts, and re-run `start` when the GPU is free.
+- **Stalls:** a watchdog kills a shard whose log has not changed for 90 minutes (`EXTRACT_STALL_SEC`), and
+  the shard is restarted the same way. 90 minutes is far longer than any single video takes; the slowest case
+  is a 1.6 h video in `speech_tox`.
+- **Resume:** `tools/extract_queue.sh start` resumes after a stop, a crash or a reboot. Each lane restarts at
+  its first step, and finished steps exit within seconds because every output is skipped. pose, motion and
+  speech also version-check their outputs.
+- **Retrying failures:** re-running retries failed videos. To skip them instead, run that step by hand with
+  `--skip_failed`.
+- **Changing process counts:** stop the queue, edit `STEPS` in the script, and start again. Outputs are per
+  video, so a different shard count is safe once the old processes are gone.

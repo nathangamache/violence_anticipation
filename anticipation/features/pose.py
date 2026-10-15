@@ -38,7 +38,7 @@ Causality
 Why
     Research brief (docs/research/README.md): the cues predictable 30 s ahead are escalation cues: approach and
     shrinking distance, face-offs, gesturing, crowd gathering. These are the most interpretable leading
-    signals and the first ablation stream. The old 540-d pose vectors (scripts/pose_feature_extraction.py) were
+    signals and the first ablation stream. The old 540-d pose vectors (removed legacy script, see tag pre-cleanup) were
     on the wrong clock, had no tracking and no velocities; this replaces them.
 
 Usage

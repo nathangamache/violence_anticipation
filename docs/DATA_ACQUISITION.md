@@ -304,7 +304,9 @@ every member was extracted and CRC-verified (`--keep-archive` keeps them).
 
 ---
 
-## 5. NTU CCTV-Fights: request form required (not submitted)
+## 5. NTU CCTV-Fights: access requested 2026-10-14 (awaiting approval)
+
+Status: the owner submitted the request on 2026-10-14; a reply is expected within about two weeks.
 
 Page: https://rose1.ntu.edu.sg/dataset/cctvFights/ . 1,000 real fight videos (280 CCTV, 720 non-CCTV), 17.68 h,
 2,414 frame-level fight instances, 7.2 GB. The request page (`/dataset/cctvFights/request`) redirects to a
@@ -326,7 +328,9 @@ one. Steps for the user:
 
 ---
 
-## 6. DVD (Kollias et al., arXiv 2506.05372): not publicly released
+## 6. DVD (Kollias et al., arXiv 2506.05372): not publicly released; authors emailed 2026-10-14
+
+Status: the owner emailed the authors on 2026-10-14 asking for research access; awaiting a reply.
 
 - arXiv still has only v1 (2025-05-29). The paper states "DVD will be publicly released upon acceptance".
   No release was found in GitHub or Hugging Face searches on 2026-10-14.
