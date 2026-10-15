@@ -186,3 +186,11 @@ def test_frozen_pose_manifest_excludes_new_files_and_detects_mutation(tmp_path):
     assert coverage['pose_files']==1
     np.savez(tmp_path/'v.npz',t_sec=[1.],feat=[[3]],valid=[True],meta=json.dumps({'columns':['n_persons_last']}))
     with pytest.raises(ValueError,match='changed after snapshot'):person_counts(ee.ts,path)
+
+
+def test_full_phase0_position_null_is_numeric():
+    b=make_bench(standard_specs(4,4))
+    result=evaluate(score_table(b,lambda l:np.ones(l.T)),b,
+                    quick_cfg(n_boot=12,position_null=True,phase0_metrics=True))
+    ops=result['seeds']['0']['phase0']['sustained_warning']['operating_points']
+    assert all(isinstance(op['position_null']['60'],float) for op in ops.values())

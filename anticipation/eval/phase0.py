@@ -382,8 +382,8 @@ def compute_phase0(ts, ee, val_ee, cfg, seed, legacy):
         stats.update(target_clean_time_fraction=target, theta_per_fold=thresholds,
                      validation_clean_time_fraction=validation)
         fraction = stats["alarm_time_fraction_clean"]["value"]
-        stats["position_null"] = {str(lead): float(np.interp(fraction, np.array(null[str(lead)])[:, 0],
-                                                   np.array(null[str(lead)])[:, 1]))
+        stats["position_null"] = {str(lead): float(np.interp(fraction, np.array([row[:2] for row in null[str(lead)]],dtype=float)[:, 0],
+                                                   np.array([row[:2] for row in null[str(lead)]],dtype=float)[:, 1]))
                                   if fraction is not None and null.get(str(lead)) else None for lead in (60, 90, 120)}
         sustained["operating_points"][f"time{int(target*100)}pct"] = stats
     out["sustained_warning"] = sustained
