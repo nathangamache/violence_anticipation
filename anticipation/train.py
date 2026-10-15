@@ -66,6 +66,7 @@ def parser():
     p.add_argument("--n_boot", type=int, default=1000)
     p.add_argument("--threshold_bootstrap", type=int, default=0)
     p.add_argument("--max_minutes", type=float, default=29, help="training/scoring wall budget, at most 30 minutes")
+    p.add_argument("--horizons", default=str(Path(va30.REPO_ROOT) / "benchmark" / "extract_manifest_v1.csv"), help="per-video evaluation horizons passed to VA30")
     p.add_argument("--no_eval", action="store_true", help="save scores without calling VA30")
     return p
 
@@ -84,6 +85,20 @@ def split_coverage(bench, store):
                                        "catalog_clean_hours": float(rows.loc[rows.role == "clean_negative", "duration_sec"].sum() / 3600),
                                        "video_ids": ids}
     return coverage
+
+
+def partial_timeline_videos(records, catalog, horizons_csv):
+    """Videos whose jointly scored ticks fall more than 1 tick short of floor(min(catalog, manifest duration))."""
+    cap = {}
+    if horizons_csv:
+        table = pd.read_csv(horizons_csv, dtype={"video_id": str})
+        cap = dict(zip(table["video_id"], table["duration_sec"].astype(float)))
+    partial = []
+    for vid, rec in records.items():
+        expected = int(np.floor(min(float(catalog.loc[vid, "duration_sec"]), cap.get(vid, np.inf)) + 1e-9))
+        if rec["scored_ticks"] < expected - 1:
+            partial.append(vid)
+    return partial
 
 
 def train_run(args, bench, store, out, config):
@@ -259,13 +274,13 @@ def main(argv=None):
                 config["evaluation_command"] = [sys.executable, "-m", "anticipation.eval.va30", "--scores", str(scores),
                     "--out_dir", str(out), "--folds", args.folds, "--videos", args.videos, "--events", args.events,
                     "--n_boot", str(args.n_boot), "--threshold_bootstrap", str(args.threshold_bootstrap),
-                    "--restrict_to_scored", "--meta", str(out / "run_config.json")]
+                    "--restrict_to_scored"] + (["--horizons", args.horizons] if args.horizons else []) + ["--meta", str(out / "run_config.json")]
                 write_json(out / "run_config.json", config)
-                partial = [vid for vid, rec in store.records.items() if rec["scored_ticks"] < rec["ticks"]]
+                partial = partial_timeline_videos(store.records, bench.videos, args.horizons)
                 if partial:
                     config["partial_timeline_videos"] = partial
-                    raise ValueError("VA30 currently uses catalog durations and fills missing ticks; partial-timeline "
-                                     "evaluation is blocked pending the lead's evaluator fix")
+                    raise ValueError("jointly scored ticks fall short of the catalog durations (or manifest horizons) by more than "
+                                     "1 tick; partial-timeline evaluation is blocked")
                 va30.main(config["evaluation_command"][3:])
             config["status"] = "complete" if not args.no_eval else "scored_without_evaluation"
     except Exception as exc:
