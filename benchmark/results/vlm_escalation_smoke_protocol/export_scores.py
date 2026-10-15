@@ -20,7 +20,8 @@ def main():
     blocks, signature = [], None
     for row in rows:
         t, f, valid, meta = io.load_features(a.extractor, row['video_id'])
-        current = (meta['model_id'], meta['prompt_sha256'], json.dumps(meta['cfg'], sort_keys=True))
+        cfg = {k: v for k, v in meta['cfg'].items() if k not in ('rationale_samples', 'rationale_max_tokens', 'decode_threads')}
+        current = (meta['model_id'], meta['prompt_sha256'], json.dumps(cfg, sort_keys=True))
         if signature is not None and current != signature:
             raise ValueError('Refusing mixed models, prompts or configurations')
         signature = current

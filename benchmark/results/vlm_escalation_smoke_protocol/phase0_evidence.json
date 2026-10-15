@@ -24,8 +24,24 @@
     "sha256": "6f6ae759329b98509c86913cbb0135678237f247d8b1a31a5afd2dbf3de5289a"
   },
   "audio_type_audit": {
-    "path": "__pending_audio_type_audit__",
-    "sha256": null
+    "path": "benchmark/audits/audio_type_v1.json",
+    "sha256": "cd9c455d33486cb0f2e85caad1ec6a6819b3f2145a572de059dae95a3070eb02"
   },
-  "note": "Unapplied label proposals are pinned for provenance; this file does not adopt masks or declare Phase 0 complete."
+  "note": "Lead follow-up clears Phase 0; official-onset results co-primary; primary v2 masks unchanged, amendment 03 sensitivity secondary; vision-only Phase C unaffected by audio amendment 04.",
+  "hivau_spotcheck": {
+    "path": "benchmark/audits/onset_spotcheck_hivau_v1.csv",
+    "sha256": "bc743f97e9d5c1449345be64def8d8b77a5b8694404b25a1c235711952569133"
+  },
+  "official_spotcheck": {
+    "path": "benchmark/audits/onset_spotcheck_official_v1.csv",
+    "sha256": "28ad60093750732108f0b72b3b433903ba60204e0a22db6200800e9b5b0bc904"
+  },
+  "amendment_03": {
+    "path": "benchmark/screens/amendment_03_label_mask_sensitivity.md",
+    "sha256": "e355212e83a8e14190d536064ed8ca7f850f97e575a92b7e4d6a3c517c2dbb19"
+  },
+  "amendment_04": {
+    "path": "benchmark/screens/amendment_04_phase_b_descriptive.md",
+    "sha256": "e72ef7423027534f94899b3c0494364836771b9c7cb57c8497188f3cf8fa501f"
+  }
 }

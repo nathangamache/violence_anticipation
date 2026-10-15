@@ -5,6 +5,7 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import subprocess
@@ -53,8 +54,8 @@ def preflight(manifest=None):
     except (OSError, ValueError, RuntimeError):
         pass
     evidence = {}
-    for name, path in [('hivau_spotcheck', 'data/annotations/hivau/spotcheck/spotcheck.csv'),
-                       ('official_spotcheck', 'data/annotations/hivau/spotcheck_official_control/spotcheck.csv')]:
+    for name, path in [('hivau_spotcheck', 'benchmark/audits/onset_spotcheck_hivau_v1.csv'),
+                       ('official_spotcheck', 'benchmark/audits/onset_spotcheck_official_v1.csv')]:
         if Path(path).exists():
             evidence[name] = completed_csv(path)
             checks[name] = evidence[name]['rows'] > 0 and evidence[name]['completed'] == evidence[name]['rows']
@@ -78,9 +79,26 @@ def preflight(manifest=None):
         checks['early_contact_audit'] = audit['rows'] >= 53 and audit['completed'] == audit['rows']
     return dict(status='READY' if all(checks.values()) else 'BLOCKED_PHASE0', checks=checks,
                 missing=[k for k, ok in checks.items() if not ok], evidence=evidence,
-                instruction='docs/MODALITY_PLAN.md section 6.1: blocking; no new GPU job',
+                instruction='Phase 0 is cleared by the lead follow-up; GPU 0 memory and CCTV-done checks still gate all GPU work.',
                 note='False artifact checks mean missing or unpinned evidence, not necessarily absent files.',
                 screening_folds=FOLDS, confirmation_fold=1)
+
+
+def start_gate():
+    if os.environ.get('CUDA_VISIBLE_DEVICES'):
+        raise ValueError('Unset CUDA_VISIBLE_DEVICES to preserve physical GPU ordinals')
+    status = Path('data/logs/extract_cctv/status.log')
+    lines = status.read_text().splitlines() if status.exists() else []
+    last = next((s for s in reversed(lines) if s.strip()), '')
+    report = subprocess.run([sys.executable, 'tools/server_load.py', '--gpu'], check=True,
+                            capture_output=True, text=True)
+    match = re.search(r'gpu0:\s*([0-9.]+)/[0-9.]+ GiB', report.stdout)
+    used = float(match.group(1)) if match else None
+    done = bool(re.search(r'\bdone\b', last, flags=re.I))
+    ready = used is not None and used < 5e9 / 1024**3 and done
+    return dict(status='READY' if ready else 'WAIT_GPU0', gpu0_used_gib=used,
+                max_gpu0_used_gib=5e9 / 1024**3, cctv_done=done, cctv_status=last,
+                server_load=report.stdout, server_warnings=report.stderr)
 
 
 @contextmanager
@@ -91,6 +109,8 @@ def ledger(path):
         fcntl.flock(lock, fcntl.LOCK_EX)
         data = json.load(open(path)) if path.exists() else dict(cap_sec=CAP, prior_work_reserved_sec=PRIOR_RESERVE,
                    spent_sec=0, active={}, history=[], stages={})
+        if data['cap_sec'] != CAP or data['prior_work_reserved_sec'] < PRIOR_RESERVE:
+            raise ValueError('Ledger must retain the 35-hour cap and prior-work reserve')
         yield data
         temp = Path(str(path) + '.tmp')
         temp.write_text(json.dumps(data, indent=2))
@@ -148,12 +168,15 @@ def timing(rows, arm, deadline, model, out):
         video = io.Video(row['path'], num_threads=2)
         t = min(float(row.get('t_sec') or 130), video.info.duration_sec - 1 / video.info.fps)
         times = vlm.clip_times(t, arm)
+        opened = time.perf_counter()
         frames = video.frames_at(times)
         score, hidden = scorer.score(frames, times, arm)
         import torch
         torch.cuda.synchronize('cuda:1')
         rec = dict(query=query, video_id=row['video_id'], arm=arm, wall_sec=time.perf_counter()-start,
-                   hidden_dim=len(hidden), rating_dim=len(score), model_id=model)
+                   hidden_dim=len(hidden), rating_dim=len(score), model_id=model, t_sec=t, frame_count=len(times),
+                   decoder_open_sec=opened-start, score_decode_wall_sec=time.perf_counter()-opened,
+                   history_sec=float(times[-1] - times[0]))
         with open(out, 'a') as f:
             f.write(json.dumps(rec) + '\n')
     return True
@@ -165,12 +188,23 @@ def timing_stats(path, arm):
         raise ValueError('Timing requires exactly 200 distinct ordered queries')
     wall = np.asarray([r['wall_sec'] for r in records])
     stride = vlm.arm_config(arm)[1]
-    realtime = float(stride / wall.mean())
+    model_decode = float(np.mean([r.get('score_decode_wall_sec', r['wall_sec']) for r in records]))
+    decoder_open = float(np.mean([r.get('decoder_open_sec', 0.) for r in records]))
+    mean_video_sec = 300.
+    if (ROOT / 'sets.json').exists():
+        frozen = json.load(open(ROOT / 'sets.json'))
+        mean_video_sec = frozen['pilot_hours'] * 3600 / frozen['pilot']['n']
+    realtime = float(1 / (model_decode / stride + decoder_open / mean_video_sec))
+    hours = dict(pilot_12_5h=12.5, rest_screen_30h=30, positive_plus_30h_negative_46_7h=46.7, all_240h=240)
+    if (ROOT / 'sets.json').exists():
+        sets = json.load(open(ROOT / 'sets.json'))
+        hours.update(actual_pilot=sets['pilot_hours'], actual_rest=sets['rest_hours'], actual_screen=sets['screen_hours'])
     return dict(queries=200, mean_wall_sec=float(wall.mean()), p95_wall_sec=float(np.quantile(wall, .95)),
-                video_seconds_per_gpu_second=realtime,
-                projected_gpu_hours={k: h / realtime for k, h in
-                    dict(pilot_12_5h=12.5, rest_screen_30h=30, positive_plus_30h_negative_46_7h=46.7, all_240h=240).items()},
-                measurement='decoder opening, frame retrieval, model and CPU transfer; model startup excluded')
+                video_seconds_per_gpu_second=realtime, cold_query_realtime=float(stride / wall.mean()),
+                mean_decoder_open_sec=decoder_open, mean_score_decode_wall_sec=model_decode,
+                amortization_video_sec=mean_video_sec, projected_gpu_hours={k: h / realtime for k, h in hours.items()},
+                measurement='frame retrieval, model and CPU transfer per update; decoder opening amortized over mean pilot video; cold-query latency also reported; model startup charged separately to ledger')
+
 
 
 def contamination(rows, deadline, model, out):
@@ -178,7 +212,7 @@ def contamination(rows, deadline, model, out):
                'Normal', 'RoadAccidents', 'Robbery', 'Shooting', 'Shoplifting', 'Stealing', 'Vandalism')
     options = list('ABCDEFGHIJKLMN')
     question = 'Which UCF-Crime dataset category is this video? ' + '; '.join(f'{a}={b}' for a, b in zip(options, classes)) + '. Answer one letter only.'
-    if any(r.get('calm_verified', '').lower() != 'true' or not r['video_id'].startswith('ucf/') or r.get('category') not in classes or r.get('group') not in ('violent', 'h1') for r in rows):
+    if any(r.get('calm_verified', '').lower() != 'true' or not r['video_id'].startswith('ucf/') or r.get('category') not in classes or r.get('group') not in ('violent', 'h1', 'clean') for r in rows):
         raise ValueError('Contamination manifest requires verified calm UCF first frames and canonical categories')
     scorer = vlm._scorer(model, 'cuda:1', 448*448, 448, ())
     existing = {json.loads(line)['video_id'] for line in open(out)} if out.exists() else set()
@@ -218,7 +252,7 @@ def contamination_stats(path, permutations=10000):
     if len({r['video_id'] for r in records}) != len(records):
         raise ValueError('Duplicate contamination queries')
     groups = sorted({r['group'] for r in records})
-    if groups != ['h1', 'violent']:
+    if not {'h1', 'violent'} <= set(groups):
         raise ValueError('Both violent and H1 contamination strata are required')
     rng = np.random.default_rng(0)
     output = {}
@@ -230,7 +264,7 @@ def contamination_stats(path, permutations=10000):
         null = np.asarray([np.mean(rng.permutation(truth) == pred) for _ in range(permutations)])
         p = float((1 + np.sum(null >= observed)) / (permutations + 1))
         output[group] = dict(n=len(rows), accuracy=observed, permutation_mean=float(null.mean()),
-                             p_value=p, flag=p < .025)
+                             p_value=p, flag=group != 'clean' and p < .025)
     return dict(strata=output, contamination_flag=any(x['flag'] for x in output.values()),
                 permutations=permutations, seed=0, correction='Bonferroni over two strata, alpha=.05')
 
@@ -258,6 +292,10 @@ def main():
         return
     if readiness['status'] != 'READY':
         raise RuntimeError('Phase 0 incomplete; see preflight.json. No GPU initialized.')
+    start = start_gate()
+    (out / 'start_gate.json').write_text(json.dumps(start, indent=2))
+    if start['status'] != 'READY':
+        raise RuntimeError('GPU start condition not met; see start_gate.json. No VLM GPU initialized.')
     if not a.manifest or not a.manifest_sha256:
         raise ValueError('A frozen query manifest and its SHA256 are required')
     rows = read_manifest(a.manifest, a.manifest_sha256)
@@ -270,15 +308,18 @@ def main():
         raise RuntimeError('Use unmasked device ordinals so cuda:1 identifies the shared pose GPU')
     key = 'timing_' + a.arm if a.stage == 'timing' else a.stage
     provenance(out, key, a.model, a.arm if a.stage == 'timing' else None, a.manifest_sha256)
-    subprocess.run([sys.executable, 'tools/server_load.py', '--gpu'], check=True)
     with gpu_budget(state_path, a.model + '::' + key, a.chunk_sec) as deadline:
         import torch
         torch.set_num_threads(4)
         torch.cuda.set_device(1)
-        if a.stage == 'timing':
-            done = timing(rows, a.arm, deadline, a.model, out / (key + '.jsonl'))
-        else:
-            done = contamination(rows, deadline, a.model, out / 'contamination.jsonl')
+        torch.cuda.set_per_process_memory_fraction(.75, 1)
+        try:
+            if a.stage == 'timing':
+                done = timing(rows, a.arm, deadline, a.model, out / (key + '.jsonl'))
+            else:
+                done = contamination(rows, deadline, a.model, out / 'contamination.jsonl')
+        except TimeoutError:
+            done = False
     if done:
         if a.stage == 'timing':
             report = timing_stats(out / (key + '.jsonl'), a.arm)

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import sys
+from types import SimpleNamespace
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('protocol', Path(__file__).with_name('protocol.py'))
@@ -21,9 +22,14 @@ for vid in ['frozen', 'unknown']:
         raise AssertionError('Fold isolation did not reject')
     except ValueError:
         pass
+for used, status, expected in [(0.4, 'done', True), (0.4, 'S2 motion+audio_events', False), (9.4, 'done', False)]:
+    with patch.object(p.Path, 'read_text', return_value=status), patch.object(p.Path, 'exists', return_value=True), \
+         patch.object(p.subprocess, 'run', return_value=SimpleNamespace(stdout=f'gpu0: {used}/79 GiB in use', stderr='')):
+        assert (p.start_gate()['status'] == 'READY') == expected
+
 with tempfile.TemporaryDirectory() as temp:
     root = Path(temp)
-    with patch.object(sys, 'argv', ['protocol.py', 'timing', '--out-dir', str(root / 'blocked'),
+    with patch.object(p, 'preflight', return_value={'status': 'BLOCKED_PHASE0'}), patch.object(sys, 'argv', ['protocol.py', 'timing', '--out-dir', str(root / 'blocked'),
             '--budget-path', str(root / 'blocked_budget.json')]), patch.object(p.vlm, '_scorer',
             side_effect=AssertionError('GPU model requested while blocked')), patch.object(p.subprocess, 'run',
             side_effect=AssertionError('GPU load check requested while blocked')):
@@ -35,7 +41,7 @@ with tempfile.TemporaryDirectory() as temp:
     assert not (root / 'blocked_budget.json').exists()
     budget = root / 'budget.json'
     with p.ledger(budget) as data:
-        data['cap_sec'], data['prior_work_reserved_sec'] = 10, 0
+        data['cap_sec'], data['prior_work_reserved_sec'] = p.CAP, p.CAP - 10
     with p.gpu_budget(budget, 'cpu_simulation', 5):
         pass
     state = json.load(open(budget))
@@ -66,7 +72,7 @@ with tempfile.TemporaryDirectory() as temp:
     cost = p.timing_stats(path, 'B')
     assert cost['video_seconds_per_gpu_second'] == 4
     assert cost['projected_gpu_hours']['all_240h'] == 60
-report = dict(phase0_blocks_before_gpu_or_budget=True, fold1_and_unknown_rejected=True, budget_reservation_and_recovery=True,
+report = dict(phase0_blocks_before_gpu_or_budget=True, gpu0_and_cctv_done_required=True, fold1_and_unknown_rejected=True, budget_reservation_and_recovery=True,
               provenance_mixing_rejected=True, permutation_controls=True, cost_units=True)
 Path(__file__).with_name('protocol_checks.json').write_text(json.dumps(report, indent=2))
 print(json.dumps(report, indent=2))

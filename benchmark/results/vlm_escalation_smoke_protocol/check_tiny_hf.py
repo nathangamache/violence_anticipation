@@ -79,6 +79,30 @@ with tempfile.TemporaryDirectory() as temp:
                 result = io.check_causal(extract, video, 10, atol=0)
                 assert result['causal'], (arm, name, result)
                 causal[arm + ':' + name] = result
+        checkpoint = str(Path(temp) / 'resume.checkpoint')
+        original_score, calls = scorer.score, [0]
+        def pause_after_two(*args, **kwargs):
+            if calls[0] == 2:
+                raise TimeoutError('simulated bounded chunk')
+            calls[0] += 1
+            return original_score(*args, **kwargs)
+        with patch.object(scorer, 'score', side_effect=pause_after_two):
+            try:
+                v.extract_all(video, 'cpu', arm='B', checkpoint_path=checkpoint, **cfg)
+                raise AssertionError('Expected simulated deadline')
+            except TimeoutError:
+                pass
+        assert Path(checkpoint).exists()
+        resumed = v.extract_all(video, 'cpu', arm='B', checkpoint_path=checkpoint, **cfg)
+        fresh = v.extract_all(video, 'cpu', arm='B', **cfg)
+        for name in resumed:
+            for index in range(3):
+                np.testing.assert_array_equal(resumed[name][index], fresh[name][index])
+        assert not Path(checkpoint).exists()
+        delayed = v.extract_all(video, 'cpu', arm='B', query_start_sec=13, **cfg)
+        for name in delayed:
+            np.testing.assert_array_equal(delayed[name][1][:10], fresh[name][1][:10])
+            assert delayed[name][2][:10].all() and not delayed[name][2][10:].any()
         x = np.zeros((8, 64, 96, 3), np.uint8)
         tx = v.clip_times(9, 'B')
         sx, hx = scorer.score(x, tx, 'B')
@@ -105,7 +129,7 @@ with tempfile.TemporaryDirectory() as temp:
         gated = v.extract_all(video, 'cpu', pose_gating=True, pose_path=pose, **cfg)
         assert gated[v.EXTRACTOR][2].all() and not gated[v.HIDDEN_EXTRACTOR][2].any()
         assert (gated[v.EXTRACTOR][1][:, 0] == 1).all()
-    report = dict(causality=causal, no_context_x_y_x=True, npz_and_targets_contract=True,
+    report = dict(causality=causal, no_context_x_y_x=True, bounded_resume_exact=True, early_baseline_and_invalid_gap=True, npz_and_targets_contract=True,
                   empty_output_fixed_dim=True, pose_gated_hidden_invalid=True,
                   model='random tiny Qwen3 CPU; not pretrained GPU validation')
     Path(__file__).with_name('contract_checks.json').write_text(json.dumps(report, indent=2))
