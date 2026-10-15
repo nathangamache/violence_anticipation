@@ -1,0 +1,179 @@
+{
+ "n_videos": 7696,
+ "hours": 429.15,
+ "by_source_kind": {
+  "ubi": {
+   "videos": 973,
+   "hours": 76.06,
+   "roles": {
+    "clean_negative": 749,
+    "violent": 215,
+    "duplicate": 8,
+    "unlabelled": 1
+   },
+   "violent_onset_sources": {
+    "ubi": 215
+   },
+   "segments": 814,
+   "eligible30_videos": 69,
+   "eligible60_videos": 32,
+   "eligible30_events": 102,
+   "eligible60_events": 45,
+   "eligible30_interpersonal_videos": 69,
+   "first_onset_ge30_videos": 45,
+   "has_audio": 0,
+   "clean_negative_hours": 68.44
+  },
+  "ucf": {
+   "videos": 1879,
+   "hours": 126.62,
+   "roles": {
+    "clean_negative": 915,
+    "other_anomaly": 550,
+    "violent": 378,
+    "unlabelled": 20,
+    "duplicate": 16
+   },
+   "violent_onset_sources": {
+    "hivau": 335,
+    "official": 43
+   },
+   "segments": 696,
+   "eligible30_videos": 127,
+   "eligible60_videos": 55,
+   "eligible30_events": 144,
+   "eligible60_events": 57,
+   "eligible30_interpersonal_videos": 111,
+   "first_onset_ge30_videos": 95,
+   "has_audio": 490,
+   "clean_negative_hours": 92.55
+  },
+  "xd_movie": {
+   "videos": 2194,
+   "hours": 64.62,
+   "roles": {
+    "clean_negative": 1131,
+    "violent": 870,
+    "other_anomaly": 169,
+    "unlabelled": 23,
+    "contaminated": 1
+   },
+   "violent_onset_sources": {
+    "hivau": 685,
+    "official": 185
+   },
+   "segments": 1582,
+   "eligible30_videos": 135,
+   "eligible60_videos": 38,
+   "eligible30_events": 143,
+   "eligible60_events": 38,
+   "eligible30_interpersonal_videos": 79,
+   "first_onset_ge30_videos": 126,
+   "has_audio": 2194,
+   "clean_negative_hours": 44.23
+  },
+  "xd_youtube": {
+   "videos": 2558,
+   "hours": 151.89,
+   "roles": {
+    "clean_negative": 1215,
+    "other_anomaly": 669,
+    "violent": 666,
+    "unlabelled": 4,
+    "duplicate": 4
+   },
+   "violent_onset_sources": {
+    "hivau": 532,
+    "official": 134
+   },
+   "segments": 1338,
+   "eligible30_videos": 137,
+   "eligible60_videos": 62,
+   "eligible30_events": 162,
+   "eligible60_events": 78,
+   "eligible30_interpersonal_videos": 134,
+   "first_onset_ge30_videos": 83,
+   "has_audio": 2554,
+   "clean_negative_hours": 98.31
+  },
+  "yt": {
+   "videos": 92,
+   "hours": 9.96,
+   "roles": {
+    "holdout": 92
+   },
+   "violent_onset_sources": {},
+   "segments": 0,
+   "eligible30_videos": 0,
+   "eligible60_videos": 0,
+   "eligible30_events": 0,
+   "eligible60_events": 0,
+   "eligible30_interpersonal_videos": 0,
+   "first_onset_ge30_videos": 0,
+   "has_audio": 90,
+   "clean_negative_hours": 0.0
+  }
+ },
+ "violent": {
+  "videos": 2129,
+  "segments": 4430,
+  "eligible30_videos": 468,
+  "eligible30_events": 551,
+  "eligible30_first_segment_events": 312,
+  "eligible60_videos": 187,
+  "eligible60_events": 218,
+  "eligible30_interpersonal_videos": 393,
+  "eligible30_by_onset_source": {
+   "hivau": 327,
+   "official": 72,
+   "ubi": 69
+  },
+  "eligible30_events_by_onset_source": {
+   "hivau": 374,
+   "official": 75,
+   "ubi": 102
+  },
+  "eligible30_leadin_hours": 9.93,
+  "mixed_label_clips_with_excluded_segments": 58,
+  "excluded_other_segments": 114
+ },
+ "official_only": {
+  "violent_videos": 362,
+  "eligible30_videos": 72,
+  "eligible30_events": 75,
+  "eligible30_interpersonal_videos": 53
+ },
+ "official_any_class_first_onset_ge30": {
+  "xd": 53,
+  "ucf": 59
+ },
+ "clean_negatives": {
+  "videos": 4010,
+  "hours": 303.53,
+  "videos_with_mask_spans": 121,
+  "masked_hours": 1.735
+ },
+ "roles": {
+  "clean_negative": 4010,
+  "violent": 2129,
+  "other_anomaly": 1388,
+  "holdout": 92,
+  "unlabelled": 48,
+  "duplicate": 28,
+  "contaminated": 1
+ },
+ "domains": {
+  "cctv": 2874,
+  "youtube_news": 2546,
+  "movie": 2203,
+  "phone_bodycam": 49,
+  "unknown": 24
+ },
+ "duplicates_removed_byte_identical": 49,
+ "duplicates_near_identical": 28,
+ "groups": 4836,
+ "split_groups": 4722,
+ "videos_csv_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+ "events_json_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+ "created": "2026-10-14T19:49:21"
+}

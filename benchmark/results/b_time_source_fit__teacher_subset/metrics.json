@@ -1,0 +1,3075 @@
+{
+ "name": "b_time_source_fit__teacher_subset",
+ "benchmark": {
+  "name": "VA30",
+  "fold_file": "folds_v2",
+  "folds_path": "benchmark/folds_v2.json",
+  "folds_content_sha256": "8ebdf6ec2e549f4a7c41710c045a66af2823c8498cb60b4377363ccbd03965e6",
+  "videos_csv_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+  "events_json_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646"
+ },
+ "run": {
+  "created": "2026-10-14T20:37:47",
+  "git_commit": "9326588dc9447975280f272788374e52646924c9",
+  "command": "anticipation/eval/baselines.py",
+  "baseline": "b_time_source_fit__teacher_subset",
+  "subset": "videos covered by data/processed/vlm_labels",
+  "note": "fitted on the full-universe training videos of each fold, scored on the subset"
+ },
+ "config": {
+  "horizons": [
+   5,
+   10,
+   20,
+   30,
+   60
+  ],
+  "far_lo": 30.0,
+  "far_hi": 60.0,
+  "neg_window": 120.0,
+  "fa_targets": [
+   1.0,
+   2.0,
+   5.0
+  ],
+  "n_boot": 1000,
+  "boot_seed": 0,
+  "cluster": "video",
+  "onset_sources": [
+   "official",
+   "hivau",
+   "ubi"
+  ],
+  "restrict_to_scored": true,
+  "allow_missing": true,
+  "amoc_points": 60,
+  "reliability_bins": 10,
+  "max_threshold_candidates": 5000,
+  "breakdowns": true,
+  "position_null": true,
+  "threshold_bootstrap": 200,
+  "threshold_set": "val",
+  "policy": {
+   "k": 2,
+   "n": 3,
+   "merge_gap_sec": 10.0,
+   "refractory_sec": 30.0,
+   "window_sec": 120.0,
+   "aftermath_sec": 10.0
+  },
+  "threshold_rule": "per fold: lower theta from +inf over the exact unique scores of the threshold set until its FA/h on clean negatives first exceeds the target; keep the lowest theta before that (geometric top-down scan + bisection)",
+  "threshold_set_rule": "validation slice of each fold",
+  "ci_note": "95 % percentile cluster bootstrap over test videos (or groups). Thresholds are held fixed across resamples and the threshold-selection videos are not resampled, so the CIs of thresholded metrics omit threshold-selection noise (see val_clean_negative_hours_per_fold: one alarm = 1 / hours FA/h)."
+ },
+ "coverage": {
+  "eval_videos_in_universe": 6139,
+  "eval_videos_used": 1031,
+  "restricted_to_scored": true,
+  "score_rows": 198980,
+  "seeds": [
+   0
+  ],
+  "scores_are_probabilities": true,
+  "test": {
+   "missing_videos": 0,
+   "held_ticks": 0,
+   "filled_leading_ticks": 0
+  },
+  "val": {
+   "missing_videos": 0,
+   "held_ticks": 0,
+   "filled_leading_ticks": 0
+  }
+ },
+ "summary_over_seeds": {
+  "far_auroc_clean": {
+   "mean": 0.754859585870407,
+   "std": 0.0,
+   "per_seed": [
+    0.754859585870407
+   ]
+  },
+  "far_auroc_secondary": {
+   "mean": 0.7509273254248843,
+   "std": 0.0,
+   "per_seed": [
+    0.7509273254248843
+   ]
+  },
+  "far_auroc_clean_time_matched": {
+   "mean": 0.49045431412545687,
+   "std": 0.0,
+   "per_seed": [
+    0.49045431412545687
+   ]
+  },
+  "far_auroc_clean_all_segments": {
+   "mean": 0.7048560822396757,
+   "std": 0.0,
+   "per_seed": [
+    0.7048560822396757
+   ]
+  },
+  "auroc30": {
+   "mean": 0.846748950749502,
+   "std": 0.0,
+   "per_seed": [
+    0.846748950749502
+   ]
+  },
+  "auroc30_time_matched": {
+   "mean": 0.4979857341559595,
+   "std": 0.0,
+   "per_seed": [
+    0.4979857341559595
+   ]
+  },
+  "ap30": {
+   "mean": 0.4453690494748138,
+   "std": 0.0,
+   "per_seed": [
+    0.4453690494748138
+   ]
+  },
+  "success30_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "success10_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "success0_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "success30_late_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "test_fa_per_hour_clean_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "random_success30_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "position_null_success30_at_fa2": {
+   "mean": 0.0,
+   "std": 0.0,
+   "per_seed": [
+    0.0
+   ]
+  },
+  "detection_auroc": {
+   "mean": 0.5934267511334196,
+   "std": 0.0,
+   "per_seed": [
+    0.5934267511334196
+   ]
+  }
+ },
+ "seeds": {
+  "0": {
+   "counts": {
+    "test_videos": 1031,
+    "violent_videos": 693,
+    "clean_negative_videos": 338,
+    "clean_negative_hours": 15.17,
+    "test_hours": 36.98,
+    "ticks": 132824,
+    "eligible30_events": 198,
+    "eligible60_events": 73,
+    "all_events": 1303,
+    "eligible30_first_segment": 120,
+    "eligible30_late_window": 90,
+    "clean_negative_hours_unmasked": 14.83,
+    "threshold_set": "val",
+    "val_videos_per_fold": {
+     "0": 106,
+     "1": 105,
+     "2": 89,
+     "3": 114,
+     "4": 109
+    },
+    "val_clean_negative_hours_per_fold": {
+     "0": 1.99,
+     "1": 1.28,
+     "2": 1.17,
+     "3": 1.76,
+     "4": 1.42
+    }
+   },
+   "far_window_auroc": {
+    "clean": {
+     "value": 0.754859585870407,
+     "ci": [
+      0.6913638498290323,
+      0.8101496276929122
+     ],
+     "n_pos": 2412,
+     "n_neg": 35697,
+     "n_pos_videos": 127,
+     "n_neg_videos": 255
+    },
+    "secondary": {
+     "value": 0.7509273254248843,
+     "ci": [
+      0.6861147872907762,
+      0.8044451494657899
+     ],
+     "n_pos": 2412,
+     "n_neg": 39519,
+     "n_pos_videos": 127,
+     "n_neg_videos": 282
+    },
+    "clean_time_matched": {
+     "value": 0.49045431412545687,
+     "ci": [
+      0.4111192730140006,
+      0.563430243809806
+     ],
+     "n_pos": 2354,
+     "n_neg": 19226,
+     "n_pos_videos": 126,
+     "n_neg_videos": 255,
+     "definition": "clean negatives re-weighted to the positives' (source kind x seconds-since-start) distribution (5 s bins up to 120 s); positives without comparable negatives dropped"
+    },
+    "clean_time_matched_source_blind": {
+     "value": 0.6060737245560299,
+     "ci": [
+      0.5463870808292939,
+      0.6613325178020788
+     ],
+     "n_pos": 2412,
+     "n_neg": 34287,
+     "n_pos_videos": 127,
+     "n_neg_videos": 255
+    },
+    "clean_uncensored": {
+     "value": 0.7515252275086418,
+     "ci": [
+      0.6910998615719688,
+      0.8037385766587989
+     ],
+     "n_pos": 2412,
+     "n_neg": 53316,
+     "n_pos_videos": 127,
+     "n_neg_videos": 327
+    },
+    "clean_all_segments": {
+     "value": 0.7048560822396757,
+     "ci": [
+      0.6413764626414675,
+      0.7595373663314293
+     ],
+     "n_pos": 3803,
+     "n_neg": 35697,
+     "n_pos_videos": 185,
+     "n_neg_videos": 255
+    },
+    "secondary_all_segments": {
+     "value": 0.7133218286871214,
+     "ci": [
+      0.6527146646757712,
+      0.763662855780939
+     ],
+     "n_pos": 3803,
+     "n_neg": 43788,
+     "n_pos_videos": 185,
+     "n_neg_videos": 323
+    },
+    "definition": {
+     "clean": "positives: pre-violence unmasked ticks with 30 < tte <= 60 (first segment only); negatives: clean-negative ticks with >= 60 s of footage left",
+     "secondary": "negatives: pre-violence unmasked ticks of any universe video with no onset within 120 s",
+     "clean_uncensored": "as clean, without the 60 s right-censoring of clean negatives",
+     "clean_all_segments": "spec literal: positives of every segment (also after earlier violence)"
+    }
+   },
+   "horizon": {
+    "5": {
+     "auroc": {
+      "value": 0.8783040794334174,
+      "ci": [
+       0.8563872280580814,
+       0.8970509433999471
+      ],
+      "n_pos": 2443,
+      "n_neg": 55553,
+      "n_pos_videos": 554,
+      "n_neg_videos": 354
+     },
+     "auroc_time_matched": {
+      "value": 0.49913010581302575,
+      "ci": [
+       0.4674680239515306,
+       0.5304690620413206
+      ],
+      "n_pos": 2443,
+      "n_neg": 30437,
+      "n_pos_videos": 554,
+      "n_neg_videos": 354
+     },
+     "ap": {
+      "value": 0.21937462056750442,
+      "ci": [
+       0.19060063686395062,
+       0.25509719574126694
+      ]
+     },
+     "base_rate": 0.04212359473067108,
+     "auroc_all_segments": {
+      "value": 0.7987016448950175,
+      "ci": [
+       0.7699045122962695,
+       0.823351127589291
+      ],
+      "n_pos": 3747,
+      "n_neg": 66933,
+      "n_pos_videos": 593,
+      "n_neg_videos": 630
+     }
+    },
+    "10": {
+     "auroc": {
+      "value": 0.870275228470485,
+      "ci": [
+       0.8463376643612336,
+       0.890751804342917
+      ],
+      "n_pos": 4195,
+      "n_neg": 53977,
+      "n_pos_videos": 555,
+      "n_neg_videos": 349
+     },
+     "auroc_time_matched": {
+      "value": 0.4989461618807718,
+      "ci": [
+       0.46709541205948607,
+       0.5312889670996345
+      ],
+      "n_pos": 4195,
+      "n_neg": 31542,
+      "n_pos_videos": 555,
+      "n_neg_videos": 349
+     },
+     "ap": {
+      "value": 0.31095724652300016,
+      "ci": [
+       0.27716500797142507,
+       0.35362871893194675
+      ]
+     },
+     "base_rate": 0.07211373169222306,
+     "auroc_all_segments": {
+      "value": 0.7891732449366382,
+      "ci": [
+       0.759170208565635,
+       0.8157129740051865
+      ],
+      "n_pos": 6570,
+      "n_neg": 64023,
+      "n_pos_videos": 594,
+      "n_neg_videos": 582
+     }
+    },
+    "20": {
+     "auroc": {
+      "value": 0.8572319661726868,
+      "ci": [
+       0.829831177253072,
+       0.8807920552037299
+      ],
+      "n_pos": 6601,
+      "n_neg": 50885,
+      "n_pos_videos": 556,
+      "n_neg_videos": 340
+     },
+     "auroc_time_matched": {
+      "value": 0.4980956887465359,
+      "ci": [
+       0.4624179192264706,
+       0.5342285068584856
+      ],
+      "n_pos": 6601,
+      "n_neg": 31171,
+      "n_pos_videos": 556,
+      "n_neg_videos": 340
+     },
+     "ap": {
+      "value": 0.4002668873384295,
+      "ci": [
+       0.36026676279479547,
+       0.4469054773883406
+      ]
+     },
+     "base_rate": 0.1148279581115402,
+     "auroc_all_segments": {
+      "value": 0.7807805358025478,
+      "ci": [
+       0.7491413779186729,
+       0.809814242482537
+      ],
+      "n_pos": 10372,
+      "n_neg": 58856,
+      "n_pos_videos": 595,
+      "n_neg_videos": 499
+     }
+    },
+    "30": {
+     "auroc": {
+      "value": 0.846748950749502,
+      "ci": [
+       0.8156523130569349,
+       0.8732430868154749
+      ],
+      "n_pos": 8159,
+      "n_neg": 47855,
+      "n_pos_videos": 557,
+      "n_neg_videos": 333
+     },
+     "auroc_time_matched": {
+      "value": 0.4979857341559595,
+      "ci": [
+       0.46167293608234977,
+       0.536056707200949
+      ],
+      "n_pos": 8159,
+      "n_neg": 31236,
+      "n_pos_videos": 557,
+      "n_neg_videos": 333
+     },
+     "ap": {
+      "value": 0.4453690494748138,
+      "ci": [
+       0.4034112016149307,
+       0.49105394126743634
+      ]
+     },
+     "base_rate": 0.14566001356803657,
+     "auroc_all_segments": {
+      "value": 0.7748349832288814,
+      "ci": [
+       0.7406953036305619,
+       0.8045844976873978
+      ],
+      "n_pos": 12863,
+      "n_neg": 54368,
+      "n_pos_videos": 595,
+      "n_neg_videos": 453
+     }
+    },
+    "60": {
+     "auroc": {
+      "value": 0.8279095476046197,
+      "ci": [
+       0.7889580907718133,
+       0.8627304437424866
+      ],
+      "n_pos": 10571,
+      "n_neg": 39519,
+      "n_pos_videos": 559,
+      "n_neg_videos": 282
+     },
+     "auroc_time_matched": {
+      "value": 0.4968995168849156,
+      "ci": [
+       0.45457699057134754,
+       0.5408011982718711
+      ],
+      "n_pos": 10571,
+      "n_neg": 28853,
+      "n_pos_videos": 559,
+      "n_neg_videos": 282
+     },
+     "ap": {
+      "value": 0.5271991639126693,
+      "ci": [
+       0.4842926445677947,
+       0.5726073727210244
+      ]
+     },
+     "base_rate": 0.21104012777001396,
+     "auroc_all_segments": {
+      "value": 0.7655920446190279,
+      "ci": [
+       0.7250217358615035,
+       0.8024509581146415
+      ],
+      "n_pos": 16666,
+      "n_neg": 43788,
+      "n_pos_videos": 595,
+      "n_neg_videos": 323
+     }
+    }
+   },
+   "detection_auroc": {
+    "value": 0.5934267511334196,
+    "ci": [
+     0.5450032057991603,
+     0.6394793832889235
+    ],
+    "n_pos": 31714,
+    "n_neg": 53316,
+    "n_pos_videos": 693,
+    "n_neg_videos": 327
+   },
+   "calibration": {
+    "target": "P(onset within 30 s) on unmasked, uncensored ticks",
+    "brier": {
+     "value": 0.13277800050055674,
+     "ci": [
+      0.11804242537796293,
+      0.1523378990765225
+     ]
+    },
+    "brier_climatology": 0.14360483165856466,
+    "base_rate": 0.17381727767793198,
+    "ece": 0.07063848892014067,
+    "reliability": [
+     {
+      "bin": [
+       0.0,
+       0.1
+      ],
+      "n": 44236,
+      "mean_pred": 0.045661154214434466,
+      "frac_pos": 0.07869156343249842
+     },
+     {
+      "bin": [
+       0.1,
+       0.2
+      ],
+      "n": 20860,
+      "mean_pred": 0.14185825365669533,
+      "frac_pos": 0.25767018216682647
+     },
+     {
+      "bin": [
+       0.2,
+       0.30000000000000004
+      ],
+      "n": 5280,
+      "mean_pred": 0.2543925056945842,
+      "frac_pos": 0.4236742424242424
+     },
+     {
+      "bin": [
+       0.30000000000000004,
+       0.4
+      ],
+      "n": 2721,
+      "mean_pred": 0.3459827857146823,
+      "frac_pos": 0.503858875413451
+     },
+     {
+      "bin": [
+       0.4,
+       0.5
+      ],
+      "n": 906,
+      "mean_pred": 0.4104838028006478,
+      "frac_pos": 0.44039735099337746
+     }
+    ]
+   },
+   "per_fold_far_window_auroc_clean": {
+    "0": 0.7905250019387599,
+    "1": 0.7863800130338034,
+    "2": 0.6203629374006544,
+    "3": 0.7600971875358201,
+    "4": 0.7862930563439309
+   },
+   "operating_points": {
+    "fa1": {
+     "eligible30": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success30_ceiling": 1.0,
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible60": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success60_ceiling": 1.0,
+      "success60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible30_late": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success30_ceiling": 1.0,
+      "random_reference_success30": 0.0
+     },
+     "fa_per_hour_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "fa_per_hour_all": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 19.498
+     },
+     "fa_per_hour_clean_videos_under_1h": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "random_reference_success30": {
+      "nominal_W90": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "per_event_window": 0.0,
+      "formula": "1 - exp(-FAR * W), FAR = test FA/h on clean negatives. Assumes alarm times independent of position in the clip; compare with position_null_success30 too"
+     },
+     "alarm_time_fraction_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "detection": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n": 1303,
+      "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+     },
+     "target_val_fa_per_hour": 1.0,
+     "theta_per_fold": {
+      "0": "inf",
+      "1": "inf",
+      "2": "inf",
+      "3": "inf",
+      "4": "inf"
+     },
+     "val_fa_per_hour_per_fold": {
+      "0": 0.0,
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     },
+     "position_null_success30": 0.0,
+     "position_null_success30_late": 0.0,
+     "threshold_aware_ci": {
+      "n_boot": 200,
+      "success30_ci": [
+       0.0,
+       0.0
+      ],
+      "fa_per_hour_clean_ci": [
+       0.0,
+       0.0
+      ],
+      "distinct_threshold_sets": 1,
+      "theta_per_fold_p5_p50_p95": {
+       "0": [
+        null,
+        null,
+        null
+       ],
+       "1": [
+        null,
+        null,
+        null
+       ],
+       "2": [
+        null,
+        null,
+        null
+       ],
+       "3": [
+        null,
+        null,
+        null
+       ],
+       "4": [
+        null,
+        null,
+        null
+       ]
+      },
+      "note": "validation videos resampled and theta re-chosen per replicate; test videos resampled jointly"
+     }
+    },
+    "fa2": {
+     "eligible30": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success30_ceiling": 1.0,
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible60": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success60_ceiling": 1.0,
+      "success60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible30_late": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success30_ceiling": 1.0,
+      "random_reference_success30": 0.0
+     },
+     "fa_per_hour_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "fa_per_hour_all": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 19.498
+     },
+     "fa_per_hour_clean_videos_under_1h": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "random_reference_success30": {
+      "nominal_W90": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "per_event_window": 0.0,
+      "formula": "1 - exp(-FAR * W), FAR = test FA/h on clean negatives. Assumes alarm times independent of position in the clip; compare with position_null_success30 too"
+     },
+     "alarm_time_fraction_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "detection": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n": 1303,
+      "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+     },
+     "target_val_fa_per_hour": 2.0,
+     "theta_per_fold": {
+      "0": "inf",
+      "1": "inf",
+      "2": "inf",
+      "3": "inf",
+      "4": "inf"
+     },
+     "val_fa_per_hour_per_fold": {
+      "0": 0.0,
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     },
+     "position_null_success30": 0.0,
+     "position_null_success30_late": 0.0,
+     "threshold_aware_ci": {
+      "n_boot": 200,
+      "success30_ci": [
+       0.0,
+       0.0
+      ],
+      "fa_per_hour_clean_ci": [
+       0.0,
+       0.0
+      ],
+      "distinct_threshold_sets": 1,
+      "theta_per_fold_p5_p50_p95": {
+       "0": [
+        null,
+        null,
+        null
+       ],
+       "1": [
+        null,
+        null,
+        null
+       ],
+       "2": [
+        null,
+        null,
+        null
+       ],
+       "3": [
+        null,
+        null,
+        null
+       ],
+       "4": [
+        null,
+        null,
+        null
+       ]
+      },
+      "note": "validation videos resampled and theta re-chosen per replicate; test videos resampled jointly"
+     }
+    },
+    "fa5": {
+     "eligible30": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 198
+      },
+      "success30_ceiling": 1.0,
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible60": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "success60_ceiling": 1.0,
+      "success60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 73
+      },
+      "lead_sec": {
+       "n_alarmed": 0,
+       "median": {
+        "value": null,
+        "ci": null
+       },
+       "p25": {
+        "value": null,
+        "ci": null
+       },
+       "p75": {
+        "value": null,
+        "ci": null
+       },
+       "mTTA": {
+        "value": null,
+        "ci": null
+       }
+      }
+     },
+     "eligible30_late": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 90
+      },
+      "success30_ceiling": 1.0,
+      "random_reference_success30": 0.0
+     },
+     "fa_per_hour_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "fa_per_hour_all": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 19.498
+     },
+     "fa_per_hour_clean_videos_under_1h": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n_false_alarms": 0,
+      "hours": 14.832
+     },
+     "random_reference_success30": {
+      "nominal_W90": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "per_event_window": 0.0,
+      "formula": "1 - exp(-FAR * W), FAR = test FA/h on clean negatives. Assumes alarm times independent of position in the clip; compare with position_null_success30 too"
+     },
+     "alarm_time_fraction_clean": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "detection": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "n": 1303,
+      "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+     },
+     "target_val_fa_per_hour": 5.0,
+     "theta_per_fold": {
+      "0": "inf",
+      "1": "inf",
+      "2": "inf",
+      "3": "inf",
+      "4": "inf"
+     },
+     "val_fa_per_hour_per_fold": {
+      "0": 0.0,
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0
+     },
+     "position_null_success30": 0.0,
+     "position_null_success30_late": 0.0,
+     "threshold_aware_ci": {
+      "n_boot": 200,
+      "success30_ci": [
+       0.0,
+       0.0
+      ],
+      "fa_per_hour_clean_ci": [
+       0.0,
+       0.0
+      ],
+      "distinct_threshold_sets": 4,
+      "theta_per_fold_p5_p50_p95": {
+       "0": [
+        null,
+        null,
+        null
+       ],
+       "1": [
+        null,
+        null,
+        null
+       ],
+       "2": [
+        null,
+        null,
+        null
+       ],
+       "3": [
+        null,
+        null,
+        null
+       ],
+       "4": [
+        null,
+        null,
+        null
+       ]
+      },
+      "note": "validation videos resampled and theta re-chosen per replicate; test videos resampled jointly"
+     }
+    }
+   },
+   "position_null_curve": {
+    "success30": [
+     [
+      0.0,
+      0.0,
+      "origin"
+     ],
+     [
+      0.067424,
+      0.010101,
+      "after:ucf"
+     ],
+     [
+      1.415897,
+      0.151515,
+      "after:ucf"
+     ],
+     [
+      3.438607,
+      0.363636,
+      "hit|source|coarse"
+     ],
+     [
+      5.124198,
+      0.459596,
+      "hit|source|coarse"
+     ],
+     [
+      5.663588,
+      0.484848,
+      "hit|source|5s"
+     ],
+     [
+      6.135553,
+      0.5,
+      "hit|source|5s"
+     ],
+     [
+      17.799847,
+      0.560606,
+      "tte60|source|5s"
+     ],
+     [
+      38.83603,
+      0.666667,
+      "tte120|blind|5s"
+     ]
+    ],
+    "success30_late": [
+     [
+      0.0,
+      0.0,
+      "origin"
+     ],
+     [
+      0.067424,
+      0.022222,
+      "after:ucf"
+     ],
+     [
+      0.404542,
+      0.077778,
+      "after:ucf"
+     ],
+     [
+      1.011355,
+      0.144444,
+      "after:ucf"
+     ],
+     [
+      1.415897,
+      0.177778,
+      "after:ucf"
+     ],
+     [
+      6.135553,
+      0.266667,
+      "hit|source|5s"
+     ],
+     [
+      38.83603,
+      0.322222,
+      "tte120|blind|5s"
+     ]
+    ],
+    "n_points_per_family": {
+     "hit|source|5s": 50,
+     "tte60|source|5s": 50,
+     "tte120|source|5s": 50,
+     "hit|blind|5s": 50,
+     "tte60|blind|5s": 50,
+     "tte120|blind|5s": 50,
+     "hit|source|coarse": 50,
+     "tte60|source|coarse": 50,
+     "tte120|source|coarse": 50,
+     "hit|blind|coarse": 50,
+     "tte60|blind|coarse": 50,
+     "tte120|blind|coarse": 50,
+     "after": 200,
+     "start": 7
+    },
+    "definition": "upper concave hull of (test FA/h clean, Success@30) over position-only oracle policies and their mixtures; null_at() interpolates linearly"
+   },
+   "amoc_curve": [
+    {
+     "theta": 1.6544239295877177e-05,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8825786646201075
+    },
+    {
+     "theta": 0.003606342393896042,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8802762854950115
+    },
+    {
+     "theta": 0.007962551877231928,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8779739063699156
+    },
+    {
+     "theta": 0.010025726392251817,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8779739063699156
+    },
+    {
+     "theta": 0.01800724917097247,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8749040675364543
+    },
+    {
+     "theta": 0.019335324297419403,
+     "fa_per_hour_clean": 22.11496137162579,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8733691481197237
+    },
+    {
+     "theta": 0.021737833969465648,
+     "fa_per_hour_clean": 22.11496137162579,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8710667689946278
+    },
+    {
+     "theta": 0.02435592796398199,
+     "fa_per_hour_clean": 22.384656022499275,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8695318495778972
+    },
+    {
+     "theta": 0.025630744556165565,
+     "fa_per_hour_clean": 22.519503347936016,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8679969301611665
+    },
+    {
+     "theta": 0.026479093866730932,
+     "fa_per_hour_clean": 22.452079685217644,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.8672294704528012
+    },
+    {
+     "theta": 0.02816343928875898,
+     "fa_per_hour_clean": 23.396010963274843,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.866462010744436
+    },
+    {
+     "theta": 0.03823529411764706,
+     "fa_per_hour_clean": 22.519503347936016,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.4696969696969697,
+     "detection": 0.8656945510360706
+    },
+    {
+     "theta": 0.043368339167639054,
+     "fa_per_hour_clean": 22.519503347936016,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.4696969696969697,
+     "detection": 0.8633921719109747
+    },
+    {
+     "theta": 0.0465,
+     "fa_per_hour_clean": 22.519503347936016,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.4797979797979798,
+     "detection": 0.8610897927858787
+    },
+    {
+     "theta": 0.04780988936554527,
+     "fa_per_hour_clean": 24.946755205797384,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.4898989898989899,
+     "detection": 0.8572524942440521
+    },
+    {
+     "theta": 0.0479395319942017,
+     "fa_per_hour_clean": 26.36265212288318,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.4898989898989899,
+     "detection": 0.8534151957022257
+    },
+    {
+     "theta": 0.049704530531845044,
+     "fa_per_hour_clean": 25.014178868515753,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.4797979797979798,
+     "detection": 0.8457405986185725
+    },
+    {
+     "theta": 0.0501318174328555,
+     "fa_per_hour_clean": 27.036888750066893,
+     "success30": 0.47474747474747475,
+     "success30_late": 0.022222222222222223,
+     "success0": 0.4898989898989899,
+     "detection": 0.8426707597851113
+    },
+    {
+     "theta": 0.05194585448392555,
+     "fa_per_hour_clean": 28.452785667152693,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.4898989898989899,
+     "detection": 0.8411358403683806
+    },
+    {
+     "theta": 0.05447013093289689,
+     "fa_per_hour_clean": 30.340648223267088,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.48484848484848486,
+     "detection": 0.837298541826554
+    },
+    {
+     "theta": 0.05558832202890003,
+     "fa_per_hour_clean": 27.845972702687348,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.48484848484848486,
+     "detection": 0.8334612432847276
+    },
+    {
+     "theta": 0.05703098399727613,
+     "fa_per_hour_clean": 27.374007063658752,
+     "success30": 0.4898989898989899,
+     "success30_late": 0.044444444444444446,
+     "success0": 0.5050505050505051,
+     "detection": 0.8319263238679969
+    },
+    {
+     "theta": 0.058403266046722614,
+     "fa_per_hour_clean": 30.677766536858943,
+     "success30": 0.494949494949495,
+     "success30_late": 0.05555555555555555,
+     "success0": 0.5050505050505051,
+     "detection": 0.8303914044512664
+    },
+    {
+     "theta": 0.06026236676687619,
+     "fa_per_hour_clean": 30.610342874140574,
+     "success30": 0.494949494949495,
+     "success30_late": 0.05555555555555555,
+     "success0": 0.5050505050505051,
+     "detection": 0.8280890253261703
+    },
+    {
+     "theta": 0.06182359307359307,
+     "fa_per_hour_clean": 30.610342874140574,
+     "success30": 0.48484848484848486,
+     "success30_late": 0.03333333333333333,
+     "success0": 0.494949494949495,
+     "detection": 0.8227168073676132
+    },
+    {
+     "theta": 0.06347979686465004,
+     "fa_per_hour_clean": 28.587632992589434,
+     "success30": 0.48484848484848486,
+     "success30_late": 0.03333333333333333,
+     "success0": 0.4898989898989899,
+     "detection": 0.8089025326170376
+    },
+    {
+     "theta": 0.06524558976132826,
+     "fa_per_hour_clean": 24.74448421764227,
+     "success30": 0.4696969696969697,
+     "success30_late": 0.011111111111111112,
+     "success0": 0.47474747474747475,
+     "detection": 0.7966231772831927
+    },
+    {
+     "theta": 0.06691832532601236,
+     "fa_per_hour_clean": 23.80055293958507,
+     "success30": 0.47474747474747475,
+     "success30_late": 0.022222222222222223,
+     "success0": 0.4797979797979798,
+     "detection": 0.7912509593246354
+    },
+    {
+     "theta": 0.06965237249429079,
+     "fa_per_hour_clean": 24.87933154307901,
+     "success30": 0.4797979797979798,
+     "success30_late": 0.022222222222222223,
+     "success0": 0.4797979797979798,
+     "detection": 0.7897160399079048
+    },
+    {
+     "theta": 0.07265376133300662,
+     "fa_per_hour_clean": 23.32858730055647,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.782808902532617
+    },
+    {
+     "theta": 0.08154362416107383,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.7735993860322333
+    },
+    {
+     "theta": 0.0885518590998043,
+     "fa_per_hour_clean": 23.261163637838102,
+     "success30": 0.4797979797979798,
+     "success30_late": 0.03333333333333333,
+     "success0": 0.494949494949495,
+     "detection": 0.7666922486569455
+    },
+    {
+     "theta": 0.09425998874507598,
+     "fa_per_hour_clean": 23.261163637838102,
+     "success30": 0.48484848484848486,
+     "success30_late": 0.044444444444444446,
+     "success0": 0.5,
+     "detection": 0.762854950115119
+    },
+    {
+     "theta": 0.09769687964338782,
+     "fa_per_hour_clean": 24.205094915895298,
+     "success30": 0.47474747474747475,
+     "success30_late": 0.022222222222222223,
+     "success0": 0.494949494949495,
+     "detection": 0.7590176515732924
+    },
+    {
+     "theta": 0.10230722525804493,
+     "fa_per_hour_clean": 26.497499448319925,
+     "success30": 0.48484848484848486,
+     "success30_late": 0.03333333333333333,
+     "success0": 0.5252525252525253,
+     "detection": 0.7482732156561781
+    },
+    {
+     "theta": 0.10555004955401387,
+     "fa_per_hour_clean": 26.160381134728066,
+     "success30": 0.4898989898989899,
+     "success30_late": 0.044444444444444446,
+     "success0": 0.5353535353535354,
+     "detection": 0.7390636991557943
+    },
+    {
+     "theta": 0.11059670781893004,
+     "fa_per_hour_clean": 25.75583915841784,
+     "success30": 0.494949494949495,
+     "success30_late": 0.06666666666666667,
+     "success0": 0.51010101010101,
+     "detection": 0.7306216423637759
+    },
+    {
+     "theta": 0.1145985401459854,
+     "fa_per_hour_clean": 25.75583915841784,
+     "success30": 0.5151515151515151,
+     "success30_late": 0.08888888888888889,
+     "success0": 0.5505050505050505,
+     "detection": 0.7275518035303147
+    },
+    {
+     "theta": 0.11922386720502468,
+     "fa_per_hour_clean": 24.474789566768784,
+     "success30": 0.5353535353535354,
+     "success30_late": 0.12222222222222222,
+     "success0": 0.5858585858585859,
+     "detection": 0.7214121258633922
+    },
+    {
+     "theta": 0.125,
+     "fa_per_hour_clean": 23.396010963274843,
+     "success30": 0.5,
+     "success30_late": 0.07777777777777778,
+     "success0": 0.5505050505050505,
+     "detection": 0.716039907904835
+    },
+    {
+     "theta": 0.13059105431309903,
+     "fa_per_hour_clean": 23.7331292768667,
+     "success30": 0.51010101010101,
+     "success30_late": 0.08888888888888889,
+     "success0": 0.5606060606060606,
+     "detection": 0.7083653108211819
+    },
+    {
+     "theta": 0.13397328881469114,
+     "fa_per_hour_clean": 23.058892649682985,
+     "success30": 0.5454545454545454,
+     "success30_late": 0.13333333333333333,
+     "success0": 0.5909090909090909,
+     "detection": 0.7014581734458941
+    },
+    {
+     "theta": 0.13923444976076554,
+     "fa_per_hour_clean": 22.72177433609113,
+     "success30": 0.5151515151515151,
+     "success30_late": 0.1,
+     "success0": 0.5555555555555556,
+     "detection": 0.6945510360706063
+    },
+    {
+     "theta": 0.1446629213483146,
+     "fa_per_hour_clean": 22.654350673372758,
+     "success30": 0.5151515151515151,
+     "success30_late": 0.1,
+     "success0": 0.5555555555555556,
+     "detection": 0.6845740598618573
+    },
+    {
+     "theta": 0.14695712309820194,
+     "fa_per_hour_clean": 22.317232359780903,
+     "success30": 0.494949494949495,
+     "success30_late": 0.05555555555555555,
+     "success0": 0.5202020202020202,
+     "detection": 0.671527244819647
+    },
+    {
+     "theta": 0.14897510980966325,
+     "fa_per_hour_clean": 22.58692701065439,
+     "success30": 0.5353535353535354,
+     "success30_late": 0.12222222222222222,
+     "success0": 0.5606060606060606,
+     "detection": 0.6653875671527245
+    },
+    {
+     "theta": 0.15212046711739396,
+     "fa_per_hour_clean": 22.58692701065439,
+     "success30": 0.5404040404040404,
+     "success30_late": 0.08888888888888889,
+     "success0": 0.5555555555555556,
+     "detection": 0.6500383729854182
+    },
+    {
+     "theta": 0.15601631543167913,
+     "fa_per_hour_clean": 22.452079685217644,
+     "success30": 0.51010101010101,
+     "success30_late": 0.05555555555555555,
+     "success0": 0.5202020202020202,
+     "detection": 0.624712202609363
+    },
+    {
+     "theta": 0.16009852216748768,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.4696969696969697,
+     "detection": 0.6055257099002302
+    },
+    {
+     "theta": 0.16300839251129762,
+     "fa_per_hour_clean": 22.384656022499275,
+     "success30": 0.494949494949495,
+     "success30_late": 0.022222222222222223,
+     "success0": 0.494949494949495,
+     "detection": 0.5878741366078281
+    },
+    {
+     "theta": 0.17195188627665392,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.5663852647735994
+    },
+    {
+     "theta": 0.1870444002650762,
+     "fa_per_hour_clean": 22.047537708907416,
+     "success30": 0.46464646464646464,
+     "success30_late": 0.0,
+     "success0": 0.46464646464646464,
+     "detection": 0.5471987720644667
+    },
+    {
+     "theta": 0.1949640287769784,
+     "fa_per_hour_clean": 20.15967515279302,
+     "success30": 0.4595959595959596,
+     "success30_late": 0.0,
+     "success0": 0.4595959595959596,
+     "detection": 0.5157329240214888
+    },
+    {
+     "theta": 0.20273311897106108,
+     "fa_per_hour_clean": 14.833205798041687,
+     "success30": 0.40404040404040403,
+     "success30_late": 0.0,
+     "success0": 0.40404040404040403,
+     "detection": 0.4481964696853415
+    },
+    {
+     "theta": 0.23502202643171807,
+     "fa_per_hour_clean": 12.87791957920892,
+     "success30": 0.3838383838383838,
+     "success30_late": 0.0,
+     "success0": 0.3838383838383838,
+     "detection": 0.4182655410590944
+    },
+    {
+     "theta": 0.24679628811312418,
+     "fa_per_hour_clean": 12.87791957920892,
+     "success30": 0.3838383838383838,
+     "success30_late": 0.0,
+     "success0": 0.3838383838383838,
+     "detection": 0.40752110514198003
+    },
+    {
+     "theta": 0.2849721236695388,
+     "fa_per_hour_clean": 12.87791957920892,
+     "success30": 0.3838383838383838,
+     "success30_late": 0.0,
+     "success0": 0.3838383838383838,
+     "detection": 0.40138142747505756
+    },
+    {
+     "theta": 0.33384413309982486,
+     "fa_per_hour_clean": 12.87791957920892,
+     "success30": 0.3838383838383838,
+     "success30_late": 0.0,
+     "success0": 0.3838383838383838,
+     "detection": 0.4006139677666922
+    },
+    {
+     "theta": 0.34760459570778235,
+     "fa_per_hour_clean": 9.709007431445468,
+     "success30": 0.06060606060606061,
+     "success30_late": 0.0,
+     "success0": 0.06060606060606061,
+     "detection": 0.13200306983883345
+    },
+    {
+     "theta": 0.4173963133640553,
+     "fa_per_hour_clean": 2.1575572069878817,
+     "success30": 0.010101010101010102,
+     "success30_late": 0.0,
+     "success0": 0.010101010101010102,
+     "detection": 0.023023791250959325
+    },
+    {
+     "theta": "inf",
+     "fa_per_hour_clean": 0.0,
+     "success30": 0.0,
+     "success30_late": 0.0,
+     "success0": 0.0,
+     "detection": 0.0
+    }
+   ],
+   "breakdowns": {
+    "source:xd_movie": {
+     "videos_pos_side": 185,
+     "videos_neg_side": 155,
+     "far_window_auroc_clean": {
+      "value": 0.6197691975841243,
+      "ci": [
+       0.4662759842159644,
+       0.7712818222969298
+      ],
+      "n_pos": 304,
+      "n_neg": 9699,
+      "n_pos_videos": 18,
+      "n_neg_videos": 112
+     },
+     "auroc30": {
+      "value": 0.8311948076627904,
+      "ci": [
+       0.7794385334022076,
+       0.8770630490189347
+      ],
+      "n_pos": 1775,
+      "n_neg": 13489,
+      "n_pos_videos": 155,
+      "n_neg_videos": 141
+     },
+     "ap30": {
+      "value": 0.368294392275579,
+      "ci": [
+       0.309403491420988,
+       0.43561588963891545
+      ]
+     },
+     "base_rate30": 0.11628668763102726,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 24
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 24
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 24
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 4.842
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 376,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "source:xd_youtube": {
+     "videos_pos_side": 134,
+     "videos_neg_side": 136,
+     "far_window_auroc_clean": {
+      "value": 0.8890111006024394,
+      "ci": [
+       0.8072041993366902,
+       0.9519737572931787
+      ],
+      "n_pos": 286,
+      "n_neg": 23276,
+      "n_pos_videos": 17,
+      "n_neg_videos": 122
+     },
+     "auroc30": {
+      "value": 0.8807745454614231,
+      "ci": [
+       0.8347632440003906,
+       0.9178285234309763
+      ],
+      "n_pos": 975,
+      "n_neg": 27114,
+      "n_pos_videos": 63,
+      "n_neg_videos": 134
+     },
+     "ap30": {
+      "value": 0.16842953966032656,
+      "ci": [
+       0.12465335756456183,
+       0.22253626799790113
+      ]
+     },
+     "base_rate30": 0.03471109687066111,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 30
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 30
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 30
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 8.659
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 238,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "source:ucf": {
+     "videos_pos_side": 374,
+     "videos_neg_side": 47,
+     "far_window_auroc_clean": {
+      "value": 0.5864128203659897,
+      "ci": [
+       0.46680114110999116,
+       0.685926734707946
+      ],
+      "n_pos": 1822,
+      "n_neg": 2722,
+      "n_pos_videos": 92,
+      "n_neg_videos": 21
+     },
+     "auroc30": {
+      "value": 0.7957677277263681,
+      "ci": [
+       0.7085169768926763,
+       0.8555966830562555
+      ],
+      "n_pos": 5409,
+      "n_neg": 7252,
+      "n_pos_videos": 339,
+      "n_neg_videos": 58
+     },
+     "ap30": {
+      "value": 0.7132419657205509,
+      "ci": [
+       0.6487871220302469,
+       0.7786978620928479
+      ]
+     },
+     "base_rate30": 0.4272174393807756,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 144
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 144
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 144
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 1.331
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 689,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "class:interpersonal": {
+     "videos_pos_side": 564,
+     "videos_neg_side": 338,
+     "far_window_auroc_clean": {
+      "value": 0.7443825255551124,
+      "ci": [
+       0.6723606206893253,
+       0.8034389796980882
+      ],
+      "n_pos": 2103,
+      "n_neg": 35697,
+      "n_pos_videos": 105,
+      "n_neg_videos": 255
+     },
+     "auroc30": {
+      "value": 0.8330389250032048,
+      "ci": [
+       0.7984946022022662,
+       0.8626636723150511
+      ],
+      "n_pos": 6639,
+      "n_neg": 47696,
+      "n_pos_videos": 446,
+      "n_neg_videos": 331
+     },
+     "ap30": {
+      "value": 0.3694965570766908,
+      "ci": [
+       0.32953549142236815,
+       0.41275662458964407
+      ]
+     },
+     "base_rate30": 0.12218643599889574,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 173
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 173
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 173
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 1062,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "class:other_violent": {
+     "videos_pos_side": 129,
+     "videos_neg_side": 338,
+     "far_window_auroc_clean": {
+      "value": 0.8261646274337232,
+      "ci": [
+       0.7054833295188998,
+       0.9313169273499443
+      ],
+      "n_pos": 309,
+      "n_neg": 35697,
+      "n_pos_videos": 22,
+      "n_neg_videos": 255
+     },
+     "auroc30": {
+      "value": 0.9102168706410305,
+      "ci": [
+       0.8648737439838293,
+       0.9427959586749864
+      ],
+      "n_pos": 1520,
+      "n_neg": 44192,
+      "n_pos_videos": 111,
+      "n_neg_videos": 308
+     },
+     "ap30": {
+      "value": 0.22674495007937623,
+      "ci": [
+       0.17999149916296353,
+       0.2901055686924491
+      ]
+     },
+     "base_rate30": 0.03325166258312916,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 25
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 25
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 25
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 241,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "audio:present": {
+     "videos_pos_side": 422,
+     "videos_neg_side": 303,
+     "far_window_auroc_clean": {
+      "value": 0.7768067642864969,
+      "ci": [
+       0.7028720466151462,
+       0.838364362014946
+      ],
+      "n_pos": 1189,
+      "n_neg": 34144,
+      "n_pos_videos": 64,
+      "n_neg_videos": 242
+     },
+     "auroc30": {
+      "value": 0.8491223046383067,
+      "ci": [
+       0.8116793399856929,
+       0.8804185471998018
+      ],
+      "n_pos": 4299,
+      "n_neg": 42654,
+      "n_pos_videos": 312,
+      "n_neg_videos": 293
+     },
+     "ap30": {
+      "value": 0.347119293797743,
+      "ci": [
+       0.2979497715037373,
+       0.40507918827826017
+      ]
+     },
+     "base_rate30": 0.09155964475113411,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 101
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 101
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 101
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.0
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 806,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "audio:absent": {
+     "videos_pos_side": 271,
+     "videos_neg_side": 35,
+     "far_window_auroc_clean": {
+      "value": 0.5586949848866883,
+      "ci": [
+       0.4054907316102663,
+       0.6822251239059407
+      ],
+      "n_pos": 1223,
+      "n_neg": 1553,
+      "n_pos_videos": 63,
+      "n_neg_videos": 13
+     },
+     "auroc30": {
+      "value": 0.8173838381020788,
+      "ci": [
+       0.7085714282155643,
+       0.8754024311744988
+      ],
+      "n_pos": 3860,
+      "n_neg": 5201,
+      "n_pos_videos": 245,
+      "n_neg_videos": 40
+     },
+     "ap30": {
+      "value": 0.7308888686104896,
+      "ci": [
+       0.6535082098304179,
+       0.8084023396691077
+      ]
+     },
+     "base_rate30": 0.42600154508332416,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 97
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 97
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 97
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 0.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 497,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "onset:official": {
+     "videos_pos_side": 361,
+     "videos_neg_side": 338,
+     "far_window_auroc_clean": {
+      "value": 0.7526245384678867,
+      "ci": [
+       0.6680562505203537,
+       0.8277934311856735
+      ],
+      "n_pos": 962,
+      "n_neg": 35697,
+      "n_pos_videos": 57,
+      "n_neg_videos": 255
+     },
+     "auroc30": {
+      "value": 0.833340284483967,
+      "ci": [
+       0.7905420174448059,
+       0.870117114998646
+      ],
+      "n_pos": 3649,
+      "n_neg": 44734,
+      "n_pos_videos": 260,
+      "n_neg_videos": 313
+     },
+     "ap30": {
+      "value": 0.3024227154829018,
+      "ci": [
+       0.2551809771229629,
+       0.3578522518379324
+      ]
+     },
+     "base_rate30": 0.07541905214641506,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 75
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 75
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 75
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 659,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "onset:hivau": {
+     "videos_pos_side": 332,
+     "videos_neg_side": 338,
+     "far_window_auroc_clean": {
+      "value": 0.7563424242160792,
+      "ci": [
+       0.6724027381746626,
+       0.8296039031109942
+      ],
+      "n_pos": 1450,
+      "n_neg": 35697,
+      "n_pos_videos": 70,
+      "n_neg_videos": 255
+     },
+     "auroc30": {
+      "value": 0.8592159581470423,
+      "ci": [
+       0.8264358199430698,
+       0.8897849661120364
+      ],
+      "n_pos": 4510,
+      "n_neg": 47154,
+      "n_pos_videos": 297,
+      "n_neg_videos": 326
+     },
+     "ap30": {
+      "value": 0.3180267426217311,
+      "ci": [
+       0.27885042672907967,
+       0.3621050731075845
+      ]
+     },
+     "base_rate30": 0.08729482812016104,
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 123
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 123
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 123
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 644,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     }
+    },
+    "event:first_segment": {
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 120
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 120
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 120
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 693,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     },
+     "note": "event-level only (frame metrics use pre-violence ticks, i.e. first segments)"
+    },
+    "event:later_segment": {
+     "op_fa2": {
+      "success30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 78
+      },
+      "success10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 78
+      },
+      "success0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 78
+      },
+      "fa_per_hour_clean": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n_false_alarms": 0,
+       "hours": 14.832
+      },
+      "detection": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ],
+       "n": 610,
+       "definition": "any active alarm tick in [max(t0 - 120, clear_start), e], all events"
+      }
+     },
+     "note": "event-level only (frame metrics use pre-violence ticks, i.e. first segments)"
+    },
+    "horizon_by_source": {
+     "xd_movie": {
+      "5": {
+       "auroc": {
+        "value": 0.8804762855757273,
+        "ci": [
+         0.851259478843921,
+         0.9053234013106026
+        ],
+        "n_pos": 639,
+        "n_neg": 16832,
+        "n_pos_videos": 152,
+        "n_neg_videos": 145
+       },
+       "ap": {
+        "value": 0.19377324785961744,
+        "ci": [
+         0.15239116378129175,
+         0.24489923505129707
+        ]
+       },
+       "base_rate": 0.03657489554118253
+      },
+      "10": {
+       "auroc": {
+        "value": 0.8677017039191819,
+        "ci": [
+         0.8327984370228663,
+         0.8969704883850678
+        ],
+        "n_pos": 1033,
+        "n_neg": 16160,
+        "n_pos_videos": 153,
+        "n_neg_videos": 145
+       },
+       "ap": {
+        "value": 0.2600823619577073,
+        "ci": [
+         0.21198863730314577,
+         0.3189438870294494
+        ]
+       },
+       "base_rate": 0.06008259175245739
+      },
+      "20": {
+       "auroc": {
+        "value": 0.8498031569687347,
+        "ci": [
+         0.8063082127843378,
+         0.887393952218981
+        ],
+        "n_pos": 1525,
+        "n_neg": 14815,
+        "n_pos_videos": 154,
+        "n_neg_videos": 143
+       },
+       "ap": {
+        "value": 0.3358410631928003,
+        "ci": [
+         0.27935825093255573,
+         0.40145079876587053
+        ]
+       },
+       "base_rate": 0.09332925336597307
+      },
+      "30": {
+       "auroc": {
+        "value": 0.8311948076627904,
+        "ci": [
+         0.7794385334022076,
+         0.8770630490189347
+        ],
+        "n_pos": 1775,
+        "n_neg": 13489,
+        "n_pos_videos": 155,
+        "n_neg_videos": 141
+       },
+       "ap": {
+        "value": 0.368294392275579,
+        "ci": [
+         0.309403491420988,
+         0.43561588963891545
+        ]
+       },
+       "base_rate": 0.11628668763102726
+      },
+      "60": {
+       "auroc": {
+        "value": 0.7943042018195392,
+        "ci": [
+         0.7250193503475207,
+         0.8592951076705194
+        ],
+        "n_pos": 2079,
+        "n_neg": 9780,
+        "n_pos_videos": 157,
+        "n_neg_videos": 113
+       },
+       "ap": {
+        "value": 0.430926750546476,
+        "ci": [
+         0.3642493854520255,
+         0.5066589108760086
+        ]
+       },
+       "base_rate": 0.1753098912218568
+      }
+     },
+     "xd_youtube": {
+      "5": {
+       "auroc": {
+        "value": 0.8985151702642923,
+        "ci": [
+         0.8613753457955728,
+         0.9291552904881553
+        ],
+        "n_pos": 289,
+        "n_neg": 30468,
+        "n_pos_videos": 63,
+        "n_neg_videos": 137
+       },
+       "ap": {
+        "value": 0.07916387380653882,
+        "ci": [
+         0.053104776177477254,
+         0.12275423182724611
+        ]
+       },
+       "base_rate": 0.009396235003413857
+      },
+      "10": {
+       "auroc": {
+        "value": 0.8893772758065882,
+        "ci": [
+         0.8470108621224086,
+         0.9227824112839589
+        ],
+        "n_pos": 482,
+        "n_neg": 29792,
+        "n_pos_videos": 63,
+        "n_neg_videos": 135
+       },
+       "ap": {
+        "value": 0.10783974937240175,
+        "ci": [
+         0.07286900267021763,
+         0.15732963822721488
+        ]
+       },
+       "base_rate": 0.015921252559952435
+      },
+      "20": {
+       "auroc": {
+        "value": 0.8818902138543278,
+        "ci": [
+         0.8373599390995519,
+         0.91766183431173
+        ],
+        "n_pos": 768,
+        "n_neg": 28452,
+        "n_pos_videos": 63,
+        "n_neg_videos": 135
+       },
+       "ap": {
+        "value": 0.13951043578297462,
+        "ci": [
+         0.10181595157302567,
+         0.18747197128242155
+        ]
+       },
+       "base_rate": 0.026283367556468172
+      },
+      "30": {
+       "auroc": {
+        "value": 0.8807745454614231,
+        "ci": [
+         0.8347632440003906,
+         0.9178285234309763
+        ],
+        "n_pos": 975,
+        "n_neg": 27114,
+        "n_pos_videos": 63,
+        "n_neg_videos": 134
+       },
+       "ap": {
+        "value": 0.16842953966032656,
+        "ci": [
+         0.12465335756456183,
+         0.22253626799790113
+        ]
+       },
+       "base_rate": 0.03471109687066111
+      },
+      "60": {
+       "auroc": {
+        "value": 0.8766099226531795,
+        "ci": [
+         0.8239197179952462,
+         0.9165128536402068
+        ],
+        "n_pos": 1261,
+        "n_neg": 23296,
+        "n_pos_videos": 63,
+        "n_neg_videos": 123
+       },
+       "ap": {
+        "value": 0.22988057053579564,
+        "ci": [
+         0.17583690110790828,
+         0.2912629634113116
+        ]
+       },
+       "base_rate": 0.0513499205929063
+      }
+     },
+     "ucf": {
+      "5": {
+       "auroc": {
+        "value": 0.8195000997736996,
+        "ci": [
+         0.7477379688444804,
+         0.8692860539112914
+        ],
+        "n_pos": 1515,
+        "n_neg": 8253,
+        "n_pos_videos": 339,
+        "n_neg_videos": 72
+       },
+       "ap": {
+        "value": 0.41284399534206784,
+        "ci": [
+         0.35165728492607573,
+         0.48538837950775804
+        ]
+       },
+       "base_rate": 0.1550982800982801
+      },
+      "10": {
+       "auroc": {
+        "value": 0.8145789510391965,
+        "ci": [
+         0.7396665515820625,
+         0.8669547903037318
+        ],
+        "n_pos": 2680,
+        "n_neg": 8025,
+        "n_pos_videos": 339,
+        "n_neg_videos": 69
+       },
+       "ap": {
+        "value": 0.5525547928811935,
+        "ci": [
+         0.4876826876894169,
+         0.6251296949596055
+        ]
+       },
+       "base_rate": 0.2503503035964503
+      },
+      "20": {
+       "auroc": {
+        "value": 0.8035497921528277,
+        "ci": [
+         0.7212647829305878,
+         0.8595632080580841
+        ],
+        "n_pos": 4308,
+        "n_neg": 7618,
+        "n_pos_videos": 339,
+        "n_neg_videos": 62
+       },
+       "ap": {
+        "value": 0.6618856412408143,
+        "ci": [
+         0.5985637358601424,
+         0.7306642417878955
+        ]
+       },
+       "base_rate": 0.3612275700150931
+      },
+      "30": {
+       "auroc": {
+        "value": 0.7957677277263681,
+        "ci": [
+         0.7085169768926763,
+         0.8555966830562555
+        ],
+        "n_pos": 5409,
+        "n_neg": 7252,
+        "n_pos_videos": 339,
+        "n_neg_videos": 58
+       },
+       "ap": {
+        "value": 0.7132419657205509,
+        "ci": [
+         0.6487871220302469,
+         0.7786978620928479
+        ]
+       },
+       "base_rate": 0.4272174393807756
+      },
+      "60": {
+       "auroc": {
+        "value": 0.7675609350320598,
+        "ci": [
+         0.6630638343495898,
+         0.838629174680749
+        ],
+        "n_pos": 7231,
+        "n_neg": 6443,
+        "n_pos_videos": 339,
+        "n_neg_videos": 46
+       },
+       "ap": {
+        "value": 0.7678308683856269,
+        "ci": [
+         0.7077617928409996,
+         0.8318244423954188
+        ]
+       },
+       "base_rate": 0.5288138072253913
+      }
+     }
+    }
+   },
+   "_seconds": 5.2
+  }
+ },
+ "headline_seed": "0",
+ "counts": {
+  "test_videos": 1031,
+  "violent_videos": 693,
+  "clean_negative_videos": 338,
+  "clean_negative_hours": 15.17,
+  "test_hours": 36.98,
+  "ticks": 132824,
+  "eligible30_events": 198,
+  "eligible60_events": 73,
+  "all_events": 1303,
+  "eligible30_first_segment": 120,
+  "eligible30_late_window": 90,
+  "clean_negative_hours_unmasked": 14.83,
+  "threshold_set": "val",
+  "val_videos_per_fold": {
+   "0": 106,
+   "1": 105,
+   "2": 89,
+   "3": 114,
+   "4": 109
+  },
+  "val_clean_negative_hours_per_fold": {
+   "0": 1.99,
+   "1": 1.28,
+   "2": 1.17,
+   "3": 1.76,
+   "4": 1.42
+  }
+ }
+}

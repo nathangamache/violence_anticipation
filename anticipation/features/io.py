@@ -52,6 +52,10 @@ class Video:
     """Random-access decoder that samples frames by timestamp (seconds), not by index."""
 
     def __init__(self, path, num_threads=4, width=-1, height=-1):
+        try:
+            import torch  # noqa: F401  # decord loaded before torch segfaults on a later CUDA init
+        except ImportError:
+            pass
         import decord
 
         self.vr = decord.VideoReader(path, num_threads=num_threads, width=width, height=height)
