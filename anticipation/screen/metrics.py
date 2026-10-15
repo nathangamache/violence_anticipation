@@ -3,7 +3,7 @@
 import numpy as np
 
 from anticipation.eval.va30 import PairAUC, SOURCE_KINDS, TIME_MATCH_EDGES, time_match_weights
-from anticipation.screen.features import range_max
+from anticipation.screen.features import BASELINE_SEC, range_max
 
 SRC_CODE = {s: i for i, s in enumerate(SOURCE_KINDS)}
 KIND_CODE = {"clean": 0, "violent": 1, "h1": 2}
@@ -11,7 +11,7 @@ BANDS = {"band": (30, 120), "band_30_60": (30, 60), "long": (60, 120), "near": (
          "b10_30": (10, 30), "b30_60": (30, 60), "b60_120": (60, 120)}
 CLASS_GROUPS = {"dyadic": ("fighting", "abuse", "assault"), "instrumental": ("robbery", "shooting", "arrest"),
                 "riot": ("riot",)}
-TAIL_PCT, TAIL_MIN_TICKS = 99.5, 3
+TAIL_PCT, TAIL_MIN_TICKS, SPARSE_FPR = 99.5, 3, 0.01
 
 
 class Stat:
@@ -91,7 +91,7 @@ class Pool:
         self.events = ev
         self.ev_vi = np.array([self.index[v] for v in ev["video_id"]], np.int64) if len(ev) else np.zeros(0, np.int64)
         self.ev_ia = np.maximum(np.ceil(ev["win_lo"].values - 1e-9).astype(np.int64), 1) - 1 if len(ev) else np.zeros(0, np.int64)
-        self.ev_ib = np.floor(ev["win_hi"].values + 1e-9).astype(np.int64) - 1 if len(ev) else np.zeros(0, np.int64)
+        self.ev_ib = np.ceil(ev["win_hi"].values - 1e-9).astype(np.int64) - 2 if len(ev) else np.zeros(0, np.int64)
         self.ev_src = self.src_v[self.ev_vi] if len(ev) else np.zeros(0, np.int64)
         self.clean_idx = np.flatnonzero(self.kind_v == KIND_CODE["clean"])
         ev_first = set(ev.loc[ev["first"], "video_id"]) if len(ev) else set()
@@ -157,8 +157,10 @@ def weighted_quantile(x, w, q):
     return float(x[o][min(np.searchsorted(cw, q * cw[-1]), len(x) - 1)])
 
 
-def sparse_pauc(pool, score, d, W, fpr_max=0.01, chunk=100):
-    """McClish-standardized partial AUC at clean FPR <= fpr_max (time-matched negatives), with bootstrap."""
+def sparse_pauc(pool, score, d, W, fpr_max=SPARSE_FPR, chunk=100):
+    """McClish-standardized partial AUC at clean FPR <= fpr_max (time-matched negatives), with bootstrap.
+
+    Tied scores form one ROC step (diagonal trapezoid), so a constant or mostly-zero score gives 0.5."""
     pos2, neg, w = d
     if not pos2.any() or not (neg & (w > 0)).any():
         return Stat(None)
@@ -166,6 +168,8 @@ def sparse_pauc(pool, score, d, W, fpr_max=0.01, chunk=100):
     q = weighted_quantile(score[negs], w[negs], 1 - min(0.05, 5 * fpr_max))
     top = np.flatnonzero((pos2 | negs) & (score >= q))
     top = top[np.argsort(-score[top], kind="stable")]
+    sc = score[top]
+    starts = np.r_[0, np.flatnonzero(sc[1:] != sc[:-1]) + 1]
     vi, isneg = pool.vidx[top], negs[top]
     ispos = pos2[top]
     nw = np.where(isneg, w[top], 0.0)
@@ -179,12 +183,19 @@ def sparse_pauc(pool, score, d, W, fpr_max=0.01, chunk=100):
             wt = Wm[a:a + chunk][:, vi]
             dp = Wm[a:a + chunk] @ npos
             dn = Wm[a:a + chunk] @ nneg
-            tpr = np.cumsum(wt * ispos, axis=1) / dp[:, None]
-            nwt = wt * nw
-            fpr = np.cumsum(nwt, axis=1) / dn[:, None]
-            prev = fpr - nwt / dn[:, None]
-            width = np.clip(np.minimum(fpr, fpr_max) - np.minimum(prev, fpr_max), 0, None)
-            area = (tpr * width).sum(1)
+            gp = np.add.reduceat(wt * ispos, starts, axis=1)
+            gn = np.add.reduceat(wt * nw, starts, axis=1)
+            tpr = np.cumsum(gp, axis=1) / dp[:, None]
+            fpr = np.cumsum(gn, axis=1) / dn[:, None]
+            tpr0 = np.concatenate([np.zeros((len(tpr), 1)), tpr[:, :-1]], axis=1)
+            fpr0 = np.concatenate([np.zeros((len(fpr), 1)), fpr[:, :-1]], axis=1)
+            lo, hi = np.minimum(fpr0, fpr_max), np.minimum(fpr, fpr_max)
+            width = np.clip(hi - lo, 0, None)
+            span = fpr - fpr0
+            with np.errstate(invalid="ignore", divide="ignore"):
+                frac = np.where(span > 0, (hi - fpr0) / span, 0.0)
+            tpr_hi = tpr0 + (tpr - tpr0) * np.clip(frac, 0, 1)
+            area = (0.5 * (tpr0 + tpr_hi) * width).sum(1)
             out[a:a + chunk] = 0.5 * (1 + (area - amin) / (amax - amin))
         return out
 
@@ -304,8 +315,8 @@ def ramp_stat(pool, score):
             "wilcoxon_p": float(wilcoxon(d).pvalue)}
 
 
-def ratio_stat(num, den, floor=0.01):
-    """(num - 0.5) / (den - 0.5) with bootstrap; undefined where the denominator is below ``floor``."""
+def ratio_stat(num, den, floor=0.0):
+    """(num - 0.5) / (den - 0.5) with bootstrap; undefined where the denominator is not above ``floor``."""
     def f(a, b):
         a, b = np.asarray(a, float) - 0.5, np.asarray(b, float) - 0.5
         with np.errstate(invalid="ignore", divide="ignore"):
@@ -338,9 +349,14 @@ def evaluate_pool(pool, scores, val_scores, W, persons=None, primary_audio=False
     s = scores["p1"]
     out["m1"] = P.auc(s, d_band, W)
     out["m1_30_60"] = P.auc(s, d_6, W)
+    late = P.t > BASELINE_SEC
+    d_band_b = P.pair_def(("band_b", primary_audio), P.band_pos(30, 120, vsel=vsel) & late, neg & late)
     for m in ("p1s", "p1b", "n", "time_source", "shuffled", "b_detect", "n_plus_p1"):
         if m in scores:
-            out[f"m1_{m}"] = P.auc(scores[m], d_band, W)
+            out[f"m1_{m}"] = P.auc(scores[m], d_band_b if m == "p1b" else d_band, W)
+    if "p1b" in scores:
+        out["m1_p1_late"] = P.auc(s, d_band_b, W)
+        out["p1b_gain_over_p1"] = diff(out["m1_p1b"], out["m1_p1_late"])
     if "p1_later" in scores:
         d = P.pair_def("later", P.band_pos(30, 120, first=False), neg)
         out["m1_later"] = P.auc(scores["p1_later"], d, W)
@@ -366,6 +382,8 @@ def evaluate_pool(pool, scores, val_scores, W, persons=None, primary_audio=False
             first_tick[sl] = s[min(sl.start + 1, sl.stop - 1)]
     d_ramp = P.pair_def("ramp", P.band_pos(30, 120, vsel=ramp_v), neg)
     out["m4b_first_frame"] = P.auc(first_tick, d_ramp, W)
+    out["m1_ramp"] = P.auc(s, d_ramp, W)
+    out["m1_ramp_gain_over_m4b"] = diff(out["m1_ramp"], out["m4b_first_frame"])
     out["m1_sparse_pauc"] = sparse_pauc(P, s, d_band, W)
     thr_v = tail_thresholds(P, val_scores["p1"]) if "p1" in val_scores else None
     out["events"] = event_metrics(P, s, W, thr_v)

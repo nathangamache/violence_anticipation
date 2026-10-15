@@ -10,12 +10,15 @@ from anticipation.screen.sets import REPO_ROOT
 
 WINDOWS = (10, 60, 180)
 SLOPE_WINDOWS = (15, 30, 60)
-BASELINE_SEC = 20
+BASELINE_SEC = 10
 WIDE_COLUMNS = 256
 PLS_COMPONENTS = 32
 SCENE_STREAM = "siglip2_scene0p"
 CUT_STREAM, CUT_COLUMN = "motion", "cut_1s"
 CAMERA_COLUMNS = ("cam_flow_mag", "cam_shake", "cam_flow_mag_5s", "hist_dist_max", "cut_1s", "cuts_5s", "time_since_cut")
+LOWER_IS_RISK_STEMS = ("calm", "intervention", "separat", "walk_away", "apolog", "deescalat")
+
+AVAILABLE, NOT_AVAILABLE, BLOCKED_AUDIO_GATE = "AVAILABLE", "NOT_AVAILABLE", "BLOCKED_AUDIO_GATE"
 
 
 @dataclass(frozen=True)
@@ -25,37 +28,76 @@ class Block:
     streams: tuple
     include: tuple = ()
     exclude: tuple = ()
-    lower_is_risk: tuple = ()
     sources: tuple = ()
     audio: bool = False
     g2_exempt: bool = False
+    cue_directions: bool = False
     note: str = ""
 
 
-PROMPT_LOW = ("calm_street", "talk_calm", "handshake", "hug", "queue_calm", "restaurant_calm", "store_empty",
-              "parking_empty", "office_work")
-PROMPT_V2_LOW = ("phase_calm", "phase_deescalation", "walk_away", "apologize", "calm_two")
+def p0_sign(column, block):
+    """P0 direction: -1 for the pre-declared lower-is-risk cue concepts of a prompt block, else +1."""
+    if not block.cue_directions:
+        return 1.0
+    name = column.split(":", 1)[-1]
+    return -1.0 if any(stem in name for stem in LOWER_IS_RISK_STEMS) else 1.0
+
 
 BLOCKS = {b.name: b for b in [
     Block("pose_interact", "A", ("pose_interact",)),
-    Block("pose_state", "A", ("pose_state",)),
-    Block("pose_state_pairs", "A", ("pose_state", "pose_state_pairs"), sources=("ucf", "ubi"),
-          note="pair-identity variant; UCF and UBI only"),
-    Block("siglip2_prompts_v1", "A", ("siglip2_prompts",), lower_is_risk=PROMPT_LOW),
-    Block("siglip2_prompts_v2", "A", ("siglip2_prompts_v2",), lower_is_risk=PROMPT_V2_LOW),
+    Block("pose_state_identity_free", "A", ("pose_state",)),
+    Block("pose_state_pair_identity_ucf_ubi", "A", ("pose_state", "pose_state_pairs"), sources=("ucf", "ubi"),
+          note="pose_state plus the identity-keyed pair stream; UCF and UBI only"),
+    Block("siglip2_prompts_v1", "A", ("siglip2_prompts",), cue_directions=True),
+    Block("siglip2_prompts_v2", "A", ("siglip2_prompts_v2",), cue_directions=True),
     Block("siglip2", "A", ("siglip2",)),
     Block("vjepa2_l", "A", ("vjepa2_l",)),
-    Block("motion_nocam", "A", ("motion",), exclude=CAMERA_COLUMNS),
-    Block("motion_cam", "A", ("motion",), include=CAMERA_COLUMNS, note="shortcut block"),
-    Block("audio_dsp", "B", ("audio_dsp",), lower_is_risk=("quiet_frac",), audio=True),
-    Block("ast_events", "B", ("ast_events",), lower_is_risk=("Silence",), audio=True),
+    Block("motion_no_camera", "A", ("motion",), exclude=CAMERA_COLUMNS),
+    Block("motion_camera_shortcut", "A", ("motion",), include=CAMERA_COLUMNS, note="shortcut block"),
+    Block("audio_dsp", "B", ("audio_dsp",), audio=True),
+    Block("ast_events", "B", ("ast_events",), audio=True),
     Block("clap_prompts", "B", ("clap_prompts",), audio=True),
-    Block("speech_tox", "B", ("speech_tox",), lower_is_risk=("kw_deescalate",), audio=True),
-    Block("voice_affect", "B", ("voice_affect",), lower_is_risk=("valence", "e2v_happy", "e2v_neutral"), audio=True),
+    Block("speech_tox", "B", ("speech_tox",), audio=True),
+    Block("voice_affect", "B", ("voice_affect",), audio=True),
     Block("e2v_emb", "B", ("e2v_emb",), audio=True),
 ]}
-PHASE_C = ("vlm_arm_a", "vlm_arm_b", "vlm_arm_c", "vlm_forecast", "vlm_hidden_probe")
-EXTERNAL_REFERENCES = ("aggression_level", "b_teacher")
+
+NO_EXTRACTOR = {
+    "camera_wearer_diagnostic": "no extractor or column definition for a camera-wearer diagnostic",
+    "overlap_and_duty_cycles": "no extractor (speaker overlap and duty cycles need diarization)",
+    "dialogue_acts": "no extractor (dialogue-act tagging of transcripts)",
+    "vlm_single_frame_A": "Phase C VLM arm: no extractor or cached outputs",
+    "vlm_short_clip_B": "Phase C VLM arm: no extractor or cached outputs",
+    "vlm_long_window_C": "Phase C VLM arm: no extractor or cached outputs",
+    "vlm_forecast": "Phase C VLM arm: no extractor or cached outputs",
+    "vlm_hidden_state_probe": "Phase C VLM arm: no extractor or cached outputs",
+}
+EXTERNAL_REFERENCES = ("aggression_level_no_context", "b_teacher")
+
+
+def resolve_blocks(prereg):
+    """Status of every block named in the pre-registration: ``[{name, phase, status, reason, streams}]``.
+
+    Raises if the registry holds a block the registration does not name; a registered block without an extractor is
+    reported NOT_AVAILABLE and a Phase B block behind the audio gate BLOCKED_AUDIO_GATE, never dropped."""
+    frozen = prereg.block_phases()
+    named = {n for names in frozen.values() for n in names}
+    extra = sorted(set(BLOCKS) - named)
+    if extra:
+        raise ValueError(f"blocks not in the pre-registration: {extra}")
+    out = []
+    for phase, names in frozen.items():
+        for n in names:
+            b = BLOCKS.get(n)
+            if b is None:
+                out.append({"name": n, "phase": phase, "status": NOT_AVAILABLE, "streams": [],
+                            "reason": NO_EXTRACTOR.get(n, "no extractor registered")})
+            elif b.audio and prereg.audio_blocked:
+                out.append({"name": n, "phase": phase, "status": BLOCKED_AUDIO_GATE, "streams": list(b.streams),
+                            "reason": str(prereg.data["audio_gate"])})
+            else:
+                out.append({"name": n, "phase": phase, "status": AVAILABLE, "streams": list(b.streams), "reason": b.note})
+    return out
 
 
 class FeatureSource:
@@ -147,7 +189,8 @@ def load_block(source, block, vid, n_ticks=None):
 
 
 def cut_flags(source, vid, T):
-    """Shot-cut flags per tick from the motion stream (all False when the stream is missing)."""
+    """Shot-cut flags per tick from the motion stream and whether they are complete (False when the stream is
+    missing, lacks the cut column or is shorter than ``T``)."""
     try:
         t, x, v, meta = source.load(CUT_STREAM, vid)
     except (FileNotFoundError, OSError, KeyError):
@@ -159,7 +202,7 @@ def cut_flags(source, vid, T):
     out = np.zeros(T, bool)
     n = min(T, len(c))
     out[:n] = c[:n]
-    return out, True
+    return out, len(c) >= T
 
 
 def last_cut_index(cut):
@@ -174,7 +217,9 @@ def _csum(a):
 
 
 def window_left(T, W, cut_last):
-    return np.maximum(np.maximum(np.arange(T) - W + 1, cut_last + 1), 0)
+    """First tick index of each window; a cut tick keeps its own value so a window is never empty."""
+    i = np.arange(T)
+    return np.minimum(np.maximum(np.maximum(i - W + 1, cut_last + 1), 0), i)
 
 
 def range_max(x, left, right):
@@ -202,7 +247,7 @@ def range_max(x, left, right):
 def window_features(x, cut_last, thr, windows=WINDOWS, slopes=()):
     """P1 summaries of ``x [T, D]``: per window mean, max and fraction above ``thr`` (stat-major columns),
     then slopes. Windows are cut at the clip start and after the latest shot cut and divided by the ticks they
-    contain; an empty window gives zeros."""
+    contain."""
     T, D = x.shape
     right = np.arange(T)
     cs = _csum(x)
@@ -241,12 +286,12 @@ def feature_names(cols, windows=WINDOWS, slopes=()):
 
 
 def early_baseline_subtract(x, seconds=BASELINE_SEC):
-    """x minus the causal per-video early baseline (running mean over the first ``seconds`` ticks)."""
-    T = len(x)
-    cs = _csum(x)
-    k = np.minimum(np.arange(T) + 1, seconds)
-    base = cs[k] / k[:, None]
-    return (x - base).astype(np.float32)
+    """x minus the mean of ticks 1..``seconds``, applied only after tick ``seconds``; earlier rows are zeroed (they are
+    masked out of training and scoring by the caller)."""
+    out = np.zeros_like(x, dtype=np.float32)
+    if len(x) > seconds:
+        out[seconds:] = x[seconds:] - x[:seconds].mean(0)
+    return out
 
 
 class Pls:

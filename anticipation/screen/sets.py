@@ -63,9 +63,19 @@ class ScreenSet:
     """Videos, ticks and events of the screening folds; fold ``frozen_fold`` is unreachable."""
 
     def __init__(self, bench, h1=None, screen_folds=SCREEN_FOLDS, frozen_fold=FROZEN_FOLD, soft_masks=None,
-                 soft_mask_info=None):
+                 soft_mask_info=None, prereg=None):
+        if prereg is not None:
+            screen_folds, frozen_fold = tuple(prereg.screen_folds), prereg.confirmation_fold
+            soft_masks, soft_mask_info = {}, {"applied": False, "path": None, "sha256": None, "videos": 0,
+                                              "reason": "label_policy: proposed masks are not applied in v2"}
         if frozen_fold in screen_folds:
             raise ValueError("the frozen fold cannot be a screening fold")
+        self.prereg = prereg
+        self._kind_of = {}
+        if prereg is not None:
+            for name, kind in (("positive_videos", "violent"), ("clean_cpu_videos", "clean"), ("h1_videos", "h1")):
+                for v in prereg.ids(name):
+                    self._kind_of[v] = kind
         self.bench = bench
         self.screen_folds = tuple(screen_folds)
         self.frozen_fold = frozen_fold
@@ -110,10 +120,14 @@ class ScreenSet:
         return [v for v in ids if self.fold_of(v) in self.screen_folds]
 
     def eval_ids(self):
+        if self.prereg is not None:
+            return set(self._kind_of)
         return set(self._in_screen(self.bench.eval_ids()))
 
     def test_ids(self, f, kinds=("violent", "clean")):
         self.guard_fold(f)
+        if self.prereg is not None:
+            return sorted(v for v in self.prereg.membership(f, "test") if self._kind_of.get(v) in kinds)
         ids = self.eval_ids()
         out = [v for v in self.bench.folds.test_ids(f) if v in ids]
         out = [v for v in out if self.kind(v) in kinds]
@@ -123,15 +137,21 @@ class ScreenSet:
 
     def train_ids(self, f):
         self.guard_fold(f)
+        if self.prereg is not None:
+            return [v for v in self.prereg.membership(f, "train") if self._kind_of.get(v) in ("violent", "clean")]
         ids = self.eval_ids()
         return [v for v in self.bench.folds.train_ids(f) if v in ids]
 
     def val_ids(self, f):
         self.guard_fold(f)
+        if self.prereg is not None:
+            return [v for v in self.prereg.membership(f, "val") if self._kind_of.get(v) in ("violent", "clean")]
         ids = self.eval_ids()
         return [v for v in self.bench.folds.val_ids(f) if v in ids]
 
     def kind(self, vid):
+        if vid in self._kind_of:
+            return self._kind_of[vid]
         if vid in self.h1.index and vid not in self.bench.videos.index:
             return "h1"
         role = self.bench.videos.loc[vid, "role"]
@@ -152,21 +172,39 @@ class ScreenSet:
         last = max(elig) if elig else (max(r["onset"] for r in rows) if rows else 0.0)
         return int(np.floor(last + POST_ONSET_SEC))
 
+    def n_ticks_frozen(self, vid):
+        """Number of scored ticks of a video from the frozen scored interval (None without a pre-registration)."""
+        if self.prereg is None:
+            return None
+        lo, hi = self.prereg.interval(vid)
+        return int(np.floor(hi + 1e-9)) - int(np.ceil(lo - 1e-9)) + 1
+
+    def ticks_computed(self, vid):
+        """Tick count the previous in-code rules give (violent: last eligible onset + 10 s; clean: label length;
+        H1: min(first anomaly, 300 s, duration))."""
+        kind = self.kind(vid)
+        if kind == "h1":
+            r = self.h1.loc[vid]
+            return max(int(np.floor(min(float(r["first_anomaly_sec"]) - 1e-6, H1_MAX_SEC, float(r["duration_sec"])))), 0)
+        lab = self.bench.labels(vid)
+        return lab.T if kind == "clean" else min(lab.T, self.violent_cut(vid))
+
     def ticks(self, vid):
         self.guard(vid)
         if vid in self._ticks:
             return self._ticks[vid]
         kind = self.kind(vid)
+        nf = self.n_ticks_frozen(vid)
         if kind == "h1":
             r = self.h1.loc[vid]
             fa = float(r["first_anomaly_sec"])
-            n = int(np.floor(min(fa - 1e-6, H1_MAX_SEC, float(r["duration_sec"]))))
+            n = self.ticks_computed(vid) if nf is None else min(nf, int(np.floor(float(r["duration_sec"]))))
             t = np.arange(1, max(n, 0) + 1, dtype=np.float64)
             vt = VideoTicks(vid, kind, t, fa - t, np.ones(len(t), bool), np.zeros(len(t), bool),
                             np.zeros(len(t), bool), float(r["duration_sec"]) - t, np.zeros(len(t), np.int64))
         else:
             lab = self.bench.labels(vid)
-            n = lab.T if kind == "clean" else min(lab.T, self.violent_cut(vid))
+            n = self.ticks_computed(vid) if nf is None else min(lab.T, nf)
             sl = slice(0, n)
             masked = lab.masked[sl].copy()
             for s, e, *_ in self.soft_masks.get(vid, []):
@@ -177,8 +215,11 @@ class ScreenSet:
         return vt
 
     def events(self):
-        """Eligible30 events of the screening-fold test videos, one row each."""
+        """Eligible30 events of the screening-fold test videos, one row each (frozen list under a pre-registration)."""
         if self._events is not None:
+            return self._events
+        if self.prereg is not None:
+            self._events = self._frozen_events()
             return self._events
         rows = []
         for f in self.screen_folds:
@@ -187,26 +228,52 @@ class ScreenSet:
                 for e in self.bench.event_rows(vid):
                     if not e["eligible30"]:
                         continue
-                    first = e["index"] == 0
-                    src = str(r["source_kind"])
-                    rows.append({"video_id": vid, "fold": f, "index": e["index"], "onset": e["onset"],
-                                 "clear_start": e["clear_start"], "leadin": e["leadin"], "max_lead": e["max_lead"],
-                                 "eligible60": e["eligible60"], "first": first, "source_kind": src,
-                                 "onset_source": str(r["onset_source"]), "has_audio": bool(r["has_audio"]),
-                                 "split_group": self.split_group.get(vid, vid),
-                                 "win_lo": max(e["onset"] - 120.0, e["clear_start"]), "win_hi": e["onset"] - 30.0,
-                                 "s_real": first and src != "xd_movie", "s_long60": first and e["eligible60"],
-                                 "s_ramp": first and e["max_lead"] >= 90,
-                                 "s_offubi": first and str(r["onset_source"]) in ("official", "ubi"),
-                                 "s_audio": first and src in ("ucf", "xd_youtube") and bool(r["has_audio"])})
-        self._events = pd.DataFrame(rows)
+                    rows.append(self._event_row(vid, f, e, str(r["source_kind"]), str(r["onset_source"]), bool(r["has_audio"]),
+                                                e["index"] == 0))
+        df = pd.DataFrame(rows)
+        for name, cond in (("s_real", lambda r: r.first and r.source_kind != "xd_movie"),
+                           ("s_long60", lambda r: r.first and r.eligible60),
+                           ("s_ramp", lambda r: r.first and r.max_lead >= 90),
+                           ("s_offubi", lambda r: r.first and r.onset_source in ("official", "ubi")),
+                           ("s_audio", lambda r: r.first and r.source_kind in ("ucf", "xd_youtube") and r.has_audio)):
+            df[name] = [bool(cond(r)) for r in df.itertuples()] if len(df) else []
+        self._events = df
         return self._events
+
+    def _event_row(self, vid, f, e, src, onset_source, has_audio, first):
+        return {"video_id": vid, "fold": f, "index": e["index"], "onset": e["onset"], "clear_start": e["clear_start"],
+                "leadin": e["leadin"], "max_lead": e["max_lead"], "eligible60": e["eligible60"], "first": first,
+                "source_kind": src, "onset_source": onset_source, "has_audio": has_audio,
+                "split_group": self.split_group.get(vid, vid),
+                "win_lo": max(e["onset"] - 120.0, e["clear_start"]), "win_hi": e["onset"] - 30.0}
+
+    def _frozen_events(self):
+        pr = self.prereg
+        keyed = lambda name: {(e["video_id"], e["index"]) for e in pr.events(name)}  # noqa: E731
+        first = keyed("first_events")
+        rows = []
+        for e in pr.events("eligible30_events"):
+            vid = e["video_id"]
+            r = self.bench.videos.loc[vid]
+            rows.append(self._event_row(vid, self.fold_of(vid), e, e["source_kind"], e["onset_source"], bool(r["has_audio"]),
+                                        (vid, e["index"]) in first))
+        df = pd.DataFrame(rows)
+        for col, name in (("s_real", "real_first_events"), ("s_long60", "long60_first_events"),
+                          ("s_ramp", "ramp90_first_events"), ("s_offubi", "official_ubi_first_events"),
+                          ("s_audio", "audio_first_event_candidates")):
+            keys = keyed(name)
+            df[col] = [(v, i) in keys for v, i in zip(df["video_id"], df["index"])]
+        return df[df["fold"].isin(self.screen_folds)].reset_index(drop=True)
 
     def h1_ids(self, folds=None):
         folds = self.screen_folds if folds is None else folds
+        if self.prereg is not None:
+            return sorted(v for v in self.prereg.ids("h1_videos") if self.fold_of(v) in folds)
         return sorted(v for v in self.h1.index if self.fold_of(v) in folds)
 
     def h1p_ids(self):
+        if self.prereg is not None:
+            return sorted(self.prereg.ids("h1p_videos"))
         out = []
         for v in self.h1_ids():
             if self.source_kind(v) == "ucf" and any(c in str(self.h1.loc[v, "classes"]).split("|") for c in H1P_CLASSES):
@@ -217,8 +284,9 @@ class ScreenSet:
         ev = self.events()
         clean = [v for f in self.screen_folds for v in self.test_ids(f, kinds=("clean",))]
         pos = sorted(set(ev["video_id"]))
+        first_ev = int(ev["first"].sum())
         pos_ticks = sum(self.ticks(v).n for v in pos)
-        out = {"positive_videos": len(pos), "events": int(len(ev)), "first_segment_events": int(ev["first"].sum()),
+        out = {"positive_videos": len(pos), "events": int(len(ev)), "first_segment_events": first_ev,
                "s_real": int(ev["s_real"].sum()), "s_long60": int(ev["s_long60"].sum()),
                "s_ramp": int(ev["s_ramp"].sum()), "s_offubi": int(ev["s_offubi"].sum()),
                "s_audio_before_diegetic_filter": int(ev["s_audio"].sum()),
@@ -240,7 +308,9 @@ def list_sha256(ids):
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
-def load_screen_set(folds=None, horizons=MANIFEST_V1, h1_manifest=MANIFEST_V2, soft_masks_path=SOFT_MASKS_PATH):
+def load_screen_set(prereg=None, folds=None, horizons=MANIFEST_V1, h1_manifest=MANIFEST_V2, soft_masks_path=SOFT_MASKS_PATH):
+    """With ``prereg`` the cohorts, intervals and fold memberships come from the frozen file; without it the
+    previous in-code rules are used (kept for the agreement check)."""
     bench = va30.Benchmark.load(folds, horizons=horizons)
     h1 = None
     if h1_manifest and os.path.isfile(h1_manifest):
@@ -254,5 +324,7 @@ def load_screen_set(folds=None, horizons=MANIFEST_V1, h1_manifest=MANIFEST_V2, s
         m["split_group"] = cat.loc[m["video_id"], "split_group"].values
         h1 = m[["video_id", "source_kind", "classes", "first_anomaly_sec", "duration_sec", "split_group"]]
         h1 = h1[h1["first_anomaly_sec"].notna()]
+    if prereg is not None:
+        return ScreenSet(bench, h1, prereg=prereg)
     masks, info = load_soft_masks(soft_masks_path)
     return ScreenSet(bench, h1, soft_masks=masks, soft_mask_info=info)

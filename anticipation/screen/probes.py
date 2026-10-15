@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 
-from anticipation.eval.va30 import SOURCE_KINDS, TIME_EDGES, TIME_MATCH_EDGES, time_match_weights, time_strata
+from anticipation.eval.va30 import SOURCE_KINDS, TIME_MATCH_EDGES, time_match_weights, time_strata
 from anticipation.screen import features as F
 
 C_GRID = (1e-3, 1e-2, 1e-1, 1.0, 10.0)
@@ -19,12 +19,13 @@ MAX_PLS_ROWS = 40000
 MAX_THR_ROWS = 300000
 CLIP_Z = 10.0
 SCENE_PCA = 32
+SCENE_T_SEC = 2.0
 SRC_CODE = {s: i for i, s in enumerate(SOURCE_KINDS)}
-TARGETS = ("band", "near", "later", "detect")
+TARGETS = ("band", "band_b", "near", "later", "detect")
 
 MODELS = {
     "p1": ("p1", "band"), "p1_near": ("p1", "near"), "p1_later": ("p1", "later"), "b_detect": ("p1", "detect"),
-    "p1s": ("p1s", "band"), "p1b": ("p1b", "band"), "n_plus_p1": ("n_plus_p1", "band"),
+    "p1s": ("p1s", "band"), "p1b": ("p1b", "band_b"), "n_plus_p1": ("n_plus_p1", "band"),
 }
 
 
@@ -33,8 +34,11 @@ def target_masks(vt, target):
     clean = vt.kind == "clean"
     viol = vt.kind == "violent"
     neg = np.full(vt.n, clean) & ok & (vt.remaining >= 60)
-    if target == "band":
+    if target in ("band", "band_b"):
         pos = viol & vt.pre & ok & (vt.tte > 30) & (vt.tte <= 120)
+        if target == "band_b":
+            late = vt.t > F.BASELINE_SEC
+            pos, neg = pos & late, neg & late
     elif target == "near":
         pos = viol & vt.pre & ok & (vt.tte > 0) & (vt.tte <= 10)
     elif target == "later":
@@ -175,12 +179,14 @@ class Nuisance:
 
     def features(self, vt, src):
         T = vt.n
-        nb = len(TIME_EDGES) - 1
-        bins = np.clip(np.searchsorted(np.asarray(TIME_EDGES[1:-1]), vt.t, side="right"), 0, nb - 1)
+        nb = len(TIME_MATCH_EDGES) - 1
+        bins = np.clip(np.searchsorted(np.asarray(TIME_MATCH_EDGES[1:-1]), vt.t, side="right"), 0, nb - 1)
         hot = np.zeros((T, len(SOURCE_KINDS) * nb), np.float32)
         hot[np.arange(T), SRC_CODE.get(src, 0) * nb + bins] = 1
         z, miss = self.scene_vec(vt.vid)
-        return np.concatenate([hot, np.tile(z, (T, 1)), np.full((T, 1), miss, np.float32)], axis=1)
+        z = np.tile(z, (T, 1))
+        z[vt.t < SCENE_T_SEC] = 0
+        return np.concatenate([hot, z, np.full((T, 1), miss, np.float32)], axis=1)
 
 
 def time_source_rates(vts, source_of):
@@ -206,15 +212,21 @@ def time_source_score(rates, prior, vt, src):
     return r[b] if r is not None else np.full(vt.n, float(np.mean(prior)))
 
 
+class CutStreamError(RuntimeError):
+    pass
+
+
 class BlockRun:
     """Runs every probe and control of one block on the screening folds."""
 
     def __init__(self, ss, source, block, seed=0, max_pos=MAX_TRAIN_POS, max_neg=MAX_TRAIN_NEG,
-                 wide_columns=F.WIDE_COLUMNS, n_components=F.PLS_COMPONENTS, cs=C_GRID, arms=("p1", "p1s", "p1b")):
+                 wide_columns=F.WIDE_COLUMNS, n_components=F.PLS_COMPONENTS, cs=C_GRID, arms=("p1", "p1s", "p1b"),
+                 require_cut=True):
         self.ss, self.source, self.block = ss, source, block
         self.seed, self.max_pos, self.max_neg = seed, max_pos, max_neg
         self.wide_columns, self.n_components, self.cs, self.arms = wide_columns, n_components, cs, arms
         self._raw, self._cut, self._vt, self._vf, self.columns = {}, {}, {}, {}, None
+        self.require_cut, self.cut_incomplete = require_cut, []
         self.width = None
 
     def src(self, vid):
@@ -246,6 +258,10 @@ class BlockRun:
     def cut_last(self, vid):
         if vid not in self._cut:
             flags, ok = F.cut_flags(self.source, vid, self.vt(vid).n)
+            if not ok:
+                if self.require_cut:
+                    raise CutStreamError(f"{vid}: motion cut stream missing or shorter than the scored ticks")
+                self.cut_incomplete.append(vid)
             self._cut[vid] = (F.last_cut_index(flags), ok)
         return self._cut[vid][0]
 
@@ -281,12 +297,13 @@ class BlockRun:
             x = self.xform(v)
             keep = ~vt.masked
             rows.append(x[keep])
-            rows_b.append(F.early_baseline_subtract(x)[keep])
+            rows_b.append(F.early_baseline_subtract(x)[keep & (vt.t > F.BASELINE_SEC)])
         if not rows:
             raise ValueError("no clean training ticks")
         step = max(1, int(np.ceil(sum(map(len, rows)) / MAX_THR_ROWS)))
         self.thr = {"p1": np.percentile(np.concatenate(rows)[::step], 95, axis=0).astype(np.float32),
-                    "p1b": np.percentile(np.concatenate(rows_b)[::step], 95, axis=0).astype(np.float32)}
+                    "p1b": (np.percentile(np.concatenate(rows_b)[::step], 95, axis=0) if rows_b and sum(map(len, rows_b))
+                    else np.zeros(rows[0].shape[1])).astype(np.float32)}
         self.thr["p1s"] = self.thr["p1"]
 
     def xform(self, vid):
@@ -295,9 +312,11 @@ class BlockRun:
 
     def feats(self, vid, arm):
         x = self.xform(vid)
+        cut = self.cut_last(vid)
         if arm == "p1b":
             x = F.early_baseline_subtract(x)
-        return F.window_features(x, self.cut_last(vid), self.thr[arm],
+            cut = np.maximum(cut, F.BASELINE_SEC - 1)
+        return F.window_features(x, cut, self.thr[arm],
                                  slopes=F.SLOPE_WINDOWS if arm == "p1s" else ())
 
     def multi(self, vid, nuis=None):

@@ -1,131 +1,159 @@
-"""Pre-registration of the screen: set definition with video-list hashes, probe grids, thresholds, decision rule."""
+"""Loader and verifier of the frozen pre-registration benchmark/screens/screen_set_v1.json (never written here)."""
 
-import datetime
 import hashlib
 import json
 import os
 
+import numpy as np
+
 from anticipation.data.catalog import REPO_ROOT, file_sha256
-from anticipation.screen import decision as D
-from anticipation.screen import features as F
-from anticipation.screen import probes as P
-from anticipation.screen import sets as S
 
 PREREG_PATH = os.path.join(REPO_ROOT, "benchmark", "screens", "screen_set_v1.json")
+PINNED_SHA256 = {"screen_set_v1.json": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"}
+REQUIRED_KEYS = ("version", "status", "screen_folds", "confirmation_fold", "sets", "scored_intervals_sec", "audio_gate",
+                 "label_policy", "blocks", "controls", "probes", "nuisance", "metrics", "gates", "classes", "tags",
+                 "forward_selection", "fold_membership", "provenance")
+REQUIRED_SETS = ("positive_videos", "eligible30_events", "clean_cpu_videos", "clean_vlm_videos", "h1_videos", "h1p_videos",
+                 "first_events")
 
 
-def build(ss, git_commit=None):
-    lists = ss.video_lists()
-    counts = ss.counts()
-    ev = ss.events()
-    sets = {k: {"n": len(v), "sha256": S.list_sha256(v), "video_ids": v} for k, v in lists.items()}
-    for name in ("s_real", "s_long60", "s_ramp", "s_offubi", "s_audio"):
-        ids = sorted(set(ev.loc[ev[name], "video_id"]))
-        sets[name] = {"n_events": int(ev[name].sum()), "n_videos": len(ids), "sha256": S.list_sha256(ids)}
-    events_key = sorted(f"{r.video_id}|{r.index}" for r in ev.itertuples())
-    sets["events"] = {"n": len(events_key), "sha256": S.list_sha256(events_key)}
-    bench = ss.bench
-    return {
-        "name": "screen_set_v1",
-        "created_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-        "plan": "docs/MODALITY_PLAN.md section 6",
-        "git_commit": git_commit,
-        "inputs": {"folds": bench.provenance.get("folds_path"), "folds_content_sha256": bench.provenance.get("folds_content_sha256"),
-                   "videos_csv_sha256": bench.provenance.get("videos_csv_sha256"),
-                   "events_json_sha256": bench.provenance.get("events_json_sha256"),
-                   "horizons": bench.provenance.get("video_horizons"),
-                   "h1_manifest": "benchmark/extract_manifest_v2.csv",
-                   "h1_manifest_sha256": file_sha256(S.MANIFEST_V2) if os.path.isfile(S.MANIFEST_V2) else None},
-        "folds": {"screening": list(ss.screen_folds), "frozen_confirmation": ss.frozen_fold,
-                  "rule": "no feature, score or label of a fold-1 video is read during the screen; fold-1 videos are "
-                          "also excluded from every training and validation set (screen_set.ScreenSet.guard)"},
-        "soft_masks": ss.soft_mask_info,
-        "counts": counts,
-        "plan_counts": {"positive_videos": 373, "events": 446, "first_segment_events": 253, "s_real": 165,
-                        "s_long60": 100, "s_ramp": 61, "s_offubi": 74, "s_audio": 86, "clean_negative_videos": 3200,
-                        "clean_negative_hours": 125, "h1_videos": 320, "h1p_videos": 102},
-        "sets": sets,
-        "tick_definitions": {
-            "positive_ticks": "first-segment pre-violence unmasked ticks 1..(last eligible onset + 10 s) of eligible30 "
-                              "videos of the screening test folds; masked ticks follow Benchmark.labels plus soft masks",
-            "band_positive": "tte in (30, 120] (M1; also (30, 60], (60, 120] on S_long60, (0, 10] near)",
-            "band_negative": "unmasked clean ticks with >= 60 s of footage left (first 300 s of capped clean videos)",
-            "time_matching": "source kind x TIME_MATCH_EDGES bin weights (va30.time_match_weights)",
-            "h1_ticks": "ticks 1..min(first anomaly, 300 s) of H1 videos; tte = first anomaly - t",
-        },
-        "blocks": {
-            "phase_A": [b.name for b in F.BLOCKS.values() if b.phase == "A"],
-            "phase_B": [b.name for b in F.BLOCKS.values() if b.phase == "B"],
-            "phase_C": list(F.PHASE_C),
-            "external_references": list(F.EXTERNAL_REFERENCES),
-            "streams": {b.name: list(b.streams) for b in F.BLOCKS.values()},
-            "excluded_columns": {b.name: list(b.exclude) for b in F.BLOCKS.values() if b.exclude},
-            "included_columns": {b.name: list(b.include) for b in F.BLOCKS.values() if b.include},
-            "p0_lower_is_risk": {b.name: list(b.lower_is_risk) for b in F.BLOCKS.values() if b.lower_is_risk},
-            "audio_blocks_use_diegetic_s_audio": [b.name for b in F.BLOCKS.values() if b.audio],
-        },
-        "probes": {
-            "P0": "per column AUROC on the pooled screening ticks, direction pre-declared (default higher = riskier)",
-            "P1": {"windows_sec": list(F.WINDOWS), "statistics": ["mean", "max", "fraction above clean-training p95"],
-                   "cut_at_clip_start_and_shot_cuts": f"{F.CUT_STREAM}:{F.CUT_COLUMN}", "divided_by_available_history": True},
-            "P1s_extra_slopes_sec": list(F.SLOPE_WINDOWS),
-            "P1b": f"per-video causal early baseline subtracted (running mean over the first {F.BASELINE_SEC} s)",
-            "wide_block_columns_over": F.WIDE_COLUMNS,
-            "pls": {"components": F.PLS_COMPONENTS, "target": "band", "weights": "time-match", "applied": "per tick, before the windows"},
-            "model": "L2 logistic regression", "C_grid": list(P.C_GRID), "C_selected_on": "fold validation slice, time-matched AUROC",
-            "target": "band (30,120] vs clean >= 60 s left, time-match weights normalised to equal class mass",
-            "training_row_caps": {"positives": P.MAX_TRAIN_POS, "negatives": P.MAX_TRAIN_NEG, "validation_negatives": P.MAX_VAL_NEG},
-            "feature_clip_z": P.CLIP_Z,
-            "side_probes": ["P1-near: tte (0, 10]", "P1-later: later-segment lead-ins, tte (30, 120]"],
-            "P2": "GRU 64 units over 180 s, 3 seeds, only for blocks passing G1 (stub; not part of this run)",
-            "seeds": [0],
-        },
-        "controls": ["b_time_source_fit (source x time bin rate)", "nuisance N = source x time-bin + scene0p PCA32",
-                     "shuffled-video", "B-detect", "first-frame broadcast on S_ramp"],
-        "metrics": {"bootstrap": {"n": 1000, "cluster": "split_group", "seed": 0},
-                    "tail_percentile_on_clean_validation": 99.5, "tail_min_ticks": 3, "m1_sparse_fpr_max": 0.01},
-        "thresholds": {"G1_point": D.G1_POINT, "G1_sparse_point": D.G1_SPARSE_POINT,
-                       "G1_sparse_tail_useful": D.G1_SPARSE_TAIL_USEFUL, "G2_fail_upper": D.G2_FAIL_UPPER,
-                       "G2_ratio_pass": D.G2_RATIO_PASS, "G2_ratio_fail": D.G2_RATIO_FAIL, "G3_point": D.G3_POINT,
-                       "near_lower": D.NEAR_LOWER, "long_point": D.LONG_POINT, "alpha": D.ALPHA,
-                       "soundtrack_margin": D.SOUNDTRACK_MARGIN},
-        "decision_rule": {
-            "G1": "PASS: M1 point >= 0.58 and Holm-adjusted one-sided bootstrap p < 0.05 across the blocks of the "
-                  "phase (or the sparse route); FAIL: 95% CI upper < 0.58 (and sparse route FAIL or absent)",
-            "G2": "PASS: M3p CI lower > 0.50 and ratio >= 0.5; FAIL: CI upper < 0.55 or ratio < 0.25",
-            "G3": "PASS: M4n >= +0.02 with CI lower > 0; FAIL: CI upper < +0.02",
-            "classes": {"ANTICIPATION": "G1 PASS, G3 PASS, G2 not FAIL", "PROVISIONAL": "G1 PASS, no FAIL in G2/G3, not ANTICIPATION",
-                        "CONTEXT/SHORTCUT": "G1 PASS with G2 FAIL or G3 FAIL", "SHORT-HORIZON": "G1 not PASS and M1-near CI lower > 0.60",
-                        "INCONCLUSIVE": "G1 INCONCLUSIVE", "DROP": "G1 FAIL and not SHORT-HORIZON"},
-            "tags": {"LONG-LEAD": "M1-long point >= 0.58 and CI lower > 0.50", "RAMP": "M5 Wilcoxon p < 0.05 and most videos rising"},
-            "holm_families": {"G1": "M1 one-sided p-values across the blocks of one phase (A, B)"},
-        },
-        "confirmation": {"fold": ss.frozen_fold, "conditions": ["M1 CI lower > 0.50", "positive M8 point gain over N"],
-                         "use": "once, for the final fused model"},
-    }
+class PreregError(RuntimeError):
+    """The pre-registration is missing, altered or inconsistent; the screen must not run."""
 
 
-def write(ss, path=PREREG_PATH, git_commit=None):
-    d = build(ss, git_commit)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    text = json.dumps(d, indent=1, sort_keys=False) + "\n"
-    with open(path, "w") as f:
-        f.write(text)
-    sha = hashlib.sha256(text.encode()).hexdigest()
-    with open(path + ".sha256", "w") as f:
-        f.write(f"{sha}  {os.path.basename(path)}\n")
-    return sha
+class Prereg:
+    def __init__(self, data, path, sha256):
+        self.data, self.path, self.sha256 = data, path, sha256
+        self.screen_folds = tuple(int(f) for f in data["screen_folds"])
+        self.confirmation_fold = int(data["confirmation_fold"])
+        self._members = {}
+        self._sets = {k: v for k, v in data["sets"].items()}
+
+    def ids(self, name):
+        return list(self._sets[name])
+
+    def events(self, name):
+        return list(self._sets[name])
+
+    def interval(self, vid):
+        lo, hi = self.data["scored_intervals_sec"][vid]
+        return float(lo), float(hi)
+
+    def membership(self, fold, split):
+        if int(fold) == self.confirmation_fold:
+            raise PreregError(f"fold {fold} is the confirmation fold and has no screening membership")
+        return self.data["fold_membership"][str(int(fold))][split]
+
+    @property
+    def audio_blocked(self):
+        return str(self.data["audio_gate"]).startswith("Phase B blocked")
+
+    def block_phases(self):
+        return {k: list(v) for k, v in self.data["blocks"].items()}
+
+    def all_listed_videos(self):
+        out = set(self._sets["positive_videos"]) | set(self._sets["clean_cpu_videos"]) | set(self._sets["h1_videos"])
+        return out
 
 
-def verify(ss, path=PREREG_PATH):
-    """Compare the live set definition with the pre-registered video-list hashes; returns a list of mismatches."""
-    with open(path) as f:
-        reg = json.load(f)
-    live = build(ss)
-    bad = []
-    for k, v in reg["sets"].items():
-        if live["sets"].get(k, {}).get("sha256") != v["sha256"]:
-            bad.append(k)
-    if live["inputs"]["folds_content_sha256"] != reg["inputs"]["folds_content_sha256"]:
-        bad.append("folds")
-    return bad
+def load(path=PREREG_PATH, pinned=None):
+    """Read the frozen file; raise PreregError unless its sha256 equals the one in ``<path>.sha256`` (and the pinned
+    value for the registered file name)."""
+    pinned = PINNED_SHA256 if pinned is None else pinned
+    if not os.path.isfile(path):
+        raise PreregError(f"no pre-registration at {path}")
+    raw = open(path, "rb").read()
+    sha = hashlib.sha256(raw).hexdigest()
+    sidecar = next((c for c in (os.path.splitext(path)[0] + ".sha256", path + ".sha256") if os.path.isfile(c)), None)
+    if sidecar is None:
+        raise PreregError(f"missing checksum file next to {path}")
+    declared = open(sidecar).read().split()
+    if len(declared) > 1 and declared[1].lstrip("*") != os.path.basename(path):
+        raise PreregError(f"{sidecar} names {declared[1]}, not {os.path.basename(path)}")
+    if not declared or declared[0] != sha:
+        raise PreregError(f"sha256 mismatch for {path}: file {sha}, declared {declared[0] if declared else None}")
+    pin = pinned.get(os.path.basename(path))
+    if pin is not None and pin != sha:
+        raise PreregError(f"sha256 of {path} is {sha}, the registered value is {pin}")
+    data = json.loads(raw)
+    missing = [k for k in REQUIRED_KEYS if k not in data] + [f"sets.{k}" for k in REQUIRED_SETS if k not in data.get("sets", {})]
+    if missing:
+        raise PreregError(f"pre-registration lacks {missing}")
+    if data["confirmation_fold"] in data["screen_folds"]:
+        raise PreregError("the confirmation fold is listed among the screening folds")
+    if str(data["confirmation_fold"]) in data["fold_membership"]:
+        raise PreregError("fold_membership contains the confirmation fold")
+    return Prereg(data, path, sha)
+
+
+def verify_inputs(pr, bench, plan_path=os.path.join(REPO_ROOT, "docs", "MODALITY_PLAN.md")):
+    """Hash checks of the inputs the registration pins; returns ``(fatal, notes)`` lists of strings."""
+    prov, got = pr.data["provenance"], bench.provenance
+    fatal, notes = [], []
+    for key in ("folds_content_sha256", "videos_csv_sha256", "events_json_sha256"):
+        if prov.get(key) != got.get(key):
+            fatal.append(f"{key}: registered {prov.get(key)} live {got.get(key)}")
+    if os.path.isfile(plan_path) and prov.get("plan_sha256") != file_sha256(plan_path):
+        notes.append("plan_sha256 differs from the live docs/MODALITY_PLAN.md (the plan was edited after registration)")
+    for f in pr.screen_folds:
+        for split in ("train", "val", "test"):
+            wrong = [v for v in pr.membership(f, split) if v in bench.folds.assignment and bench.folds.assignment[v] == pr.confirmation_fold]
+            if wrong:
+                fatal.append(f"fold {f} {split} contains {len(wrong)} videos of the confirmation fold")
+    return fatal, notes
+
+
+def _diff(name, frozen, computed, limit=8):
+    fz, cp = set(frozen), set(computed)
+    return {"name": name, "frozen": len(fz), "computed": len(cp), "agree": fz == cp,
+            "only_frozen": sorted(fz - cp)[:limit], "n_only_frozen": len(fz - cp),
+            "only_computed": sorted(cp - fz)[:limit], "n_only_computed": len(cp - fz)}
+
+
+def agreement(pr, ss, ref, bench):
+    """Compare the frozen sets with what the previous in-code rules compute (``ref``: a ScreenSet without prereg).
+
+    Returns ``{"disagreements": [...], "checks": [...]}``; every check has the frozen and computed sizes and the first
+    differing members."""
+    checks = []
+    ev_ref = ref.events()
+    lists = ref.video_lists()
+    pos_ref = lists["positive_videos"]
+    checks.append(_diff("positive_videos", pr.ids("positive_videos"), pos_ref))
+    key = lambda df, col=None: {(r.video_id, int(r.index)) for r in df.itertuples()}  # noqa: E731
+    fz_ev = {(e["video_id"], int(e["index"])) for e in pr.events("eligible30_events")}
+    checks.append(_diff("eligible30_events", fz_ev, key(ev_ref)))
+    for name, col in (("first_events", "first"), ("real_first_events", "s_real"), ("long60_first_events", "s_long60"),
+                      ("ramp90_first_events", "s_ramp"), ("official_ubi_first_events", "s_offubi"),
+                      ("audio_first_event_candidates", "s_audio")):
+        fz = {(e["video_id"], int(e["index"])) for e in pr.events(name)}
+        checks.append(_diff(name, fz, key(ev_ref[ev_ref[col]]) if len(ev_ref) else set()))
+    checks.append(_diff("clean_cpu_videos", pr.ids("clean_cpu_videos"), lists["clean_negative_videos"]))
+    checks.append(_diff("h1_videos", pr.ids("h1_videos"), lists["h1_videos"]))
+    checks.append(_diff("h1p_videos", pr.ids("h1p_videos"), lists["h1p_videos"]))
+    clean_fz = set(pr.ids("clean_cpu_videos"))
+    vlm = pr.ids("clean_vlm_videos")
+    checks.append({"name": "clean_vlm_videos_subset_of_clean_cpu", "frozen": len(vlm), "computed": None,
+                   "agree": set(vlm) <= clean_fz, "note": "no previous in-code rule; checked as a subset"})
+    for f in pr.screen_folds:
+        for split, old in (("test", lambda: ref.test_ids(f, kinds=("violent", "clean", "h1"))),
+                           ("train", lambda: ref.train_ids(f)), ("val", lambda: ref.val_ids(f))):
+            fz = [v for v in pr.membership(f, split) if ss._kind_of.get(v) is not None]
+            if split != "test":
+                fz = [v for v in fz if ss._kind_of[v] != "h1"]
+            checks.append(_diff(f"fold{f}_{split}", fz, old()))
+    tick_bad = []
+    for v in sorted(pr.all_listed_videos()):
+        if bench.folds.assignment.get(v) == pr.confirmation_fold:
+            continue
+        a = ss.n_ticks_frozen(v)
+        try:
+            b = ref.ticks_computed(v)
+        except (KeyError, ValueError):
+            b = None
+        if b is None or a != b:
+            tick_bad.append((v, a, b))
+    checks.append({"name": "scored_ticks_per_video", "frozen": len(pr.all_listed_videos()), "computed": None,
+                   "agree": not tick_bad, "n_differ": len(tick_bad), "examples": tick_bad[:8],
+                   "max_abs_diff": int(max([abs(a - (b or 0)) for _, a, b in tick_bad], default=0))})
+    return {"disagreements": [c for c in checks if not c["agree"]], "checks": checks}
