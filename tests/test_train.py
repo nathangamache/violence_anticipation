@@ -73,7 +73,7 @@ def fit_fold(bench, store, kind):
                                     modality_dropout=0)
         datasets = [WindowDataset(store, s, norm, 60) for s in sel]
         fit_temporal(model, *datasets, epochs=8, patience=3, batch_size=64, lr=0.005,
-                     selection_score=lambda m: metric.score(lambda vid, ix: predict_temporal(m, store[vid], norm, indices=ix)))
+                     band_weight=0, selection_score=lambda m: metric.score(lambda vid, ix: predict_temporal(m, store[vid], norm, indices=ix)))
         predict = lambda v: predict_temporal(model, v, norm, batch_size=64)
     return model, norm, predict
 
@@ -197,7 +197,7 @@ def test_cli_five_folds_three_seeds_and_va30(tmp_path, monkeypatch):
     import anticipation.train as trainer
     actual = trainer.subprocess.check_output
     monkeypatch.setattr(trainer.subprocess, "check_output", lambda args, **kw: actual(args, cwd=Path(__file__).resolve().parents[1], **kw))
-    assert main(["--streams", "synthetic", "--model", "stats_logreg", "--run_name", "synthetic_e2e",
+    assert main(["--phase", "synthetic", "--objective", "horizon30", "--no-time_match_weights", "--streams", "synthetic", "--model", "stats_logreg", "--run_name", "synthetic_e2e",
                  "--videos", str(tmp_path / "videos.csv"), "--events", str(tmp_path / "events.json"),
                  "--folds", str(tmp_path / "folds.json"), "--cohort", str(tmp_path / "cohort.json"), "--feature_root", str(root),
                  "--epochs", "3", "--n_boot", "20", "--threads", "2"]) == 0
@@ -291,7 +291,7 @@ def test_partial_timelines_emit_only_common_ticks_and_block_inflated_hours(tmp_p
     actual = trainer.subprocess.check_output
     monkeypatch.setattr(trainer.subprocess, "check_output", lambda args, **kw: actual(args, cwd=Path(__file__).resolve().parents[1], **kw))
     monkeypatch.setattr(trainer.va30, "main", lambda args: pytest.fail("partial timelines must not reach the unfixed evaluator"))
-    assert trainer.main(["--streams", "a,b", "--model", "stats_logreg", "--run_name", "partial",
+    assert trainer.main(["--phase", "synthetic", "--objective", "horizon30", "--no-time_match_weights", "--streams", "a,b", "--model", "stats_logreg", "--run_name", "partial",
                          "--videos", str(tmp_path / "videos.csv"), "--events", str(tmp_path / "events.json"),
                          "--folds", str(tmp_path / "folds.json"), "--cohort", str(tmp_path / "cohort.json"), "--feature_root", str(root),
                          "--seeds", "0", "--epochs", "1", "--threads", "2"]) == 2

@@ -9,6 +9,7 @@ import numpy as np
 from anticipation.data.catalog import file_sha256
 from anticipation.data.labels import labels_for_video
 from anticipation.features import io
+from anticipation.models.objectives import TRAIN_HAZARD_EDGES, band_targets
 
 
 @dataclass
@@ -36,7 +37,7 @@ def join_streams(video_id, row, events, streams, loader=None):
         loaded.append((t, x, valid, meta))
     last = min((float(t[-1]) if len(t) else 0) for t, _, _, _ in loaded)
     ticks = io.tick_times(min(float(row["duration_sec"]), last))
-    labels = labels_for_video(video_id, row, events, t_sec=ticks)
+    labels = labels_for_video(video_id, row, events, t_sec=ticks, hazard_edges=TRAIN_HAZARD_EDGES)
     arrays, masks, metadata = [], [], []
     observed = np.ones(len(ticks), bool)
     for t, x, valid, meta in loaded:
@@ -106,7 +107,7 @@ class FeatureStore:
         d = self.paths[vid]
         present = np.load(d / "present.npy", mmap_mode="r")
         ticks = np.arange(1, len(present) + 1, dtype=np.float32)
-        lab = labels_for_video(vid, self.catalog.loc[vid], self.events, t_sec=ticks)
+        lab = labels_for_video(vid, self.catalog.loc[vid], self.events, t_sec=ticks, hazard_edges=TRAIN_HAZARD_EDGES)
         v = VideoFeatures(vid, lab.t_sec,
                           [np.load(d / f"stream{j}.npy", mmap_mode="r") for j in range(len(self.streams))],
                           present, lab,
@@ -159,12 +160,14 @@ def positive_weights(labels, floor=0.25):
     return np.where(np.isfinite(labels.tte), np.clip(30 / np.maximum(labels.tte, 30), floor, 1), 1).astype(np.float32)
 
 
-def sample_ticks(store, ids, limit, rng, task, time_matched=False):
+def sample_ticks(store, ids, limit, rng, task, time_matched=False, objective="horizon30"):
     candidates = []
     for vid in ids:
         v = store[vid]
         usable = (v.labels.valid[30] & ((v.labels.y[30] > 0) | (v.labels.tte > 120))) if task == "stats" else (
             (v.labels.hazard_target >= 0).any(axis=1) | ~v.labels.excluded)
+        if objective == "band" and task == "stats":
+            _, usable = band_targets(v, store.catalog.loc[vid, "role"])
         if v.observed is not None:
             usable &= v.observed
         candidates.append(np.flatnonzero(usable))
@@ -179,7 +182,8 @@ def sample_ticks(store, ids, limit, rng, task, time_matched=False):
             v = store[vid]
             times.extend(v.t_sec[ix])
             sources.extend([str(store.catalog.loc[vid, "source_kind"])] * len(ix))
-            positive.extend((v.labels.y[30][ix] > 0) if task == "stats" else (v.labels.hazard_target[ix] == 1).any(axis=1))
+            target = band_targets(v, store.catalog.loc[vid, "role"])[0] if objective == "band" else v.labels.y[30]
+            positive.extend((target[ix] > 0) if task == "stats" else (v.labels.hazard_target[ix] == 1).any(axis=1))
             auxiliary.extend(v.labels.masked[ix] if task != "stats" else np.zeros(len(ix), bool))
         strata = time_strata(np.asarray(times), np.asarray(sources))
         positive, auxiliary = np.asarray(positive), np.asarray(auxiliary)

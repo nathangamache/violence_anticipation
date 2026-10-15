@@ -7,13 +7,13 @@ from anticipation.eval.va30 import TIME_MATCH_EDGES, time_match_weights
 
 
 class MatchedValidation:
-    def __init__(self, store, ids, limit=0):
+    def __init__(self, store, ids, limit=0, band_hi=60):
         rows, times, sources, positives = [], [], [], []
         for vid in ids:
             v = store[vid]
             lab = v.labels
             observed = v.observed if v.observed is not None else np.ones(len(v.t_sec), bool)
-            pos = ~lab.masked & lab.pre_violence & (lab.tte > 30) & (lab.tte <= 60) & observed
+            pos = ~lab.masked & lab.pre_violence & (lab.tte > 30) & (lab.tte <= band_hi) & observed
             neg = ~lab.masked & (lab.remaining >= 60) & observed & (store.catalog.loc[vid, "role"] == "clean_negative")
             ix = np.flatnonzero(pos | neg)
             rows.extend((vid, int(i)) for i in ix)
@@ -29,7 +29,8 @@ class MatchedValidation:
         weights, keep_pos = time_match_weights(times, pos, ~pos, TIME_MATCH_EDGES, sources)
         self.y, self.weights = pos, np.where(keep_pos, 1.0, weights)
         self.available = bool(keep_pos.any() and (weights > 0).any())
-        self.info = {"metric": "source_time_matched_far_auroc", "available": self.available,
+        self.info = {"metric": "source_time_matched_far_auroc" if band_hi == 60 else "source_time_matched_band_auroc",
+                     "band_hi": band_hi, "available": self.available,
                      "candidate_ticks": len(rows), "sampled_ticks": len(self.rows),
                      "matched_positive_ticks": int(keep_pos.sum()),
                      "matched_negative_ticks": int((weights > 0).sum()), "sampling_seed": 0}

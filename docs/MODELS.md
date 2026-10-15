@@ -1,15 +1,14 @@
 # Causal anticipation training
 
-Status for the lead (2026-10-14):
-- Evaluator coordination (2026-10-15): screen preregistration landed at `benchmark/screens/screen_set_v1.json`, SHA256 `8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b`. Use screening folds 0/2/3/4 only; exclude fold1 from train and validation too. New evaluator metrics will be additive/opt-in with unchanged defaults; do not start new screen results until Phase 0 references/audits land. `--horizons` is now available on master for capped clean negatives.
-- Framework and initial tests pushed in `a30af89`; 69 suite checks passed; added scalar-stream and cohort checks also pass.
-- Models: window statistics + logistic/boosting, causal GRU/Transformer; time-only control added.
-- Checkpoints now use validation source-and-time-matched far-window AUROC, never pooled AUROC.
-- Missing matched validation classes permit one diagnostic epoch only; modality screening requires both.
-- Score tables now contain only timestamps shared by all requested streams; modality valid masks remain separate.
-- Blocker: VA30 fills missing timestamps and uses catalog durations for FA/h; capped negatives are unsafe to evaluate.
-- Blocker: the current real-feature snapshot has 345 videos but only one clean negative; folds 0–3 lack validation negatives.
-- Four new research reports reviewed; screen pending clean negatives, evaluator fix and `MODALITY_PLAN.md` (not yet landed).
+Status for the lead (2026-10-15; implementation verification in progress):
+- Observed-horizon evaluator and early clean negatives are available; prior blockers are resolved.
+- Diagnostics now exclude fold 1 from fitting, normalization, validation and evaluation.
+- New defaults: 30–120 s band target, hazards through 300 s, no distance down-weighting, 180 s context.
+- Implemented event bags, history truncation, first-frame, nuisance and residual controls; tests in progress.
+- Historical frozen-model replay adds extracted negatives without retraining; evaluation being checked.
+- Phase A remains gated on the evaluation agent's registered screen set and summary.
+- G3 requires a people-masked tick-2 scene stream; unmasked scenes are diagnostic only.
+- Existing synthetic and historical results below do not establish real anticipation or satisfy the new screen.
 
 `anticipation.train` learns from the cached 1 Hz streams described in [FEATURES.md](FEATURES.md).
 It uses the frozen VA30 folds, shared tick labels and shared evaluator. No raw media or backbone model

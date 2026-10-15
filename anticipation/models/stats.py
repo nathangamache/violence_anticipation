@@ -11,6 +11,9 @@ from sklearn.metrics import log_loss
 from sklearn.preprocessing import StandardScaler
 from sklearn.exceptions import ConvergenceWarning
 
+from anticipation.models.objectives import band_targets, matched_weights
+from anticipation.models.controls import first_frame_features, OffsetLogisticRegression
+
 
 WINDOWS = (5, 15, 30, 60)
 
@@ -60,35 +63,52 @@ def window_statistics(video, normalizer, indices=None, position_control=False):
     return out
 
 
-def make_table(store, ids, selection, normalizer, position_control=False, time_only=False):
-    rows, targets, weights = [], [], []
+def make_table(store, ids, selection, normalizer, position_control=False, time_only=False,
+               objective="horizon30", time_match=False, first_frame=False, anchor_tick=1, nuisance=None):
+    rows, targets, weights, times, sources, offsets = [], [], [], [], [], []
     for vid in ids:
         ix = selection[vid]
         if len(ix):
             v = store[vid]
-            rows.append((v.t_sec[ix, None] / 300).astype(np.float32) if time_only else
-                        window_statistics(v, normalizer, ix, position_control))
-            targets.append(v.labels.y[30][ix])
+            if time_only:
+                rows.append((v.t_sec[ix, None] / 300).astype(np.float32))
+            elif first_frame:
+                rows.append(first_frame_features(v, normalizer, ix, anchor_tick))
+            else:
+                rows.append(window_statistics(v, normalizer, ix, position_control))
+            targets.append(band_targets(v, store.catalog.loc[vid, "role"])[0][ix] if objective == "band" else v.labels.y[30][ix])
             weights.append(np.ones(len(ix), np.float32))
+            times.extend(v.t_sec[ix])
+            sources.extend([str(store.catalog.loc[vid, "source_kind"])] * len(ix))
+            if nuisance is not None:
+                offsets.append(nuisance.logits(v, ix))
     if not rows:
         raise ValueError("no uncensored training/validation ticks for horizon 30")
-    return np.concatenate(rows), np.concatenate(targets), np.concatenate(weights)
+    target = np.concatenate(targets)
+    weight = matched_weights(times, sources, target) if time_match else np.concatenate(weights)
+    table = np.concatenate(rows), target, weight
+    return (*table, np.concatenate(offsets)) if nuisance is not None else table
 
 
 class StatsModel:
-    def __init__(self, kind, seed=0, threads=4, position_control=False):
+    def __init__(self, kind, seed=0, threads=4, position_control=False, anchor_tick=1, nuisance=None):
         self.kind, self.seed, self.threads, self.position_control = kind, seed, threads, position_control
+        self.anchor_tick, self.nuisance = anchor_tick, nuisance
         self.scaler = StandardScaler(copy=False)
         self.backend = kind
 
     def fit(self, train, val, epochs=20, patience=4, check_time=lambda: None, selection_score=None):
-        x, y, w = train
-        vx, vy, vw = val
-        if len(np.unique(y)) < 2:
+        x, y, w = train[:3]
+        vx, vy, vw = val[:3]
+        offset = train[3] if len(train) > 3 else None
+        voffset = val[3] if len(val) > 3 else None
+        if len(np.unique(y[w > 0])) < 2:
             raise ValueError("training horizon-30 labels need both classes")
         x = self.scaler.fit_transform(x)
         vx = self.scaler.transform(vx)
-        if self.kind == "stats_logreg":
+        if self.kind == "residual_logreg":
+            model = OffsetLogisticRegression()
+        elif self.kind in ("stats_logreg", "first_frame"):
             # The supplied SciPy LBFGS native routine crashes on some float16-cache-derived tables.
             model = LogisticRegression(C=0.1, solver="newton-cg", max_iter=25, warm_start=True, random_state=self.seed)
         else:
@@ -110,11 +130,14 @@ class StatsModel:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", ConvergenceWarning)
                 kwargs = {"init_model": model.booster_} if self.backend == "lightgbm" and epoch else {}
+                if self.kind == "residual_logreg":
+                    kwargs["offset"] = offset
                 model.fit(x, y, sample_weight=w, **kwargs)
-            loss = log_loss(vy, model.predict_proba(vx)[:, 1], labels=[0, 1], sample_weight=vw)
+            probability = model.predict_proba(vx, offset=voffset)[:, 1] if self.kind == "residual_logreg" else model.predict_proba(vx)[:, 1]
+            loss = log_loss(vy, probability, labels=[0, 1], sample_weight=vw) if vw.sum() else None
             self.model = model
             metric = selection_score(self) if selection_score is not None else None
-            self.history.append({"epoch": epoch + 1, "val_loss": float(loss), "val_matched_far_auroc": metric})
+            self.history.append({"epoch": epoch + 1, "val_loss": float(loss) if loss is not None else None, "val_matched_far_auroc": metric})
             if metric is None or metric > best + 1e-6:
                 best, stale, self.best_epoch = metric if metric is not None else best, 0, epoch + 1
                 best_model = copy.deepcopy(model)
@@ -130,6 +153,9 @@ class StatsModel:
         if self.kind == "time_only":
             x = (video.t_sec[indices, None] / 300).astype(np.float32)
             return self.model.predict_proba(self.scaler.transform(x))[:, 1]
+        if self.kind == "first_frame":
+            x = first_frame_features(video, normalizer, indices, getattr(self, "anchor_tick", 1))
+            return self.model.predict_proba(self.scaler.transform(x))[:, 1]
         chunks = []
         for start in range(0, len(indices), batch_size):
             ix = indices[start:start + batch_size]
@@ -139,5 +165,7 @@ class StatsModel:
             part = VideoFeatures(video.video_id, video.t_sec[lo:ix[-1] + 1],
                                  [x[lo:ix[-1] + 1] for x in video.streams], video.present[lo:ix[-1] + 1], None)
             x = window_statistics(part, normalizer, ix - lo, self.position_control)
-            chunks.append(self.model.predict_proba(self.scaler.transform(x))[:, 1])
+            x = self.scaler.transform(x)
+            offset = self.nuisance.logits(video, ix) if self.kind == "residual_logreg" else None
+            chunks.append(self.model.predict_proba(x, offset=offset)[:, 1] if offset is not None else self.model.predict_proba(x)[:, 1])
         return np.concatenate(chunks) if chunks else np.zeros(0, np.float32)
