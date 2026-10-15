@@ -1838,3 +1838,231 @@ Everything is under `data/logs/extract/`:
   `--skip_failed`.
 - **Changing process counts:** stop the queue, edit `STEPS` in the script, and start again. Outputs are per
   video, so a different shard count is safe once the old processes are gone.
+
+## Bulk extraction run v2 (H1 + scene0p)
+
+Written 2026-10-15 by the extraction-ops track. Implements docs/MODALITY_PLAN.md section 6.1 step 6 (H1 hard negatives) and
+the static scene prior of the nuisance model N (section 6.4). Code: `tools/build_extract_manifest.py --v2` (manifest and
+cuts), `anticipation/features/scene0p.py`. Driver scripts and logs: `data/logs/extract_v2/` (`run_v2.sh`,
+`run_v2_speech.sh`, `<extractor>_shard<i>.log`, `scene0p_v1.log`, `scene0p_v2.log`, `status.log`). The runner's own
+records go to the shared `logs/extract/<extractor>/` (`shard<i>of2.jsonl`, `failures.jsonl`).
+
+### Manifest v2 (`benchmark/extract_manifest_v2.csv`)
+
+- **Rule:** `role == other_anomaly` and `first_anomaly_sec >= 30` in `benchmark/videos.csv`: 399 videos, all non-violent
+  anomalies with lead-in footage, none in manifest v1. Rows are in sha256 order (`extract_v2:<video_id>`).
+- **Cut:** stream copy at `min(first_anomaly_sec + 10, 300)` s with `-map 0 -map -0:d` (the v1 command) into
+  `data/cache/trunc_h1/<video_id>.mp4` (3.9 GB). Videos that are not longer than their cut point are used uncut.
+- **Columns:** the v1 columns plus `cut_reason` (`first_anomaly+10` 363 videos, `cap300` 12, `none` 24).
+  `priority` is `h1_hard_negative`, `eligible30` False, `cap_sec` is the cut length (empty when uncut).
+- **Verification (all 375 cuts):** same fps as the original, duration within 1 s of the cut, identical decoded frames at
+  0, cap/2 and cap - 1 s, an audio stream exactly when the original has one, and decoded audio within 1 s of the cut
+  for videos with real audio.
+- **Counts:** 399 videos, 9.29 h, 281 with real audio (7.12 h).
+
+| Group | Videos | Hours | With audio |
+|---|---|---|---|
+| xd_youtube | 228 | 5.06 | 228 |
+| ucf | 156 | 3.99 | 38 (0.85 h) |
+| xd_movie | 15 | 0.25 | 15 |
+| people-focused (stealing, shoplifting, burglary, arson, vandalism; all ucf) | 128 | 3.43 | 28 |
+| road, explosion (car and road accident, explosion) | 271 | 5.86 | 253 |
+
+Reproduce: `nice -n 10 .venv/bin/python tools/build_extract_manifest.py --v2` (about 8 min with 3 ffmpeg workers;
+existing cuts are re-verified, not re-made; `--dry_run` prints the counts). v1 behaviour is unchanged.
+
+### Extraction
+
+`data/logs/extract_v2/run_v2.sh` runs the v1 runner with `--keep_order`, 2 shards per step, at most 4 processes at a time,
+`nice -n 10`, `taskset -c 0-11`, 2 thread caps (1 for CPU steps). cuda:1 only; GPU memory stayed under 17 GB. Start it with
+`setsid nohup data/logs/extract_v2/run_v2.sh &`. It is resumable (finished outputs are skipped): re-run it after a crash.
+
+| Step | Outputs | Videos | Wall | Speed (x realtime, aggregate) | Failures |
+|---|---|---|---|---|---|
+| visual | vjepa2_l, siglip2, siglip2_prompts | 399 | 30 min | 9 per process | 0 |
+| pose | pose_raw, pose_interact | 399 | 31 min | 9 per process | 0 |
+| motion | motion | 399 | 9 min | 31 per process | 0 |
+| audio_events | ast_events, ast_emb, clap_prompts | 281 | 3 min | 57 to 62 per process | 0 |
+| voice | voice_affect, e2v_emb | 281 | 4 min | 46 to 50 per process | 0 |
+| audio_dsp | audio_dsp | 281 | 10 min | 19 per process | 0 |
+| speech_tox | speech_tox | 281 | see status below | | |
+
+Steps ran in the order visual + pose, then audio_events + motion, then voice + audio_dsp (09:32 to 10:23). Checks:
+every output exists for all 399 (281 for audio steps); T equals floor of the cut duration for `siglip2`, `motion` and
+`pose_interact`. 50 videos (road and explosion scenes) have `pose_interact` all invalid because no person was tracked;
+that is data, not a failure.
+
+`speech_tox` needs about 26 GB per process on cuda:0, which the v1 queue's speech step holds until it finishes.
+`data/logs/extract_v2/run_v2_speech.sh` waits until `tools/extract_queue.sh status` reports the queue stopped, then runs
+2 shards of `speech_tox` on cuda:0 over `manifest_v2_audio.csv` (281 videos, 7.1 h; at the measured 28x about 15 min).
+Status lines are appended to `data/logs/extract_v2/status.log` (`S5` start, `S6` done). To run it by hand:
+`.venv/bin/python -m anticipation.features.run_extract --extractor speech_tox --manifest data/logs/extract_v2/manifest_v2_audio.csv --keep_order --shard I --num_shards 2 --device cuda:0 --cpu_threads 2`.
+
+### scene0p (`siglip2_scene0p`)
+
+Per-video static feature for the nuisance model N: the SigLIP 2 embedding of the frame at or before t = 2.0 s with every
+person greyed out. Not a per-tick stream, so it does not follow the `t_sec / feat / valid` contract.
+
+- **File:** `FEATURE_ROOT/siglip2_scene0p/<source>/<stem>.npz` with `emb` float16 [1152] (L2-normalised),
+  `t_frame` float64, `n_boxes` int64, `meta` JSON (version, model id, `grow`, `grey`, pose frame time, pose_raw version,
+  fps, duration).
+- **Frame:** `io.Video.frame_index(2.0)`, the last frame at or before 2.0 s (the last frame for a shorter video).
+- **Boxes:** all detections (tracked and untracked, conf >= 0.25) of the latest `pose_raw` sample whose real time
+  (`frame_idx / fps`) is at or before 2.0 s and that decoded; each box scaled by 1.10 about its centre, clipped to the
+  frame, filled with 128. The pose sample and the frame are the same frame in practice (5 fps samples at 2.0 s).
+  If no sample qualifies the frame is embedded unmasked (n_boxes 0).
+- **Embedding:** `siglip.resize_frames`, `siglip.normalize` and `siglip.embed_images` (bf16, batch 32), so the pipeline
+  equals the `siglip2` stream: the unmasked tick-2 frame matches the stored `siglip2` tick 2 with cosine 1.000000.
+- **Missing pose_raw:** the video is skipped and listed in `_logs/scene0p/missing.txt` (empty in this run).
+- **Coverage:** all 6231 v1 videos (695 s, 9 videos/s on cuda:1) and all 399 v2 videos (16 s): 6630 files, 0 missing,
+  0 failures. 32.7 % have n_boxes 0 (median 1 box).
+- **Run:** `.venv/bin/python -m anticipation.features.scene0p --manifest benchmark/extract_manifest_v1.csv benchmark/extract_manifest_v2.csv --device cuda:1 --workers 2`
+  (resumable; `--overwrite`, `--limit`, `--out_root` for tests). Self-test (geometry, CPU, 2 s):
+  `.venv/bin/python -m anticipation.features.scene0p --selftest`; with the stream parity check:
+  `--selftest --device cuda:1 --parity <video_id>`.
+- **Caveat:** a scene dominated by people (crowds, close-ups) is mostly grey; the embedding then describes the
+  residual background only.
+
+### Resume summary
+
+1. Manifest: `tools/build_extract_manifest.py --v2` (skips existing cuts).
+2. `data/logs/extract_v2/run_v2.sh` (all but speech), then `run_v2_speech.sh` after the v1 queue.
+3. scene0p command above.
+
+---
+
+## pose_state and pose_state_pairs (CPU, derived from pose_raw)
+
+VERSION 4 (2026-10-15) keeps the 88 VERSION 2 columns unchanged (same names, order and computation, including the unchecked head facing) and appends 59 density-controlled columns (D = 147); see "VERSION 4 additions" below and `benchmark/screens/amendment_01_pose_state_v3.md`. VERSION 3 (same day, never used) had the same 147 names but strict mutual-facing fractions that were almost always 0; VERSION 4 redefines `eng_pair_frac`, `contact_pair_frac` and `people_engaged_frac` (and so their windows) and changes nothing else.
+
+VERSION 2 (2026-10-15): pairs are gated (height ratio <= 1.5, distance > 0.3 bh, so duplicate boxes and depth-separated people never form an engaged pair), head facing uses the left/right sign only when |dx| > 0.3 bh, interposition uses perp 0.4 bh and a third person of similar scale, bystanders must be at similar scale, and pair engaged-time steps are capped at 0.3 s.
+
+`anticipation/features/pose_state.py`. No video decoding: reads `pose_raw` (5 fps, BoT-SORT tracks, body-height
+normalisation, camera warp) and the `motion` cut column, writes two extractors per video on the 1 Hz tick clock
+(`t_sec` = 1..floor(duration), `feat` float16, `valid`, `meta` with `columns`, `column_docs` and `constants`).
+Why: the research brief (escalation_precursors.md) says 30 s leads come from slow social-geometry cues (face-offs,
+approach-retreat, third-party interposition, ring formation, bystander orientation, contact), and a long causal
+history of them, not from a 3 s snapshot. All distances are in body heights (bh); no feature uses track identity
+except `pose_state_pairs`.
+
+### pose_state (D = 147: 88 VERSION 2 columns, then 59 VERSION 4 columns)
+Per sampled frame: pair distance D (centers / mean h), facing toward the other (head yaw sign x direction),
+`orient` = mean of the two heads' positive facing (unknown head = 0), `prox` = clip((2.5 - D)/2, 0, 1),
+engagement = orient x prox. The most engaged pair (engagement >= 0.05) defines bystanders, ring, approach and
+interposition. Per tick the frames in (t-1, t] are reduced (mean / max / min as stated per column). Constants
+are in `meta["constants"]`.
+
+Base columns (18): `n_people` (mean number of tracked people per sampled frame in (t-1, t]); `pair_frac` (fraction of frames with at least 2 tracked people); `spread` (mean distance of people to their centroid in median body heights (0 with < 2 people)); `close_mutual` (1 if any pair is within 1.5 body heights and both heads face each other (yaw > 0.3), max over frames); `eng_max` (max over pairs and frames of engagement = orient * prox; orient = mean of the two heads' positive facing toward the other (unknown head counts 0), prox = clip((2.5 - d)/2, 0, 1), d in body heights); `contact` (1 if a wrist is within 0.25 body heights of the other person's torso, shoulder, elbow or hip (pairs < 2.5 bh)); `contact_mutual` (contact within a pair whose orient >= 0.25); `contact_dmin` (min wrist-to-other-person distance in body heights, capped at 3); `top_pair_dist` (distance of the most engaged pair in body heights (3 when no engaged pair)); `byst_n` (mean number of bystanders within 5 bh of the engaged pair midpoint); `byst_orient` (mean facing of those bystanders toward the pair midpoint (-1..1; unknown heads skipped)); `ring_circ` (circularity of >= 3 bystanders around the pair midpoint: (1 - resultant length of angles) * (1 - radius CV); 0 otherwise); `approach_n` (max number of people (within 8 bh of the pair) moving toward the pair midpoint faster than 0.5 bh/s); `approach_speed` (mean positive speed toward the pair midpoint over those people (bh/s)); `interpose` (max over third persons of (1 - perp/0.4) for a person of similar scale between the two engaged members (projection 0.15..0.85 of the segment, perp distance in bh)); `pair_closing` (closing speed of the engaged pair over 0.4 s (bh/s, > 0 approaching)); `gather_rate` ((n_people_t - n_people_ref)/span in people/s; ref = tick t-5 clipped to the latest cut/clip start); `spread_rate` (same rate for spread (< 0 = people converging)).
+
+Cut columns: `shot_cut` (motion `cut_1s`), `since_cut` (seconds since the latest cut tick or clip start, capped at 300; equals ticks at 1 Hz).
+
+Window columns (4 windows x 16 + 4): for W in 30, 60, 120, 300 s: `eng_max_{mean,max,frac}_Ws` (frac = share of ticks
+with eng_max > 0.5), `close_mutual_mean_Ws`, `contact_mutual_{mean,max}_Ws`, `n_people_{mean,max}_Ws`,
+`byst_orient_{mean,max}_Ws`, `ring_circ_{mean,max}_Ws`, `approach_n_{mean,max}_Ws`, `interpose_{mean,max}_Ws`, and
+`hist_Ws` = valid ticks (a decoded frame exists in (t-1, t]) in the window / W. A window holds ticks (t-W, t], cut at the clip start and at the
+latest shot-cut tick (a tick with `cut_1s` = 1 and everything before it are dropped), and means divide by the valid
+ticks actually in it (not by W); when it holds no valid tick the summaries are 0 and `hist_Ws` = 0. `byst_orient_*` means include ticks without bystanders as 0. Never pooled over the whole
+video. `gather_rate` and `spread_rate` use the tick 5 s back, clipped to the clip start / latest cut (rate over the
+actual span). If a video has no motion file nothing is reset; `meta["motion_cuts_used"]` = false. The runner
+recomputes such files once motion exists.
+
+### VERSION 4 additions (columns 88..146)
+Why: reviewer evidence that `close_mutual`, `eng_max`, `contact_mutual`, `interpose` and their windows track crowd size (pair counts grow as n^2), contact saturates in dense scenes, and people seen from behind get a hallucinated nose and so a false mutual facing. The added columns use density-controlled definitions and a back-view-checked facing. The 88 old columns are NOT changed (earlier analyses stay comparable); `meta["v2_columns_note"]` says so.
+
+Back-view check (`face_ok_mask`): a head's facing is trusted only if the nose confidence is >= 0.5 and above both ear confidences and at least one eye keypoint is visible (>= 0.3); otherwise facing is unknown (never mutual, orient 0). On 40 random videos this keeps 63% of heads that have a finite VERSION 2 yaw; it is deliberately conservative (a true profile whose visible ear outranks the nose is dropped). Applied only to the new columns.
+
+Per-tick columns (frames reduced over (t-1, t]; "valid pairs" = pairs not gated by the height-ratio or duplicate rules; engaged = checked-facing engagement > 0.5):
+- `eng_pair_frac` (mean over frames): soft-engaged pairs / valid pairs, 0 with none. Soft engagement = max of the two back-view-checked positive facings (one-sided: one person facing the other is enough) x prox; engaged = soft engagement > 0.5. The strict mutual version (both heads checked and facing, VERSION 3) was nonzero in only about 2% of ticks at n >= 5 and was dropped.
+- `contact_pair_frac` (mean): pairs in contact (wrist within 0.25 bh of the other's body, pair < 2.5 bh, any facing) / valid pairs.
+- `people_engaged_frac` (mean): people in at least one soft-engaged pair / n_people, 0 with < 2 people.
+- `top_pair_isolation` (mean): distance from the most engaged (checked) pair's midpoint to the nearest third person of similar scale (height ratio <= 1.5), in bh, capped at 5 (cap when the pair is alone); 0 when no pair has engagement >= 0.05.
+- `dyad_eng` (max): checked eng_max only when 2 <= n_people <= 4 in the frame, else 0. `dyad_scene` (mean): fraction of frames with 2 <= n_people <= 4 (read the two together).
+- `eng_max_excess` (max): max(0, checked eng_max - `EXP_ENG_MAX[n_people]`), n capped at 30, 0 below 2 people.
+
+Windows: for W in 30, 60, 120, 300 s, same causal window rules as the old columns: `eng_pair_frac`, `contact_pair_frac`, `people_engaged_frac`, `top_pair_isolation`, `dyad_eng`, `eng_max_excess` each with {mean, max}; `dyad_scene` with mean (13 per window, 52 total). No fraction-above-threshold stats were added. The `_max_` windows share the time-in-window bias listed in Known confounds. Means include ticks with no pair as 0.
+
+`EXP_ENG_MAX` is a fixed table written in the code (also in `meta["null_model"]`), derived by synthetic random placement and not from any dataset or label: n people (2..30) uniform in a 16 x 4 bh box, heights 1 +/- 15%, each head's facing unknown with p 0.5 else +/-0.9 in a random direction, the same pair gating and engagement rules, mean over 5,000 trials of the maximum pair engagement (seed 12345 + n). Values: n=2 0.019, 3 0.051, 4 0.092, 5 0.135, 6 0.180, 8 0.272, 10 0.340, 15 0.465, 20 0.544, 25 0.612, 30 0.655. The box size is a pre-declared assumption (image-plane density is not known per camera), so the excess is a crowd-size correction, not a calibrated p-value. `people_engaged_frac` still rises with density (random n=20 crowd with half of the heads known: about 0.36) but stays below a face-to-face dyad (1.0); `eng_pair_frac` for that crowd is about 0.025. The null table depends on the assumed box: at n=5 / 10 / 20 the expectation is 0.216 / 0.436 / 0.625 for an 8 x 4 box, 0.141 / 0.342 / 0.543 for 16 x 4 (used) and 0.077 / 0.248 / 0.457 for 32 x 4, so a scene much narrower or wider than 16 bh is over- or under-corrected. A per-frame box taken from the observed extent was rejected: the extent of an interacting group shrinks with the interaction itself (for n=2 it is the pair distance), so the correction would remove the signal.
+
+Measured density coupling and discrimination (design sample: 300 random clean negatives and 300 interpersonal violent videos, seed 1, ticks with at least one pair; AUC = clean vs in-violence ticks within a stratum of rounded n_people; values near 0.5 mean no separation; the old columns are also weak, 0.51 to 0.56): Spearman rho with n_people on those ticks, AUC at n=2 / n=3-4 / n>=5, share of nonzero n>=5 ticks clean/violent. Old `eng_max` 0.55, 0.54/0.53/0.56, 0.97/0.95; old `contact_mutual` 0.40, 0.52/0.53/0.55, 0.50/0.61. VERSION 4 `eng_pair_frac` 0.29, 0.52/0.51/0.53, 0.24/0.30; `people_engaged_frac` 0.30, 0.52/0.51/0.53, 0.27/0.33; `contact_pair_frac` 0.34, 0.54/0.51/0.57, 0.87/0.94; `dyad_eng` -0.14, 0.52/0.46/0.51; `eng_max_excess` 0.09, 0.51/0.48/0.53; `eng_pair_frac_mean_30s` 0.30, 0.57/0.53/0.56. Over all ticks (including n < 2, where every interaction column is 0 and so rises with presence) the rho values are: `eng_max` 0.77, `eng_max_max_30s` 0.67, `eng_max_excess` 0.40, `eng_max_excess_max_30s` 0.52, `eng_pair_frac` 0.10 to 0.36 depending on the definition, `dyad_eng` 0.26. The `eng_max_excess_max_*` windows are only partly decorrelated from crowd size. A second sample (seed 2, 300 + 300 videos, 91 shared with the first) gave the same picture: rho 0.32 / 0.32 / 0.36 and AUC 0.51/0.50/0.51, 0.51/0.50/0.50, 0.58/0.56/0.58 for `eng_pair_frac` / `people_engaged_frac` / `contact_pair_frac`, versus rho 0.57 and AUC 0.57/0.56/0.59 for old `eng_max`. The columns are density-reduced, not density-free, and none of them separates in-violence from clean ticks strongly within a stratum.
+
+`top_pair_isolation` has no stable direction: AUC 0.50 / 0.45 / 0.40 at n=2 / 3-4 / >=5 (mean at n>=5 is lower in violence), i.e. a violent group in a crowd is less isolated, the opposite of a dyad; at n=2 it is the cap whenever a pair is engaged. Do not assume a sign; use it with `n_people` or `dyad_scene`. No new statistic uses labels or future frames; truncation is exact (self-test).
+
+### pose_state_pairs (D = 9)
+`pair_dist` (distance (bh) of the current most engaged pair (3 when none)); `pair_engaged_now` (1 if that pair's engagement exceeds 0.5 at the last frame of the tick); `pair_cum_eng_sec` (cumulative seconds that pair has been engaged (> 0.5) since the latest cut or clip start); `pair_since_first_eng` (seconds since that pair first became engaged (0 if never)); `pair_age` (seconds since that pair was first seen within 4 bh); `pair_cycles` (approach-retreat cycles of that pair: re-approaches (> 2.0 bh to < 1.2 bh) after a first close); `pair_ever_engaged` (1 if that pair has been engaged before); `max_cum_eng_sec` (largest cumulative engaged seconds over all tracked pairs); `n_pairs_engaged` (number of distinct pairs that have ever been engaged).
+Keyed by track ids. Id churn is severe even on UCF and UBI (for example Fighting004: 343 unique ids at 3.1 mean
+people; pair_age rarely exceeds 40 s), so `n_pairs_engaged` and `max_cum_eng_sec` largely count id fragmentation,
+and `pair_cycles` is near-constant 0 (nonzero in 0.03% of ticks); `n_pairs_engaged` can decrease because it resets at
+shot cuts. No id re-linking is done. Computed for every video; treat all sources as unreliable, XD and YT most. Pair state resets at shot cuts. Engaged-time is cumulative since the
+latest cut or clip start by design.
+
+### Known confounds (read before modelling)
+- Time signal: `hist_Ws`, `since_cut` and every `_max_` window column (n_people, eng_max, byst_orient, ring_circ,
+  approach_n, interpose, contact_mutual) grow with ticks in the window, because a max over a window still filling is
+  biased low. On 4,010 clean negatives, correlation with t (within-video mean / pooled): since_cut and hist_300s
+  0.56 / 0.61, `n_people_max_300s` 0.34 / 0.11, `eng_max_max_300s` 0.30 / 0.13. A model can read time since start
+  or cut from them, so a lead-in length difference between positives and negatives becomes a shortcut. At training
+  time match the t distribution of positives and negatives, or ablate `hist_*`, `since_cut` and the long-window
+  `_max_` columns.
+- Crowd density (VERSION 4 adds `eng_pair_frac`, `contact_pair_frac`, `people_engaged_frac`, `dyad_*`, `eng_max_excess` to control for it; the old columns below are unchanged): pair counts grow as n^2, and the interaction columns (`close_mutual`, `eng_max`, `contact_mutual`,
+  `interpose` and their windows) are not normalised by the number of people. In ticks with at least 5 people,
+  `contact_mutual` > 0.5 in 84% of clean normals vs 90% of Fighting (UCF sample); overall rates differ mostly because
+  n_people differs (mean 1.56 vs 2.81). Compare against an n_people-conditioned baseline before claiming value.
+- Image-plane proxies: distances, interposition and the bystander ring are 2-D image geometry with no depth;
+  `ring_circ` is not a ring detector and ignores camera tilt. Version 2 gates scale mismatch and duplicates but does
+  not solve this. People seen from behind can still get a confident profile yaw in the 88 VERSION 2 columns; the VERSION 4 columns apply a back-view check (`face_ok_mask`).
+- Saturation and ranges (heuristic, not calibrated): `eng_max` p99 0.90, max 0.97 (profile yaw is constant at 0.9);
+  `ring_circ` max 0.75; `interpose` saturates at 1. `ENG_THR` 0.5 and the other constants are heuristic.
+- `valid` is true for any tick with a decoded frame (about 100% of ticks): it does not mean people were seen. Use
+  `pair_frac` and `n_people`. Zero is both "nothing seen" and a real zero for ratio and orientation columns.
+- Cuts are conservative: a cut resets state at the first pose frame of the tick window even if the cut falls later
+  in the tick.
+- Causality is tested only for the derivation from `pose_raw` and the motion cut vector; causality of the tracker,
+  camera warp and motion `cut_1s` is inherited from their own extractors, not retested here.
+
+### Causality and self-test
+`--selftest` truncates real pose_raw files (frames with time <= T, duration = T) and the motion cut vector at T = 60
+and requires identical rows (and `valid`) for ticks <= T - 1 for both extractors. Tick T also matched in every run
+(features use frames <= t only). The self-test also runs synthetic unit checks (depth-stacked pair gets no facing,
+height-ratio and duplicate gating, a true face-to-face pair still scores, `hist` counts valid ticks only, pair
+engaged-time step cap). VERSION 4 adds synthetic checks: a random 20-person crowd with all heads known gives old `close_mutual` above 0.9, while the same crowd with half of the heads known gives `eng_pair_frac` 0.025 and `people_engaged_frac` 0.36; a face-to-face dyad scores 1.0 on both; a dyad where only one head is known still counts for `eng_pair_frac` but not `dyad_eng` or old `close_mutual`; back-view people (unknown checked facing) are not engaged in the new columns while old `close_mutual` stays 1; one contact among 10 people gives `contact_pair_frac` 1/45; `face_ok_mask` cases; the null table regenerates within 0.03. Result 2026-10-15 (VERSION 4, seed 0, 4 videos, all 15 unit checks OK, 147 columns, max abs diff 0 for ticks <= 59 and tick 60 for both extractors).
+
+VERSION 2 equivalence of the 88 old columns is NOT verified against VERSION 2 output: the VERSION 2 files were overwritten and the file was never committed, so no VERSION 2 code or data remains. Only a 2-video comparison made before the overwrite supports it. Evidence available now: on 20 random videos the first 88 columns of a VERSION 4 recomputation equal the stored VERSION 3 files exactly (after float16 rounding) and are identical (max abs diff 0) when `face_ok_mask` is forced to unknown for every head, so they do not read the checked facing; by code reading they use the unchecked `facing` path and the checked variant goes through the separate `facing_chk` path.
+
+### How to run
+```
+.venv/bin/python -m anticipation.features.pose_state --selftest [--n 4 --cut 60]
+# bulk: 4 shards, resumable (skips current outputs; re-run to pick up new pose_raw / motion files)
+nice -n 10 .venv/bin/python -m anticipation.features.pose_state --all --shard i --num_shards 4
+```
+Registry names: `pose_state`, `pose_state_pairs`, `pose_state_all` (both outputs, CPU). Runtime: about 0.2 s per
+video-minute per process; 6,486 videos in about 19 min with 4 processes.
+
+### Gotchas
+- Head yaw is a left/right proxy; "mutually oriented" is wrong for people facing the camera or away.
+- Zero means "nothing seen" for people-geometry columns when fewer than 2 people are tracked; check `pair_frac`.
+- `contact` fires for friends standing shoulder to shoulder; `contact_mutual` is stricter, still not violence.
+- Tracks are not ReID: `pose_state_pairs` cycles/ages break on id switches.
+
+## siglip2_prompts_v2 (CPU rescoring)
+
+`anticipation/features/prompts.py` (`PROMPTS_V2`, `PROMPT_SET_VERSION_V2 = "v2"`, hash `05a6e63fe262`,
+extractor `siglip2_prompts_v2`, `VERSION_V2` 2). `PROMPT_SET_VERSION` stays "v1": v1 files and code paths are
+untouched (v1 outputs byte-identical); v2 has its own constants. 22 concepts in 4 groups, 3 phrasings each; the
+concept embedding is the L2-normalised mean of the normalised phrasing embeddings. `feat[t, j]` = cosine with the
+cached `siglip2` image embedding, exactly as v1 (same text preprocessing, float32 `logit_scale` / `logit_bias` in
+meta; probability = sigmoid(scale x cos + bias)). Text tower runs on CPU in float32 (bf16 on CPU was far slower; v1 used a bf16 text tower on cuda). On one video a v1 prompt scored in fp32 differs from stored v1 by 2e-4 mean and 8e-4 max, up to 0.008 in probability; irrelevant for ranking, but do not mix v1 and v2 columns for one concept. `meta["text_dtype"]` records fp32/cpu for v2; v1 meta has no text dtype, so `v1_text_dtype` is noted in v2 meta).
+Groups: `conflict_phase` (calm, tension, argument, faceoff, contact, intervention, separation, violence,
+deescalation), `contact_aggression` (push, grab, fight_stance, raised_fists, held_back), `deescalation` (walk_away,
+apologize, calm_two), `context` (ctx_cctv, ctx_movie, ctx_news, ctx_captions, ctx_phone; shortcut detectors only,
+not lead cues). Full phrasings are in `meta["prompts"]`.
+```
+.venv/bin/python -m anticipation.features.prompts --v2 --list
+OMP_NUM_THREADS=2 nice -n 10 .venv/bin/python -m anticipation.features.prompts --v2 --rescore --device cpu
+```
+Registry `siglip2_prompts_v2` (saver `rescore_v2_and_save`, CPU). Re-running skips files whose prompt hash, version
+and `backbone_version` match. 6,631 files (full siglip2 coverage at 2026-10-15) took about 6 min on 2 threads. The pass is a snapshot: siglip2
+extraction keeps adding files, so re-run `--v2 --rescore` after it finishes (idempotent); it prints
+`coverage siglip2_prompts_v2 n/N` and OK only when equal. The command is CPU-only and rejects an explicit cuda
+`--device`. The phase prompts are weak on UBI fights (pooled tick AUROC in-violence vs calm >10 s before onset:
+phase_violence 0.61, raised_fists 0.62, push 0.60, phase_tension 0.54, phase_faceoff 0.48, phase_calm 0.47 vs v1
+brawl 0.66): do not treat them as anticipation cues; judge them only through VA30, with `ctx_*` as shortcut detectors.
