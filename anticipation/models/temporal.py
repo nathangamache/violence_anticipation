@@ -50,7 +50,10 @@ class CausalTemporalModel(nn.Module):
             raise ValueError("hidden must be divisible by heads")
         self.kind, self.context, self.modality_dropout = kind, context, modality_dropout
         self.position_control = position_control
-        self.projections = nn.ModuleList([nn.Sequential(nn.LayerNorm(d), nn.Linear(d, hidden), nn.GELU()) for d in dims])
+        # LayerNorm on a single scalar is constant, so scalar streams project before normalization.
+        self.projections = nn.ModuleList([
+            nn.Sequential(nn.Linear(d, hidden), nn.LayerNorm(hidden), nn.GELU()) if d == 1 else
+            nn.Sequential(nn.LayerNorm(d), nn.Linear(d, hidden), nn.GELU()) for d in dims])
         self.fuse = nn.Linear(len(dims) * (hidden + 1), hidden)
         if kind == "gru":
             self.encoder = nn.GRU(hidden, hidden, layers, batch_first=True, dropout=dropout if layers > 1 else 0)

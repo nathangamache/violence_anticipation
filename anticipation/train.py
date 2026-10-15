@@ -43,6 +43,7 @@ def parser():
     p.add_argument("--videos", default=va30.VIDEOS_CSV)
     p.add_argument("--events", default=va30.EVENTS_JSON)
     p.add_argument("--feature_root", default=io.FEATURE_ROOT)
+    p.add_argument("--cohort", default=None, help="JSON array of benchmark video IDs; freeze coverage for model/control comparisons")
     p.add_argument("--seeds", default="0,1,2")
     p.add_argument("--device", choices=["cpu", "cuda:1"], default="cpu")
     p.add_argument("--threads", type=int, choices=range(1, 5), default=4)
@@ -221,7 +222,17 @@ def main(argv=None):
         with threadpool_limits(limits=args.threads):
             va30.N_THREADS = args.threads
             store = FeatureStore(out / "cache", bench.videos, bench.events, streams)
-            coverage = store.snapshot(bench.eval_ids())
+            video_ids = bench.eval_ids()
+            if args.cohort:
+                cohort = json.loads(Path(args.cohort).read_text())
+                if not isinstance(cohort, list) or not all(isinstance(v, str) for v in cohort) or len(set(cohort)) != len(cohort):
+                    raise ValueError("cohort must be a JSON array of unique video IDs")
+                outside = set(cohort) - set(video_ids)
+                if outside:
+                    raise ValueError(f"cohort has IDs outside the benchmark universe: {sorted(outside)[:3]}")
+                video_ids = sorted(cohort)
+                config["cohort_sha256"] = va30.file_sha256(args.cohort)
+            coverage = store.snapshot(video_ids)
             write_json(out / "coverage.json", coverage)
             config["split_coverage"] = split_coverage(bench, store)
             config["features"] = {"streams": streams, "dimensions": store.dims,

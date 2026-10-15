@@ -191,6 +191,7 @@ def test_cli_five_folds_three_seeds_and_va30(tmp_path, monkeypatch):
     bench.videos.to_csv(tmp_path / "videos.csv", index=False)
     (tmp_path / "events.json").write_text(json.dumps({"videos": bench.events}))
     (tmp_path / "folds.json").write_text(json.dumps(fold_data))
+    (tmp_path / "cohort.json").write_text(json.dumps(bench.eval_ids()))
     original_hash = (tmp_path / "folds.json").read_bytes()
     # Keep git provenance available while isolating every generated artifact.
     import anticipation.train as trainer
@@ -198,7 +199,7 @@ def test_cli_five_folds_three_seeds_and_va30(tmp_path, monkeypatch):
     monkeypatch.setattr(trainer.subprocess, "check_output", lambda args, **kw: actual(args, cwd=Path(__file__).resolve().parents[1], **kw))
     assert main(["--streams", "synthetic", "--model", "stats_logreg", "--run_name", "synthetic_e2e",
                  "--videos", str(tmp_path / "videos.csv"), "--events", str(tmp_path / "events.json"),
-                 "--folds", str(tmp_path / "folds.json"), "--feature_root", str(root),
+                 "--folds", str(tmp_path / "folds.json"), "--cohort", str(tmp_path / "cohort.json"), "--feature_root", str(root),
                  "--epochs", "3", "--n_boot", "20", "--threads", "2"]) == 0
     out = tmp_path / "benchmark/results/synthetic_e2e"
     scores = pd.read_parquet(out / "scores.parquet")
@@ -286,12 +287,13 @@ def test_partial_timelines_emit_only_common_ticks_and_block_inflated_hours(tmp_p
     bench.videos.to_csv(tmp_path / "videos.csv", index=False)
     (tmp_path / "events.json").write_text(json.dumps({"videos": bench.events}))
     (tmp_path / "folds.json").write_text(json.dumps(fold_data))
+    (tmp_path / "cohort.json").write_text(json.dumps(bench.eval_ids()))
     actual = trainer.subprocess.check_output
     monkeypatch.setattr(trainer.subprocess, "check_output", lambda args, **kw: actual(args, cwd=Path(__file__).resolve().parents[1], **kw))
     monkeypatch.setattr(trainer.va30, "main", lambda args: pytest.fail("partial timelines must not reach the unfixed evaluator"))
     assert trainer.main(["--streams", "a,b", "--model", "stats_logreg", "--run_name", "partial",
                          "--videos", str(tmp_path / "videos.csv"), "--events", str(tmp_path / "events.json"),
-                         "--folds", str(tmp_path / "folds.json"), "--feature_root", str(root),
+                         "--folds", str(tmp_path / "folds.json"), "--cohort", str(tmp_path / "cohort.json"), "--feature_root", str(root),
                          "--seeds", "0", "--epochs", "1", "--threads", "2"]) == 2
     out = tmp_path / "benchmark/results/partial"
     scores = pd.read_parquet(out / "scores.parquet")
@@ -329,3 +331,14 @@ def test_missing_matched_validation_allows_only_one_diagnostic_epoch(tmp_path):
     model = StatsModel("stats_logreg").fit(*tables, epochs=10, selection_score=lambda m: metric.score(None))
     assert model.best_epoch == 1 and len(model.history) == 1
     assert model.history[0]["val_matched_far_auroc"] is None
+
+
+@pytest.mark.parametrize("kind", ["gru", "transformer"])
+def test_scalar_stream_retains_a_learnable_signal(kind):
+    torch.manual_seed(11)
+    model = CausalTemporalModel([1], kind, hidden=8, layers=1, heads=2, context=60, dropout=0, modality_dropout=0)
+    model.eval()
+    x = torch.randn(2, 60, 1, requires_grad=True)
+    h, _ = model([x], torch.ones(2, 60, 1))
+    h.sum().backward()
+    assert x.grad.abs().max().item() > 1e-6
