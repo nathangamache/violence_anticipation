@@ -2,9 +2,9 @@
 
 Audience: anyone evaluating on, or extending, the real-world hold-out set (92 curated YouTube videos in
 `data/anticipation_curation/videos/`, catalog role `holdout`, video ids `yt/<youtube id>`).
-Status 2026-10-14: 76 of 92 videos annotated (`benchmark/youtube_holdout/annotations_v1.json`); the 16 listed in
-the file's `meta.missing` still need annotation with the same protocol. Summary numbers:
-`benchmark/youtube_holdout/summary_v1.json`.
+Status 2026-10-15: all 92 videos annotated (`benchmark/youtube_holdout/annotations_v2.json`). V2 preserves the
+76 v1 video records and adds the 16 previously listed in v1's `meta.missing`. Summary numbers:
+`benchmark/youtube_holdout/summary_v2.json`. V1 remains unchanged.
 
 ## 1. Why
 
@@ -30,32 +30,46 @@ into clips and labels onsets per clip.
   their own clip with a note. Each onset has a type, a confidence in [0, 1] and a description.
 - `video_type`: raw_single_incident, compilation, news_report, bodycam_breakdown_or_commentary,
   staged_or_reenactment, other.
-- The annotators are AI models judging frames visually (Claude Opus 5.5 for 56 videos, Sonnet 5.5 for 20; see
-  `annotator_model` per video). They see frames only, no audio. Treat these as model labels with a two-annotator
+- The annotators are AI models judging frames visually (Claude Opus 5.5 for 56 videos, Sonnet 5.5 for 20,
+  GPT-6 Codex for the 16 v2 additions; see `annotator_model` per video). They see frames only, no audio.
+  Treat these as model labels with a two-annotator
   check, not human ground truth; spot-check before citing per-video results.
 
-## 3. Results (76 videos)
+## 3. Results (92 videos)
 
 | Video type | Videos |
 |---|---|
-| news_report | 20 |
-| other (explainers, music video, unrelated) | 14 |
+| news_report | 26 |
+| other (explainers, music video, unrelated) | 21 |
 | staged_or_reenactment | 12 |
-| bodycam_breakdown_or_commentary | 12 |
-| compilation | 9 |
-| raw_single_incident | 9 |
+| bodycam_breakdown_or_commentary | 13 |
+| compilation | 10 |
+| raw_single_incident | 10 |
 
-- 183 onsets inside raw incident clips; median lead-in from the clip start is 4.1 s.
+- 199 onsets inside raw incident clips; median lead-in from the clip start is 3.25 s.
 - **36 onsets in 14 videos have at least 30 s of continuous same-clip footage before them** (camera: phone 16,
   bodycam 7, CCTV 5, other 8). This is the usable real-world 30 s evaluation set.
-- Time from the first visible confrontation cue (`escalation_start_sec`) to the onset: median 4.7 s, 75th
-  percentile 17.5 s (156 onsets with a marked escalation). Visible escalation mostly precedes violence by seconds,
+- Time from the first visible confrontation cue (`escalation_start_sec`) to the onset: median 4.6 s, 75th
+  percentile 17.1 s (161 onsets with a marked escalation). Visible escalation mostly precedes violence by seconds,
   which supports the conflict-state view in [MODALITY_PLAN.md](MODALITY_PLAN.md): a 30 s warning has to come from
   recognizing an ongoing conflict, not from a visible ramp.
+
+The 16 v2 additions were reviewed by two independent, mutually blind Codex agents, then reconciled by a third
+reviewer using 0.5 s sheets for disagreements. Each new record's `annotation_review` retains both passes,
+the reconciliation decisions and sheet paths; newly rendered sheets are in `fine_A/`, `fine_B/` and `fine_R/`
+under the existing video sheet directories. Cut/onset times are sampled estimates at 0.5 s resolution.
+
+The additions contribute 16 labeled occurrences across three videos: one parking-lot police-force occurrence,
+six arrest occurrences in edited bodycam footage, and nine CCTV shove/grab occurrences. These counts include
+replays and continuations of the same events. Nine of these occurrences have `left_censored: true` because contact is
+already underway when the clip becomes visible; their timestamps mark visible clip entry, not the original
+beginning of aggression. None of the additions supplies a new 30 s lead-in. The other 13 added videos have no
+visually established physical-aggression onset; narrated shootings, property damage and voluntary stunts alone
+were excluded.
 
 ## 4. Using it
 
 Evaluate a model on the 14 usable videos by scoring each incident clip as its own timeline (features computed on
 the full video are causal, but history before a clip start belongs to another clip; prefer re-extracting features
-on per-clip cuts). Report it separately from VA30 and never tune on it. To finish the 16 missing videos, follow
-section 2 exactly and append to a new `annotations_v2.json` (keep v1 unchanged).
+on per-clip cuts). Report it separately from VA30 and never tune on it. For future extensions, follow section 2
+exactly and write a new annotation version; keep v1 and v2 unchanged.
