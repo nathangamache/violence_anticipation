@@ -1631,7 +1631,9 @@ What the table shows:
 
 Written 2026-10-14 by the extraction-ops track. Launched 2026-10-14 21:05 with `tools/extract_queue.sh start`;
 stopped and resumed at 21:42 (no outputs lost) to deploy the review fixes: all crashed videos are skipped,
-a shard stops after 20 failures in a row, and 27 cuts were re-made.
+a shard stops after 20 failures in a row, and 27 cuts were re-made. Stopped and restarted a second time at 21:58
+(2 s stop, no outputs lost) with the manifest rows re-ordered so that clean negatives exist early
+([Run order and the early negative sample](#run-order-and-the-early-negative-sample)).
 Code: `tools/build_extract_manifest.py` (manifest and 300 s cuts), `tools/extract_queue.sh` (queue),
 `run_extract.py --keep_order` and the crash marker (section 0.2).
 
@@ -1649,16 +1651,22 @@ nice -n 10 .venv/bin/python tools/build_extract_manifest.py      # about 13 min,
   43.2 h.
 - **Columns:** `video_id, source, source_kind, role, priority, eligible30, has_audio, path, duration_sec, fps,
   num_frames, orig_path, orig_duration_sec, cap_sec`. The runner uses `video_id`, `path` and `source`.
-- **Order (priority groups):** inside each group, rows are sorted by `sha256("extract_v1:" + video_id)`. That is
-  deterministic and mixes the sources. With `--keep_order` every shard finishes the eligible30 videos first.
+- **Order (run order, one row per video):** `violent_eligible30`, then an early clean-negative sample, then the
+  other `violent`, then `holdout`, then the remaining `clean_negative`. Inside each group rows are sorted by
+  `sha256("extract_v1:" + video_id)`, which is deterministic and mixes the sources and folds. With `--keep_order`
+  every shard works through the manifest from the top and skips finished outputs. The `priority` column keeps its
+  four values: the early sample is the `clean_negative` block right after `violent_eligible30` (rows 469 to 1555).
 
-| Priority | Videos | Hours |
-|---|---|---|
-| `violent_eligible30` | 468 | 33.1 |
-| `violent` (other violent) | 1661 | 39.3 |
-| `holdout` (curated YouTube) | 92 | 10.0 |
-| `clean_negative` | 4010 | 156.9 (303.5 before the cap) |
-| **Total** | **6231** | **239.3** (xd 155.6, ucf 42.3, ubi 31.5, yt 10.0) |
+| Run order | `priority` | Videos | Hours |
+|---|---|---|---|
+| 1 | `violent_eligible30` | 468 | 33.1 |
+| 2 | `clean_negative`, early sample | 1087 | 41.8 |
+| 3 | `violent` (other violent) | 1661 | 39.3 |
+| 4 | `holdout` (curated YouTube) | 92 | 10.0 |
+| 5 | `clean_negative`, the rest | 2923 | 115.1 |
+| | **Total** | **6231** | **239.3** (xd 155.6, ucf 42.3, ubi 31.5, yt 10.0) |
+
+Clean negatives are 4010 videos and 156.9 h (303.5 h before the 300 s cap).
 
 - **Real audio** (`has_audio`, a non-silent track): 4303 videos, **175.7 h** (xd 155.6, ucf 10.3, yt 9.8;
   UBI has none). The audio steps read a filtered copy, `logs/extract/queue/manifest_audio.csv`, that the
@@ -1697,6 +1705,47 @@ nice -n 10 .venv/bin/python tools/build_extract_manifest.py      # about 13 min,
   videos later; that is resumable with a manifest that points back to `orig_path`, after deleting the 300-tick
   files.
 
+### Run order and the early negative sample
+
+The trainer cannot set false-alarm thresholds until clean negatives exist in the validation slice and test fold
+of every fold of `benchmark/folds_v2.json`. With the first order (violent, holdout, then negatives) they would
+have appeared only after about 80 h of video. The early sample moves the part of them that covers every
+fold early.
+
+- **Rule** (`early_negative_ids` in `tools/build_extract_manifest.py`): a clean negative belongs to the cell
+  (fold, `test`, source) of its test fold and to the cell (f, `val`, source) of every fold f whose validation
+  slice holds it. Source is `xd`, `ucf` or `ubi`; that gives 5 folds x 2 x 3 = 30 cells. Clean negatives are taken
+  in hash order, and one is kept while it helps a cell that holds less than 25 % of its hours (`--early_negative_frac
+  0.25`). Every cell ends with at least 25 % of its hours (smallest 25.1 %; largest 43.7 %, `ubi` in the validation
+  slice of fold 2), and the sample is 26.6 % of the clean-negative hours.
+- **Size:** 1087 videos, 41.8 h: xd 635 (27.0 h), ucf 253 (8.2 h), ubi 199 (6.6 h). 697 of them (28.9 h) have real
+  audio, which is all of xd. Videos are capped at 300 s, so a cell cannot overshoot by more than 0.083 h.
+- **Order inside the sample** is the hash order, so a partly finished sample is spread over the cells.
+- **Reproduce** (rows, paths, caps and columns are unchanged; only the row order differs; the cut files are not
+  touched):
+
+```bash
+.venv/bin/python tools/build_extract_manifest.py --reorder_only            # re-order the existing manifest, seconds
+nice -n 10 .venv/bin/python tools/build_extract_manifest.py                # full rebuild, default --early_negative_frac 0.25
+```
+
+  Both give the same order (`--early_negative_frac 0` gives the first order). Running `--reorder_only` on its
+  own output changes nothing. The new manifest sha256 starts `f531a43df4c0`.
+- **Applied** with the queue's own `stop`, a manifest swap and `start` (nothing in `extract_queue.sh` changed). The
+  stop took 2 s: every shard got SIGTERM, abandoned its in-flight video through `KeyboardInterrupt` and removed its
+  `.current` marker, so no video was recorded as crashed. Outputs are written atomically (`.tmp.npz`, then rename),
+  so finished outputs were kept and skipped: `visual` skipped 423 videos (208 + 215), `pose` 608 (210 + 226 + 172),
+  equal to the finished outputs (the 424th `visual` file is `curated/holdout_004`, which is not in the manifest).
+  One `pose` video (`ucf/Robbery085_x264`) had `pose_raw` but not `pose_interact` when it was interrupted and is
+  redone. The `audio` manifest the queue derives at start was rebuilt from the new order.
+- **What is not re-ordered:** the steps inside a lane. `audio_events`, `voice` and `speech_tox` still start when
+  `visual` has finished all 6231 videos, and `motion` and `audio_dsp` when `pose` has. Visual and pose features
+  for the sample are therefore early; audio and motion features for it come after those two passes.
+
+ETA, measured after the restart (aggregate of the per-process speeds in the shard logs):
+
+@@ETA@@
+
 ### Lanes
 
 All processes run under `nice -n 10`, pinned to cores 0-11 by `taskset`, so the 75 % cap does not depend on
@@ -1733,7 +1782,8 @@ Measured 7 minutes after launch, with the repo-cleanup jobs of another session a
   pose 38.0x, 0 failures. New ETAs: `gpu1` about 03:20, `cpu` about 09:15, `gpu0` still about 22:00 on
   2026-10-15.
 - Order of results: the eligible30 videos (33.1 h of video) have visual and pose features after about one
-  hour. Every later step also processes them first.
+  hour. Every later step also processes them first, then the early negative sample, then the rest in manifest
+  order.
 
 Speech uses about 26 GB of GPU memory per process once the MT model is loaded, so about 52 GB on cuda:0 during
 that step. While `visual` runs, cuda:1 carries only the pose detector (about 10 GB, low utilization).

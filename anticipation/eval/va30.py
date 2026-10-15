@@ -5,7 +5,7 @@ Usage (from the repo root):
     .venv/bin/python -m anticipation.eval.va30 --scores runs/my_model/scores.parquet \
         --out_dir benchmark/results/my_model [--name my_model] [--folds benchmark/folds_v2.json] \
         [--n_boot 1000] [--k 2 --n 3] [--restrict_to_scored] [--onset_sources official,hivau,ubi] \
-        [--threshold_set val|nontest] [--meta run_config.json]
+        [--threshold_set val|nontest] [--horizons benchmark/extract_manifest_v1.csv] [--meta run_config.json]
 
 Writes ``<out_dir>/metrics.json`` (all numbers with 95 % cluster-bootstrap CIs), ``<out_dir>/report.md``
 (short human summary), ``amoc.png`` and ``reliability.png``, and ``events_op2.csv`` (per eligible event
@@ -26,6 +26,11 @@ Ticks missing from the table are an error unless ``--allow_missing`` (then missi
 reported, gaps are sample-and-hold filled, and ticks before the first score get the global minimum score).
 Also an error: duplicate (seed, fold, video_id, t_sec) keys, NaN / non-integer fold or seed, NaN / inf scores or
 times, and a (seed, video) with both fold -1 rows and fold-specific rows.
+
+Per-video evaluation horizons (``--horizons``, a csv with video_id and duration_sec, e.g. the extraction manifest):
+a CLEAN NEGATIVE listed with a shorter duration than the catalog is evaluated as a video of that length. Footage
+after the horizon is unobserved: no ticks, no FA/h hours, no scores required (rows past it are ignored), and the
+usual right-censoring applies at the new end. Shortening any other role is an error. Without the flag nothing changes.
 
 Protocol summary (exact definitions in docs/VA30.md):
   * Universe: fold videos with role ``violent`` (trusted onsets) or ``clean_negative``.
@@ -57,6 +62,7 @@ from anticipation.data.folds import FOLDS_DEFAULT, Folds
 from anticipation.data.labels import AFTERMATH_SEC, HORIZONS, blocker_spans, event_table, tick_labels
 
 TRUSTED_ONSETS = ("official", "hivau", "ubi")
+HORIZON_TOL_SEC = 1e-3     # a horizon within this of the catalog duration is not a shortening
 SOURCE_KINDS = ("xd_movie", "xd_youtube", "ucf", "ubi", "yt")
 SUCCESS_LEADS = (30, 10, 0)
 SUCCESS_WINDOW_SEC = 90.0  # [t0 - 120, t0 - 30]
@@ -96,11 +102,31 @@ class EvalConfig:
     position_null: bool = True             # position-oracle reference curve for Success@30 (see position_null)
     threshold_bootstrap: int = 0           # > 0: also threshold-aware CIs with this many replicates (slow-ish)
     threshold_set: str = "val"             # "val" (default) or "nontest" (fold-agnostic tables only, see docs)
+    horizons_csv: str = None               # per-video evaluation horizons (csv: video_id, duration_sec), see docs
 
 
 # ---------------------------------------------------------------------------------------------------------
 # Benchmark (ground truth + folds)
 # ---------------------------------------------------------------------------------------------------------
+
+def read_video_horizons(path):
+    """``({video_id: duration_sec}, {"file", "sha256"})`` from a csv with (at least) video_id and duration_sec."""
+    df = pd.read_csv(path, dtype={"video_id": str})
+    missing = {"video_id", "duration_sec"} - set(df.columns)
+    if missing:
+        raise ValueError(f"horizons file {path} lacks columns {sorted(missing)}")
+    d = pd.to_numeric(df["duration_sec"], errors="coerce").values.astype(np.float64)
+    if df["video_id"].isna().any() or not np.isfinite(d).all() or (d <= 0).any():
+        raise ValueError(f"horizons file {path}: every row needs a video_id and a finite duration_sec > 0")
+    dup = df["video_id"].duplicated(keep=False)
+    if dup.any():
+        raise ValueError(f"horizons file {path}: {int(dup.sum())} rows repeat a video_id, e.g. "
+                         f"{list(df.loc[dup, 'video_id'].head(3))}")
+    ap = os.path.abspath(path)
+    return dict(zip(df["video_id"], d.tolist())), {
+        "file": os.path.relpath(ap, REPO_ROOT) if ap.startswith(REPO_ROOT) else str(path),
+        "sha256": file_sha256(path)}
+
 
 class Benchmark:
     """Catalog rows, segments and folds. ``Benchmark.load()`` reads the committed benchmark files.
@@ -108,18 +134,67 @@ class Benchmark:
     For tests, construct directly: ``videos`` is a DataFrame indexed by video_id with columns duration_sec, role,
     onset_source, source_kind, interpersonal, has_audio, group; ``events`` maps video_id -> {"segments": [...],
     optional "other_segments": [...], "mask_spans": [...]}; ``folds`` is an ``anticipation.data.folds.Folds``.
+
+    ``video_horizons`` (``{video_id: seconds}`` or a csv path, see ``read_video_horizons``) caps the evaluated
+    length of clean negatives whose footage was cut; ``duration(vid)`` is the evaluated length of every video.
     """
 
-    def __init__(self, videos, events, folds, provenance=None):
+    def __init__(self, videos, events, folds, provenance=None, video_horizons=None):
         self.videos = videos
         self.events = events
         self.folds = folds
         self.provenance = provenance or {}
+        self.video_horizons = {}
         self._labels = {}
         self._events = {}
+        if video_horizons is not None:
+            self._apply_horizons(video_horizons)
+
+    def _apply_horizons(self, horizons):
+        source = {"file": None, "sha256": None}
+        if isinstance(horizons, (str, os.PathLike)):
+            horizons, source = read_video_horizons(horizons)
+        if not horizons and source["file"] is None:
+            return
+        dur = self.videos["duration_sec"].astype(float).to_dict()
+        role = self.videos["role"].to_dict()
+        applied, bad, n_unknown, n_not_shorter = {}, [], 0, 0
+        for vid, h in horizons.items():
+            h = float(h)
+            if not np.isfinite(h) or h <= 0:
+                raise ValueError(f"horizon of {vid} must be a finite number of seconds > 0, got {h}")
+            if vid not in dur:
+                n_unknown += 1
+            elif h >= dur[vid] - HORIZON_TOL_SEC:
+                n_not_shorter += 1
+            elif role[vid] != "clean_negative":
+                bad.append(f"{vid} (role {role[vid]}, catalog {dur[vid]:.3f} s -> horizon {h:.3f} s)")
+            else:
+                applied[vid] = h
+        if bad:
+            raise ValueError(f"horizons would shorten {len(bad)} video(s) that are not clean negatives (only capped "
+                             f"clean negatives may be shortened; violent and hold-out videos were not capped): "
+                             f"{'; '.join(bad[:5])}")
+        self.video_horizons = applied
+        self.provenance = {**self.provenance, "video_horizons": {
+            **source, "n_listed": len(horizons), "n_not_in_catalog": n_unknown,
+            "n_not_shorter_than_catalog": n_not_shorter, "n_shortened": len(applied),
+            "shortened_hours_catalog": round(sum(dur[v] for v in applied) / 3600.0, 3),
+            "shortened_hours_used": round(sum(applied.values()) / 3600.0, 3)}}
+
+    def with_horizons(self, horizons):
+        """Copy of this benchmark that evaluates the listed clean negatives only up to their horizon."""
+        if self.provenance.get("video_horizons"):
+            raise ValueError("this benchmark already has evaluation horizons")
+        return Benchmark(self.videos, self.events, self.folds, self.provenance, video_horizons=horizons)
+
+    def duration(self, vid):
+        """Evaluated length of a video in seconds: the catalog duration unless a horizon shortens it."""
+        h = self.video_horizons.get(vid)
+        return float(self.videos.loc[vid, "duration_sec"]) if h is None else h
 
     @classmethod
-    def load(cls, folds_path=None, videos_csv=VIDEOS_CSV, events_json=EVENTS_JSON):
+    def load(cls, folds_path=None, videos_csv=VIDEOS_CSV, events_json=EVENTS_JSON, horizons=None):
         folds_path = folds_path or FOLDS_DEFAULT
         folds = Folds.load(folds_path)
         prov = {"folds_path": os.path.relpath(folds_path, REPO_ROOT) if folds_path.startswith(REPO_ROOT) else folds_path,
@@ -129,7 +204,8 @@ class Benchmark:
         if cat.get("videos_csv_sha256") and cat["videos_csv_sha256"] != prov["videos_csv_sha256"]:
             prov["note"] = ("videos.csv changed since the fold file was written (expected when the catalog is "
                             "re-run with new sources; fold membership is taken from the fold file)")
-        return cls(load_catalog(videos_csv), load_events(events_json), folds, prov)
+        return cls(load_catalog(videos_csv), load_events(events_json), folds, prov,
+                   video_horizons=horizons)
 
     def segments(self, vid):
         if self.videos.loc[vid, "role"] != "violent":
@@ -145,7 +221,7 @@ class Benchmark:
     def labels(self, vid):
         if vid not in self._labels:
             others, masks, soft = self.excluded_spans(vid)
-            self._labels[vid] = tick_labels(float(self.videos.loc[vid, "duration_sec"]), self.segments(vid),
+            self._labels[vid] = tick_labels(self.duration(vid), self.segments(vid),
                                             other_segments=others, mask_spans=masks, soft_mask_spans=soft)
         return self._labels[vid]
 
@@ -161,7 +237,7 @@ class Benchmark:
             if vid not in self.videos.index:
                 continue
             r = self.videos.loc[vid]
-            if float(r["duration_sec"]) < 1.0:
+            if self.duration(vid) < 1.0:
                 continue
             if r["role"] == "clean_negative" or (r["role"] == "violent" and r["onset_source"] in onset_sources):
                 out.append(vid)
@@ -181,13 +257,23 @@ def load_scores(path):
 
 
 class ScoreTable:
-    """Index of a score DataFrame by (seed, fold, video_id)."""
+    """Index of a score DataFrame by (seed, fold, video_id).
 
-    def __init__(self, df):
+    ``horizons`` (``{video_id: seconds}``, ``Benchmark.video_horizons``): rows after a video's horizon are dropped
+    before any validation, so they cannot raise or influence the table (``n_trimmed`` counts them).
+    """
+
+    def __init__(self, df, horizons=None):
         missing = {"video_id", "t_sec", "score"} - set(df.columns)
         if missing:
             raise ValueError(f"score table lacks columns {sorted(missing)}")
         df = df.copy()
+        self.n_trimmed = 0
+        if horizons:
+            cut = df["video_id"].map(horizons)
+            beyond = (cut.notna() & (pd.to_numeric(df["t_sec"], errors="coerce") > cut + 1e-6)).values
+            self.n_trimmed = int(beyond.sum())
+            df = df[~beyond]
         if "fold" not in df:
             df["fold"] = -1
         if "seed" not in df:
@@ -277,7 +363,7 @@ class TickSet:
         self.interp_v = rows["interpersonal"].values.astype(bool)
         self.audio_v = rows["has_audio"].values.astype(bool)
         self.group_v = rows["group"].values if "group" in rows else np.array(self.vids)
-        self.duration_v = rows["duration_sec"].values.astype(np.float64)
+        self.duration_v = np.array([bench.duration(v) for v in self.vids], dtype=np.float64)
         self.fold_v = np.array([folds_of.get(v, -1) for v in self.vids]) if folds_of else np.full(V, -1)
         self.clean = self.clean_v[self.vidx] if V else np.zeros(0, bool)
         self.V = V
@@ -1159,6 +1245,13 @@ def evaluate_seed(bench, table, seed, eval_set, cfg, cov):
         "clean_negative_hours": round(float(ts.duration_v[ts.clean_v].sum()) / 3600, 2),
         "test_hours": round(float(ts.duration_v.sum()) / 3600, 2), "ticks": int(len(ts.score)),
     }}
+    if bench.provenance.get("video_horizons"):
+        cat_s = bench.videos.loc[ts.vids, "duration_sec"].astype(np.float64).values if ts.V else np.zeros(0)
+        M["counts"]["video_horizons"] = {
+            "clean_negative_videos_shortened": int(sum(v in bench.video_horizons
+                                                       for v in np.array(ts.vids)[ts.clean_v])),
+            "clean_negative_hours_used": round(float(ts.duration_v[ts.clean_v].sum()) / 3600, 2),
+            "clean_negative_hours_catalog": round(float(cat_s[ts.clean_v].sum()) / 3600, 2)}
     M.update(threshold_free(ts, W, cfg))
     M["calibration"] = calibration(ts, W, cfg, table.is_probability)
     M["per_fold_far_window_auroc_clean"] = {}
@@ -1373,7 +1466,9 @@ def git_commit():
 def evaluate(scores, bench, cfg=None, name=None, extra_meta=None):
     """Full VA30 metrics dict for a score DataFrame (or ScoreTable) against a Benchmark."""
     cfg = cfg or EvalConfig()
-    table = scores if isinstance(scores, ScoreTable) else ScoreTable(scores)
+    if cfg.horizons_csv:
+        bench = bench.with_horizons(cfg.horizons_csv)
+    table = scores if isinstance(scores, ScoreTable) else ScoreTable(scores, bench.video_horizons)
     eval_ids = bench.eval_ids(cfg.onset_sources)
     n_all = len(eval_ids)
     if cfg.restrict_to_scored:
@@ -1390,7 +1485,9 @@ def evaluate(scores, bench, cfg=None, name=None, extra_meta=None):
         "benchmark": {"name": "VA30", "fold_file": bench.folds.d.get("name"), **bench.provenance},
         "run": {"created": datetime.datetime.now().isoformat(timespec="seconds"), "git_commit": git_commit(),
                 "command": " ".join(sys.argv), **(extra_meta or {})},
-        "config": {**{k: v for k, v in asdict(cfg).items() if k != "policy"}, "policy": asdict(cfg.policy),
+        "config": {**{k: v for k, v in asdict(cfg).items()
+                      if k != "policy" and not (k == "horizons_csv" and v is None)},
+                   "policy": asdict(cfg.policy),
                    "threshold_rule": "per fold: lower theta from +inf over the exact unique scores of the threshold "
                                      "set until its FA/h on clean negatives first exceeds the target; keep the "
                                      "lowest theta before that (geometric top-down scan + bisection)",
@@ -1402,7 +1499,9 @@ def evaluate(scores, bench, cfg=None, name=None, extra_meta=None):
                               "val_clean_negative_hours_per_fold: one alarm = 1 / hours FA/h)."},
         "coverage": {"eval_videos_in_universe": n_all, "eval_videos_used": len(eval_ids),
                      "restricted_to_scored": cfg.restrict_to_scored, "score_rows": table.n_rows,
-                     "seeds": table.seeds, "scores_are_probabilities": table.is_probability, **cov},
+                     "seeds": table.seeds, "scores_are_probabilities": table.is_probability, **cov,
+                     **({"score_rows_beyond_horizon_ignored": table.n_trimmed}
+                        if bench.provenance.get("video_horizons") else {})},
         "summary_over_seeds": summarize_seeds(per_seed),
         "seeds": per_seed,
         "headline_seed": str(table.seeds[0]),
@@ -1443,6 +1542,14 @@ def write_report(res, out_dir):
         L += [f"**Restricted to scored videos:** {res['coverage']['eval_videos_used']} of "
               f"{res['coverage']['eval_videos_in_universe']} universe videos. Not directly comparable with "
               f"full-universe results.", ""]
+    vh = res["benchmark"].get("video_horizons")
+    if vh:
+        ch = c["video_horizons"]
+        L += [f"**Capped clean negatives:** per-video horizons from `{vh.get('file')}` (sha256 "
+              f"`{(vh.get('sha256') or '')[:12]}`) shorten {vh['n_shortened']} catalog clean negatives "
+              f"({ch['clean_negative_videos_shortened']} in the test universe); footage after each horizon is "
+              f"unobserved and excluded from every metric. Test clean-negative hours used: "
+              f"{ch['clean_negative_hours_used']} of {ch['clean_negative_hours_catalog']} in the catalog.", ""]
     op = m["operating_points"]
     L += ["## Headline", "", "| Metric | Value |", "|---|---|",
           f"| Far-window AUROC (30-60 s vs clean negatives) | {_fmt(m['far_window_auroc']['clean'])} |",
@@ -1610,13 +1717,16 @@ def main(argv=None):
     ap.add_argument("--threshold_bootstrap", type=int, default=0,
                     help="replicates for threshold-aware CIs of Success@30 and FA/h (validation resampled, theta "
                          "re-chosen per replicate); 0 = off")
+    ap.add_argument("--horizons", default=None,
+                    help="csv with video_id,duration_sec (e.g. benchmark/extract_manifest_v1.csv): clean negatives "
+                         "listed with a shorter duration than the catalog are evaluated only up to it")
     ap.add_argument("--meta", default=None,
                     help="JSON file merged into metrics.json 'run' (feature set + extraction config, model config, "
                          "training command, seeds): the BASELINE 6.6 reporting template")
     args = ap.parse_args(argv)
 
     t0 = time.time()
-    bench = Benchmark.load(args.folds, args.videos, args.events)
+    bench = Benchmark.load(args.folds, args.videos, args.events, horizons=args.horizons)
     cfg = EvalConfig(policy=AlarmPolicy(k=args.k, n=args.n), n_boot=args.n_boot, boot_seed=args.boot_seed,
                      cluster=args.cluster, fa_targets=tuple(float(x) for x in args.fa_targets.split(",")),
                      onset_sources=tuple(args.onset_sources.split(",")), restrict_to_scored=args.restrict_to_scored,

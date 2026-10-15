@@ -40,8 +40,11 @@ graph-transformer system with DeepSORT, real audio, ONNX export and passing test
 3. [EXPERIMENT_HISTORY.md](EXPERIMENT_HISTORY.md): what was tried, what it scored, and why it failed.
 4. [codebase/data_and_labels.md](codebase/data_and_labels.md): where the onsets come from, the time-axis
    contract, label sets, splits and data bugs. **Required before touching any label or feature file.**
-5. [research/README.md](research/README.md): which public datasets and pretrained backbones to add.
-6. The per-area codebase docs below, as needed.
+5. [MODALITY_PLAN.md](MODALITY_PLAN.md): the evidence-based decision on which cues and feature streams to
+   invest in for 30 s+ anticipation, the pre-registered modality screen, and the work priority. **Read before
+   adding any feature stream or model.**
+6. [research/README.md](research/README.md): which public datasets and pretrained backbones to add.
+7. The per-area codebase docs below, as needed.
 
 ---
 
