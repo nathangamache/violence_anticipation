@@ -1,0 +1,503 @@
+{
+  "config": {
+    "streams": "synthetic",
+    "model": "gru",
+    "run_name": "trainer_synthetic_gru_20261014",
+    "folds": "benchmark/results/trainer_synthetic_inputs_20261014/synthetic_folds.json",
+    "videos": "benchmark/results/trainer_synthetic_inputs_20261014/videos.csv",
+    "events": "benchmark/results/trainer_synthetic_inputs_20261014/events.json",
+    "feature_root": "benchmark/results/trainer_synthetic_inputs_20261014/features",
+    "seeds": "0,1,2",
+    "device": "cpu",
+    "threads": 2,
+    "epochs": 5,
+    "patience": 4,
+    "max_train_ticks": 1600,
+    "max_val_ticks": 10000,
+    "context": 60,
+    "hidden": 16,
+    "layers": 1,
+    "heads": 2,
+    "batch_size": 64,
+    "lr": 0.005,
+    "dropout": 0.0,
+    "modality_dropout": 0.0,
+    "auxiliary_weight": 0.2,
+    "position_control": false,
+    "time_matched_training": false,
+    "require_validation_metric": true,
+    "n_boot": 100,
+    "threshold_bootstrap": 0,
+    "max_minutes": 10.0,
+    "no_eval": false
+  },
+  "packages": {
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "scikit-learn": "1.7.2",
+    "torch": "2.5.1+cu121",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.1",
+    "lightgbm": null
+  },
+  "model_spec": {
+    "statistics_windows_sec": [
+      5,
+      15,
+      30,
+      60
+    ],
+    "logreg_C": 0.1,
+    "logreg_solver": "newton-cg",
+    "boosting_rounds_per_epoch": 10,
+    "tree_leaves": 15,
+    "tree_learning_rate": 0.05,
+    "hazard_edges_sec": [
+      0,
+      5,
+      10,
+      20,
+      30,
+      45,
+      60
+    ],
+    "positive_hazard_weight": "clip(30 / time_to_onset, 0.25, 1)",
+    "optimizer": "AdamW",
+    "weight_decay": 0.0001,
+    "gradient_clip": 1.0,
+    "normalizer_scale_floor": 0.0001,
+    "short_context": "repeat first tick",
+    "checkpoint_selection": "validation source_time_matched_far_auroc",
+    "selection_unavailable": "one fixed diagnostic epoch; no tuning"
+  },
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "anticipation.train",
+    "--streams",
+    "synthetic",
+    "--model",
+    "gru",
+    "--run_name",
+    "trainer_synthetic_gru_20261014",
+    "--feature_root",
+    "benchmark/results/trainer_synthetic_inputs_20261014/features",
+    "--videos",
+    "benchmark/results/trainer_synthetic_inputs_20261014/videos.csv",
+    "--events",
+    "benchmark/results/trainer_synthetic_inputs_20261014/events.json",
+    "--folds",
+    "benchmark/results/trainer_synthetic_inputs_20261014/synthetic_folds.json",
+    "--epochs",
+    "5",
+    "--n_boot",
+    "100",
+    "--threads",
+    "2",
+    "--require_validation_metric",
+    "--max_minutes",
+    "10",
+    "--context",
+    "60",
+    "--hidden",
+    "16",
+    "--layers",
+    "1",
+    "--heads",
+    "2",
+    "--batch_size",
+    "64",
+    "--max_train_ticks",
+    "1600",
+    "--lr",
+    "0.005",
+    "--dropout",
+    "0",
+    "--modality_dropout",
+    "0"
+  ],
+  "git_commit": "e8e6d12c4b93a18567ebdc031dd5fb20f97fca18",
+  "git_dirty": [
+    "?? benchmark/results/trainer_evaluator_exposure_audit_20261014/",
+    "?? benchmark/results/trainer_siglip2_prompts_diagnostic_v2_20261014/",
+    "?? benchmark/results/trainer_siglip2_prompts_smoke_20261014/",
+    "?? benchmark/results/trainer_synthetic_inputs_20261014/",
+    "?? benchmark/results/trainer_synthetic_stats_20261014/",
+    "?? benchmark/results/trainer_synthetic_time_control_20261014/"
+  ],
+  "created": "2026-10-15T01:52:24.480654+00:00",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "benchmark": {
+    "folds_path": "benchmark/results/trainer_synthetic_inputs_20261014/synthetic_folds.json",
+    "folds_content_sha256": "91e72a2d7736ba860ee6664eaaf8ae5715e707920814f55ed91c55287dd76491",
+    "videos_csv_sha256": "814f2806bd424303c4628a12161d6c9aa96799715bc1a95eaa373f9542be5fbe",
+    "events_json_sha256": "17e6280f74c4d8a0901ff30fd6d1d917fa310b57e0143d9d792c62d9476d6089"
+  },
+  "status": "complete",
+  "normalization": "per-dimension training-fold moments over valid ticks only",
+  "score": "P(onset within 30 seconds)",
+  "restrict_to_scored": true,
+  "split_coverage": {
+    "0": {
+      "train": {
+        "videos": 14,
+        "roles": {
+          "violent": 7,
+          "clean_negative": 7
+        },
+        "clean_hours": 0.42777777777777776,
+        "catalog_clean_hours": 0.42777777777777776,
+        "video_ids": [
+          "synthetic/f1v1",
+          "synthetic/f1v3",
+          "synthetic/f2v0",
+          "synthetic/f2v1",
+          "synthetic/f2v2",
+          "synthetic/f2v3",
+          "synthetic/f3v0",
+          "synthetic/f3v1",
+          "synthetic/f3v2",
+          "synthetic/f3v3",
+          "synthetic/f4v0",
+          "synthetic/f4v1",
+          "synthetic/f4v2",
+          "synthetic/f4v3"
+        ]
+      },
+      "val": {
+        "videos": 2,
+        "roles": {
+          "violent": 1,
+          "clean_negative": 1
+        },
+        "clean_hours": 0.06111111111111111,
+        "catalog_clean_hours": 0.06111111111111111,
+        "video_ids": [
+          "synthetic/f1v0",
+          "synthetic/f1v2"
+        ]
+      },
+      "test": {
+        "videos": 4,
+        "roles": {
+          "violent": 2,
+          "clean_negative": 2
+        },
+        "clean_hours": 0.12222222222222222,
+        "catalog_clean_hours": 0.12222222222222222,
+        "video_ids": [
+          "synthetic/f0v0",
+          "synthetic/f0v1",
+          "synthetic/f0v2",
+          "synthetic/f0v3"
+        ]
+      }
+    },
+    "1": {
+      "train": {
+        "videos": 14,
+        "roles": {
+          "violent": 7,
+          "clean_negative": 7
+        },
+        "clean_hours": 0.42777777777777776,
+        "catalog_clean_hours": 0.42777777777777776,
+        "video_ids": [
+          "synthetic/f0v0",
+          "synthetic/f0v1",
+          "synthetic/f0v2",
+          "synthetic/f0v3",
+          "synthetic/f2v1",
+          "synthetic/f2v3",
+          "synthetic/f3v0",
+          "synthetic/f3v1",
+          "synthetic/f3v2",
+          "synthetic/f3v3",
+          "synthetic/f4v0",
+          "synthetic/f4v1",
+          "synthetic/f4v2",
+          "synthetic/f4v3"
+        ]
+      },
+      "val": {
+        "videos": 2,
+        "roles": {
+          "violent": 1,
+          "clean_negative": 1
+        },
+        "clean_hours": 0.06111111111111111,
+        "catalog_clean_hours": 0.06111111111111111,
+        "video_ids": [
+          "synthetic/f2v0",
+          "synthetic/f2v2"
+        ]
+      },
+      "test": {
+        "videos": 4,
+        "roles": {
+          "violent": 2,
+          "clean_negative": 2
+        },
+        "clean_hours": 0.12222222222222222,
+        "catalog_clean_hours": 0.12222222222222222,
+        "video_ids": [
+          "synthetic/f1v0",
+          "synthetic/f1v1",
+          "synthetic/f1v2",
+          "synthetic/f1v3"
+        ]
+      }
+    },
+    "2": {
+      "train": {
+        "videos": 14,
+        "roles": {
+          "violent": 7,
+          "clean_negative": 7
+        },
+        "clean_hours": 0.42777777777777776,
+        "catalog_clean_hours": 0.42777777777777776,
+        "video_ids": [
+          "synthetic/f0v0",
+          "synthetic/f0v1",
+          "synthetic/f0v2",
+          "synthetic/f0v3",
+          "synthetic/f1v0",
+          "synthetic/f1v1",
+          "synthetic/f1v2",
+          "synthetic/f1v3",
+          "synthetic/f3v1",
+          "synthetic/f3v3",
+          "synthetic/f4v0",
+          "synthetic/f4v1",
+          "synthetic/f4v2",
+          "synthetic/f4v3"
+        ]
+      },
+      "val": {
+        "videos": 2,
+        "roles": {
+          "violent": 1,
+          "clean_negative": 1
+        },
+        "clean_hours": 0.06111111111111111,
+        "catalog_clean_hours": 0.06111111111111111,
+        "video_ids": [
+          "synthetic/f3v0",
+          "synthetic/f3v2"
+        ]
+      },
+      "test": {
+        "videos": 4,
+        "roles": {
+          "violent": 2,
+          "clean_negative": 2
+        },
+        "clean_hours": 0.12222222222222222,
+        "catalog_clean_hours": 0.12222222222222222,
+        "video_ids": [
+          "synthetic/f2v0",
+          "synthetic/f2v1",
+          "synthetic/f2v2",
+          "synthetic/f2v3"
+        ]
+      }
+    },
+    "3": {
+      "train": {
+        "videos": 14,
+        "roles": {
+          "violent": 7,
+          "clean_negative": 7
+        },
+        "clean_hours": 0.42777777777777776,
+        "catalog_clean_hours": 0.42777777777777776,
+        "video_ids": [
+          "synthetic/f0v0",
+          "synthetic/f0v1",
+          "synthetic/f0v2",
+          "synthetic/f0v3",
+          "synthetic/f1v0",
+          "synthetic/f1v1",
+          "synthetic/f1v2",
+          "synthetic/f1v3",
+          "synthetic/f2v0",
+          "synthetic/f2v1",
+          "synthetic/f2v2",
+          "synthetic/f2v3",
+          "synthetic/f4v1",
+          "synthetic/f4v3"
+        ]
+      },
+      "val": {
+        "videos": 2,
+        "roles": {
+          "violent": 1,
+          "clean_negative": 1
+        },
+        "clean_hours": 0.06111111111111111,
+        "catalog_clean_hours": 0.06111111111111111,
+        "video_ids": [
+          "synthetic/f4v0",
+          "synthetic/f4v2"
+        ]
+      },
+      "test": {
+        "videos": 4,
+        "roles": {
+          "violent": 2,
+          "clean_negative": 2
+        },
+        "clean_hours": 0.12222222222222222,
+        "catalog_clean_hours": 0.12222222222222222,
+        "video_ids": [
+          "synthetic/f3v0",
+          "synthetic/f3v1",
+          "synthetic/f3v2",
+          "synthetic/f3v3"
+        ]
+      }
+    },
+    "4": {
+      "train": {
+        "videos": 14,
+        "roles": {
+          "violent": 7,
+          "clean_negative": 7
+        },
+        "clean_hours": 0.42777777777777776,
+        "catalog_clean_hours": 0.42777777777777776,
+        "video_ids": [
+          "synthetic/f0v1",
+          "synthetic/f0v3",
+          "synthetic/f1v0",
+          "synthetic/f1v1",
+          "synthetic/f1v2",
+          "synthetic/f1v3",
+          "synthetic/f2v0",
+          "synthetic/f2v1",
+          "synthetic/f2v2",
+          "synthetic/f2v3",
+          "synthetic/f3v0",
+          "synthetic/f3v1",
+          "synthetic/f3v2",
+          "synthetic/f3v3"
+        ]
+      },
+      "val": {
+        "videos": 2,
+        "roles": {
+          "violent": 1,
+          "clean_negative": 1
+        },
+        "clean_hours": 0.06111111111111111,
+        "catalog_clean_hours": 0.06111111111111111,
+        "video_ids": [
+          "synthetic/f0v0",
+          "synthetic/f0v2"
+        ]
+      },
+      "test": {
+        "videos": 4,
+        "roles": {
+          "violent": 2,
+          "clean_negative": 2
+        },
+        "clean_hours": 0.12222222222222222,
+        "catalog_clean_hours": 0.12222222222222222,
+        "video_ids": [
+          "synthetic/f4v0",
+          "synthetic/f4v1",
+          "synthetic/f4v2",
+          "synthetic/f4v3"
+        ]
+      }
+    }
+  },
+  "features": {
+    "streams": [
+      "synthetic"
+    ],
+    "dimensions": [
+      4
+    ],
+    "manifest": "benchmark/results/trainer_synthetic_gru_20261014/coverage.json",
+    "manifest_sha256": "5e0a9a9ccd27df8ca1f090dad153b36860228da29931cf46559f7aee3725575c"
+  },
+  "evaluation_readiness": {
+    "validation_folds_without_clean_negatives": []
+  },
+  "validation_selection": {
+    "0": {
+      "metric": "source_time_matched_far_auroc",
+      "available": true,
+      "candidate_ticks": 190,
+      "sampled_ticks": 190,
+      "matched_positive_ticks": 30,
+      "matched_negative_ticks": 35,
+      "sampling_seed": 0
+    },
+    "1": {
+      "metric": "source_time_matched_far_auroc",
+      "available": true,
+      "candidate_ticks": 190,
+      "sampled_ticks": 190,
+      "matched_positive_ticks": 30,
+      "matched_negative_ticks": 35,
+      "sampling_seed": 0
+    },
+    "2": {
+      "metric": "source_time_matched_far_auroc",
+      "available": true,
+      "candidate_ticks": 190,
+      "sampled_ticks": 190,
+      "matched_positive_ticks": 30,
+      "matched_negative_ticks": 35,
+      "sampling_seed": 0
+    },
+    "3": {
+      "metric": "source_time_matched_far_auroc",
+      "available": true,
+      "candidate_ticks": 190,
+      "sampled_ticks": 190,
+      "matched_positive_ticks": 30,
+      "matched_negative_ticks": 35,
+      "sampling_seed": 0
+    },
+    "4": {
+      "metric": "source_time_matched_far_auroc",
+      "available": true,
+      "candidate_ticks": 190,
+      "sampled_ticks": 190,
+      "matched_positive_ticks": 30,
+      "matched_negative_ticks": 30,
+      "sampling_seed": 0
+    }
+  },
+  "evaluation_command": [
+    ".venv/bin/python",
+    "-m",
+    "anticipation.eval.va30",
+    "--scores",
+    "benchmark/results/trainer_synthetic_gru_20261014/scores.parquet",
+    "--out_dir",
+    "benchmark/results/trainer_synthetic_gru_20261014",
+    "--folds",
+    "benchmark/results/trainer_synthetic_inputs_20261014/synthetic_folds.json",
+    "--videos",
+    "benchmark/results/trainer_synthetic_inputs_20261014/videos.csv",
+    "--events",
+    "benchmark/results/trainer_synthetic_inputs_20261014/events.json",
+    "--n_boot",
+    "100",
+    "--threshold_bootstrap",
+    "0",
+    "--restrict_to_scored",
+    "--meta",
+    "benchmark/results/trainer_synthetic_gru_20261014/run_config.json"
+  ]
+}

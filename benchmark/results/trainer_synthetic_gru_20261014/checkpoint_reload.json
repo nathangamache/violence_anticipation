@@ -1,0 +1,8 @@
+{
+  "video_id": "synthetic/f0v0",
+  "fold": 0,
+  "seed": 0,
+  "ticks_compared": 220,
+  "max_abs_diff": 0.0,
+  "passed": true
+}

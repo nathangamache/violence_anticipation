@@ -1,0 +1,114 @@
+{
+  "videos": {
+    "synthetic/f0v0": {
+      "segments": [
+        [
+          110,
+          125
+        ]
+      ]
+    },
+    "synthetic/f0v1": {
+      "segments": [
+        [
+          121,
+          136
+        ]
+      ]
+    },
+    "synthetic/f0v2": {
+      "segments": []
+    },
+    "synthetic/f0v3": {
+      "segments": []
+    },
+    "synthetic/f1v0": {
+      "segments": [
+        [
+          119,
+          134
+        ]
+      ]
+    },
+    "synthetic/f1v1": {
+      "segments": [
+        [
+          130,
+          145
+        ]
+      ]
+    },
+    "synthetic/f1v2": {
+      "segments": []
+    },
+    "synthetic/f1v3": {
+      "segments": []
+    },
+    "synthetic/f2v0": {
+      "segments": [
+        [
+          128,
+          143
+        ]
+      ]
+    },
+    "synthetic/f2v1": {
+      "segments": [
+        [
+          139,
+          154
+        ]
+      ]
+    },
+    "synthetic/f2v2": {
+      "segments": []
+    },
+    "synthetic/f2v3": {
+      "segments": []
+    },
+    "synthetic/f3v0": {
+      "segments": [
+        [
+          137,
+          152
+        ]
+      ]
+    },
+    "synthetic/f3v1": {
+      "segments": [
+        [
+          148,
+          163
+        ]
+      ]
+    },
+    "synthetic/f3v2": {
+      "segments": []
+    },
+    "synthetic/f3v3": {
+      "segments": []
+    },
+    "synthetic/f4v0": {
+      "segments": [
+        [
+          146,
+          161
+        ]
+      ]
+    },
+    "synthetic/f4v1": {
+      "segments": [
+        [
+          157,
+          172
+        ]
+      ]
+    },
+    "synthetic/f4v2": {
+      "segments": []
+    },
+    "synthetic/f4v3": {
+      "segments": []
+    }
+  }
+}

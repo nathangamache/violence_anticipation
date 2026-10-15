@@ -1,0 +1,9 @@
+{
+  "generator": "tests/test_train.py:synthetic_benchmark",
+  "precursor": true,
+  "rng_seed": 7,
+  "videos": 20,
+  "duration_sec": 220,
+  "signal_starts_sec_before_onset": 40,
+  "purpose": "synthetic integration only; no benchmark performance claim"
+}

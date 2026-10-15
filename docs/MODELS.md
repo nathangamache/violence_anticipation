@@ -1,13 +1,13 @@
 # Causal anticipation training
 
 Status for the lead (2026-10-14):
-- Framework and initial tests pushed in `a30af89`; 22 trainer checks pass after coordination changes.
+- Framework and initial tests pushed in `a30af89`; 69 suite checks passed; added scalar-stream and cohort checks also pass.
 - Models: window statistics + logistic/boosting, causal GRU/Transformer; time-only control added.
 - Checkpoints now use validation source-and-time-matched far-window AUROC, never pooled AUROC.
 - Missing matched validation classes permit one diagnostic epoch only; modality screening requires both.
 - Score tables now contain only timestamps shared by all requested streams; modality valid masks remain separate.
 - Blocker: VA30 fills missing timestamps and uses catalog durations for FA/h; capped negatives are unsafe to evaluate.
-- Blocker: the first real-feature snapshot has 303 videos but only one clean negative; folds 0–3 lack validation negatives.
+- Blocker: the current real-feature snapshot has 345 videos but only one clean negative; folds 0–3 lack validation negatives.
 - Modality screen is pending clean-negative extraction, the evaluator fix and the incoming modality decision rule.
 
 `anticipation.train` learns from the cached 1 Hz streams described in [FEATURES.md](FEATURES.md).
@@ -45,7 +45,10 @@ feature snapshot or VA30 evaluation can run past a check, so keep experiments sm
 `--max_train_ticks 20000` and `--max_val_ticks 10000` bound the samples used for fitting/checkpoint
 selection; `0` uses all usable ticks. Sampling is uniform without replacement, separately per seed,
 after splitting and applying task masks. Every test and validation tick shared by all required stream timestamp grids is scored,
-regardless of training/checkpoint sample limits. Reduce tick limits, epochs or hidden width for smoke tests.
+regardless of training/checkpoint sample limits. Reduce tick limits, epochs or hidden width for smoke tests. `--cohort ids.json` accepts a JSON array
+of benchmark video IDs, hashes it into the run config and restricts the feature snapshot. Freeze one
+cohort before each modality comparison and reuse it for feature models and the time-only control;
+otherwise extraction progress can make nominally identical stream lists cover different videos.
 
 Additional temporal settings: `--context 60..300`, `--hidden 64`, `--layers 2`, `--heads 4`,
 `--batch_size 32`, `--lr 0.001`, `--dropout 0.1`, `--modality_dropout 0.15`,
@@ -61,7 +64,7 @@ position indirectly; read source/time-matched AUROC and the position null in eve
    enter training or evaluation. Other anomalies, unlabelled videos, duplicates and curated hold-out
    videos cannot become training negatives.
 2. A video missing any required stream is skipped for the entire run. Unreadable files, inconsistent
-   dimensions and videos with no usable ticks are also reported and skipped. Snapshot coverage is fixed
+   dimensions and videos with no common timestamps are also reported and skipped. Snapshot coverage is fixed
    before training so extraction progress cannot change membership between folds or seeds.
 3. Streams are joined by exact `t_sec` onto `labels_for_video(...).t_sec`. Missing, invalid or nonfinite
    feature rows become zeros with a false per-stream presence mask. No interpolation or future filling
@@ -113,7 +116,8 @@ feature. A GRU resets its hidden state at every context, so its receptive field 
 Transformer uses a triangular causal attention mask and sinusoidal positions relative to the fixed
 context; there are no absolute video timestamps unless the explicit control is enabled.
 
-Each stream has LayerNorm, a learned linear projection and GELU. Its presence mask zeros the projection,
+Each stream has LayerNorm, a learned linear projection and GELU. Scalar streams project before
+LayerNorm so a one-dimensional input does not collapse to a constant; other streams normalize first. Its presence mask zeros the projection,
 including its bias, and is concatenated into fusion. Modality dropout removes an entire stream across
 a sample's context and changes the supplied mask consistently. The fused sequence enters a unidirectional
 GRU or causal Transformer. The last token produces six discrete hazards and a separate violence-now logit.
@@ -149,11 +153,12 @@ completed model scores and history, but automatic resume is not implemented; use
 
 By default the trainer calls the existing VA30 CLI entrypoint in-process, with evaluator thread count
 capped, `--restrict_to_scored`, the selected fold file, bootstrap settings and `--meta run_config.json`.
-The equivalent command is saved verbatim. To recompute a report:
+The equivalent module command is saved verbatim. To recompute a full-timeline report while also
+capping the evaluator's internal Python thread pool:
 
 ```bash
 nice -n 10 env OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
-  $PY -m anticipation.eval.va30 \
+  $PY -c 'from anticipation.eval import va30; va30.N_THREADS=4; va30.main()' \
   --scores benchmark/results/stats_multistream_v1/scores.parquet \
   --out_dir benchmark/results/stats_multistream_v1 \
   --folds benchmark/folds_v2.json --restrict_to_scored \
@@ -201,6 +206,9 @@ at line 577. `_collect` at lines 854–877 sample-and-hold fills missing score t
 after the last feature. `--restrict_to_scored` at lines 1376–1377 restricts video IDs only. Consequently,
 300 scored seconds of a 3,600-second clean negative can contribute 1 hour rather than 0.0833 hours.
 This changes both thresholds and test FA/h, and the fabricated held tail can affect alarms too.
+[Reproduction](../benchmark/results/trainer_evaluator_exposure_audit_20261014/reproduce.py) and
+[audit output](../benchmark/results/trainer_evaluator_exposure_audit_20261014/audit.json) demonstrate
+exactly 3,300 held ticks and a 12x exposure inflation on a synthetic one-hour negative scored for 300 seconds.
 
 The trainer does not modify the evaluator. It blocks automatic evaluation when any covered video has
 fewer jointly scored ticks than catalog ticks, saves the exact partial score table and records
@@ -216,6 +224,9 @@ When negatives and the evaluator fix arrive, screen `vjepa2_l`, `siglip2`, `sigl
 `0,1,2`. Keep model/sampling settings identical across streams, require matched validation coverage,
 and include the time-only control on each compared coverage cohort. Do not select on pooled AUROC or
 test outcomes. Read the incoming `MODALITY_PLAN.md` decision rule before choosing modalities.
+A [45-run plan](../benchmark/results/trainer_modality_screen_plan_20261014/screen_plan.json)
+lists the 15 stream combinations times two feature models plus the time-only control. It is a
+proposal pending the incoming decision rule; none of these real modality-screen jobs has launched.
 Every comparison must show coverage, matched far-window AUROC, Success@30, the position null and the
 random reference together. Different feature coverage is not an apples-to-apples modality comparison.
 
@@ -223,7 +234,8 @@ random reference together. Different feature coverage is not an apples-to-apples
 
 Implement the new model under `anticipation/models/`, add its name to the CLI choices and route it in
 `train_run`. Reuse `FeatureStore`, `Normalizer`, `sample_ticks`, shared labels and the fold split lists.
-Return one finite score per jointly observed tick. Fit only on training data, select on matched far-window validation AUROC, preserve test/validation fold provenance, and save the selected checkpoint and history.
+Return one finite score per jointly observed tick. Fit only on training data, select on matched far-window
+validation AUROC, preserve test/validation fold provenance, and save the selected checkpoint and history.
 Add the model to the synthetic precursor, detection-only and truncation tests before running real data.
 
 `Normalizer.load(path)` restores preprocessing. Tabular checkpoints contain a `StatsModel` with
@@ -244,4 +256,52 @@ invalid-row normalization, manually computed window statistics, censored-bin gra
 coverage, and a complete five-fold/three-seed CLI run through VA30. Synthetic event thresholds are
 selected on each fold's validation clean negatives using the shared alarm policy.
 
-Results from the initial runs will be recorded below after validation.
+Persisted synthetic runs below use the same 20-video fixture (10 violent, 10 clean), five
+synthetic grouped folds and three seeds, with 100 bootstrap replicates. These are integration tests,
+not numbers on the real VA30 v2 benchmark. Thresholds target **validation** 2 FA/h; the actual test rate
+is shown separately. Values are means over seeds. The fixture plants the precursor at 40 seconds,
+so only one third of the 30–60-second far window contains signal.
+
+| Synthetic run | Far AUROC pooled / matched | Success@30 | Position null | Random reference | Test FA/h |
+|---|---|---|---|---|---|
+| [stats_lgbm (sklearn fallback)](../benchmark/results/trainer_synthetic_stats_20261014/report.md) | 0.666 / 0.664 | 100.0% | 30.0% | 11.5% | 4.91 |
+| [GRU](../benchmark/results/trainer_synthetic_gru_20261014/report.md) | 0.622 / 0.624 | 100.0% | 66.7% | 23.8% | 10.91 |
+| [Time-only control](../benchmark/results/trainer_synthetic_time_control_20261014/report.md) | 0.644 / 0.574 | 0.0% | 0.0% | 0.0% | 0.00 |
+
+The short synthetic validation slice has only 220 seconds of clean footage per fold, so one alarm
+already exceeds the target. Test FA/h can be much higher than the validation target. Zero seed
+variance for the tree/control reflects this tiny fully sampled deterministic fixture. The time-only
+model can still exceed 0.5 inside the evaluator's finite time bins; the event position null remains
+necessary. Per-run reports contain bootstrap intervals and all operating points.
+
+The [real SigLIP prompt diagnostic](../benchmark/results/trainer_siglip2_prompts_diagnostic_v2_20261014/run_config.json)
+uses **folds_v2**, one fixed epoch per model, 5,000 training / 2,000 validation-loss tick caps,
+and all five folds × three seeds. It writes **389,142 score rows across 345 videos** (344 violent,
+one clean negative). No test metrics were selected or reported. Success@30, position null and random
+reference are **unavailable** because validation folds 0–3 have no clean negatives. This run uses no
+hyperparameter/checkpoint search and is not part of the modality screen. Checkpoint reload reproduces
+the stored scores (see `checkpoint_reload.json` in the diagnostic and GRU run directories).
+
+[Screen status table](../benchmark/results/trainer_modality_screen_plan_20261014/screen_results.csv)
+lists every planned single-stream/pair/model/control combination, current file coverage and missing
+validation negatives. Empty metric cells mean not run. Rerun coverage checks after extraction completes,
+freeze each comparison's cohort, and follow the incoming modality decision rule before launching.
+
+The synthetic feature arrays and checkpoints stay local and ignored. To regenerate the synthetic
+inputs from their [recipe](../benchmark/results/trainer_synthetic_inputs_20261014/recipe.json):
+
+```bash
+nice -n 10 env OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 $PY - <<'PYCODE'
+import runpy
+from pathlib import Path
+from anticipation.features import io
+root = Path("benchmark/results/trainer_synthetic_inputs_20261014")
+_, _, features, _ = runpy.run_path("tests/test_train.py")["synthetic_benchmark"](root)
+io.FEATURE_ROOT = str(root / "features")
+for vid, (t, x, valid, meta) in features.items():
+    io.save_features("synthetic", vid, t, x, valid, meta)
+PYCODE
+```
+
+Then reuse a synthetic run's recorded command with a fresh `--run_name`. Never regenerate the
+real benchmark fold files.

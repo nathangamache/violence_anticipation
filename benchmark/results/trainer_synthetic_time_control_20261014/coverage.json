@@ -1,0 +1,374 @@
+{
+  "requested": 20,
+  "available": 20,
+  "missing": {},
+  "invalid": {},
+  "streams": [
+    "synthetic"
+  ],
+  "dimensions": [
+    4
+  ],
+  "videos": {
+    "synthetic/f0v0": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "f7c3eb2fef15b44fd9184cee81fc79b9eb4023cc516f613e12e4c4afba154093"
+      ]
+    },
+    "synthetic/f0v1": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "27c741326e34ef2b08c63e29b3c6d3024a1f1c079a42bec9a146a94eccccb126"
+      ]
+    },
+    "synthetic/f0v2": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "8815ff7a1415d621e97ae15e673bb0bb01b7ef76692149714653a61110678093"
+      ]
+    },
+    "synthetic/f0v3": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "2d4e4e2e12270abb9f08bee2b85679c798b43de2aa6cbc9b7cd7d90030469c06"
+      ]
+    },
+    "synthetic/f1v0": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "3b3d0ea8fa3614e275212bae95e57263088026ded5bceff89700315a239e1a81"
+      ]
+    },
+    "synthetic/f1v1": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "28780cb588aa618f6d7b35e9be09f8f957dcc69f1ed9a5089083ba70fd85a210"
+      ]
+    },
+    "synthetic/f1v2": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "b5ee378a0ecae7be677b738f1d1a69e5939132fecad9c5c7f619cfa6f57364d9"
+      ]
+    },
+    "synthetic/f1v3": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "448210d4faad7dc91fcd616b4b4a28e366ccff94cbdcddb9a4d5829db0c57b71"
+      ]
+    },
+    "synthetic/f2v0": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "78da7bfc5196f207e47c5d9f527a142cd9603f255b45eecab71dc00b151dfb60"
+      ]
+    },
+    "synthetic/f2v1": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "8ee687199d06a7d6526a6616fd69773ddb602a6e7f4ff89e5163960140590cc5"
+      ]
+    },
+    "synthetic/f2v2": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "ce47779e66840ffc40d417ecafbc61ed401c12bbefa3d5d595e80af254894e5e"
+      ]
+    },
+    "synthetic/f2v3": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "13618b19f9c28d1f0628c38787cd29959097b2936203efcb0ac8c7f3f61612ba"
+      ]
+    },
+    "synthetic/f3v0": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "9ee34f6c3a3b7cb164192d558db084f108e23b7560073d877ba8f459933ba321"
+      ]
+    },
+    "synthetic/f3v1": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "9cafe804e853e705191bcc97f95d965e8acb02c23b869db388fa695ecc0b7873"
+      ]
+    },
+    "synthetic/f3v2": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "bf411aeeb55107b65d1eacdb9fa76502bc7e53a3154cc942072aebb55abcba6e"
+      ]
+    },
+    "synthetic/f3v3": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "77744cd12ff712b5041abec674455f53c9f944e199399e2a2e4a35f2375e5acb"
+      ]
+    },
+    "synthetic/f4v0": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "b58efe3cea69b8a519daa9792a9b98b660a01a092d1e0f503e2b5a2e7eaf5671"
+      ]
+    },
+    "synthetic/f4v1": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "49d7a513e51495e18cecf7830b0e304832bf01cc4f04ee29810256b8f4fa1961"
+      ]
+    },
+    "synthetic/f4v2": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "3eadf77abbcee1eb01a607a7f6aa7a652d5050de56b7b840149ec247cd60c24c"
+      ]
+    },
+    "synthetic/f4v3": {
+      "ticks": 220,
+      "snapshot_ticks": 220,
+      "scored_ticks": 220,
+      "valid_ticks": [
+        220
+      ],
+      "metadata": [
+        {
+          "extractor": "synthetic",
+          "version": 1,
+          "D": 4
+        }
+      ],
+      "feature_sha256": [
+        "aba76f67c1cf5c90161123f79a0d2f4525f17d2c495e6cc47015f34d671aea18"
+      ]
+    }
+  }
+}

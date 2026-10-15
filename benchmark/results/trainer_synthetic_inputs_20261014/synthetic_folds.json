@@ -1,0 +1,49 @@
+{
+  "name": "synthetic",
+  "n_folds": 5,
+  "assignment": {
+    "synthetic/f0v0": 0,
+    "synthetic/f0v1": 0,
+    "synthetic/f0v2": 0,
+    "synthetic/f0v3": 0,
+    "synthetic/f1v0": 1,
+    "synthetic/f1v1": 1,
+    "synthetic/f1v2": 1,
+    "synthetic/f1v3": 1,
+    "synthetic/f2v0": 2,
+    "synthetic/f2v1": 2,
+    "synthetic/f2v2": 2,
+    "synthetic/f2v3": 2,
+    "synthetic/f3v0": 3,
+    "synthetic/f3v1": 3,
+    "synthetic/f3v2": 3,
+    "synthetic/f3v3": 3,
+    "synthetic/f4v0": 4,
+    "synthetic/f4v1": 4,
+    "synthetic/f4v2": 4,
+    "synthetic/f4v3": 4
+  },
+  "val": {
+    "0": [
+      "synthetic/f1v0",
+      "synthetic/f1v2"
+    ],
+    "1": [
+      "synthetic/f2v0",
+      "synthetic/f2v2"
+    ],
+    "2": [
+      "synthetic/f3v0",
+      "synthetic/f3v2"
+    ],
+    "3": [
+      "synthetic/f4v0",
+      "synthetic/f4v2"
+    ],
+    "4": [
+      "synthetic/f0v0",
+      "synthetic/f0v2"
+    ]
+  },
+  "content_sha256": "91e72a2d7736ba860ee6664eaaf8ae5715e707920814f55ed91c55287dd76491"
+}

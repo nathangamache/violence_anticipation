@@ -1,0 +1,11 @@
+{
+  "purpose": "synthetic evaluator exposure audit; not a model result",
+  "evaluator_sha256": "3a6a3d215c67ffaea18b2946d2ba9e7365c448e8b517c2515547800d6621705a",
+  "catalog_duration_sec": 3600,
+  "score_ticks": 300,
+  "held_ticks": 3300,
+  "leading_fill_ticks": 0,
+  "expected_scored_hours": 0.08333333333333333,
+  "actual_evaluator_clean_hours": 1.0,
+  "inflation_factor": 12.0
+}
