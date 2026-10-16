@@ -44,6 +44,25 @@ def test_removal_reindexes_and_never_creates_clean_negatives():
     assert rows['v']['n_eligible30'] == '0'
 
 
+def test_separate_missed_episode_ends_clear_history_without_moving_target():
+    videos, catalog = fixture()
+    c = correction(verdict='keep', onset=40)
+    c['additional_violence_spans'] = [[25, 28]]
+    with pytest.raises(ValueError, match='visual reconciliation'):
+        apply(videos, catalog, [c])
+    c['reconciliation'] = {'verdict': 'keep', 'additional_violence_spans': [[25, 28]],
+                           'evidence': 'Separate earlier fight at 25-28 on fine sheets'}
+    new, rows = apply(videos, catalog, [c])
+    assert new['v']['segments'] == [[25, 28], [40, 50], [100, 110]]
+    assert new['v']['events'][1]['clear_start'] == 38
+    assert not new['v']['events'][1]['eligible30']
+    assert rows['v']['n_eligible30'] == '1'
+    c['additional_violence_spans'] = [[25, 121]]
+    c['reconciliation']['additional_violence_spans'] = [[25, 121]]
+    with pytest.raises(ValueError, match='Invalid additional episode'):
+        apply(videos, catalog, [c])
+
+
 @pytest.mark.parametrize('change', ['duplicate', 'original', 'direction', 'passes', 'disagreement', 'bounds'])
 def test_invalid_reviews_rejected(change):
     videos, catalog = fixture()
@@ -157,6 +176,21 @@ def test_blind_reviews_require_reconciliation_and_preserve_unreviewed_status():
     assert result['verdict'] == 'keep'
     assert not result['visually_reviewed']
     assert result['evidence']['basis'] == 'scan_no_flag_not_visually_reviewed'
+
+
+def test_additional_episode_proposals_cannot_be_silently_discarded():
+    from anticipation.data.onset_finalize import join_reviews
+    scan = {'video_id': 'v', 'event_index': 0, 'original_onset_sec': 40, 'onset_source': 'hivau',
+            'early_violence': False, 'no_violence_at_onset': False}
+    a = {'blind_id': 'A0', 'verdict': 'keep', 'evidence': 'separate fight',
+         'additional_violence_spans': [[10, 20]]}
+    b = {'blind_id': 'B4', 'verdict': 'keep', 'evidence': 'target correct'}
+    with pytest.raises(ValueError, match='Unreconciled'):
+        join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {})
+    reconciliation = {'verdict': 'keep', 'additional_violence_spans': [[10, 20]],
+                      'evidence': 'earlier separate fight verified on fine sheets'}
+    result = join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {('v', 0): reconciliation})[0]
+    assert result['additional_violence_spans'] == [[10, 20]]
 
 
 def test_clean_calibration_excludes_catalog_masks():

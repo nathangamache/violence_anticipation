@@ -35,13 +35,23 @@ def apply(videos, catalog, corrections):
         verdict = correction['verdict']
         if verdict not in VERDICTS:
             raise ValueError(f'Unknown verdict: {verdict}')
-        if verdict in {'earlier', 'later', 'no_violence'}:
+        additions = correction.get('additional_violence_spans', [])
+        if additions:
+            reconciliation = correction.get('reconciliation')
+            if not reconciliation or not reconciliation.get('evidence'):
+                raise ValueError(f'Additional episodes require visual reconciliation: {key}')
+            if additions != reconciliation.get('additional_violence_spans'):
+                raise ValueError(f'Additional episodes differ from reconciliation: {key}')
+            for start, end in additions:
+                if not all(math.isfinite(t) for t in (start, end)) or not 0 <= start < end <= entry['duration_sec']:
+                    raise ValueError(f'Invalid additional episode: {key}')
+        if verdict in {'earlier', 'later', 'no_violence'} or additions:
             passes = correction.get('passes', [])
             if len(passes) < 2 or len({p['blind_id'] for p in passes}) < 2:
                 raise ValueError(f'Two blind passes required: {key}')
             if not correction.get('evidence'):
                 raise ValueError(f'Evidence required: {key}')
-            if any(p['verdict'] != verdict or (verdict != 'no_violence' and abs(
+            if any(p['verdict'] != verdict or (verdict in {'earlier', 'later'} and abs(
                     p['corrected_onset_sec'] - correction['corrected_onset_sec']) > 2) for p in passes):
                 if not correction.get('reconciliation'):
                     raise ValueError(f'Unreconciled disagreement: {key}')
@@ -59,6 +69,7 @@ def apply(videos, catalog, corrections):
         segments = []
         for index, (onset, end) in enumerate(entry['segments']):
             correction = changes.get(index, {})
+            segments.extend(correction.get('additional_violence_spans', []))
             verdict = correction.get('verdict', 'keep')
             if verdict == 'no_violence':
                 continue

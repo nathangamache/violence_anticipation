@@ -39,7 +39,8 @@ def join_reviews(flags, reviews, reconciliations):
             disagree = len(verdicts) != 1 or (changed and 'no_violence' not in verdicts and (
                 any(t is None for t in times) or abs(times[0] - times[1]) > 2))
             reconciliation = reconciliations.get(key)
-            if disagree and not reconciliation:
+            additions_proposed = any(p.get('additional_violence_spans') for p in passes)
+            if (disagree or additions_proposed) and not reconciliation:
                 raise ValueError(f'Unreconciled review: {key}')
             if reconciliation:
                 verdict = reconciliation['verdict']
@@ -54,6 +55,7 @@ def join_reviews(flags, reviews, reconciliations):
                 corrected = original
             evidence = {'basis': 'two_blind_visual_passes', 'passes': [p['evidence'] for p in passes]}
         record.setdefault('reconciliation', None)
+        record['additional_violence_spans'] = (record['reconciliation'] or {}).get('additional_violence_spans', [])
         record.update(verdict=verdict, corrected_onset_sec=corrected, evidence=evidence, passes=passes,
                       scan_stats={k: v for k, v in scan.items() if k not in record},
                       visually_reviewed=bool(passes))
@@ -68,6 +70,8 @@ def load_pass(root, name):
     rows = json.loads((folder / 'verdicts.json').read_text())
     if len(rows) != len(key) or {r['blind_id'] for r in rows} != set(key):
         raise ValueError(f'Pass {name} must review exactly the blinded queue')
+    if any(r.get('scope_protocol') != 'episode_v2' for r in rows):
+        raise ValueError(f'Pass {name} must complete the episode-scope audit')
     return {key[r['blind_id']]: r for r in rows}
 
 
@@ -113,7 +117,9 @@ def main():
                                           for v in sorted(VERDICTS)},
                'median_shift_sec': float(np.median(shifts)) if shifts else None,
                'nonflagged_review_n': len(sample),
-               'scan_misses': sum(r['verdict'] in {'earlier', 'later', 'no_violence'} for r in sample),
+               'additional_violent_episodes': sum(len(r['additional_violence_spans']) for r in corrections),
+               'scan_misses': sum(r['verdict'] in {'earlier', 'later', 'no_violence'} or
+                                  bool(r['additional_violence_spans']) for r in sample),
                'nonflagged_census': n_nonflagged <= 40,
                'sample_unclear': sum(r['verdict'] == 'unclear' for r in sample)}
     summary['scan_miss_rate'] = summary['scan_misses'] / len(sample) if sample else None

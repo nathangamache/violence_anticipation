@@ -59,6 +59,11 @@ under this episode-scope clarification and marked `scope_protocol: episode_v2`. 
 are marked `unclear` because the benchmark targets interpersonal violence; human-directed animal force,
 including a deployed police dog, counts as physical aggression.
 
+Separate missed episodes require explicit visual reconciliation on fine sheets before being added to the
+segment list. Their ten-second aftermath ends the target's clear history when eligibility is recomputed.
+The non-flagged sample counts an event requiring such an addition as a scan miss even if its target onset
+is kept. Additional spans are retained alongside the target verdict in the correction artifacts.
+
 `anticipation.data.apply_corrections` validates source hashes, review completion, original event identity,
 correction direction and the two-pass evidence before writing separate outputs under `benchmark/v3/`.
 The correction table contains visually reviewed events only; unselected, non-flagged events retain their
@@ -73,7 +78,7 @@ The scan is complete. Visual review is in progress. No corrected labels or repla
 ## Implementation checks
 
 The screen tests passed (49 tests), as did the correction, routing, blind-review reconciliation and
-registration-rebuild and calibration-mask checks (15 tests). No benchmark model result file has been opened. The v2 registration
+registration-rebuild, calibration-mask and separate-episode checks (17 tests). No benchmark model result file has been opened. The v2 registration
 alias deliberately refuses to load until the completed registration has a pinned hash.
 
 ## Scan calibration checkpoint
