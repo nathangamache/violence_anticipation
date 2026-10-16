@@ -87,6 +87,16 @@ def test_cross_clip_masks_follow_corrections_and_recompute_adjacent_eligibility(
     assert new[a]['role'] == 'unlabelled'
 
 
+def test_newly_eligible_followup_uses_source_identity_after_removal():
+    from anticipation.data.labels import event_table
+    from anticipation.data.onset_finalize import newly_eligible_unreviewed
+    source = {'v': {'segments': [[40, 90], [115, 125]]}}
+    source['v']['events'] = event_table(source['v']['segments'])
+    corrected = {'v': {'events': event_table([[115, 125]])}}
+    assert newly_eligible_unreviewed(source, corrected, {('v', 0)}) == [('v', 1)]
+    assert newly_eligible_unreviewed(source, corrected, {('v', 0), ('v', 1)}) == []
+
+
 @pytest.mark.parametrize('change', ['duplicate', 'original', 'direction', 'passes', 'disagreement', 'bounds'])
 def test_invalid_reviews_rejected(change):
     videos, catalog = fixture()

@@ -63,16 +63,30 @@ def join_reviews(flags, reviews, reconciliations):
     return output
 
 
-def load_pass(root, name):
+def load_pass(root, name, followups=False):
     folder = root / 'blind' / name
+    suffix = '_followup' if followups else ''
+    if followups:
+        folder = folder / 'followup'
     key = {r['blind_id']: (r['video_id'], r['event_index'])
-           for r in json.loads((root / f'private_key_{name}.json').read_text())}
+           for r in json.loads((root / f'private_key_{name}{suffix}.json').read_text())}
     rows = json.loads((folder / 'verdicts.json').read_text())
     if len(rows) != len(key) or {r['blind_id'] for r in rows} != set(key):
         raise ValueError(f'Pass {name} must review exactly the blinded queue')
     if any(r.get('scope_protocol') != 'episode_v2' for r in rows):
         raise ValueError(f'Pass {name} must complete the episode-scope audit')
     return {key[r['blind_id']]: r for r in rows}
+
+
+def newly_eligible_unreviewed(original, corrected, reviewed):
+    pending = []
+    for vid, entry in corrected.items():
+        old = {round(e['onset'], 4): e for e in original[vid].get('events', [])}
+        for event in entry.get('events', []):
+            source = old.get(round(event['onset'], 4))
+            if event['eligible30'] and source and not source['eligible30'] and (vid, source['index']) not in reviewed:
+                pending.append((vid, source['index']))
+    return pending
 
 
 def main():
@@ -90,27 +104,47 @@ def main():
     n_nonflagged = sum(not (r['early_violence'] or r['no_violence_at_onset']) for r in flags)
     if len(random) != min(40, n_nonflagged):
         raise ValueError('Non-flagged sample size differs from the planned 40-event sample or census')
+    n_scanned = len(flags)
+    followup_path = args.root / 'followup_queue.json'
+    followups = json.loads(followup_path.read_text()) if followup_path.exists() else []
+    if any(r.get('scanned') is not False or r['review_reason'] != 'newly_eligible_followup' for r in followups):
+        raise ValueError('Follow-ups must explicitly distinguish direct visual review from Qwen scanning')
     reconciliation_path = args.root / 'reconciliations.json'
     reconciliations = json.loads(reconciliation_path.read_text()) if reconciliation_path.exists() else []
     reconciliations = {(r['video_id'], r['event_index']): r for r in reconciliations}
     reviews = [load_pass(args.root, name) for name in args.passes]
-    corrections = join_reviews(flags, reviews, reconciliations)
     videos = json.loads(Path('benchmark/events.json').read_text())['videos']
     catalog = {r['video_id']: r for r in csv.DictReader(open('benchmark/videos.csv'))}
     expected = {(v, e['index']) for v, row in videos.items() for e in row.get('events', []) if e['eligible30']}
-    actual = {(r['video_id'], r['event_index']) for r in corrections}
+    actual = {(r['video_id'], r['event_index']) for r in flags}
     if actual != expected:
         raise ValueError('Scan event universe differs from source eligible30 events')
+    followup_keys = {(r['video_id'], r['event_index']) for r in followups}
+    if len(followup_keys) != len(followups) or followup_keys & actual:
+        raise ValueError('Duplicate or originally eligible follow-up event')
+    if followups:
+        for name, review in zip(args.passes, reviews):
+            supplement = load_pass(args.root, name, followups=True)
+            if set(supplement) != followup_keys:
+                raise ValueError('Follow-up review coverage differs from its queue')
+            review.update(supplement)
+    flags += followups
+    queue += followups
     if set(reviews[0]) != set(reviews[1]) or set(reviews[0]) != {
             (r['video_id'], r['event_index']) for r in queue}:
         raise ValueError('Blind review coverage differs from planned queue')
-    apply(videos, catalog, corrections)
+    corrections = join_reviews(flags, reviews, reconciliations)
+    corrected, _ = apply(videos, catalog, corrections)
+    pending = newly_eligible_unreviewed(videos, corrected, set(reviews[0]))
+    if pending:
+        raise ValueError(f'Newly eligible source events require blind follow-up review: {pending}')
     shifts = [r['corrected_onset_sec'] - r['original_onset_sec'] for r in corrections
               if r['verdict'] in {'earlier', 'later'}]
     sample = [r for r in corrections if (r['video_id'], r['event_index']) in random]
     counts = Counter((r['verdict'], r['onset_source']) for r in corrections)
     reviewed_counts = Counter((r['verdict'], r['onset_source']) for r in corrections if r['visually_reviewed'])
-    summary = {'n_events': len(corrections), 'n_scanned_events': len(flags),
+    summary = {'n_events': len(corrections), 'n_scanned_events': n_scanned,
+               'n_followup_events': len(followups),
                'n_retained_without_visual_review': sum(not r['visually_reviewed'] for r in corrections),
                'n_visually_reviewed': len(reviews[0]),
                'counts_verdict_by_source': {v: {s: counts[v, s] for s in ('official', 'hivau', 'ubi')}
@@ -120,7 +154,7 @@ def main():
                    for v in sorted(VERDICTS)},
                'median_shift_sec': float(np.median(shifts)) if shifts else None,
                'nonflagged_review_n': len(sample),
-               'additional_violent_episodes': sum(len(r['additional_violence_spans']) for r in corrections),
+               'additional_violence_spans': sum(len(r['additional_violence_spans']) for r in corrections),
                'scan_misses': sum(r['verdict'] in {'earlier', 'later', 'no_violence'} or
                                   bool(r['additional_violence_spans']) for r in sample),
                'nonflagged_census': n_nonflagged <= 40,
