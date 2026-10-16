@@ -1,0 +1,71 @@
+{
+  "status": "READY",
+  "checks": {
+    "band": true,
+    "sustained": true,
+    "window_max": true,
+    "capped_horizons": true,
+    "no_context_reference_documented": true,
+    "frozen_registration": true,
+    "hivau_spotcheck": true,
+    "official_spotcheck": true,
+    "screen_set": true,
+    "screen_summary": true,
+    "aggression_reference": true,
+    "early_contact_audit": true,
+    "ucf_soft_masks": true,
+    "audio_type_audit": true,
+    "h1_manifest": true,
+    "screen_set_scope": true
+  },
+  "missing": [],
+  "evidence": {
+    "hivau_spotcheck": {
+      "rows": 50,
+      "completed": 50
+    },
+    "official_spotcheck": {
+      "rows": 30,
+      "completed": 30
+    },
+    "screen_set": {
+      "path": "benchmark/screens/screen_set_v1.json",
+      "sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"
+    },
+    "screen_summary": {
+      "path": "benchmark/screens/summary.md",
+      "sha256": "f1b066bfc362f4c86302fa98cd88a18278927396eda9a4377fe29feb3e89a0d9"
+    },
+    "aggression_reference": {
+      "path": "benchmark/results/b_aggression_nocontext/implementation_manifest.json",
+      "sha256": "26bbd32df9de061cb04040d891df375b767e9e123b47b642c99f80d1e3a108bd"
+    },
+    "early_contact_audit": {
+      "path": "benchmark/audits/phase0_nocontext_v1/early_frames_proposal.csv",
+      "sha256": "d0b80fcc33ff1e9582c289fc6db269e2dd01d04d2f09267ceaf82bf129945ebb",
+      "rows": 54,
+      "completed": 54
+    },
+    "ucf_soft_masks": {
+      "path": "benchmark/audits/phase0_nocontext_v1/uca_soft_masks_proposal.json",
+      "sha256": "10391e7ad491a8b4b17d9d0c7e821badf58e7717946b801d3a4c48f784f2f265"
+    },
+    "audio_type_audit": {
+      "path": "benchmark/audits/audio_type_v1.json",
+      "sha256": "cd9c455d33486cb0f2e85caad1ec6a6819b3f2145a572de059dae95a3070eb02"
+    },
+    "h1_manifest": {
+      "path": "benchmark/extract_manifest_v2.csv",
+      "sha256": "6f6ae759329b98509c86913cbb0135678237f247d8b1a31a5afd2dbf3de5289a"
+    }
+  },
+  "instruction": "Phase 0 is cleared by the lead follow-up; GPU 0 memory and CCTV-done checks still gate all GPU work.",
+  "note": "False artifact checks mean missing or unpinned evidence, not necessarily absent files.",
+  "screening_folds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "confirmation_fold": 1
+}

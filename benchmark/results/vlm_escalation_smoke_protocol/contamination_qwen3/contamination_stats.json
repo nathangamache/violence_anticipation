@@ -1,0 +1,29 @@
+{
+  "strata": {
+    "clean": {
+      "n": 515,
+      "accuracy": 0.9864077669902913,
+      "permutation_mean": 0.9864077669902914,
+      "p_value": 1.0,
+      "flag": false
+    },
+    "h1": {
+      "n": 319,
+      "accuracy": 0.0219435736677116,
+      "permutation_mean": 0.007052978056426334,
+      "p_value": 0.0007999200079992001,
+      "flag": true
+    },
+    "violent": {
+      "n": 166,
+      "accuracy": 0.06626506024096386,
+      "permutation_mean": 0.03458313253012048,
+      "p_value": 0.0100989901009899,
+      "flag": true
+    }
+  },
+  "contamination_flag": true,
+  "permutations": 10000,
+  "seed": 0,
+  "correction": "Bonferroni over two strata, alpha=.05"
+}

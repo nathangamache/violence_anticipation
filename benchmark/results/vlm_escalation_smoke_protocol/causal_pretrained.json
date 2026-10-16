@@ -1,0 +1,52 @@
+{
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "video_id": "ubi/F_0_1_0_0_0",
+  "cut_sec": 20,
+  "max_duration_sec": 24,
+  "screening_folds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "confirmation_fold_read": false,
+  "checks": {
+    "A:vlm_escalation": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    },
+    "A:vlm_escalation_hidden": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    },
+    "B:vlm_escalation": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    },
+    "B:vlm_escalation_hidden": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    },
+    "C:vlm_escalation": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    },
+    "C:vlm_escalation_hidden": {
+      "ticks_compared": 19,
+      "max_abs_diff": 0.0,
+      "causal": true,
+      "valid_equal": true
+    }
+  },
+  "pass": true
+}

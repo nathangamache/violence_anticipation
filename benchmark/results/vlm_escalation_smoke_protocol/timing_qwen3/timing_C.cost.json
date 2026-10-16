@@ -1,0 +1,20 @@
+{
+  "queries": 200,
+  "mean_wall_sec": 1.0309746707975864,
+  "p95_wall_sec": 1.93728391053155,
+  "video_seconds_per_gpu_second": 8.043214078630815,
+  "cold_query_realtime": 7.7596474739879016,
+  "mean_decoder_open_sec": 0.03893051699735224,
+  "mean_score_decode_wall_sec": 0.9920456281397492,
+  "amortization_video_sec": 120.63836448863636,
+  "projected_gpu_hours": {
+    "pilot_12_5h": 1.5541050975144326,
+    "rest_screen_30h": 3.7298522340346385,
+    "positive_plus_30h_negative_46_7h": 5.806136644313921,
+    "all_240h": 29.838817872277108,
+    "actual_pilot": 1.4665469648238454,
+    "actual_rest": 4.288562009679245,
+    "actual_screen": 5.601479089301049
+  },
+  "measurement": "frame retrieval, model and CPU transfer per update; decoder opening amortized over mean pilot video; cold-query latency also reported; model startup charged separately to ledger"
+}

@@ -1,8 +1,100 @@
 {
   "cap_sec": 126000,
   "prior_work_reserved_sec": 3600,
-  "spent_sec": 0,
+  "spent_sec": 6854.943359205499,
   "active": {},
-  "history": [],
-  "stages": {}
+  "history": [
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::timing_A",
+      "seconds": 78.73592785000801,
+      "token": "2678405-1792106835246633253"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::timing_B",
+      "seconds": 78.84354912117124,
+      "token": "2679697-1792106940444920129"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::timing_C",
+      "seconds": 214.54237312451005,
+      "token": "2681435-1792107045793663490"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::contamination",
+      "seconds": 432.47328748740256,
+      "token": "2687504-1792107321626962669"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::causal",
+      "seconds": 22.60237798653543,
+      "token": "2692391-1792107781071957934"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_A",
+      "seconds": 1178.1118875853717,
+      "token": "2692659-1792107830444833671"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_A",
+      "seconds": 1178.2406447473913,
+      "token": "2698562-1792109035913036789"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_A",
+      "seconds": 1178.6138206589967,
+      "token": "2705600-1792110242378911868"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_A",
+      "seconds": 117.19400392100215,
+      "token": "2713164-1792111449732709922"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1175.58548672311,
+      "token": "2714057-1792111623316906687"
+    },
+    {
+      "stage": "orphan_chunk_full_reservation",
+      "seconds": 1200,
+      "token": "2728998-1792112825866358445",
+      "reason": "Worker absent after session interruption; full reservation charged conservatively"
+    }
+  ],
+  "stages": {
+    "Qwen/Qwen3-VL-8B-Instruct::timing_A": {
+      "manifest_sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::timing_B": {
+      "manifest_sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::timing_C": {
+      "manifest_sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::contamination": {
+      "manifest_sha256": "67787efaeeddec26a6f436c0c1162dfca22e1978c5bed760571ca5225f902603",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::causal": {
+      "complete": true,
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct"
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::pilot_A": {
+      "stage": "pilot",
+      "arm": "A",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true,
+      "completed_this_chunk": 7,
+      "remaining_videos": 0,
+      "total_videos": 352,
+      "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da"
+    }
+  }
 }

@@ -1,0 +1,8 @@
+{
+  "stage": "timing_A",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "arm": "A",
+  "manifest_sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+  "prompt_version": "conflict-phases-v3",
+  "extractor_sha256": "a6d13c3d689127eefc21f5df219a5702cf32d6f0f99415793cc1d82a760ea349"
+}

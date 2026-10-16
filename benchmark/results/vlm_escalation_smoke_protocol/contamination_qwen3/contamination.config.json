@@ -1,0 +1,8 @@
+{
+  "stage": "contamination",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "arm": null,
+  "manifest_sha256": "67787efaeeddec26a6f436c0c1162dfca22e1978c5bed760571ca5225f902603",
+  "prompt_version": "conflict-phases-v3",
+  "extractor_sha256": "a6d13c3d689127eefc21f5df219a5702cf32d6f0f99415793cc1d82a760ea349"
+}

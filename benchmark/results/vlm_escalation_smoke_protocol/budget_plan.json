@@ -1,0 +1,57 @@
+{
+  "arms": [
+    "A",
+    "B",
+    "C"
+  ],
+  "clean_videos": 150,
+  "pilot_hours": 11.795751194444444,
+  "rest_hours": 34.49382233333336,
+  "pilot_gpu_hours": 4.4405822576838165,
+  "worst_winning_arm_rest_gpu_hours": 5.346341811280966,
+  "overhead_gpu_hours": 1.076664651857896,
+  "uncertainty_factor": 1.15,
+  "remaining_gpu_hours": 33.89663281941787,
+  "projected_gpu_hours": 12.331627331167397,
+  "fits": true,
+  "decision": "RUN_PILOT",
+  "pilot": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv",
+    "sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+    "n": 352
+  },
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "registration_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+  "candidates": [
+    {
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "clean_videos": 150,
+      "pilot_hours": 11.795751194444444,
+      "rest_hours": 34.49382233333336,
+      "pilot_gpu_hours": 4.4405822576838165,
+      "worst_winning_arm_rest_gpu_hours": 5.346341811280966,
+      "overhead_gpu_hours": 1.076664651857896,
+      "uncertainty_factor": 1.15,
+      "remaining_gpu_hours": 33.89663281941787,
+      "projected_gpu_hours": 12.331627331167397,
+      "fits": true,
+      "decision": "RUN_PILOT",
+      "pilot": {
+        "path": "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv",
+        "sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+        "n": 352
+      },
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "registration_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"
+    }
+  ],
+  "timing_sha256": {
+    "A": "9b48fcbf141b50088a7d077c4330c5821318ffca80aa80cf4a6f3a242638c001",
+    "B": "30f46560d3d8d01d182f3af59f005af373a195997b55d0ce67a1af8f5834ee19",
+    "C": "c5246f858c7b98a2fbf1bee1e205b7c43ebb81b2bad6a4329bc095cd7daf1ef9"
+  }
+}
