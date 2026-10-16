@@ -1,0 +1,68 @@
+{
+  "status": "SCAN_COMPLETE_VISUAL_REVIEW_PENDING",
+  "n_events": 551,
+  "n_frames": 44132,
+  "n_early_violence": 370,
+  "n_no_violence_at_onset": 76,
+  "n_both": 27,
+  "n_flagged": 419,
+  "n_random_nonflagged": 40,
+  "n_review": 459,
+  "calibration": {
+    "threshold": 0.01798621006309986,
+    "n_clean": 786,
+    "n_violent": 400,
+    "n_clean_masked_excluded": 14,
+    "clean_fpr": 0.019083969465648856,
+    "annotated_violent_tpr": 0.535,
+    "note": "Calibration uses annotation classes, not visual ground truth; negatives may contain violence."
+  },
+  "runtime": {
+    "total_seconds": 6689.760149445385,
+    "complete": true,
+    "events_scored": 551
+  },
+  "by_onset_source": {
+    "official": {
+      "n": 75,
+      "early": 46,
+      "no_violence": 3,
+      "flagged": 48,
+      "random_nonflagged": 7
+    },
+    "hivau": {
+      "n": 374,
+      "early": 239,
+      "no_violence": 60,
+      "flagged": 280,
+      "random_nonflagged": 31
+    },
+    "ubi": {
+      "n": 102,
+      "early": 85,
+      "no_violence": 13,
+      "flagged": 91,
+      "random_nonflagged": 2
+    }
+  },
+  "scan_manifest": {
+    "model": "models/Qwen2.5-VL-7B-Instruct",
+    "question": "Is anyone physically attacking, hitting, pushing, grabbing, kicking, stabbing or shooting at another person right now? Include police use of force, objects thrown at a person and vehicles used as weapons. Do not count arguing, pointing or squaring up alone. Answer only Yes or No.",
+    "seed": 301015,
+    "device": "cuda:0",
+    "dtype": "bfloat16",
+    "pixels": 200704,
+    "batch_size": 16,
+    "events_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+    "videos_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+    "n_events": 551,
+    "sampling": "1 Hz from max(clear_start,onset-120), inclusive to onset+15",
+    "score": "P(Yes | Yes or No) = sigmoid(logp_Yes - logp_No)",
+    "clean_fpr_target": 0.02,
+    "threshold_rule": "98th percentile unmasked clean scores, strict >"
+  },
+  "source_sha256": {
+    "events.json": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+    "videos.csv": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb"
+  }
+}

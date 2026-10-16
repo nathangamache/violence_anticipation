@@ -3,16 +3,17 @@
 import argparse
 import csv
 import hashlib
-import os
 import json
+import os
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
 from anticipation.data.onset_scan import dump
 
 
-def prepare(root, pass_name, seed):
+def prepare(root, pass_name, seed, cached_only=False, workers=1):
     from tools.contact_sheet import render_sheets
     queue = json.loads((root / 'review_queue.json').read_text())
     runtime = json.loads((root / 'runtime.json').read_text())
@@ -29,7 +30,8 @@ def prepare(root, pass_name, seed):
     dump(metadata_path, metadata)
     order = np.random.default_rng(seed).permutation(len(queue))
     private, public = [], []
-    for i, j in enumerate(order):
+    def render_case(pair):
+        i, j = pair
         item = queue[j]
         vid, index = item['video_id'], item['event_index']
         event = videos[vid]['events'][index]
@@ -48,6 +50,8 @@ def prepare(root, pass_name, seed):
         cache = root / 'sheet_cache' / cache_id
         cache.mkdir(parents=True, exist_ok=True)
         done = cache / 'sheets.json'
+        if cached_only and not done.exists():
+            return None
         if done.exists():
             sheets = json.loads(done.read_text())
         else:
@@ -65,14 +69,23 @@ def prepare(root, pass_name, seed):
                 if not target.exists():
                     os.link(path, target)
                 linked[kind].append(str(target))
-        public.append({'blind_id': blind_id, 'video_path': str(alias), 'original_onset_sec': event['onset'],
-                       'sheets': linked, 'verdict': None, 'corrected_onset_sec': None,
-                       'evidence': None, 'needs_expansion': None})
-        private.append({'blind_id': blind_id, 'video_id': vid, 'event_index': index,
-                        'review_reason': item['review_reason']})
-        dump(out / 'review_template.json', public)
-        dump(root / f'private_key_{pass_name}.json', private)
-        print(f'{pass_name}: {i + 1}/{len(queue)}', flush=True)
+        public_row = {'blind_id': blind_id, 'video_path': str(alias), 'original_onset_sec': event['onset'],
+                      'sheets': linked, 'verdict': None, 'corrected_onset_sec': None,
+                      'evidence': None, 'needs_expansion': None}
+        private_row = {'blind_id': blind_id, 'video_id': vid, 'event_index': index,
+                       'review_reason': item['review_reason']}
+        return public_row, private_row
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for result in pool.map(render_case, enumerate(order)):
+            if result is None:
+                continue
+            public.append(result[0])
+            private.append(result[1])
+            dump(out / 'review_template.json', public)
+            dump(root / f'private_key_{pass_name}.json', private)
+            print(f'{pass_name}: {len(public)}/{len(queue)}', flush=True)
+
 
 
 def main():
@@ -80,8 +93,10 @@ def main():
     ap.add_argument('--root', type=Path, default=Path('data/annotation/onset_v3'))
     ap.add_argument('--pass-name', required=True)
     ap.add_argument('--seed', type=int, required=True)
+    ap.add_argument('--cached-only', action='store_true')
+    ap.add_argument('--workers', type=int, default=1, choices=range(1, 5))
     args = ap.parse_args()
-    prepare(args.root, args.pass_name, args.seed)
+    prepare(args.root, args.pass_name, args.seed, args.cached_only, args.workers)
 
 
 if __name__ == '__main__':

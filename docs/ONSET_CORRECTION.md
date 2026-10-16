@@ -1,12 +1,12 @@
 # VA30 onset correction (labels v3)
 
-Status (2026-10-15, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
+Status (updated 2026-10-16, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
 
 | Item | Value |
 |---|---|
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
-| Scan | Full scan running; calibration complete; cuda:0 only, bf16, batch 16 |
-| Visual review / corrected labels | Not started / not released |
+| Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
+| Visual review / corrected labels | Two blind passes in progress / not released |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
 | New eligible30 counts per fold | Pending corrected labels |
@@ -46,7 +46,8 @@ and checkpoints after each event. An incomplete scan cannot be treated as comple
 
 Visual review covers every flag and a seed-301015 random sample of 40 non-flagged events. Render 1-second
 contact sheets with context and 0.5-second sheets around candidate onsets using `tools/contact_sheet.py`.
-Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
+Three CPU workers prepare cached contact sheets, with one decoder thread each. Passes A and B use
+independent shuffled identifiers and separate model contexts, blind to each other. Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
 `unclear` rather than inventing a correction. These are AI visual judgements, not human ground truth.
 
 `anticipation.data.apply_corrections` validates source hashes, review completion, original event identity,
@@ -58,7 +59,7 @@ never a clean negative. Existing source-film masks are retained; their regenerat
 
 ## Results
 
-Pending the complete scan and visual review. No corrected labels or replacement registration have been released.
+The scan is complete. Visual review is in progress. No corrected labels or replacement registration have been released.
 
 ## Implementation checks
 
@@ -79,7 +80,23 @@ found 14 affected frames among the sampled 800. These were excluded deterministi
 and all event flags were recomputed from cached raw-frame probabilities. The superseded threshold was
 0.022977370768785477 (15/800 clean frames, 192/400 annotated violent frames). Both the initial calibration
 and the excluded frame list are retained outside git. This fixes sample eligibility; no screen model score
-was consulted, and no visual-review verdict had been made when the threshold was corrected.
+was consulted, and formal blinded visual review had not begun when the threshold was corrected.
 
 The first implementation checkpoint is commit `25e7062`. Label curation and registration completion remain
 pending; this checkpoint does not authorise reading fold-1 model outcomes.
+
+## Completed scan (2026-10-16)
+
+All 551 original eligible30 events have scores for all 44,132 planned frames. Original source hashes match
+the scan manifest. Tracked calibration and scan runtime is 6,689.8 seconds (1.86 hours), plus initial
+validation/loading overhead; GPU 0 was the only inference device.
+
+| Onset source | Events | Early flag | No-violence-at-onset flag | Either flag | Random non-flagged review |
+|---|---:|---:|---:|---:|---:|
+| official | 75 | 46 | 3 | 48 | 7 |
+| hivau | 374 | 239 | 60 | 280 | 31 |
+| ubi | 102 | 85 | 13 | 91 | 2 |
+
+There are 370 EARLY_VIOLENCE flags and 76 NO_VIOLENCE_AT_ONSET flags, with 27 events carrying both,
+for 419 unique flagged events. Adding the 40 random non-flagged controls gives 459 visual-review cases.
+Flags are screening candidates, not verdicts. The scan does not itself establish label accuracy.

@@ -16,7 +16,7 @@ SUBSETS = {'first_events': 'first', 'real_first_events': 's_real', 'long60_first
 
 def build(original, screen, videos_csv, events_json):
     data = copy.deepcopy(original)
-    data.update(version=2, status='PREREGISTERED_BEFORE_V3_SCREEN_RESULTS', created_local_date='2026-10-15')
+    data.update(version=2, status='PREREGISTERED_BEFORE_V3_SCREEN_RESULTS', created_local_date='2026-10-16')
     data['label_policy'] = ('Reviewed v3 onset corrections are primary. Amendment 03 proposed masks remain '
                             'secondary sensitivity analyses only; fold 1 remains frozen for model evaluation.')
     data['prior_knowledge'] += (' V1 Phase A results and its audit motivated independent label curation. '
