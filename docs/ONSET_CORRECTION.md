@@ -48,7 +48,9 @@ and checkpoints after each event. An incomplete scan cannot be treated as comple
 Visual review covers every flag and a seed-301015 random sample of 40 non-flagged events. Render 1-second
 contact sheets with context and 0.5-second sheets around candidate onsets using `tools/contact_sheet.py`.
 Three CPU workers prepare cached contact sheets, with one decoder thread each. Passes A and B use
-independent shuffled identifiers and separate model contexts, blind to each other. Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
+independent shuffled identifiers and separate model contexts, blind to each other. Review work order may
+prioritize cases with another completed pass solely to make reconciliation available sooner; no verdict or
+case-specific observation is shared. Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
 `unclear` rather than inventing a correction. These are AI visual judgements, not human ground truth.
 
 Each review targets one existing episode. Prior/following annotated segments, the current clear-start and
@@ -58,7 +60,9 @@ the target onset. Reviewers record a separate, previously unannotated episode in
 span for reconciliation instead of absorbing it into the target. Completed reviews are independently audited
 under this episode-scope clarification and marked `scope_protocol: episode_v2`. Autonomous animal attacks
 are marked `unclear` because the benchmark targets interpersonal violence; human-directed animal force,
-including a deployed police dog, counts as physical aggression.
+including a deployed police dog, counts as physical aggression. Incidental sports/dance contact and
+swings into open space do not establish aggression against a person. Clear directed aggressive contact counts
+without requiring proof of hostile intent; unresolved contact is `unclear`.
 
 Separate missed episodes require explicit visual reconciliation on fine sheets before being added to the
 segment list. Their ten-second aftermath ends the target's clear history when eligibility is recomputed.
@@ -75,6 +79,10 @@ labels with `visually_reviewed: false`, empty passes and an explicit scan-only e
 these retained labels from visually verified keeps. It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
 existing other-anomaly and cross-clip blockers. A video without remaining violence becomes `unlabelled`,
 never a clean negative. Existing source-film masks are retained; their regeneration is not yet implemented.
+
+The v2 registration builder rebuilds positive events, subsets and intervals from the v3 catalog while
+preserving the v1 fold/validation memberships and exact clean/H1/H1p cohorts and intervals. Preserving H1
+intervals avoids reintroducing the documented one-tick difference from the older computed-interval rule.
 
 ## Results
 

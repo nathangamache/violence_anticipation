@@ -140,6 +140,9 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
     original['sets'] = synthetic['sets']
     original['sets']['teacher_videos'] = []
     original['fold_membership'] = synthetic['fold_membership']
+    original['scored_intervals_sec'] = synthetic['scored_intervals_sec']
+    h1 = original['sets']['h1_videos'][0]
+    original['scored_intervals_sec'][h1] = [1, 9]
     target = screen.test_ids(0, kinds=('violent',))[0]
     screen.bench.events[target]['segments'] = [[10, 20]]
     screen.bench._events.clear()
@@ -154,6 +157,7 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
     assert all(screen.fold_of(e['video_id']) != 1 for e in rebuilt['sets']['eligible30_events'])
     assert rebuilt['fold_membership'] == original['fold_membership']
     assert rebuilt['sets']['h1_videos'] == original['sets']['h1_videos']
+    assert rebuilt['scored_intervals_sec'][h1] == [1, 9]
     assert rebuilt['blocks'] == original['blocks']
     assert rebuilt['gates'] == original['gates']
     assert all(e['onset'] - e['first_tick'] >= 30 for e in rebuilt['sets']['eligible30_events'])

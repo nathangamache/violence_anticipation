@@ -42,7 +42,10 @@ def build(original, screen, videos_csv, events_json):
                               for r in frame[frame[column]].itertuples()]
         data['sets'][name].sort(key=lambda e: (e['video_id'], e['index']))
     listed = set(data['sets']['positive_videos']) | set(data['sets']['clean_cpu_videos']) | set(data['sets']['h1_videos'])
-    data['scored_intervals_sec'] = {v: [1, screen.ticks_computed(v)] for v in sorted(listed)}
+    positives = set(data['sets']['positive_videos'])
+    data['scored_intervals_sec'] = {
+        v: [1, screen.ticks_computed(v)] if v in positives else original['scored_intervals_sec'][v]
+        for v in sorted(listed)}
     data['sets']['teacher_videos'] = sorted(set(original['sets']['teacher_videos']) & listed)
     for name in ('h1_videos', 'h1p_videos', 'clean_cpu_videos', 'clean_vlm_videos'):
         assert data['sets'][name] == original['sets'][name]
