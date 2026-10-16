@@ -50,6 +50,15 @@ Three CPU workers prepare cached contact sheets, with one decoder thread each. P
 independent shuffled identifiers and separate model contexts, blind to each other. Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
 `unclear` rather than inventing a correction. These are AI visual judgements, not human ground truth.
 
+Each review targets one existing episode. Prior/following annotated segments, the current clear-start and
+segment end are advisory context, not hard boundaries. Earlier aggression continuous with the target episode
+can move its onset across an old boundary. A completed earlier episode or separate replay must not replace
+the target onset. Reviewers record a separate, previously unannotated episode in the lead-in as an additional
+span for reconciliation instead of absorbing it into the target. Completed reviews are independently audited
+under this episode-scope clarification and marked `scope_protocol: episode_v2`. Autonomous animal attacks
+are marked `unclear` because the benchmark targets interpersonal violence; human-directed animal force,
+including a deployed police dog, counts as physical aggression.
+
 `anticipation.data.apply_corrections` validates source hashes, review completion, original event identity,
 correction direction and the two-pass evidence before writing separate outputs under `benchmark/v3/`.
 The correction table contains visually reviewed events only; unselected, non-flagged events retain their

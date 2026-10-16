@@ -70,6 +70,9 @@ def prepare(root, pass_name, seed, cached_only=False, workers=1):
                     os.link(path, target)
                 linked[kind].append(str(target))
         public_row = {'blind_id': blind_id, 'video_path': str(alias), 'original_onset_sec': event['onset'],
+                      'clear_start_sec': event['clear_start'], 'event_end_sec': event['end'],
+                      'prior_annotated_segments': videos[vid]['segments'][:index],
+                      'following_annotated_segments': videos[vid]['segments'][index + 1:],
                       'sheets': linked, 'verdict': None, 'corrected_onset_sec': None,
                       'evidence': None, 'needs_expansion': None}
         private_row = {'blind_id': blind_id, 'video_id': vid, 'event_index': index,
