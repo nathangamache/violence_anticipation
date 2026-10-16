@@ -8,9 +8,46 @@ import json
 import math
 from pathlib import Path
 
+from anticipation.data.annotations import parse_xd_source_span
+from anticipation.data.catalog import source_masks
 from anticipation.data.labels import blocker_spans, event_table, normalize_segments
 
 VERDICTS = {'keep', 'earlier', 'later', 'no_violence', 'unclear'}
+
+
+def refresh_source_masks(videos, catalog):
+    records = []
+    for vid, row in catalog.items():
+        if row.get('source') != 'xd':
+            continue
+        span = parse_xd_source_span(vid.split('/', 1)[1])
+        if span is None:
+            continue
+        entry = videos[vid]
+        records.append(dict(vid=vid, src='xd', span=span, dur=entry['duration_sec'], group=row['group'],
+                            role=entry['role'], segs=entry['segments'], masks=[], soft_masks=[], notes=[]))
+    source_masks(records, log=lambda *args: None)
+    affected = set()
+    for record in records:
+        vid = record['vid']
+        entry, row = videos[vid], catalog[vid]
+        for field, key in [('mask_spans', 'masks'), ('soft_mask_spans', 'soft_masks')]:
+            if entry.get(field, []) == record[key]:
+                continue
+            affected.add(vid)
+            if record[key]:
+                entry[field] = record[key]
+            else:
+                entry.pop(field, None)
+        if entry['role'] != record['role']:
+            affected.add(vid)
+            entry['role'] = row['role'] = record['role']
+            row['is_clean_negative'] = 'False'
+        if vid in affected:
+            spans = normalize_segments(record['masks'] + record['soft_masks'], entry['duration_sec'])
+            row['masked_sec'] = str(round(sum(e - s for s, e in spans), 3))
+            row['notes'] = row.get('notes', '') + ' | v3 source masks recomputed from corrected segments'
+    return affected
 
 
 def apply(videos, catalog, corrections):
@@ -80,17 +117,21 @@ def apply(videos, catalog, corrections):
         if not entry['segments']:
             entry['role'] = row['role'] = 'unlabelled'
             row['is_clean_negative'] = 'False'
+    affected = set(grouped) | refresh_source_masks(videos, catalog)
+    for vid in affected:
+        entry, row = videos[vid], catalog[vid]
         events = event_table(entry['segments'], blockers=blocker_spans(
-            entry.get('other_segments'), entry.get('mask_spans')))
+            entry.get('other_segments'), entry.get('mask_spans'))) if entry['role'] == 'violent' else []
         entry['events'] = events
         for lead in (30, 60):
             count = sum(e[f'eligible{lead}'] for e in events)
             row[f'n_eligible{lead}'] = str(count)
             row[f'eligible{lead}'] = str(bool(count))
-        row['n_segments'] = str(len(entry['segments']))
-        row['first_onset_sec'] = str(entry['segments'][0][0]) if entry['segments'] else ''
-        starts = [s for s, _ in entry['segments'] + entry.get('other_segments', [])]
-        row['first_anomaly_sec'] = str(min(starts)) if starts else ''
+        if vid in grouped:
+            row['n_segments'] = str(len(entry['segments']))
+            row['first_onset_sec'] = str(entry['segments'][0][0]) if entry['segments'] else ''
+            starts = [s for s, _ in entry['segments'] + entry.get('other_segments', [])]
+            row['first_anomaly_sec'] = str(min(starts)) if starts else ''
     return videos, catalog
 
 

@@ -50,6 +50,7 @@ def test_separate_missed_episode_ends_clear_history_without_moving_target():
     c['additional_violence_spans'] = [[25, 28]]
     with pytest.raises(ValueError, match='visual reconciliation'):
         apply(videos, catalog, [c])
+
     c['reconciliation'] = {'verdict': 'keep', 'additional_violence_spans': [[25, 28]],
                            'evidence': 'Separate earlier fight at 25-28 on fine sheets'}
     new, rows = apply(videos, catalog, [c])
@@ -61,6 +62,29 @@ def test_separate_missed_episode_ends_clear_history_without_moving_target():
     c['reconciliation']['additional_violence_spans'] = [[25, 121]]
     with pytest.raises(ValueError, match='Invalid additional episode'):
         apply(videos, catalog, [c])
+
+
+def test_cross_clip_masks_follow_corrections_and_recompute_adjacent_eligibility():
+    a = 'xd/Movie__#00-00-00_00-05-00_label_B1-0-0'
+    b = 'xd/Movie__#00-00-00_00-05-00_label_B2-0-0'
+    videos = {vid: dict(role='violent', onset_source='official', duration_sec=300, segments=segments)
+              for vid, segments in [(a, [[200, 220]]), (b, [[280, 290]])]}
+    rows = {vid: dict(role='violent', source='xd', group='Movie') for vid in videos}
+    c = correction(verdict='earlier', onset=100)
+    c.update(video_id=a, onset_source='official', original_onset_sec=200)
+    new, catalog = apply(videos, rows, [c])
+    assert new[b]['mask_spans'] == [[100, 230]]
+    assert new[b]['soft_mask_spans'] == [[0, 100]]
+    assert new[b]['events'][0]['clear_start'] == 230
+    assert catalog[b]['n_eligible60'] == '0'
+    c = correction(verdict='no_violence', onset=None)
+    c.update(video_id=a, onset_source='official', original_onset_sec=200)
+    new, catalog = apply(new | {a: videos[a]}, rows, [c])
+    assert 'mask_spans' not in new[b]
+    assert 'soft_mask_spans' not in new[b]
+    assert new[b]['events'][0]['clear_start'] == 0
+    assert catalog[b]['n_eligible60'] == '1'
+    assert new[a]['role'] == 'unlabelled'
 
 
 @pytest.mark.parametrize('change', ['duplicate', 'original', 'direction', 'passes', 'disagreement', 'bounds'])

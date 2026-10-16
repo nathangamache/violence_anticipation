@@ -78,7 +78,10 @@ The correction table covers all 551 scanned events. Unselected, non-flagged even
 labels with `visually_reviewed: false`, empty passes and an explicit scan-only evidence basis. Counts distinguish
 these retained labels from visually verified keeps. It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
 existing other-anomaly and cross-clip blockers. A video without remaining violence becomes `unlabelled`,
-never a clean negative. Existing source-film masks are retained; their regeneration is not yet implemented.
+never a clean negative. XD cross-clip hard/soft masks are regenerated with the catalog's existing `source_masks`
+rules, followed by eligibility recomputation for every affected clip. Existing contaminated clips are not
+promoted to clean negatives. Before corrections, this reconstruction reproduces the masks of all 3,124 XD
+source-span records exactly. H1/H1p screening cohorts and intervals remain frozen.
 
 The v2 registration builder rebuilds positive events, subsets and intervals from the v3 catalog while
 preserving the v1 fold/validation memberships and exact clean/H1/H1p cohorts and intervals. Preserving H1
@@ -91,7 +94,7 @@ The scan is complete. Visual review is in progress. No corrected labels or repla
 ## Implementation checks
 
 The screen tests passed (49 tests), as did the correction, routing, blind-review reconciliation and
-registration-rebuild, calibration-mask and separate-episode checks (17 tests). No benchmark model result file has been opened. The v2 registration
+registration-rebuild, calibration-mask and separate-episode and cross-clip-mask checks (18 tests). No benchmark model result file has been opened. The v2 registration
 alias deliberately refuses to load until the completed registration has a pinned hash.
 
 ## Scan calibration checkpoint
