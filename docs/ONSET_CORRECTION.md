@@ -6,6 +6,7 @@ Status (updated 2026-10-16, America/Detroit): **IN PROGRESS; confirmation remain
 |---|---|
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
+| Review queue | 419 flagged + 40 random non-flagged = 459 events |
 | Visual review / corrected labels | Two blind passes in progress / not released |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
@@ -63,11 +64,15 @@ Separate missed episodes require explicit visual reconciliation on fine sheets b
 segment list. Their ten-second aftermath ends the target's clear history when eligibility is recomputed.
 The non-flagged sample counts an event requiring such an addition as a scan miss even if its target onset
 is kept. Additional spans are retained alongside the target verdict in the correction artifacts.
+`no_violence` requires the entire original annotated segment to lack physical aggression. If its first
+physical aggression occurs later within that segment, use `later` even across a montage cut; use `unclear`
+when the first force cannot be resolved. A separately annotated following event is not substituted for it.
 
 `anticipation.data.apply_corrections` validates source hashes, review completion, original event identity,
 correction direction and the two-pass evidence before writing separate outputs under `benchmark/v3/`.
-The correction table contains visually reviewed events only; unselected, non-flagged events retain their
-original labels without a claim of visual verification. It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
+The correction table covers all 551 scanned events. Unselected, non-flagged events retain their original
+labels with `visually_reviewed: false`, empty passes and an explicit scan-only evidence basis. Counts distinguish
+these retained labels from visually verified keeps. It removes no-violence segments, normalises remaining segments and recomputes `labels.event_table` with
 existing other-anomaly and cross-clip blockers. A video without remaining violence becomes `unlabelled`,
 never a clean negative. Existing source-film masks are retained; their regeneration is not yet implemented.
 

@@ -104,17 +104,20 @@ def main():
     if set(reviews[0]) != set(reviews[1]) or set(reviews[0]) != {
             (r['video_id'], r['event_index']) for r in queue}:
         raise ValueError('Blind review coverage differs from planned queue')
-    corrections = [r for r in corrections if r['visually_reviewed']]
     apply(videos, catalog, corrections)
     shifts = [r['corrected_onset_sec'] - r['original_onset_sec'] for r in corrections
               if r['verdict'] in {'earlier', 'later'}]
     sample = [r for r in corrections if (r['video_id'], r['event_index']) in random]
     counts = Counter((r['verdict'], r['onset_source']) for r in corrections)
+    reviewed_counts = Counter((r['verdict'], r['onset_source']) for r in corrections if r['visually_reviewed'])
     summary = {'n_events': len(corrections), 'n_scanned_events': len(flags),
-               'n_retained_without_visual_review': len(flags) - len(corrections),
+               'n_retained_without_visual_review': sum(not r['visually_reviewed'] for r in corrections),
                'n_visually_reviewed': len(reviews[0]),
                'counts_verdict_by_source': {v: {s: counts[v, s] for s in ('official', 'hivau', 'ubi')}
                                           for v in sorted(VERDICTS)},
+               'visually_reviewed_counts_verdict_by_source': {
+                   v: {s: reviewed_counts[v, s] for s in ('official', 'hivau', 'ubi')}
+                   for v in sorted(VERDICTS)},
                'median_shift_sec': float(np.median(shifts)) if shifts else None,
                'nonflagged_review_n': len(sample),
                'additional_violent_episodes': sum(len(r['additional_violence_spans']) for r in corrections),
