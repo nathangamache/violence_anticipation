@@ -2069,32 +2069,38 @@ brawl 0.66): do not treat them as anticipation cues; judge them only through VA3
 
 ## vlm_escalation v3: no-context conflict ratings and hidden states
 
-Status handoff, 2026-10-15:
+Status handoff, 2026-10-16:
 
-- **Phase 0 cleared by lead follow-up; WAIT_GPU0.** Both GPU 0 <5 GB and the CCTV status log ending in `done` are required before GPU work. The CPU queue checks every 60 s and cannot launch early.
-- Frozen S: **1,307 videos / 45.05 h** (379 positive, 600 clean, 328 H1; H1p is a subset). Frozen P: **352 videos / 11.80 h** (100 S_long60 positives, deterministic 150 clean, all 102 H1p). Manifests and SHA256s are in `benchmark/results/vlm_escalation_smoke_protocol/sets.json`.
-- Extractor v3 implements arms A/B/C, independent queries, shared-prefix option scoring, float16 intermediate states, and float32 per-update distillation targets.
-- Tiny CPU Qwen2.5/Qwen3 checks pass: cached/full-prefix selected-logit differences <1.7e-7; `io.check_causal` max difference **0** for ratings and hidden states of A/B/C. Pretrained BF16 GPU causality is still pending.
-- **GO/no-go: pending pilot and lead harness.** No v3 timing or pilot quality has been measured yet. A/B/C timing is queued; the cost rule permits only §6.7 reductions before contamination/P. The registered Phase C gates will be run by the lead, not this agent.
-- Phase C GPU use in this protocol: **0 h**; conservatively reserve **1 h** for all earlier exploratory work, leaving **34 h** within the 35 h cap.
-- Earlier all-fold exploratory smoke is excluded from selection under the fold-1 freeze. Its two unpushed commits remain in the original `va_vlm` clone; this handoff uses the fresh `va_vlm_protocol` clone and does not publish those results.
-- Contamination cohort frozen before model outcomes: **1,000 calm first frames**, from 166 violent / 319 H1 / 515 clean UCF videos. All 1,471 candidates were reviewed with blind IDs in one AI pass; 1,048 passed. This is coarse screening, not human ground truth. Only violent/H1 permutation tests decide the contamination flag.
+- **Pilot running; GO/no-go pending the lead harness.** Master pulled through `f3d4bc5`; pretrained timing, contamination and causality stages completed. A covers all 352 pilot videos; B resumed from completed files/checkpoints after its worker disappeared. C follows B. No registered gates or confirmation-fold results were read.
+- **Contamination FLAG:** violent UCF 11/166 correct (6.63%, permutation p=0.01010); H1 7/319 (2.19%, p=0.000800), both below Bonferroni alpha=.025. UBI and hold-out evidence must decide any GO under §6.7. Category recognition does not prove pretraining membership.
+- **Timing/cost:** Qwen3 A **10.30x / 23.31 GPU-h per 240 h**; B **6.45x / 37.20 h**; C **8.04x / 29.84 h**. Only A meets the 10x target. These are amortized projections, excluding reloads; see the table below.
+- **GPU ledger snapshot:** 1.904 h newly charged, including a full 1,200 s reservation for the absent interrupted worker; plus 1 h prior-work reserve = **2.904 h accounted**, before the resumed chunk. Shared hard cap remains 35 h; live `budget.json` is authoritative.
+- **Pretrained BF16 causality PASS:** `io.check_causal` reports zero difference on 19 earlier ticks for ratings and hidden states of all A/B/C; valid masks match exactly. CPU tiny-model cached/full-prefix selected-logit differences remain <1.7e-7.
+- Frozen S: **1,307 videos / 45.05 h** (379 positive, 600 clean, 328 H1). Frozen P: **352 videos / 11.80 h** (100 S_long60 positives, 150 clean, 102 H1p). The frozen cost plan retained all A/B/C and all 150 clean videos; projected pilot plus worst winning rest-S and overhead was 12.33 h including 15% margin.
+- A's score table contains **42,354 scored ticks / 352 videos**, restricted to the frozen pilot intervals. The full cache audit passed (no decode errors; exact distillation-target holds, finite values, probability sums, dtypes, masks and provenance). All 174 UCF pilot videos have the CPU-derived pose-gating ablation (5,610 gated ticks). B/C tables and coverage audits follow completion.
+- The detached CPU queue uses only cuda:1 in <=20 min chunks, rechecking GPU 0 <5 GB and CCTV `done` before each chunk. It stops without GPU use at `pilot_ready.json` until the lead supplies a hash-pinned GO; no S scale-up has been authorized.
+- Contamination cohort was frozen before outcomes: 1,000 first frames (166 violent / 319 H1 / 515 clean), from a blind single AI screening pass over 1,471 candidates. Earlier all-fold exploratory results remain excluded from model selection; no fold 1 data are used here.
 
 ### Results and cost status
 
-| Model | Supported arms | v3 GPU timing / 240 h cost | Matched (30,120] AUROC / Success@30 / per-source results |
-|---|---|---|---|
-| Qwen2.5-VL-3B-Instruct | A, B | Pending timing gate | Not measured |
-| Local Qwen2.5-VL-7B-Instruct | A, B | Pending timing gate | Not measured |
-| Qwen3-VL-8B-Instruct (protocol default) | A, B, C | Pending timing gate | Not measured |
+| Model / arm | Updates / frames | Realtime factor | Pilot 11.80 h | Full S 45.05 h | 46.7 h subset | 240 h |
+|---|---|---:|---:|---:|---:|---:|
+| Qwen3-VL-8B / A | 2 s / 1 | 10.30x | 1.15 h | 4.38 h | 4.54 h | 23.31 h |
+| Qwen3-VL-8B / B + forecast | 2 s / 8 | 6.45x | 1.83 h | 6.98 h | 7.24 h | 37.20 h |
+| Qwen3-VL-8B / C | 8 s / up to 36 | 8.04x | 1.47 h | 5.60 h | 5.81 h | 29.84 h |
+| Qwen2.5-VL-3B / A,B | Supported; not selected by the frozen Qwen3 protocol | Not measured | — | — | — | — |
+| Local Qwen2.5-VL-7B / A,B | Supported; not selected by the frozen Qwen3 protocol | Not measured | — | — | — | — |
 
-The requested 10x realtime target would cost **24 GPU-h / 240 video-h** and **4.67 GPU-h / 46.7 video-h**
-(an illustrative 16.7 h of eligible positives plus 30 h of negatives). These are arithmetic targets, not measured
-throughput. At realtime factor R, cost is video hours / R. The timing helper computes actual decoder-inclusive
-query latency and projects 12.5 h pilot, 30 h remaining screen, 46.7 h subset, and 240 h full costs. Loading the
-model is excluded from latency but charged to the budget ledger. Pilot hours must be recomputed from the frozen
-P manifest; the three-arm sum and contamination queries must fit the **remaining 34 GPU-h**, not 35 h per arm.
-If projections exceed it, follow §6.7: drop A first, then reduce pilot negatives to 100 with recorded provenance.
+Each Qwen3 timing row uses 200 distinct frozen pilot queries. Decoder opening is amortized over the mean pilot
+video duration (120.64 s); frame retrieval, model work and transfer are included. Cold-query realtime factors
+are 7.25x / 5.70x / 7.76x for A/B/C. Reloads, contamination, causality and interrupted chunks are charged to the
+ledger separately. The 46.7 h column is an illustrative 16.7 h positive plus 30 h negative subset, not a new cohort.
+The conservative rest-S cost projection includes recomputation of pilot positives whose full S intervals are longer.
+
+**Pilot quality numbers remain pending the lead's registered harness:** matched M1 band (30,120], M1-long,
+M1-near, M4b first-frame broadcast and paired temporal gain, M4n gain over N, M3p specificity versus H1,
+Success@30 against position/random, and per-source / official-onset co-primary comparisons. No quality GO or
+claim of improvement over `aggression_level` or `b_teacher` is supported yet. Registered gates were not run here.
 
 The primary comparison is the no-context `aggression_level` reference in `docs/VA30.md` §11, on exactly shared
 screening videos/ticks; `b_teacher` is an additional control. Published five-fold reference aggregates are not
@@ -2183,7 +2189,7 @@ architectures/processors and random CPU weights, not downloaded pretrained GPU w
 all six rating/hidden arm combinations with `io.check_causal` (nine earlier ticks each, atol=0), target/NPZ dtypes,
 empty-video dimensions, missing hidden validity under gating, and query independence. Budget/provenance tests
 verify fold-1/unknown-ID rejection, conservative orphan reservations, cross-model resume rejection, permutation
-controls, and cost units. Re-run pretrained BF16 causality in the initial permitted GPU chunk before pilot P.
+controls, and cost units. Pretrained BF16 causality has also passed; see `causal_pretrained.json` (19 earlier ticks/output, zero difference).
 
 ```bash
 PY=.venv/bin/python
@@ -2224,7 +2230,7 @@ The CPU waiter `queue_timing.py` launches only timing, in bounded GPU-1 chunks, 
 `queue_pilot.py` waits for timing, freezes `budget_plan.json` using `plan_cost.py`, then runs contamination,
 pretrained causality, and bounded P extraction for the permitted arms. It waits without GPU use for the lead
 GO/no-go artifact before starting the winning arm on S; it never runs the registered gates itself.
-It uses the same locked 35 h ledger for all arms and waits between chunks. `check_pretrained.py` must pass
+`queue_audit.py` waits for pilot completion, then runs the CPU-only `audit_pilot.py` and exports `scores_pilot_A/B/C.parquet`; it never evaluates or selects an arm. It uses the same locked 35 h ledger for all arms and waits between chunks. `check_pretrained.py` must pass
 pretrained rating/hidden causality before pilot extraction. `extract_chunk.py pilot --arm A|B|C` additionally
 requires completed timing and contamination stages, enforces the start gate again, and writes `features/vlm_a/`,
 `features/vlm_b/`, or `features/vlm_c/`, with companion `<stream>_hidden` files. Interrupted videos retain a
@@ -2233,8 +2239,7 @@ NPZs; checkpoints are never counted as features. The first three videos of each 
 
 Before launching P, project the three-arm pilot plus the worst candidate rest-of-S cost against the remaining
 ledger, including reload/contamination/causality overhead. Follow §6.7's allowed reductions if needed: drop A,
-then reduce clean negatives to 100. This choice is recorded before contamination or pilot outcomes; no reduction has been
-selected yet. The cost rule uses mean measured throughput, a 15% cost margin, 1 h of reload/check headroom and
+then reduce clean negatives to 100. This choice is recorded before contamination or pilot outcomes; the measured frozen plan retained A/B/C and 150 clean videos. The cost rule uses mean measured throughput, a 15% cost margin, 1 h of reload/check headroom and
 a conservative contamination projection. `check_cost.py` verifies ABC -> BC -> BC/100-clean -> NO_GO_COST
 behavior. An unfit plan stops before contamination/P without spending the remaining budget. Timing reports both cold-query throughput and decoder-open cost amortized over mean pilot duration.
 `rest_S.csv` includes longer full-S intervals for pilot positives, so its 34.49 h projection conservatively

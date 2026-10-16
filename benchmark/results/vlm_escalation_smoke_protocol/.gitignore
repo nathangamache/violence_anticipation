@@ -4,3 +4,4 @@ __pycache__/
 queue_timing.log
 start_gate.json
 queue_pilot.log
+queue_audit.log

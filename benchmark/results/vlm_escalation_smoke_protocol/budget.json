@@ -2,7 +2,9 @@
   "cap_sec": 126000,
   "prior_work_reserved_sec": 3600,
   "spent_sec": 6854.943359205499,
-  "active": {},
+  "active": {
+    "2754700-1792161677760538971": 1200
+  },
   "history": [
     {
       "stage": "Qwen/Qwen3-VL-8B-Instruct::timing_A",

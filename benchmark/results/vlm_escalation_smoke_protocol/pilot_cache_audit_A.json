@@ -1,0 +1,26 @@
+{
+  "pilot": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv",
+    "sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+    "n": 352
+  },
+  "screening_folds": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "confirmation_fold_read": false,
+  "registered_gates_run": false,
+  "arms": {
+    "A": {
+      "videos": 352,
+      "valid_ticks": 42436,
+      "main_interval_valid_ticks": 42354,
+      "updates": 21278,
+      "decode_errors": 0,
+      "failures": []
+    }
+  },
+  "pass": true
+}
