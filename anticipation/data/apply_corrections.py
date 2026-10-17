@@ -82,16 +82,31 @@ def apply(videos, catalog, corrections):
             for start, end in additions:
                 if not all(math.isfinite(t) for t in (start, end)) or not 0 <= start < end <= entry['duration_sec']:
                     raise ValueError(f'Invalid additional episode: {key}')
+        passes = correction.get('passes', [])
+        pass_evidence = correction.get('pass_evidence', {})
+        if passes not in (['A'], ['A', 'B'], []):
+            raise ValueError(f'Pass list must be A or A/B: {key}')
+        if set(pass_evidence) != set(passes):
+            raise ValueError(f'Pass evidence does not match pass list: {key}')
+        if passes and not correction.get('evidence'):
+            raise ValueError(f'Evidence required: {key}')
         if verdict in {'earlier', 'later', 'no_violence'} or additions:
-            passes = correction.get('passes', [])
-            if len(passes) < 2 or len({p['blind_id'] for p in passes}) < 2:
-                raise ValueError(f'Two blind passes required: {key}')
-            if not correction.get('evidence'):
-                raise ValueError(f'Evidence required: {key}')
-            if any(p['verdict'] != verdict or (verdict in {'earlier', 'later'} and abs(
-                    p['corrected_onset_sec'] - correction['corrected_onset_sec']) > 2) for p in passes):
-                if not correction.get('reconciliation'):
-                    raise ValueError(f'Unreconciled disagreement: {key}')
+            if passes != ['A', 'B']:
+                raise ValueError(f'Two blind passes required for label changes: {key}')
+        if len(passes) == 2:
+            a, b = pass_evidence['A'], pass_evidence['B']
+            if a['blind_id'] == b['blind_id']:
+                raise ValueError(f'Pass A and B must use independent blind identifiers: {key}')
+            disagree = a['verdict'] != b['verdict']
+            if a['verdict'] in {'earlier', 'later'} and b['verdict'] == a['verdict']:
+                ta, tb = a.get('corrected_onset_sec'), b.get('corrected_onset_sec')
+                disagree = ta is None or tb is None or abs(ta - tb) > 2
+            if a.get('additional_violence_spans', []) != b.get('additional_violence_spans', []):
+                disagree = True
+            if (disagree or additions) and not correction.get('reconciliation'):
+                raise ValueError(f'Unreconciled disagreement: {key}')
+        elif passes == ['A'] and pass_evidence['A']['verdict'] != verdict and not correction.get('reconciliation'):
+            raise ValueError(f'Single-pass label differs from Pass A: {key}')
         if verdict in {'earlier', 'later'}:
             onset = float(correction['corrected_onset_sec'])
             if not math.isfinite(onset) or not 0 <= onset <= entry['segments'][index][1]:

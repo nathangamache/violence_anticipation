@@ -1,6 +1,6 @@
 # VA30 onset correction (labels v3)
 
-Status (updated 2026-10-16, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
+Status (updated 2026-10-17, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
 
 | Item | Value |
 |---|---|
@@ -8,12 +8,22 @@ Status (updated 2026-10-16, America/Detroit): **IN PROGRESS; confirmation remain
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
 | Newly eligible follow-ups | Direct blind review as discovered; currently 1 queued |
-| Visual review / corrected labels | Two blind passes in progress / not released |
+| Visual review / corrected labels | Pass A is reviewing all 459 cases; Pass B is reviewing the owner-approved subset / not released |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
 | New eligible30 counts per fold | Pending corrected labels |
+| Keep audit | Seeded 10% sample; disagreement rate pending |
 | Registration v2 / Phase A v3 | Not created / not run |
 | Fold-1 model evaluation | Not run; reserved for the lead |
+
+Review protocol update (2026-10-17): the owner approved a time-budget change. Pass A reviews all 459 original
+visual-review cases and every newly eligible follow-up. Pass B reviews each A verdict that would change a label,
+a seeded random 10% sample of A's keep and unclear verdicts, and every follow-up. The fixed audit seed is 301018;
+the selected sample is 10% rounded up. Pass B remains blind to A's judgments. Its 33 original cases completed
+before this change stay in the record. Reconcile every A/B disagreement on 0.5-second sheets. A label change
+requires agreement or a documented reconciliation. A single-pass keep remains a keep. If disagreement among the
+sampled A keeps exceeds 15%, stop label release and report the rate. Final one-pass/two-pass counts and the keep
+audit rate will be recorded here and per event in `onset_corrections.json` before labels are released.
 
 ## Method fixed before curation
 
@@ -51,8 +61,13 @@ contact sheets with context and 0.5-second sheets around candidate onsets using 
 Three CPU workers prepare cached contact sheets, with one decoder thread each. Passes A and B use
 independent shuffled identifiers and separate model contexts, blind to each other. Review work order may
 prioritize cases with another completed pass solely to make reconciliation available sooner; no verdict or
-case-specific observation is shared. Changed labels require two blind passes; reconcile disagreements on fine sheets. Keep uncertain cases as
-`unclear` rather than inventing a correction. These are AI visual judgements, not human ground truth.
+case-specific observation is shared. Under the owner-approved 2026-10-17 protocol, A covers all 459 cases;
+B covers A's label-changing verdicts, the seeded 10% keep/unclear audit, and every newly eligible follow-up.
+Previously completed B reviews remain recorded even when they fall outside that selected subset. Every label
+change needs agreement from both passes or a documented reconciliation. Reconcile disagreements on 0.5-second
+sheets. Single-pass keeps remain keeps. Stop before release if the sampled keep disagreement rate is above 15%.
+Keep uncertain cases as `unclear` rather than inventing a correction. These are AI visual judgements, not human
+ground truth.
 
 Each review targets one existing episode. Prior/following annotated segments, the current clear-start and
 segment end are advisory context, not hard boundaries. Earlier aggression continuous with the target episode
@@ -99,7 +114,8 @@ intervals avoids reintroducing the documented one-tick difference from the older
 
 ## Results
 
-The scan is complete. Visual review is in progress. No corrected labels or replacement registration have been released.
+The scan is complete. Visual review is in progress under the revised protocol. No corrected labels or replacement
+registration have been released.
 
 ## Implementation checks
 

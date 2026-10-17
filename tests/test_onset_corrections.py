@@ -16,8 +16,10 @@ def fixture():
 def correction(index=0, verdict='earlier', onset=30):
     return {'video_id': 'v', 'event_index': index, 'onset_source': 'hivau',
             'original_onset_sec': [40, 100][index], 'verdict': verdict, 'corrected_onset_sec': onset,
-            'evidence': 'sheets/a.jpg', 'passes': [
-                {'blind_id': p, 'verdict': verdict, 'corrected_onset_sec': onset} for p in ['a13', 'b02']]}
+            'evidence': {'basis': 'two blind visual passes'}, 'passes': ['A', 'B'],
+            'pass_evidence': {name: {'blind_id': blind_id, 'verdict': verdict,
+                                     'corrected_onset_sec': onset, 'evidence': 'sheets/a.jpg'}
+                              for name, blind_id in [('A', 'a13'), ('B', 'b02')]}}
 
 
 def test_eligibility_blockers_and_original_untouched():
@@ -112,7 +114,7 @@ def test_invalid_reviews_rejected(change):
         elif change == 'passes':
             c['passes'] = c['passes'][:1]
         elif change == 'disagreement':
-            c['passes'][1]['verdict'] = 'keep'
+            c['pass_evidence']['B']['verdict'] = 'keep'
         elif change == 'bounds':
             c['corrected_onset_sec'] = -1
     with pytest.raises(ValueError):
@@ -199,18 +201,20 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
 
 def test_blind_reviews_require_reconciliation_and_preserve_unreviewed_status():
     from anticipation.data.onset_finalize import join_reviews
+    key = ('v', 0)
     scan = {'video_id': 'v', 'event_index': 0, 'original_onset_sec': 40, 'onset_source': 'hivau',
             'early_violence': True, 'no_violence_at_onset': False}
     a = {'blind_id': 'A0', 'verdict': 'earlier', 'corrected_onset_sec': 30, 'evidence': 'grab at 30'}
     b = {'blind_id': 'B4', 'verdict': 'keep', 'corrected_onset_sec': None, 'evidence': 'uncertain contact'}
     with pytest.raises(ValueError, match='Unreconciled'):
-        join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {})
+        join_reviews([scan], {key: a}, {key: b}, {})
     reconciled = {'verdict': 'earlier', 'corrected_onset_sec': 30.5, 'evidence': 'fine sheet, grab at 30.5'}
-    result = join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {('v', 0): reconciled})[0]
+    result = join_reviews([scan], {key: a}, {key: b}, {key: reconciled})[0]
     assert result['corrected_onset_sec'] == 30.5
     assert result['visually_reviewed']
+    assert result['passes'] == ['A', 'B']
     scan['early_violence'] = False
-    result = join_reviews([scan], [{}, {}], {})[0]
+    result = join_reviews([scan], {}, {}, {})[0]
     assert result['verdict'] == 'keep'
     assert not result['visually_reviewed']
     assert result['evidence']['basis'] == 'scan_no_flag_not_visually_reviewed'
@@ -218,17 +222,45 @@ def test_blind_reviews_require_reconciliation_and_preserve_unreviewed_status():
 
 def test_additional_episode_proposals_cannot_be_silently_discarded():
     from anticipation.data.onset_finalize import join_reviews
+    key = ('v', 0)
     scan = {'video_id': 'v', 'event_index': 0, 'original_onset_sec': 40, 'onset_source': 'hivau',
             'early_violence': False, 'no_violence_at_onset': False}
     a = {'blind_id': 'A0', 'verdict': 'keep', 'evidence': 'separate fight',
          'additional_violence_spans': [[10, 20]]}
     b = {'blind_id': 'B4', 'verdict': 'keep', 'evidence': 'target correct'}
     with pytest.raises(ValueError, match='Unreconciled'):
-        join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {})
+        join_reviews([scan], {key: a}, {key: b}, {})
     reconciliation = {'verdict': 'keep', 'additional_violence_spans': [[10, 20]],
                       'evidence': 'earlier separate fight verified on fine sheets'}
-    result = join_reviews([scan], [{('v', 0): a}, {('v', 0): b}], {('v', 0): reconciliation})[0]
+    result = join_reviews([scan], {key: a}, {key: b}, {key: reconciliation})[0]
     assert result['additional_violence_spans'] == [[10, 20]]
+
+
+def test_single_pass_keep_is_allowed_but_single_pass_change_is_not():
+    from anticipation.data.onset_finalize import join_reviews
+    scan = {'video_id': 'v', 'event_index': 0, 'original_onset_sec': 40, 'onset_source': 'hivau',
+            'early_violence': False, 'no_violence_at_onset': False}
+    keep = {'blind_id': 'A0', 'verdict': 'keep', 'evidence': 'target matches first force'}
+    result = join_reviews([scan], {('v', 0): keep}, {}, {})[0]
+    assert result['passes'] == ['A']
+    assert result['verdict'] == 'keep'
+    earlier = {'blind_id': 'A0', 'verdict': 'earlier', 'corrected_onset_sec': 30, 'evidence': 'grab at 30'}
+    with pytest.raises(ValueError, match='requires Pass B'):
+        join_reviews([scan], {('v', 0): earlier}, {}, {})
+
+
+def test_seeded_keep_audit_stops_only_above_fifteen_percent():
+    from anticipation.data.onset_finalize import audit_keep_stats
+    a = {('v', i): {'verdict': 'keep'} for i in range(20)}
+    b = {('v', i): {'verdict': ('earlier' if i < 4 else 'keep')} for i in range(20)}
+    stats = audit_keep_stats(a, b, set(a))
+    assert stats['n_sampled_keep'] == 20
+    assert stats['disagreement_rate'] == .2
+    assert stats['stop']
+    b[('v', 3)]['verdict'] = 'keep'
+    stats = audit_keep_stats(a, b, set(a))
+    assert stats['disagreement_rate'] == .15
+    assert not stats['stop']
 
 
 def test_clean_calibration_excludes_catalog_masks():

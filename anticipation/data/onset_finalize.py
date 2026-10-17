@@ -5,6 +5,8 @@ from collections import Counter
 import csv
 import hashlib
 import json
+import math
+import random
 from pathlib import Path
 
 import numpy as np
@@ -13,33 +15,67 @@ from anticipation.data.apply_corrections import apply, VERDICTS
 from anticipation.data.onset_scan import dump
 
 
-def join_reviews(flags, reviews, reconciliations):
+AUDIT_SEED = 301018
+AUDIT_FRACTION = 0.10
+
+
+def audit_keys(review_a, fraction=AUDIT_FRACTION, seed=AUDIT_SEED):
+    """Choose a fixed, seeded sample of A's unchanged keep/unclear judgments."""
+    eligible = sorted(key for key, row in review_a.items()
+                      if row['verdict'] in {'keep', 'unclear'} and not row.get('additional_violence_spans'))
+    count = math.ceil(len(eligible) * fraction) if eligible else 0
+    return set(random.Random(seed).sample(eligible, count))
+
+
+def audit_keep_stats(review_a, review_b, selected):
+    keep_keys = sorted(key for key in selected if key in review_a and review_a[key]['verdict'] == 'keep')
+    disagreements = [key for key in keep_keys if key not in review_b or review_b[key]['verdict'] != 'keep'
+                     or bool(review_b[key].get('additional_violence_spans'))]
+    return {'seed': AUDIT_SEED, 'fraction': AUDIT_FRACTION, 'n_sampled_keep': len(keep_keys),
+            'n_keep_disagreements': len(disagreements),
+            'disagreement_rate': len(disagreements) / len(keep_keys) if keep_keys else None,
+            'stop_threshold': 0.15,
+            'stop': bool(keep_keys and len(disagreements) / len(keep_keys) > 0.15)}
+
+
+def join_reviews(flags, review_a, review_b, reconciliations, required_b=()):
     output = []
-    reviewed = set().union(*(set(p) for p in reviews))
+    required_b = set(required_b)
     for scan in flags:
         key = scan['video_id'], scan['event_index']
         original = scan['original_onset_sec']
         record = {k: scan[k] for k in ('video_id', 'event_index', 'onset_source', 'original_onset_sec')}
-        passes = [p[key] for p in reviews if key in p]
+        a = review_a.get(key)
+        b = review_b.get(key)
+        pass_records = {'A': a, **({'B': b} if b else {})}
         flagged = scan['early_violence'] or scan['no_violence_at_onset']
-        if flagged and len(passes) != 2:
-            raise ValueError(f'Flagged event requires both passes: {key}')
-        if key not in reviewed:
+        if a is None:
+            if key in required_b or flagged:
+                raise ValueError(f'Flagged or selected event lacks Pass A: {key}')
             verdict, corrected = 'keep', original
             evidence = {'basis': 'scan_no_flag_not_visually_reviewed'}
+            reconciled = None
+        elif key in required_b and b is None:
+            raise ValueError(f'Selected event requires Pass B: {key}')
         else:
-            if len(passes) != 2:
-                raise ValueError(f'Incomplete paired review: {key}')
-            for p in passes:
+            for name, p in pass_records.items():
                 if p['verdict'] not in VERDICTS or not p.get('evidence') or p.get('needs_expansion'):
-                    raise ValueError(f'Incomplete review: {key}')
-            verdicts = {p['verdict'] for p in passes}
-            changed = bool(verdicts & {'earlier', 'later', 'no_violence'})
-            times = [p.get('corrected_onset_sec') for p in passes]
-            disagree = len(verdicts) != 1 or (changed and 'no_violence' not in verdicts and (
-                any(t is None for t in times) or abs(times[0] - times[1]) > 2))
+                    raise ValueError(f'Incomplete Pass {name} review: {key}')
+            if b is not None and a['blind_id'] == b['blind_id']:
+                raise ValueError(f'Pass A and B must use independent blind identifiers: {key}')
+            changed_a = a['verdict'] in {'earlier', 'later', 'no_violence'} or bool(a.get('additional_violence_spans'))
+            if changed_a and b is None:
+                raise ValueError(f'Label-changing Pass A review requires Pass B: {key}')
+            disagree = False
+            if b is not None:
+                disagree = a['verdict'] != b['verdict']
+                if a['verdict'] in {'earlier', 'later'} and b['verdict'] == a['verdict']:
+                    ta, tb = a.get('corrected_onset_sec'), b.get('corrected_onset_sec')
+                    disagree = ta is None or tb is None or abs(ta - tb) > 2
+                if a.get('additional_violence_spans', []) != b.get('additional_violence_spans', []):
+                    disagree = True
             reconciliation = reconciliations.get(key)
-            additions_proposed = any(p.get('additional_violence_spans') for p in passes)
+            additions_proposed = any(p.get('additional_violence_spans') for p in pass_records.values())
             if (disagree or additions_proposed) and not reconciliation:
                 raise ValueError(f'Unreconciled review: {key}')
             if reconciliation:
@@ -49,16 +85,22 @@ def join_reviews(flags, reviews, reconciliations):
                     raise ValueError(f'Reconciliation lacks evidence: {key}')
                 record['reconciliation'] = reconciliation
             else:
-                verdict = passes[0]['verdict']
-                corrected = float(np.round(np.mean(times) * 2) / 2) if verdict in {'earlier', 'later'} else None
+                verdict = a['verdict']
+                if verdict in {'earlier', 'later'}:
+                    corrected = float(np.round(np.mean([a['corrected_onset_sec'], b['corrected_onset_sec']]) * 2) / 2)
+                else:
+                    corrected = None
             if verdict == 'keep':
                 corrected = original
-            evidence = {'basis': 'two_blind_visual_passes', 'passes': [p['evidence'] for p in passes]}
+            evidence = {'basis': 'two_blind_visual_passes' if b is not None else 'single_blind_visual_pass',
+                        'A': a['evidence'], **({'B': b['evidence']} if b else {})}
+            reconciled = record.get('reconciliation')
         record.setdefault('reconciliation', None)
-        record['additional_violence_spans'] = (record['reconciliation'] or {}).get('additional_violence_spans', [])
-        record.update(verdict=verdict, corrected_onset_sec=corrected, evidence=evidence, passes=passes,
+        record['additional_violence_spans'] = (reconciled or {}).get('additional_violence_spans', [])
+        record.update(verdict=verdict, corrected_onset_sec=corrected, evidence=evidence,
+                      passes=list(pass_records), pass_evidence=pass_records,
                       scan_stats={k: v for k, v in scan.items() if k not in record},
-                      visually_reviewed=bool(passes))
+                      visually_reviewed=a is not None)
         output.append(record)
     return output
 
@@ -70,9 +112,11 @@ def load_pass(root, name, followups=False):
         folder = folder / 'followup'
     key = {r['blind_id']: (r['video_id'], r['event_index'])
            for r in json.loads((root / f'private_key_{name}{suffix}.json').read_text())}
-    rows = json.loads((folder / 'verdicts.json').read_text())
-    if len(rows) != len(key) or {r['blind_id'] for r in rows} != set(key):
-        raise ValueError(f'Pass {name} must review exactly the blinded queue')
+    verdict_path = folder / 'verdicts.json'
+    rows = json.loads(verdict_path.read_text()) if verdict_path.exists() else []
+    ids = [r['blind_id'] for r in rows]
+    if len(ids) != len(set(ids)) or set(ids) - set(key):
+        raise ValueError(f'Pass {name} contains duplicate or unknown blind IDs')
     if any(r.get('scope_protocol') != 'episode_v2' for r in rows):
         raise ValueError(f'Pass {name} must complete the episode-scope audit')
     return {key[r['blind_id']]: r for r in rows}
@@ -112,7 +156,10 @@ def main():
     reconciliation_path = args.root / 'reconciliations.json'
     reconciliations = json.loads(reconciliation_path.read_text()) if reconciliation_path.exists() else []
     reconciliations = {(r['video_id'], r['event_index']): r for r in reconciliations}
-    reviews = [load_pass(args.root, name) for name in args.passes]
+    review_a = load_pass(args.root, 'A')
+    review_b = load_pass(args.root, 'B')
+    followup_a = load_pass(args.root, 'A', followups=True)
+    followup_b = load_pass(args.root, 'B', followups=True)
     videos = json.loads(Path('benchmark/events.json').read_text())['videos']
     catalog = {r['video_id']: r for r in csv.DictReader(open('benchmark/videos.csv'))}
     expected = {(v, e['index']) for v, row in videos.items() for e in row.get('events', []) if e['eligible30']}
@@ -122,20 +169,38 @@ def main():
     followup_keys = {(r['video_id'], r['event_index']) for r in followups}
     if len(followup_keys) != len(followups) or followup_keys & actual:
         raise ValueError('Duplicate or originally eligible follow-up event')
-    if followups:
-        for name, review in zip(args.passes, reviews):
-            supplement = load_pass(args.root, name, followups=True)
-            if set(supplement) != followup_keys:
-                raise ValueError('Follow-up review coverage differs from its queue')
-            review.update(supplement)
+    expected_a = {(r['video_id'], r['event_index']) for r in queue} | followup_keys
+    if set(review_a) | set(followup_a) != expected_a or set(review_a) & set(followup_a):
+        raise ValueError('Pass A review coverage differs from the planned queue')
+    review_a.update(followup_a)
+    review_b.update(followup_b)
+    if set(followup_a) != followup_keys or set(followup_b) != followup_keys:
+        raise ValueError('Every newly eligible follow-up requires both blind reviews')
+    selected_audit = audit_keys({k: review_a[k] for k in expected_a if k in review_a and k not in followup_keys})
+    changing = {key for key, row in review_a.items()
+                if key in actual | followup_keys and
+                (row['verdict'] in {'earlier', 'later', 'no_violence'} or row.get('additional_violence_spans'))}
+    required_b = changing | selected_audit | followup_keys
+    prior_path = args.root / 'b_prior_completed.json'
+    prior_b = {(r['video_id'], r['event_index']) for r in json.loads(prior_path.read_text())} if prior_path.exists() else set()
+    assignment_path = args.root / 'b_assignment_state.json'
+    assigned_b = ({(r['video_id'], r['event_index']) for r in json.loads(assignment_path.read_text()).get('assigned', [])}
+                  if assignment_path.exists() else set())
+    if not required_b <= set(review_b):
+        missing = sorted(required_b - set(review_b))
+        raise ValueError(f'Pass B coverage incomplete; {len(missing)} selected reviews missing: {missing[:12]}')
+    if set(review_b) - required_b - prior_b - assigned_b:
+        raise ValueError('Pass B contains reviews outside the selection policy and recorded prior assignments')
+    keep_audit = audit_keep_stats(review_a, review_b, selected_audit)
+    dump(args.root / 'keep_audit_summary.json', keep_audit)
+    print(json.dumps({'keep_audit': keep_audit}, indent=2))
+    if keep_audit['stop']:
+        raise ValueError('Keep audit disagreement exceeds 15%; label release stopped')
     flags += followups
     queue += followups
-    if set(reviews[0]) != set(reviews[1]) or set(reviews[0]) != {
-            (r['video_id'], r['event_index']) for r in queue}:
-        raise ValueError('Blind review coverage differs from planned queue')
-    corrections = join_reviews(flags, reviews, reconciliations)
+    corrections = join_reviews(flags, review_a, review_b, reconciliations, required_b)
     corrected, _ = apply(videos, catalog, corrections)
-    pending = newly_eligible_unreviewed(videos, corrected, set(reviews[0]))
+    pending = newly_eligible_unreviewed(videos, corrected, set(review_a))
     if pending:
         raise ValueError(f'Newly eligible source events require blind follow-up review: {pending}')
     shifts = [r['corrected_onset_sec'] - r['original_onset_sec'] for r in corrections
@@ -146,7 +211,12 @@ def main():
     summary = {'n_events': len(corrections), 'n_scanned_events': n_scanned,
                'n_followup_events': len(followups),
                'n_retained_without_visual_review': sum(not r['visually_reviewed'] for r in corrections),
-               'n_visually_reviewed': len(reviews[0]),
+               'n_visually_reviewed': len(review_a),
+               'n_one_pass': sum(len(r['passes']) == 1 for r in corrections),
+               'n_two_pass': sum(len(r['passes']) == 2 for r in corrections),
+               'n_audit_sample': len(selected_audit),
+               'n_keep_audit': keep_audit['n_sampled_keep'],
+               'keep_audit_disagreement_rate': keep_audit['disagreement_rate'],
                'counts_verdict_by_source': {v: {s: counts[v, s] for s in ('official', 'hivau', 'ubi')}
                                           for v in sorted(VERDICTS)},
                'visually_reviewed_counts_verdict_by_source': {
