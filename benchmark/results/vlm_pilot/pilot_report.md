@@ -11,7 +11,7 @@
 | hidden_C | 0.798 [0.721, 0.866] | 0.864 [0.803, 0.920] | 0.886 [0.828, 0.937] | 0.547 [0.407, 0.689] | 0.191 [0.080, 0.297] | 0.490 [0.393, 0.592] / 4.71 | PASS/FAIL/PASS | PASS/INCONCLUSIVE |
 | aggression | 0.808 [0.582, 0.909] | 0.881 [0.688, 0.956] | 0.921 [0.754, 0.998] | 0.756 [0.621, 0.869] | 0.131 [0.029, 0.245] | 0.114 [0.024, 0.217] / 1.09 | PASS/PASS/PASS | PASS/INCONCLUSIVE |
 
-Owner decides GO/NO-GO and the chosen arm. No decision artifact is written and no rest-of-S extraction is started.
+Decision: **NO-GO**, recorded in [decision_phase_c.md](../../screens/decision_phase_c.md). No rest-of-S extraction was authorized or started.
 
 All CIs use 1,000 paired split_group cluster-bootstrap replicates; undefined / insufficient-replicate CIs remain NA. Models use the registered P1 summaries, train-only weighted PLS32 for wide states, validation C selection, and no H1 training. Hidden layers 18/27 are selected separately for each head on validation slices only. A/B/C use identical 352-video pilot labels and intervals (100 positive, 150 clean, 102 H1p). The aggression P1 reference has narrower cache coverage and must not be compared as an unrestricted row.
 

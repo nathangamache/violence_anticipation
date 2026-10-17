@@ -2069,6 +2069,8 @@ brawl 0.66): do not treat them as anticipation cues; judge them only through VA3
 
 ## vlm_escalation v3: no-context conflict ratings and hidden states
 
+**Decision: NO-GO.** See [decision_phase_c.md](../benchmark/screens/decision_phase_c.md); do not extract the rest of set S.
+
 Status handoff, 2026-10-17:
 
 - **Phase C pilot complete:** rating arms A/B/C, B forecast, hidden-state probes for A/B/C, and the no-context `aggression_level` reference were evaluated on frozen P (352 videos: 100 positive, 150 clean, 102 H1p), using folds 0/2/3/4 only.
@@ -2078,7 +2080,7 @@ Status handoff, 2026-10-17:
 - **Contamination remains flagged:** first-frame category accuracy is 11/166 violent UCF and 7/319 H1 (permutation p=.01010 and .000800; both below Bonferroni alpha=.025). B's UBI-only M1 is 0.774 [0.605, 0.921], near M1 0.879 [0.681, 1.000]; official-onset UBI M1 is 0.759 [0.659, 0.847].
 - **Curated hold-out:** the frozen rule nominated B for the clip-isolated evaluation. Near M1 is 0.877 [0.735, 0.983], but Success@10 at nominal 2 FA/h is 0.114 [0.000, 0.271] against position null 0.477 (achieved 3.96 FA/h), so near-window discrimination did not translate to a reliable warning.
 - **Causality and cache audit PASS:** all A/B/C rating and hidden outputs had zero difference on 19 earlier ticks under `io.check_causal`; all 352 pilot caches passed audit with 42,354 scored ticks per arm and no decode errors.
-- **GPU accounting:** cuda:1 only; 5.361 GPU-hours charged plus 1.000 prior-work reserve, no active reservation, against the 35-hour cap. Pilot and hold-out work is complete; no rest-of-S extraction or owner GO/no-go decision has been made, and fold 1 remains untouched.
+- **GPU accounting:** cuda:1 only; 5.361 GPU-hours charged plus 1.000 prior-work reserve, no active reservation, against the 35-hour cap. Pilot and hold-out work is complete; the owner recorded NO-GO, no rest-of-S extraction is authorized, and fold 1 remains untouched.
 
 ### Results and cost status
 
@@ -2096,14 +2098,14 @@ are 7.25x / 5.70x / 7.76x for A/B/C. Reloads, contamination, causality and inter
 ledger separately. The 46.7 h column is an illustrative 16.7 h positive plus 30 h negative subset, not a new cohort.
 The conservative rest-S cost projection includes recomputation of pilot positives whose full S intervals are longer.
 
-The new [`phase_c.py`](../anticipation/screen/phase_c.py) evaluator reports the registered P1 metrics, event operating points, hidden-state probes, and frozen hold-out results in [`pilot_report.md`](../benchmark/results/vlm_pilot/pilot_report.md). It records the criterion values per arm for the owner; the report does not issue an overall GO/no-go decision.
+The new [`phase_c.py`](../anticipation/screen/phase_c.py) evaluator reports the registered P1 metrics, event operating points, hidden-state probes, and frozen hold-out results in [`pilot_report.md`](../benchmark/results/vlm_pilot/pilot_report.md). It records the criterion values per arm; the owner’s NO-GO is documented in [decision_phase_c.md](../benchmark/screens/decision_phase_c.md).
 
 The primary comparison is the no-context `aggression_level` reference in `docs/VA30.md` §11, on exactly shared
 screening videos/ticks; `b_teacher` is an additional control. Published five-fold reference aggregates are not
 substitutes for a newly restricted 0/2/3/4 comparison. Report matched M1 (30,120], clean remaining >=60 s), M8,
 G2/G3, real/movie and per-source results, and Success@30 at validation-selected 1/2/5 FA/h with achieved rates,
 position null and random on the same universe. Use the new screen harness to exclude fold 1 from **training,
-validation and testing**. The pilot reference comparison is now reported on 112 exactly shared videos; the paired estimates and their uncertainty are in the pilot report. No scale-up decision is recorded here.
+validation and testing**. The pilot reference comparison is now reported on 112 exactly shared videos; the paired estimates and their uncertainty are in the pilot report. The owner recorded NO-GO; no scale-up is authorized.
 
 ### Prompts and computation
 
@@ -2252,5 +2254,5 @@ The evaluator does not issue a GO decision or start rest-of-S extraction; the ow
 `model_id`, `registration_sha256`, `pilot_manifest_sha256`, `screening_folds=[0,2,3,4]`,
 `confirmation_fold_read=false`, and `harness_report={"path":...,"sha256":...}`. This is the recorded scientific
 GO required by §6.7, not a substitute gate calculation. A NO-GO or missing decision prevents extraction outside P.
-No such decision exists yet. The queued waiter accepts a minimal `{"decision":"NO_GO"}` to end without S.
+The owner recorded NO-GO in [decision_phase_c.md](../benchmark/screens/decision_phase_c.md); the pilot waiter is stopped and no rest-of-S extraction may run.
 Distillation remains conditional on GO and uses the per-update targets already exported.
