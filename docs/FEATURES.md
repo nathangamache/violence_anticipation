@@ -2069,17 +2069,16 @@ brawl 0.66): do not treat them as anticipation cues; judge them only through VA3
 
 ## vlm_escalation v3: no-context conflict ratings and hidden states
 
-Status handoff, 2026-10-16:
+Status handoff, 2026-10-17:
 
-- **Pilot running; GO/no-go pending the lead harness.** Master pulled through `f3d4bc5`; pretrained timing, contamination and causality stages completed. A covers all 352 pilot videos; B resumed from completed files/checkpoints after its worker disappeared. C follows B. No registered gates or confirmation-fold results were read.
-- **Contamination FLAG:** violent UCF 11/166 correct (6.63%, permutation p=0.01010); H1 7/319 (2.19%, p=0.000800), both below Bonferroni alpha=.025. UBI and hold-out evidence must decide any GO under §6.7. Category recognition does not prove pretraining membership.
-- **Timing/cost:** Qwen3 A **10.30x / 23.31 GPU-h per 240 h**; B **6.45x / 37.20 h**; C **8.04x / 29.84 h**. Only A meets the 10x target. These are amortized projections, excluding reloads; see the table below.
-- **GPU ledger snapshot:** 1.904 h newly charged, including a full 1,200 s reservation for the absent interrupted worker; plus 1 h prior-work reserve = **2.904 h accounted**, before the resumed chunk. Shared hard cap remains 35 h; live `budget.json` is authoritative.
-- **Pretrained BF16 causality PASS:** `io.check_causal` reports zero difference on 19 earlier ticks for ratings and hidden states of all A/B/C; valid masks match exactly. CPU tiny-model cached/full-prefix selected-logit differences remain <1.7e-7.
-- Frozen S: **1,307 videos / 45.05 h** (379 positive, 600 clean, 328 H1). Frozen P: **352 videos / 11.80 h** (100 S_long60 positives, 150 clean, 102 H1p). The frozen cost plan retained all A/B/C and all 150 clean videos; projected pilot plus worst winning rest-S and overhead was 12.33 h including 15% margin.
-- A's score table contains **42,354 scored ticks / 352 videos**, restricted to the frozen pilot intervals. The full cache audit passed (no decode errors; exact distillation-target holds, finite values, probability sums, dtypes, masks and provenance). All 174 UCF pilot videos have the CPU-derived pose-gating ablation (5,610 gated ticks). B/C tables and coverage audits follow completion.
-- The detached CPU queue uses only cuda:1 in <=20 min chunks, rechecking GPU 0 <5 GB and CCTV `done` before each chunk. It stops without GPU use at `pilot_ready.json` until the lead supplies a hash-pinned GO; no S scale-up has been authorized.
-- Contamination cohort was frozen before outcomes: 1,000 first frames (166 violent / 319 H1 / 515 clean), from a blind single AI screening pass over 1,471 candidates. Earlier all-fold exploratory results remain excluded from model selection; no fold 1 data are used here.
+- **Phase C pilot complete:** rating arms A/B/C, B forecast, hidden-state probes for A/B/C, and the no-context `aggression_level` reference were evaluated on frozen P (352 videos: 100 positive, 150 clean, 102 H1p), using folds 0/2/3/4 only.
+- **Pilot metrics are ready** in [`pilot_report.md`](../benchmark/results/vlm_pilot/pilot_report.md), with per-arm JSON and score tables. The report uses 1,000 paired `split_group` bootstrap replicates and includes per-source and official-onset results.
+- **Temporal and reference results:** B rating has near M1 0.802 [0.734, 0.863] and passes N1/N2/N3; its paired band gain over `aggression_level` on the 112 shared videos is -0.024 [-0.138, 0.097]. Hidden A has a positive paired gain, 0.097 [0.038, 0.190], while its G2 result is FAIL.
+- **Event results:** at B's nominal 2 FA/h threshold, P Success@30 is 0.290 [0.194, 0.388] (achieved 1.13 FA/h; position null 0.069) and imminent Success@10 is 0.420 [0.318, 0.520] (achieved 3.95 FA/h; null 0.202). Nominal and achieved rates are both reported.
+- **Contamination remains flagged:** first-frame category accuracy is 11/166 violent UCF and 7/319 H1 (permutation p=.01010 and .000800; both below Bonferroni alpha=.025). B's UBI-only M1 is 0.774 [0.605, 0.921], near M1 0.879 [0.681, 1.000]; official-onset UBI M1 is 0.759 [0.659, 0.847].
+- **Curated hold-out:** the frozen rule nominated B for the clip-isolated evaluation. Near M1 is 0.877 [0.735, 0.983], but Success@10 at nominal 2 FA/h is 0.114 [0.000, 0.271] against position null 0.477 (achieved 3.96 FA/h), so near-window discrimination did not translate to a reliable warning.
+- **Causality and cache audit PASS:** all A/B/C rating and hidden outputs had zero difference on 19 earlier ticks under `io.check_causal`; all 352 pilot caches passed audit with 42,354 scored ticks per arm and no decode errors.
+- **GPU accounting:** cuda:1 only; 5.361 GPU-hours charged plus 1.000 prior-work reserve, no active reservation, against the 35-hour cap. Pilot and hold-out work is complete; no rest-of-S extraction or owner GO/no-go decision has been made, and fold 1 remains untouched.
 
 ### Results and cost status
 
@@ -2097,17 +2096,14 @@ are 7.25x / 5.70x / 7.76x for A/B/C. Reloads, contamination, causality and inter
 ledger separately. The 46.7 h column is an illustrative 16.7 h positive plus 30 h negative subset, not a new cohort.
 The conservative rest-S cost projection includes recomputation of pilot positives whose full S intervals are longer.
 
-**Pilot quality numbers remain pending the lead's registered harness:** matched M1 band (30,120], M1-long,
-M1-near, M4b first-frame broadcast and paired temporal gain, M4n gain over N, M3p specificity versus H1,
-Success@30 against position/random, and per-source / official-onset co-primary comparisons. No quality GO or
-claim of improvement over `aggression_level` or `b_teacher` is supported yet. Registered gates were not run here.
+The new [`phase_c.py`](../anticipation/screen/phase_c.py) evaluator reports the registered P1 metrics, event operating points, hidden-state probes, and frozen hold-out results in [`pilot_report.md`](../benchmark/results/vlm_pilot/pilot_report.md). It records the criterion values per arm for the owner; the report does not issue an overall GO/no-go decision.
 
 The primary comparison is the no-context `aggression_level` reference in `docs/VA30.md` §11, on exactly shared
 screening videos/ticks; `b_teacher` is an additional control. Published five-fold reference aggregates are not
 substitutes for a newly restricted 0/2/3/4 comparison. Report matched M1 (30,120], clean remaining >=60 s), M8,
 G2/G3, real/movie and per-source results, and Success@30 at validation-selected 1/2/5 FA/h with achieved rates,
 position null and random on the same universe. Use the new screen harness to exclude fold 1 from **training,
-validation and testing**. No matched superiority or scale-up decision is available yet.
+validation and testing**. The pilot reference comparison is now reported on 112 exactly shared videos; the paired estimates and their uncertainty are in the pilot report. No scale-up decision is recorded here.
 
 ### Prompts and computation
 
@@ -2245,11 +2241,12 @@ behavior. An unfit plan stops before contamination/P without spending the remain
 `rest_S.csv` includes longer full-S intervals for pilot positives, so its 34.49 h projection conservatively
 includes about 1.24 h of recomputation. Winning-arm coverage must be checked against **all** `screen_S.csv` rows.
 
-The lead runs the registered `anticipation.screen` Phase C gates and probes. No gate run or block classification
-is performed by these helpers. After P, publish M1 band/long/near, M4b first-frame and paired M1 gain, M4n versus N,
-M3p specificity, per-source and official-onset results; compare reference rows on exactly the same universe.
-The probability readout, separate hidden-state PLS inputs (layers 18/27, validation only), and B's forecast column
-are present in each cached arm. Registration wiring remains with the lead.
+`anticipation/screen/phase_c.py` computes the P1 probes, hidden-state PLS32 probes, event metrics and criterion
+components on the frozen pilot while importing the existing harness modules without changing them. It reports
+M1 band/long/near, M4b first-frame and paired M1 gain, M4n versus N, M3p specificity, per-source and official-onset
+results, plus shared-video comparisons to `aggression_level` and `b_teacher`. The probability readout, separate
+hidden-state PLS inputs (layers 18/27, validation only), and B's forecast column are present in each cached arm.
+The evaluator does not issue a GO decision or start rest-of-S extraction; the owner makes that decision.
 
 `extract_chunk.py screen --arm WINNER` requires the lead's `go_decision.json`: `decision="GO"`, `winner="A|B|C"`,
 `model_id`, `registration_sha256`, `pilot_manifest_sha256`, `screening_folds=[0,2,3,4]`,

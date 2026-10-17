@@ -1,0 +1,17 @@
+{
+  "status": "PILOT_READY_WAIT_LEAD_GATES",
+  "arms": [
+    "A",
+    "B",
+    "C"
+  ],
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "pilot": {
+    "path": "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv",
+    "sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+    "n": 352
+  },
+  "registration_sha256": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+  "registered_gates_run": false,
+  "confirmation_fold_read": false
+}

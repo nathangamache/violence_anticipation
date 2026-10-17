@@ -2,9 +2,9 @@
   "stage": "pilot",
   "arm": "B",
   "model_id": "Qwen/Qwen3-VL-8B-Instruct",
-  "complete": false,
-  "completed_this_chunk": 62,
-  "remaining_videos": 290,
+  "complete": true,
+  "completed_this_chunk": 4,
+  "remaining_videos": 0,
   "total_videos": 352,
   "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da"
 }

@@ -1,0 +1,15 @@
+{
+  "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+  "stream": "vlm_c",
+  "model_prompt_cfg": [
+    "Qwen/Qwen3-VL-8B-Instruct",
+    "2d9df0e56b5d1afe77f9ca2fe8a0336b173606792c2f8da6b3ecf6df0baeafcb",
+    "{\"arm\": \"C\", \"calibration\": \"none\", \"hidden_layers\": [18, 27], \"include_early_baseline\": true, \"max_edge\": 448, \"max_pixels\": 200704, \"model_id\": \"Qwen/Qwen3-VL-8B-Instruct\", \"pose_gating\": false, \"save_hidden\": true, \"stride_sec\": null, \"temperature\": 1.0}"
+  ],
+  "screening_folds": [
+    0,
+    2,
+    3,
+    4
+  ]
+}

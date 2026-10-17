@@ -1,10 +1,8 @@
 {
   "cap_sec": 126000,
   "prior_work_reserved_sec": 3600,
-  "spent_sec": 6854.943359205499,
-  "active": {
-    "2754700-1792161677760538971": 1200
-  },
+  "spent_sec": 19300.0983976759,
+  "active": {},
   "history": [
     {
       "stage": "Qwen/Qwen3-VL-8B-Instruct::timing_A",
@@ -61,6 +59,76 @@
       "seconds": 1200,
       "token": "2728998-1792112825866358445",
       "reason": "Worker absent after session interruption; full reservation charged conservatively"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1180.2357898745686,
+      "token": "2754700-1792161677760538971"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1180.584448773414,
+      "token": "2791355-1792162887255070921"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1175.9149341639131,
+      "token": "2808171-1792164097978657810"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1180.1125191543251,
+      "token": "2827388-1792165304534672394"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 1180.400920420885,
+      "token": "2841740-1792166515524852814"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_B",
+      "seconds": 128.13918014615774,
+      "token": "2855458-1792167727072789917"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 1171.7352733183652,
+      "token": "2857341-1792167912800119837"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 1180.0911429822445,
+      "token": "2878570-1792169114379621034"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 1174.014570247382,
+      "token": "2905888-1792170324160140136"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 1181.4672490190715,
+      "token": "2937718-1792171528841932709"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 1181.694011637941,
+      "token": "2960098-1792172741030578175"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::pilot_C",
+      "seconds": 45.18993905559182,
+      "token": "2980008-1792173953899843138"
+    },
+    {
+      "stage": "Qwen/Qwen3-VL-8B-Instruct::holdout_B",
+      "seconds": 471.1913586203009,
+      "token": "2992346-1792179830462572770"
+    },
+    {
+      "stage": "holdout_scene0p",
+      "seconds": 14.38370105624199,
+      "token": "2997396-1792180329799909244"
     }
   ],
   "stages": {
@@ -94,6 +162,26 @@
       "model_id": "Qwen/Qwen3-VL-8B-Instruct",
       "complete": true,
       "completed_this_chunk": 7,
+      "remaining_videos": 0,
+      "total_videos": 352,
+      "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da"
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::pilot_B": {
+      "stage": "pilot",
+      "arm": "B",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true,
+      "completed_this_chunk": 4,
+      "remaining_videos": 0,
+      "total_videos": 352,
+      "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da"
+    },
+    "Qwen/Qwen3-VL-8B-Instruct::pilot_C": {
+      "stage": "pilot",
+      "arm": "C",
+      "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+      "complete": true,
+      "completed_this_chunk": 3,
       "remaining_videos": 0,
       "total_videos": 352,
       "manifest_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da"
