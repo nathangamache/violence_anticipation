@@ -202,15 +202,19 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
         assert set(members['test']) == set(screen.bench.folds.test_ids(fold)) & screenable
         assert not any(screen.fold_of(v) == 1 for ids in members.values() for v in ids)
     assert rebuilt['sets']['h1_videos'] == original['sets']['h1_videos']
-    assert rebuilt['scored_intervals_sec'][h1] == [1, 9]
+    assert all(rebuilt['scored_intervals_sec'][vid] == original['scored_intervals_sec'][vid]
+               for vid in set(original['sets']['h1_videos']) | set(original['sets']['h1p_videos']))
     for key in ('blocks', 'probes', 'controls', 'metrics', 'gates', 'classes', 'nuisance', 'tags',
                 'forward_selection', 'audio_gate', 'screen_folds', 'confirmation_fold'):
         assert rebuilt[key] == original[key]
-    assert len(rebuilt['carried_amendments']) == 5
+    assert len(rebuilt['carried_amendments']) == 4
     assert all(Path(row['path']).name.startswith(f'amendment_{n:02d}_')
-               for n, row in enumerate(rebuilt['carried_amendments'], 1))
+               for n, row in zip(range(2, 6), rebuilt['carried_amendments']))
     assert all(row['sha256'] == 'synthetic' for row in rebuilt['carried_amendments'])
     assert all(e['onset'] - e['first_tick'] >= 30 for e in rebuilt['sets']['eligible30_events'])
+    summary = register_v2.summary_markdown(rebuilt, 'registration-hash')
+    assert 'This summary describes the frozen registration only' in summary
+    assert '`h1_videos`' in summary and 'registration-hash' in summary
 
 
 def test_blind_reviews_require_reconciliation_and_preserve_unreviewed_status():

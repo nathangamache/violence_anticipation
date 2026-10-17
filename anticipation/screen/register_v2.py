@@ -46,8 +46,10 @@ def build(original, screen, videos_csv, events_json):
         data['sets'][name].sort(key=lambda e: (e['video_id'], e['index']))
     listed = set(data['sets']['positive_videos']) | set(data['sets']['clean_cpu_videos']) | set(data['sets']['h1_videos'])
     positives = set(data['sets']['positive_videos'])
+    preserve_intervals = set(data['sets']['h1_videos']) | set(data['sets']['h1p_videos'])
     data['scored_intervals_sec'] = {
-        v: [1, screen.ticks_computed(v)] if v in positives else original['scored_intervals_sec'][v]
+        v: [1, screen.ticks_computed(v)] if v in positives and v not in preserve_intervals
+        else original['scored_intervals_sec'][v]
         for v in sorted(listed)}
     data['sets']['teacher_videos'] = sorted(set(original['sets']['teacher_videos']) & listed)
     for name in ('h1_videos', 'h1p_videos', 'clean_cpu_videos', 'clean_vlm_videos'):
@@ -69,10 +71,43 @@ def build(original, screen, videos_csv, events_json):
     if set(data['fold_membership']) != set(original['fold_membership']):
         raise ValueError('The registered screening folds changed')
     data['carried_amendments'] = []
-    for number in range(1, 6):
+    for number in range(2, 6):
         path = next((Path(REPO_ROOT) / 'benchmark/screens').glob(f'amendment_{number:02d}_*.md'))
         data['carried_amendments'].append({'path': str(path.relative_to(REPO_ROOT)), 'sha256': file_sha256(str(path))})
     return data
+
+
+def summary_markdown(data, registration_sha256):
+    sets = data['sets']
+    rows = [
+        '# Screen set v2 registration',
+        '',
+        'This summary describes the frozen registration only; it contains no screen outcomes.',
+        '',
+        f"- Registration SHA-256: `{registration_sha256}`",
+        f"- V3 videos catalog SHA-256: `{data['provenance']['videos_csv_sha256']}`",
+        f"- V3 events catalog SHA-256: `{data['provenance']['events_json_sha256']}`",
+        f"- Fold assignment SHA-256: `{data['provenance']['folds_content_sha256']}`",
+        f"- Screening folds: {', '.join(map(str, data['screen_folds']))}",
+        f"- Frozen confirmation fold: {data['confirmation_fold']}",
+        '',
+        '| Registered set | Count |',
+        '|---|---:|',
+    ]
+    for name in ('positive_videos', 'eligible30_events', 'first_events', 'real_first_events',
+                 'long60_first_events', 'ramp90_first_events', 'official_ubi_first_events',
+                 'audio_first_event_candidates', 'clean_cpu_videos', 'clean_vlm_videos',
+                 'h1_videos', 'h1p_videos'):
+        rows.append(f"| `{name}` | {len(sets[name])} |")
+    rows.extend(['', '| Fold | Train videos | Validation videos | Test videos |',
+                 '|---:|---:|---:|---:|'])
+    for fold in data['screen_folds']:
+        members = data['fold_membership'][str(fold)]
+        rows.append(f"| {fold} | {len(members['train'])} | {len(members['val'])} | {len(members['test'])} |")
+    rows.extend(['', 'H1 and H1p memberships and their scored intervals are preserved from v1. Fold 1 remains',
+                 'frozen for the lead’s one-time confirmation.', '', 'Carried amendments:'])
+    rows.extend(f"- `{row['path']}` (SHA-256 `{row['sha256']}`)" for row in data['carried_amendments'])
+    return '\n'.join(rows) + '\n'
 
 
 def main():
@@ -95,7 +130,12 @@ def main():
     path.write_text(json.dumps(data, indent=2) + '\n')
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
     path.with_suffix('.sha256').write_text(f'{sha}  {path.name}\n')
+    summary = path.with_name('summary_v2.md')
+    if summary.exists():
+        raise ValueError('Refusing to overwrite an existing v2 summary')
+    summary.write_text(summary_markdown(data, sha))
     print(f'{sha}  {path}')
+    print(f'{summary}')
     print('Pin this hash in anticipation/screen/prereg.py and commit before running the screen.')
 
 
