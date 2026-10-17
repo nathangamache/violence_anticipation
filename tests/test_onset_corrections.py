@@ -177,6 +177,7 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
     original['sets']['teacher_videos'] = []
     original['fold_membership'] = synthetic['fold_membership']
     original['scored_intervals_sec'] = synthetic['scored_intervals_sec']
+    original['provenance']['folds_content_sha256'] = screen.bench.folds.sha256
     h1 = original['sets']['h1_videos'][0]
     original['scored_intervals_sec'][h1] = [1, 9]
     target = screen.test_ids(0, kinds=('violent',))[0]
@@ -191,11 +192,24 @@ def test_rebuilt_registration_drops_ineligible_events_and_keeps_fold_freeze(monk
                                 Path(REPO_ROOT) / 'benchmark/v3/events.json')
     assert target not in rebuilt['sets']['positive_videos']
     assert all(screen.fold_of(e['video_id']) != 1 for e in rebuilt['sets']['eligible30_events'])
-    assert rebuilt['fold_membership'] == original['fold_membership']
+    listed = (set(rebuilt['sets']['positive_videos']) | set(rebuilt['sets']['clean_cpu_videos']) |
+              set(rebuilt['sets']['h1_videos']))
+    screenable = {v for v in listed if screen.fold_of(v) != 1}
+    for fold in rebuilt['screen_folds']:
+        members = rebuilt['fold_membership'][str(fold)]
+        assert set(members['train']) == set(screen.bench.folds.train_ids(fold)) & screenable
+        assert set(members['val']) == set(screen.bench.folds.val_ids(fold)) & screenable
+        assert set(members['test']) == set(screen.bench.folds.test_ids(fold)) & screenable
+        assert not any(screen.fold_of(v) == 1 for ids in members.values() for v in ids)
     assert rebuilt['sets']['h1_videos'] == original['sets']['h1_videos']
     assert rebuilt['scored_intervals_sec'][h1] == [1, 9]
-    assert rebuilt['blocks'] == original['blocks']
-    assert rebuilt['gates'] == original['gates']
+    for key in ('blocks', 'probes', 'controls', 'metrics', 'gates', 'classes', 'nuisance', 'tags',
+                'forward_selection', 'audio_gate', 'screen_folds', 'confirmation_fold'):
+        assert rebuilt[key] == original[key]
+    assert len(rebuilt['carried_amendments']) == 5
+    assert all(Path(row['path']).name.startswith(f'amendment_{n:02d}_')
+               for n, row in enumerate(rebuilt['carried_amendments'], 1))
+    assert all(row['sha256'] == 'synthetic' for row in rebuilt['carried_amendments'])
     assert all(e['onset'] - e['first_tick'] >= 30 for e in rebuilt['sets']['eligible30_events'])
 
 

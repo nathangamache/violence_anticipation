@@ -2,9 +2,11 @@
 
 import argparse
 import copy
+from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from anticipation.data.catalog import REPO_ROOT, file_sha256
 from anticipation.screen import prereg, sets
@@ -16,7 +18,8 @@ SUBSETS = {'first_events': 'first', 'real_first_events': 's_real', 'long60_first
 
 def build(original, screen, videos_csv, events_json):
     data = copy.deepcopy(original)
-    data.update(version=2, status='PREREGISTERED_BEFORE_V3_SCREEN_RESULTS', created_local_date='2026-10-16')
+    data.update(version=2, status='PREREGISTERED_BEFORE_V3_SCREEN_RESULTS',
+                created_local_date=datetime.now(ZoneInfo('America/Detroit')).date().isoformat())
     data['label_policy'] = ('Reviewed v3 onset corrections are primary. Amendment 03 proposed masks remain '
                             'secondary sensitivity analyses only; fold 1 remains frozen for model evaluation.')
     data['prior_knowledge'] += (' V1 Phase A results and its audit motivated independent label curation. '
@@ -49,7 +52,22 @@ def build(original, screen, videos_csv, events_json):
     data['sets']['teacher_videos'] = sorted(set(original['sets']['teacher_videos']) & listed)
     for name in ('h1_videos', 'h1p_videos', 'clean_cpu_videos', 'clean_vlm_videos'):
         assert data['sets'][name] == original['sets'][name]
-    assert data['fold_membership'] == original['fold_membership']
+    folds = screen.bench.folds
+    if folds.sha256 != original['provenance']['folds_content_sha256']:
+        raise ValueError('The frozen folds_v2 assignment or validation memberships changed')
+    screenable = {vid for vid in listed if folds.fold_of(vid) != data['confirmation_fold']}
+    data['fold_membership'] = {}
+    for fold in data['screen_folds']:
+        data['fold_membership'][str(fold)] = {
+            'train': sorted(set(folds.train_ids(fold)) & screenable),
+            'val': sorted(set(folds.val_ids(fold)) & screenable),
+            'test': sorted(set(folds.test_ids(fold)) & screenable),
+        }
+        for split, ids in data['fold_membership'][str(fold)].items():
+            if any(folds.fold_of(vid) == data['confirmation_fold'] for vid in ids):
+                raise ValueError(f'fold {fold} {split} contains a confirmation-fold video')
+    if set(data['fold_membership']) != set(original['fold_membership']):
+        raise ValueError('The registered screening folds changed')
     data['carried_amendments'] = []
     for number in range(1, 6):
         path = next((Path(REPO_ROOT) / 'benchmark/screens').glob(f'amendment_{number:02d}_*.md'))
@@ -67,7 +85,8 @@ def main():
         raise ValueError('Visual review is incomplete')
     original = prereg.load().data
     videos_csv, events_json = root / 'benchmark/v3/videos.csv', root / 'benchmark/v3/events.json'
-    screen = sets.load_screen_set(soft_masks_path=None, videos_csv=str(videos_csv), events_json=str(events_json))
+    screen = sets.load_screen_set(soft_masks_path=None, folds=original['provenance']['folds_path'],
+                                  videos_csv=str(videos_csv), events_json=str(events_json))
     data = build(original, screen, videos_csv, events_json)
     data['provenance']['corrections_sha256'] = file_sha256(str(root / 'benchmark/labels_v3/onset_corrections.json'))
     path = Path(args.out)
