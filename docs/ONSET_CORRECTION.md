@@ -8,7 +8,7 @@ Status (updated 2026-10-17, America/Detroit): **IN PROGRESS; confirmation remain
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
 | Newly eligible follow-ups | 1 queued; both passes complete and reconciliation recorded |
-| Visual review / corrected labels | Pass A 52/459 original cases; Pass B 51 selected originals; 35 paired, 17 reconciled, 0 paired pending |
+| Visual review / corrected labels | Pass A 57/459 original cases; Pass B 52 originals + 1 follow-up; 36 paired, 18 reconciled, 0 paired pending |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
 | New eligible30 counts per fold | Pending corrected labels |
@@ -24,6 +24,10 @@ before this change stay in the record. Reconcile every A/B disagreement on 0.5-s
 requires agreement or a documented reconciliation. A single-pass keep remains a keep. If disagreement among the
 sampled A keeps exceeds 15%, stop label release and report the rate. Final one-pass/two-pass counts and the keep
 audit rate will be recorded here and per event in `onset_corrections.json` before labels are released.
+
+Current pass accounting (2026-10-17): 36 original cases have both A and B; 21 have A only so far; 16 pre-change B
+reviews have not yet been paired with A. The one newly eligible follow-up has both passes. Eighteen paired cases
+have been reconciled and no paired disagreement is currently open. These are checkpoint counts, not final totals.
 
 Independence audit note (2026-10-17): while checking the required registration amendments, the reconciler
 inadvertently saw aggregate feature-diagnostic AUCs in amendment 01; a broad text search also surfaced a few
