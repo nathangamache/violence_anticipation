@@ -25,6 +25,12 @@ requires agreement or a documented reconciliation. A single-pass keep remains a 
 sampled A keeps exceeds 15%, stop label release and report the rate. Final one-pass/two-pass counts and the keep
 audit rate will be recorded here and per event in `onset_corrections.json` before labels are released.
 
+Independence audit note (2026-10-17): while checking the required registration amendments, the reconciler
+inadvertently saw aggregate feature-diagnostic AUCs in amendment 01; a broad text search also surfaced a few
+aggregate metadata lines under `benchmark/results/`. These exposures were not used to select review cases or
+make visual label judgments. Passes A and B remained blind to those values. No per-example predictions or
+feature arrays were opened. This is a deviation from the intended independence boundary and is recorded here.
+
 ## Method fixed before curation
 
 Only raw videos, the purpose-specific Qwen scan and visual inspection may inform corrections. No files under
