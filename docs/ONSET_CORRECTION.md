@@ -7,12 +7,12 @@ Status (updated 2026-10-17, America/Detroit): **IN PROGRESS; confirmation remain
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
-| Newly eligible follow-ups | Direct blind review as discovered; currently 1 queued |
-| Visual review / corrected labels | Pass A is reviewing all 459 cases; Pass B is reviewing the owner-approved subset / not released |
+| Newly eligible follow-ups | 1 queued; both passes complete and reconciliation recorded |
+| Visual review / corrected labels | Pass A 52/459 original cases; Pass B 51 selected originals; 35 paired, 17 reconciled, 0 paired pending |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
 | New eligible30 counts per fold | Pending corrected labels |
-| Keep audit | Seeded 10% sample; disagreement rate pending |
+| Keep audit | Seeded 10% sample will be assigned after Pass A completes; disagreement rate pending |
 | Registration v2 / Phase A v3 | Not created / not run |
 | Fold-1 model evaluation | Not run; reserved for the lead |
 
