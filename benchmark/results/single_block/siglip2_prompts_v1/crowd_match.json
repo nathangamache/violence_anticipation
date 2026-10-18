@@ -1,0 +1,200 @@
+{
+ "SigLIP 2 prompts v1": {
+  "coverage_pos": 1.0,
+  "per_bin": [
+   {
+    "bin": "0-1",
+    "n_pos": 1922,
+    "n_neg": 156534,
+    "auroc": 0.8823796572864252
+   },
+   {
+    "bin": "1-2",
+    "n_pos": 1852,
+    "n_neg": 102863,
+    "auroc": 0.8266741652997364
+   },
+   {
+    "bin": "2-4",
+    "n_pos": 1696,
+    "n_neg": 98769,
+    "auroc": 0.8660184047225115
+   },
+   {
+    "bin": "4-8",
+    "n_pos": 1349,
+    "n_neg": 67981,
+    "auroc": 0.8862044685249723
+   },
+   {
+    "bin": "8+",
+    "n_pos": 320,
+    "n_neg": 21530,
+    "auroc": 0.9036359150023223
+   }
+  ],
+  "auroc_unmatched": 0.8687964576325169,
+  "auroc_person_matched": 0.8637422042814157,
+  "auroc_crowded_only_4plus": 0.8901916108881022,
+  "n_crowded": [
+   1669,
+   89511
+  ],
+  "person_count_pos_quartiles": [
+   0.9375,
+   1.8125,
+   3.8125
+  ],
+  "person_count_clean_quartiles": [
+   0.125,
+   1.4375,
+   3.125
+  ],
+  "fa_by_crowd": [
+   {
+    "target": 1,
+    "subset": "all clean",
+    "videos": 3220,
+    "hours": 124.53584622222222,
+    "false_alarms": 145,
+    "fa_per_hour": 1.1643234008404413
+   },
+   {
+    "target": 1,
+    "subset": "clean, median 0-1 people",
+    "videos": 958,
+    "hours": 37.98309994444445,
+    "false_alarms": 17,
+    "fa_per_hour": 0.447567471450852
+   },
+   {
+    "target": 1,
+    "subset": "clean, median 1-4 people",
+    "videos": 1762,
+    "hours": 63.942351249999994,
+    "false_alarms": 105,
+    "fa_per_hour": 1.642104144551613
+   },
+   {
+    "target": 1,
+    "subset": "clean, median 4+ people",
+    "videos": 500,
+    "hours": 22.610395027777777,
+    "false_alarms": 23,
+    "fa_per_hour": 1.017231232437274
+   },
+   {
+    "target": 2,
+    "subset": "all clean",
+    "videos": 3220,
+    "hours": 124.53584622222222,
+    "false_alarms": 264,
+    "fa_per_hour": 2.1198715711853553
+   },
+   {
+    "target": 2,
+    "subset": "clean, median 0-1 people",
+    "videos": 958,
+    "hours": 37.98309994444445,
+    "false_alarms": 26,
+    "fa_per_hour": 0.6845149563365972
+   },
+   {
+    "target": 2,
+    "subset": "clean, median 1-4 people",
+    "videos": 1762,
+    "hours": 63.942351249999994,
+    "false_alarms": 196,
+    "fa_per_hour": 3.0652610698296776
+   },
+   {
+    "target": 2,
+    "subset": "clean, median 4+ people",
+    "videos": 500,
+    "hours": 22.610395027777777,
+    "false_alarms": 42,
+    "fa_per_hour": 1.8575526853202395
+   },
+   {
+    "target": 5,
+    "subset": "all clean",
+    "videos": 3220,
+    "hours": 124.53584622222222,
+    "false_alarms": 621,
+    "fa_per_hour": 4.986516082220097
+   },
+   {
+    "target": 5,
+    "subset": "clean, median 0-1 people",
+    "videos": 958,
+    "hours": 37.98309994444445,
+    "false_alarms": 63,
+    "fa_per_hour": 1.6586323942002164
+   },
+   {
+    "target": 5,
+    "subset": "clean, median 1-4 people",
+    "videos": 1762,
+    "hours": 63.942351249999994,
+    "false_alarms": 464,
+    "fa_per_hour": 7.256536410209033
+   },
+   {
+    "target": 5,
+    "subset": "clean, median 4+ people",
+    "videos": 500,
+    "hours": 22.610395027777777,
+    "false_alarms": 94,
+    "fa_per_hour": 4.15737981952625
+   }
+  ],
+  "crowded_clean_by_source": {
+   "ubi": 67,
+   "ucf": 73,
+   "xd_movie": 40,
+   "xd_youtube": 320
+  }
+ },
+ "Scene-only baseline": {
+  "coverage_pos": 1.0,
+  "per_bin": [
+   {
+    "bin": "0-1",
+    "n_pos": 1922,
+    "n_neg": 156534,
+    "auroc": 0.781756807027339
+   },
+   {
+    "bin": "1-2",
+    "n_pos": 1852,
+    "n_neg": 102863,
+    "auroc": 0.7537937525743788
+   },
+   {
+    "bin": "2-4",
+    "n_pos": 1696,
+    "n_neg": 98769,
+    "auroc": 0.7589518899826678
+   },
+   {
+    "bin": "4-8",
+    "n_pos": 1349,
+    "n_neg": 67981,
+    "auroc": 0.7600215149724225
+   },
+   {
+    "bin": "8+",
+    "n_pos": 320,
+    "n_neg": 21530,
+    "auroc": 0.7648834475150952
+   }
+  ],
+  "auroc_unmatched": 0.7671744592968233,
+  "auroc_person_matched": 0.7634040576424129,
+  "auroc_crowded_only_4plus": 0.7603476124142425,
+  "n_crowded": [
+   1669,
+   89511
+  ]
+ }
+}
