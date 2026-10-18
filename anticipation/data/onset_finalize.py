@@ -29,7 +29,9 @@ def audit_keys(review_a, fraction=AUDIT_FRACTION, seed=AUDIT_SEED):
 
 def audit_keep_stats(review_a, review_b, selected):
     keep_keys = sorted(key for key in selected if key in review_a and review_a[key]['verdict'] == 'keep')
-    disagreements = [key for key in keep_keys if key not in review_b or review_b[key]['verdict'] != 'keep'
+    # Owner amendment 2026-10-18 (post hoc, documented): B 'unclear' does not contradict an A keep.
+    disagreements = [key for key in keep_keys if key not in review_b
+                     or review_b[key]['verdict'] in {'earlier', 'later', 'no_violence'}
                      or bool(review_b[key].get('additional_violence_spans'))]
     return {'seed': AUDIT_SEED, 'fraction': AUDIT_FRACTION, 'n_sampled_keep': len(keep_keys),
             'n_keep_disagreements': len(disagreements),
@@ -59,7 +61,10 @@ def join_reviews(flags, review_a, review_b, reconciliations, required_b=()):
             raise ValueError(f'Selected event requires Pass B: {key}')
         else:
             for name, p in pass_records.items():
-                if p['verdict'] not in VERDICTS or not p.get('evidence') or p.get('needs_expansion'):
+                # Owner amendment 2026-10-18: needs_expansion only blocks label-changing, unreconciled reviews.
+                expansion_blocks = (p.get('needs_expansion') and key not in reconciliations
+                                    and p['verdict'] not in {'keep', 'unclear'})
+                if p['verdict'] not in VERDICTS or not p.get('evidence') or expansion_blocks:
                     raise ValueError(f'Incomplete Pass {name} review: {key}')
             if b is not None and a['blind_id'] == b['blind_id']:
                 raise ValueError(f'Pass A and B must use independent blind identifiers: {key}')

@@ -166,3 +166,23 @@ validation/loading overhead; GPU 0 was the only inference device.
 There are 370 EARLY_VIOLENCE flags and 76 NO_VIOLENCE_AT_ONSET flags, with 27 events carrying both,
 for 419 unique flagged events. Adding the 40 random non-flagged controls gives 459 visual-review cases.
 Flags are screening candidates, not verdicts. The scan does not itself establish label accuracy.
+
+## Keep-audit rule amendment (2026-10-18, post hoc)
+
+Pass A was completed by Claude Sonnet 5.5 reviewers (390 cases) after the first 69 by GPT-6 Codex; Pass B for the
+229 assigned cases likewise (13 cases re-reviewed after an image-loading failure). The pre-agreed keep audit then
+sampled only 6 Pass-A keeps (seed 301018); Pass B agreed on 5 and returned `unclear` on 1, a rate of 16.7% against the
+15% stop threshold. After seeing this result, the owner amended the rule: a Pass-B `unclear` does not contradict a
+Pass-A keep; only a B verdict asserting a different onset (earlier, later, no_violence) or an additional span counts.
+Under the amended rule the audit has 0/6 disagreements. This amendment was made after the outcome was known and rests
+on a sample of 6; read the v3 labels with that caveat.
+
+## needs_expansion rule amendment (2026-10-18, post hoc)
+
+The original `join_reviews` rejected any pass record with `needs_expansion: true` (reviewer wanted a wider frame
+range). After Pass A and B, 168 records carried the flag (A 115, B 53), which would have blocked finalization.
+Amended rule: the flag blocks only a label-changing verdict (`earlier`, `later`, `no_violence`) that has no
+reconciliation. A `keep` or `unclear` verdict leaves the label unchanged, so the flag is recorded but not blocking;
+every label-changing flagged record was routed to reconciliation, where the reconciler rendered 0.5 s sheets over
+the wider range (164 tasks in `reconciliation_tasks_v3.json`, Claude Sonnet 5.5 reconcilers, not blind). A coverage
+check found no flagged label-changing record outside the reconciliation set.
