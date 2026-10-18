@@ -49,7 +49,7 @@ def join_reviews(flags, review_a, review_b, reconciliations, required_b=()):
         record = {k: scan[k] for k in ('video_id', 'event_index', 'onset_source', 'original_onset_sec')}
         a = review_a.get(key)
         b = review_b.get(key)
-        pass_records = {'A': a, **({'B': b} if b else {})}
+        pass_records = {**({'A': a} if a else {}), **({'B': b} if b else {})}
         flagged = scan['early_violence'] or scan['no_violence_at_onset']
         if a is None:
             if key in required_b or flagged:
