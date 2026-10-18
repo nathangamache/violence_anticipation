@@ -1,0 +1,48 @@
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_test', 'frozen': 965, 'computed': 1300, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_106_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0', 'ubi/F_118_1_2_0_0', 'ubi/F_120_1_0_0_0', 'ubi/F_128_0_0_0_0', 'ubi/F_132_1_2_0_0'], 'n_only_computed': 335}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_train', 'frozen': 2293, 'computed': 3201, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_105_1_0_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_122_1_1_0_0'], 'n_only_computed': 908}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_val', 'frozen': 343, 'computed': 479, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_110_1_2_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_124_1_2_0_0', 'ubi/F_147_1_0_1_0', 'ubi/F_157_0_0_1_0', 'ubi/F_161_0_0_0_0', 'ubi/F_162_1_0_1_0', 'ubi/F_181_0_0_1_0'], 'n_only_computed': 136}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_test', 'frozen': 972, 'computed': 1322, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_125_0_2_0_0', 'ubi/F_126_1_0_0_0', 'ubi/F_130_1_2_0_0', 'ubi/F_131_1_2_0_0'], 'n_only_computed': 350}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_train', 'frozen': 2321, 'computed': 3213, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_106_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0', 'ubi/F_118_1_2_0_0', 'ubi/F_120_1_0_0_0'], 'n_only_computed': 892}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_val', 'frozen': 308, 'computed': 445, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_105_1_0_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_140_0_0_0_0', 'ubi/F_155_0_0_1_0', 'ubi/F_157_0_0_1_0', 'ubi/F_173_0_0_1_0', 'ubi/F_205_0_1_0_0'], 'n_only_computed': 137}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_test', 'frozen': 943, 'computed': 1297, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_133_1_0_0_0', 'ubi/F_138_0_0_0_0', 'ubi/F_147_1_0_1_0', 'ubi/F_155_0_0_1_0', 'ubi/F_161_0_0_0_0'], 'n_only_computed': 354}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_train', 'frozen': 2311, 'computed': 3194, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_106_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0'], 'n_only_computed': 883}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_val', 'frozen': 329, 'computed': 471, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_103_1_2_0_0', 'ubi/F_105_1_0_0_0', 'ubi/F_128_0_0_0_0', 'ubi/F_13_1_2_0_0', 'ubi/F_157_0_0_1_0', 'ubi/F_181_0_0_1_0', 'ubi/F_193_0_0_1_0', 'ubi/F_200_0_0_0_1'], 'n_only_computed': 142}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_test', 'frozen': 963, 'computed': 1303, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_105_1_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_122_1_1_0_0', 'ubi/F_123_1_2_0_0', 'ubi/F_124_1_2_0_0', 'ubi/F_127_1_2_0_0', 'ubi/F_139_0_0_0_0', 'ubi/F_142_0_0_0_0'], 'n_only_computed': 340}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_train', 'frozen': 2330, 'computed': 3230, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_106_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_111_0_0_0_0'], 'n_only_computed': 900}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_val', 'frozen': 310, 'computed': 449, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_130_1_2_0_0', 'ubi/F_13_1_2_0_0', 'ubi/F_172_1_0_1_0', 'ubi/F_173_0_0_1_0', 'ubi/F_175_0_1_0_0', 'ubi/F_188_0_0_1_1', 'ubi/F_209_1_0_0_0', 'ubi/F_213_0_1_0_0'], 'n_only_computed': 139}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'scored_ticks_per_video', 'frozen': 3843, 'computed': None, 'agree': False, 'n_differ': 31, 'max_abs_diff': 1}
+[screen] NOT_AVAILABLE: A camera_wearer_diagnostic (no extractor or column definition for a camera-wearer diagnostic)
+[screen] BLOCKED_AUDIO_GATE: B audio_dsp (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] BLOCKED_AUDIO_GATE: B ast_events (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] BLOCKED_AUDIO_GATE: B clap_prompts (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] BLOCKED_AUDIO_GATE: B speech_tox (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] BLOCKED_AUDIO_GATE: B voice_affect (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] BLOCKED_AUDIO_GATE: B e2v_emb (Phase B blocked until independent diegetic-audio audit is frozen; candidates are not approved audio cases.)
+[screen] NOT_AVAILABLE: B overlap_and_duty_cycles (no extractor (speaker overlap and duty cycles need diarization))
+[screen] NOT_AVAILABLE: B dialogue_acts (no extractor (dialogue-act tagging of transcripts))
+[screen] NOT_AVAILABLE: C vlm_single_frame_A (Phase C VLM arm: no extractor or cached outputs)
+[screen] NOT_AVAILABLE: C vlm_short_clip_B (Phase C VLM arm: no extractor or cached outputs)
+[screen] NOT_AVAILABLE: C vlm_long_window_C (Phase C VLM arm: no extractor or cached outputs)
+[screen] NOT_AVAILABLE: C vlm_forecast (Phase C VLM arm: no extractor or cached outputs)
+[screen] NOT_AVAILABLE: C vlm_hidden_state_probe (Phase C VLM arm: no extractor or cached outputs)
+[screen] NOT_IMPLEMENTED: P2_gru (one-layer GRU (64 units, 3 seeds, G1 PASS only): the event-window MIL loss is not specified enough to implement before any block passes G1)
+[screen] NOT_IMPLEMENTED: P1_full_dimensional_L2_sensitivity (full-dimensional L2 on the windowed wide blocks (1152 or 2048 columns x 9 summaries) is not implemented; only the PLS32 reduction runs)
+[screen] NOT_IMPLEMENTED: forward_selection (greedy fusion with paired M8 gain needs the fused-model trainer)
+[screen] NOT_IMPLEMENTED: confirmation_rule (the single fold-1 evaluation of the fused model; fold 1 is unreachable in this harness by design)
+[screen] NOT_IMPLEMENTED: M6_sustained_leads_90_120 (the VA30 evaluator (not modifiable here) reports sustained success at 60 s only)
+[screen] NOT_IMPLEMENTED: M6_clean_alarm_time_operating_points (operating points at 1, 2 and 5 percent clean alarm time are not selectable in the VA30 evaluator, which has FA/h targets (1, 2, 5) only)
+[screen] NOT_IMPLEMENTED: M7_same_film_matched_AUROC (needs a film-level grouping of XD movie clips)
+[screen] NOT_IMPLEMENTED: M7_news_and_compilation_exclusion (needs the compilation/news annotation)
+[screen] NOT_IMPLEMENTED: M7_visible_conflict_vs_sudden (needs a manual annotation)
+[screen] NOT_IMPLEMENTED: M8_partial_AMOC_area (reported by the VA30 evaluator with --m6, not by the screen metrics)
+[screen] NOT_IMPLEMENTED: control_aggression_level_no_context (no score table of an aggression-level reference model is available)
+[screen] NOT_IMPLEMENTED: context_cue_G2_exemption (weapon, police, counter and arrivals cues exempt from G2 only as class-conditional heads; no block sets Block.g2_exempt and the prompt columns are judged inside their blocks; an exempt G2 can never give ANTICIPATION)
+[screen] NOT_IMPLEMENTED: control_b_teacher (no score table of the zero-shot teacher on the screening cohort is available)
+[screen] pose_interact fold 0: train 2293 val 343 test 965
+[screen] pose_interact fold 2: train 2321 val 308 test 972
+[screen] pose_interact fold 3: train 2311 val 329 test 943
+[screen] pose_interact fold 4: train 2330 val 310 test 963
+[screen] pose_interact: M1 0.6140291862311212 done in 1204 s
+[screen] pose_state_identity_free fold 0: train 2293 val 343 test 965
+[screen] pose_state_identity_free fold 2: train 2321 val 308 test 972
+[screen] pose_state_identity_free fold 3: train 2311 val 329 test 943

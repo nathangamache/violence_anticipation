@@ -1,0 +1,255 @@
+{
+ "prereg_sha256": "25bf720b688c5fe4475da25d2b4ba1de52a0a140678649073d08ba7586e52dbb",
+ "family_status": "COMPLETE",
+ "holm_family_blocks": [
+  "motion_camera_shortcut",
+  "motion_no_camera",
+  "pose_interact",
+  "pose_state_identity_free",
+  "pose_state_pair_identity_ucf_ubi",
+  "siglip2",
+  "siglip2_prompts_v1",
+  "siglip2_prompts_v2",
+  "vjepa2_l"
+ ],
+ "holm_family_tests": 27,
+ "no_metrics_file": [],
+ "stale_prereg": [],
+ "not_run": [
+  {
+   "name": "camera_wearer_diagnostic",
+   "phase": "A",
+   "status": "NOT_AVAILABLE",
+   "streams": [],
+   "reason": "no extractor or column definition for a camera-wearer diagnostic"
+  }
+ ],
+ "decisions": {
+  "pose_interact": {
+   "G1": "PASS",
+   "G1_main": "PASS",
+   "G1_sparse": "INCONCLUSIVE",
+   "G2": "INCONCLUSIVE",
+   "G3": "FAIL",
+   "short_horizon": false,
+   "class": "CONTEXT_SHORTCUT",
+   "tags": [
+    "LONG_LEAD"
+   ],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.026973026973026972,
+   "holm_p_sparse_pauc": 0.04195804195804196,
+   "holm_p_sparse_tail": 0.13186813186813187,
+   "soundtrack_flag": null,
+   "m4b": 0.6149016667452265,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.005141736086460069,
+    "ci": [
+     -0.08436343407420424,
+     0.0925128856859879
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "pose_state_identity_free": {
+   "G1": "INCONCLUSIVE",
+   "G1_main": "INCONCLUSIVE",
+   "G1_sparse": "INCONCLUSIVE",
+   "G2": "FAIL",
+   "G3": "FAIL",
+   "short_horizon": false,
+   "class": "INCONCLUSIVE",
+   "tags": [],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.1998001998001998,
+   "holm_p_sparse_pauc": 0.8431568431568431,
+   "holm_p_sparse_tail": 0.8341658341658342,
+   "soundtrack_flag": null,
+   "m4b": 0.5494818874567291,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.01721393883894551,
+    "ci": [
+     -0.08584164032345282,
+     0.11166275797008827
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "pose_state_pair_identity_ucf_ubi": {
+   "G1": "FAIL",
+   "G1_main": "FAIL",
+   "G1_sparse": "INCONCLUSIVE",
+   "G2": "FAIL",
+   "G3": "FAIL",
+   "short_horizon": false,
+   "class": "DROP",
+   "tags": [],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.8431568431568431,
+   "holm_p_sparse_pauc": 0.8431568431568431,
+   "holm_p_sparse_tail": 0.3146853146853147,
+   "soundtrack_flag": null,
+   "m4b": 0.48226358895541255,
+   "m1_ramp_gain_over_m4b": {
+    "value": -0.008357163490214592,
+    "ci": [
+     -0.12896895953688461,
+     0.1299185809740372
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "siglip2_prompts_v1": {
+   "G1": "PASS",
+   "G1_main": "PASS",
+   "G1_sparse": "PASS",
+   "G2": "INCONCLUSIVE",
+   "G3": "PASS",
+   "short_horizon": false,
+   "class": "ANTICIPATION",
+   "tags": [
+    "LONG_LEAD"
+   ],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.026973026973026972,
+   "holm_p_sparse_pauc": 0.026973026973026972,
+   "holm_p_sparse_tail": 0.026973026973026972,
+   "soundtrack_flag": null,
+   "m4b": 0.8185105439917197,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.051182451278374064,
+    "ci": [
+     -0.002453423767311538,
+     0.10568482412521475
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "siglip2_prompts_v2": {
+   "G1": "PASS",
+   "G1_main": "PASS",
+   "G1_sparse": "PASS",
+   "G2": "PASS",
+   "G3": "PASS",
+   "short_horizon": false,
+   "class": "ANTICIPATION",
+   "tags": [
+    "LONG_LEAD"
+   ],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.026973026973026972,
+   "holm_p_sparse_pauc": 0.026973026973026972,
+   "holm_p_sparse_tail": 0.026973026973026972,
+   "soundtrack_flag": null,
+   "m4b": 0.8129393397826893,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.022531785347195354,
+    "ci": [
+     -0.03149096060641242,
+     0.08146032004111413
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "siglip2": {
+   "G1": "PASS",
+   "G1_main": "PASS",
+   "G1_sparse": "PASS",
+   "G2": "FAIL",
+   "G3": "PASS",
+   "short_horizon": false,
+   "class": "CONTEXT_SHORTCUT",
+   "tags": [
+    "LONG_LEAD"
+   ],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.026973026973026972,
+   "holm_p_sparse_pauc": 0.026973026973026972,
+   "holm_p_sparse_tail": 0.026973026973026972,
+   "soundtrack_flag": null,
+   "m4b": 0.8389720893307072,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.03865435081151103,
+    "ci": [
+     -0.004380748615576368,
+     0.08465719907244898
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "vjepa2_l": {
+   "G1": "PASS",
+   "G1_main": "PASS",
+   "G1_sparse": "PASS",
+   "G2": "FAIL",
+   "G3": "INCONCLUSIVE",
+   "short_horizon": false,
+   "class": "CONTEXT_SHORTCUT",
+   "tags": [
+    "LONG_LEAD"
+   ],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.026973026973026972,
+   "holm_p_sparse_pauc": 0.026973026973026972,
+   "holm_p_sparse_tail": 0.026973026973026972,
+   "soundtrack_flag": null,
+   "m4b": 0.7305327135132211,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.08411625089670738,
+    "ci": [
+     0.007313216553665714,
+     0.16286285664934846
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "motion_no_camera": {
+   "G1": "INCONCLUSIVE",
+   "G1_main": "INCONCLUSIVE",
+   "G1_sparse": "INCONCLUSIVE",
+   "G2": "INCONCLUSIVE",
+   "G3": "INCONCLUSIVE",
+   "short_horizon": false,
+   "class": "INCONCLUSIVE",
+   "tags": [],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.2337662337662338,
+   "holm_p_sparse_pauc": 0.8431568431568431,
+   "holm_p_sparse_tail": 0.37762237762237766,
+   "soundtrack_flag": null,
+   "m4b": 0.48379393507291674,
+   "m1_ramp_gain_over_m4b": {
+    "value": 0.05603412166974414,
+    "ci": [
+     -0.046010793478655714,
+     0.1533276903754614
+    ]
+   },
+   "first_frame_flag": true
+  },
+  "motion_camera_shortcut": {
+   "G1": "INCONCLUSIVE",
+   "G1_main": "INCONCLUSIVE",
+   "G1_sparse": "INCONCLUSIVE",
+   "G2": "INCONCLUSIVE",
+   "G3": "INCONCLUSIVE",
+   "short_horizon": false,
+   "class": "INCONCLUSIVE",
+   "tags": [],
+   "unevaluated_gates": [],
+   "holm_p_g1": 0.2337662337662338,
+   "holm_p_sparse_pauc": 0.14285714285714288,
+   "holm_p_sparse_tail": 0.06493506493506493,
+   "soundtrack_flag": null,
+   "m4b": 0.5513769704984958,
+   "m1_ramp_gain_over_m4b": {
+    "value": -0.019664505350635242,
+    "ci": [
+     -0.11942405375153156,
+     0.07468958942034098
+    ]
+   },
+   "first_frame_flag": true
+  }
+ }
+}
