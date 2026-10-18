@@ -615,6 +615,12 @@ def write_scores(ss, data, per_fold, path):
     return df
 
 
+def label_paths(ss):
+    """The registration's catalog paths (v3 labels under screen_set_v2); empty means the VA30 defaults."""
+    prov = ss.prereg.data["provenance"] if getattr(ss, "prereg", None) is not None else {}
+    return {k: os.path.join(REPO_ROOT, prov[k]) for k in ("videos_csv", "events_json") if prov.get(k)}
+
+
 def run_va30(ss, df, out_dir, name, fa_targets="1,2,5", threshold_boot=200, n_boot=1000, no_position_null=False):
     """VA30 event metrics on the screening folds (fold 1 removed from the fold file, ids renumbered)."""
     os.makedirs(out_dir, exist_ok=True)
@@ -623,7 +629,9 @@ def run_va30(ss, df, out_dir, name, fa_targets="1,2,5", threshold_boot=200, n_bo
     d["fold"] = d["fold"].map(fmap)
     path = os.path.join(out_dir, "va30_scores.parquet")
     d[["video_id", "t_sec", "score", "fold", "seed"]].to_parquet(path, index=False)
-    args = ["--scores", path, "--out_dir", os.path.join(out_dir, name), "--folds", folds_path, "--restrict_to_scored",
+    labels = label_paths(ss)
+    args = [a for k, flag in (("videos_csv", "--videos"), ("events_json", "--events")) if k in labels for a in (flag, labels[k])]
+    args += ["--scores", path, "--out_dir", os.path.join(out_dir, name), "--folds", folds_path, "--restrict_to_scored",
             "--horizons", S.MANIFEST_V1, "--threshold_bootstrap", str(threshold_boot), "--n_boot", str(n_boot),
             "--fa_targets", fa_targets, "--cluster", "split_group"]
     if no_position_null:
@@ -751,11 +759,11 @@ def lead_report(bench, df, lead=10.0, fa_targets=(1, 2, 5), n_boot=1000, thr_boo
             "coverage": cov}
 
 
-def screening_bench(out_dir):
+def screening_bench(out_dir, ss=None):
     """The VA30 benchmark of the screening folds (fold 1 removed, ids renumbered) and the fold map."""
     os.makedirs(out_dir, exist_ok=True)
     path, fmap = R.folds_without_confirmation(out_dir)
-    return va30.Benchmark.load(path, horizons=S.MANIFEST_V1), fmap
+    return va30.Benchmark.load(path, horizons=S.MANIFEST_V1, **(label_paths(ss) if ss is not None else {})), fmap
 
 
 def event_summary(m):
@@ -990,7 +998,7 @@ def run_selection(ss, source, anticipation, provisional, out, pr_info, n_boot=10
     df = write_scores(ss, data, final_scores, scores_path)
     log(f"{head} final model:", result["final"]["probe"], selected)
     if events and imminent:
-        bench, fmap = screening_bench(os.path.join(out, "events"))
+        bench, fmap = screening_bench(os.path.join(out, "events"), ss)
         d = df[df["video_id"].map(ss.kind) != "h1"].copy()
         d["fold"] = d["fold"].map(fmap)
         result["events"] = R.jsonable(lead_report(bench, d, 10.0, (1, 2, 5), n_boot, 200))
