@@ -90,7 +90,9 @@ def apply(videos, catalog, corrections):
             raise ValueError(f'Pass evidence does not match pass list: {key}')
         if passes and not correction.get('evidence'):
             raise ValueError(f'Evidence required: {key}')
-        if verdict in {'earlier', 'later', 'no_violence'} or additions:
+        audited_only = (passes == ['A'] and verdict == pass_evidence['A']['verdict'] and additions
+                        and (correction.get('reconciliation') or {}).get('span_audit'))
+        if verdict in {'earlier', 'later', 'no_violence'} or (additions and not audited_only):
             if passes != ['A', 'B']:
                 raise ValueError(f'Two blind passes required for label changes: {key}')
         if len(passes) == 2:

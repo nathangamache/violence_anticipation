@@ -1,20 +1,26 @@
 # VA30 onset correction (labels v3)
 
-Status (updated 2026-10-18, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
+Status (updated 2026-10-18, America/Detroit): **LABELS v3 RELEASED (`REVIEW_COMPLETE`); confirmation remains frozen.**
 
 | Item | Value |
 |---|---|
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
-| Newly eligible follow-ups | 1 queued; both passes complete and reconciliation recorded |
-| Visual review / corrected labels | Pass A 69/459 original cases; Pass B 55 originals + 1 follow-up; 39 paired, 19 reconciled, 0 paired pending |
-| Corrections by verdict and onset source | Pending visual review |
-| Median shift / scan miss rate | Pending visual review |
-| New eligible30 counts per fold | Pending corrected labels |
-| Keep audit | Seeded 10% sample will be assigned after Pass A completes; disagreement rate pending |
+| Newly eligible follow-ups | 54 over five cascade rounds, all with two blind passes |
+| Visual review | 513 events reviewed (339 two-pass, 174 one-pass); 198 reconciliations; 92 non-flagged events retained unreviewed |
+| Corrections (all 605 events) | keep 194 (102 visually verified), earlier 70, later 65, no_violence 125, unclear 151; 81 added violence spans |
+| Median shift / scan miss rate | -2.8 s / 15 of 40 non-flagged controls (0.375; 12 of the 40 unclear) |
+| Eligible30 events per fold 0-4 | before 130/105/101/109/106 (551), after 100/77/83/89/86 (435); lead-in 13.3 h to 11.5 h |
+| Videos with no violence left | 22 more become `unlabelled` (never clean negatives); clean negatives unchanged at 4,010 |
+| Keep audit | 6 sampled keeps, 0 disagreements under the 2026-10-18 amendment |
+| Artifacts | `benchmark/labels_v3/onset_corrections.{json,csv}`, `benchmark/v3/{events.json,videos.csv}` |
 | Registration v2 / Phase A v3 | Not created / not run |
 | Fold-1 model evaluation | Not run; reserved for the lead |
+
+Known residual noise: the 92 non-flagged events that were not sampled keep their original labels; the control
+sample suggests roughly a third of them would change on review (15/40, binomial 95% CI about 0.23 to 0.54), and
+UBI-Fights source annotations are unreliable in a subset of videos (see the cascade section).
 
 Review protocol update (2026-10-17): the owner approved a time-budget change. Pass A reviews all 459 original
 visual-review cases and every newly eligible follow-up. Pass B reviews each A verdict that would change a label,
@@ -186,3 +192,33 @@ reconciliation. A `keep` or `unclear` verdict leaves the label unchanged, so the
 every label-changing flagged record was routed to reconciliation, where the reconciler rendered 0.5 s sheets over
 the wider range (164 tasks in `reconciliation_tasks_v3.json`, Claude Sonnet 5.5 reconcilers, not blind). A coverage
 check found no flagged label-changing record outside the reconciliation set.
+
+## Follow-up cascade, lead-in span audit and single-pass span exception (2026-10-18)
+
+**Cascade.** Removing or moving a segment can give the next segment of the same video a clean lead-in of 30 s or
+more, so `onset_finalize` stops until every newly eligible event has both blind passes (`followup_queue.json`,
+Pass A seed 301016, Pass B seed 301017, sheets under `blind/{A,B}/followup/`). Rounds: 28, 13, 6, 3, then 2 newly
+eligible events; in the last round every remaining segment of the two affected videos was queued at once. All
+follow-up passes and reconciliations were done by Claude Sonnet 5.5 subagents (one agent per pass per round, so
+the two passes are independent sessions of the same model; the main rounds also used GPT-6 Codex for part of
+Pass A). The cascade was driven almost entirely by UBI-Fights: of 115 reviewed UBI events, 50 were judged
+`no_violence` against 38 of 259 for XD. The UBI per-frame annotation length matches the video frame count
+(30 fps) in the checked videos, so this is annotation quality in the source dataset, not a conversion bug: in
+several videos (e.g. `F_152`, `F_159`) no annotated segment shows aggression, and in `F_13` and `F_3` the actual
+fight sits between annotated segments.
+
+**Lead-in span audit.** Several reviewers described unannotated violence before the target onset in their
+evidence without recording an `additional_violence_spans` entry, which would have turned real fighting into
+"calm" lead-in. A regex over all pass evidence found 18 such events (`span_audit_tasks.json`); one Sonnet
+auditor checked each against all annotated segments and confirmed 6 uncovered spans on 0.5 s sheets
+(`span_audit_results.json`, sheets in `span_audit_sheets/`). The spans were folded into `reconciliations.json`:
+appended to the existing reconciliation where one existed (with a `span_audit` field), or as a new reconciliation
+whose verdict and onset are carried over unchanged from the blind passes. Follow-up prompts from round 3 on
+require reviewers to record such violence as a span. Two later follow-up events whose passes differed only in
+the boundaries of an episode already confirmed by a reconciler reuse that confirmed span (reconciler field
+"orchestrator carry-over").
+
+**Single-pass span exception.** `apply_corrections` requires two blind passes for any label change. One audited
+event (`ubi/F_160_0_0_1_0` event 14, Pass A `keep`) had a confirmed uncovered store brawl at 486-566 s but only
+one pass. Amended rule: a single-pass correction may add spans when its verdict equals the Pass A verdict and the
+reconciliation carries a `span_audit` record; the onset itself is unchanged.
