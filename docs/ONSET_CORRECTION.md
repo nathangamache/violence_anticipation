@@ -7,20 +7,22 @@ Status (updated 2026-10-18, America/Detroit): **LABELS v3 RELEASED (`REVIEW_COMP
 | Original eligible30 events | 551 (official 75, HIVAU 374, UBI 102) |
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
-| Newly eligible follow-ups | 54 over five cascade rounds, all with two blind passes |
-| Visual review | 513 events reviewed (339 two-pass, 174 one-pass); 198 reconciliations; 92 non-flagged events retained unreviewed |
-| Corrections (all 605 events) | keep 194 (102 visually verified), earlier 70, later 65, no_violence 125, unclear 151; 81 added violence spans |
-| Median shift / scan miss rate | -2.8 s / 15 of 40 non-flagged controls (0.375; 12 of the 40 unclear) |
-| Eligible30 events per fold 0-4 | before 130/105/101/109/106 (551), after 100/77/83/89/86 (435); lead-in 13.3 h to 11.5 h |
-| Videos with no violence left | 22 more become `unlabelled` (never clean negatives); clean negatives unchanged at 4,010 |
+| Newly eligible follow-ups | 64 over six cascade rounds, all with two blind passes |
+| Non-flagged extension | The 92 non-flagged events outside the control sample were also reviewed (owner decision 2026-10-18; `review_reason: nonflagged_extension`, Pass A all, Pass B on the 55 label-changing verdicts) |
+| Visual review | All 615 events reviewed (404 two-pass, 211 one-pass); 212 reconciliations; 0 retained without review |
+| Corrections (all 615 events) | keep 130, earlier 73, later 96, no_violence 149, unclear 167; 86 added violence spans |
+| Median shift / scan miss rate | +2.8 s / 15 of 40 non-flagged controls (0.375, binomial 95% CI about 0.23 to 0.54; the extension found 55 of 92 label-changing Pass A verdicts) |
+| Eligible30 events per fold 0-4 | before 130/105/101/109/106 (551), after 99/75/80/84/81 (419: XD 243, UCF 111, UBI 65); lead-in 13.3 h to 11.4 h |
+| Unclear onsets among v3 eligible30 | 162 of 419 keep the original onset because reviewers could not resolve it; report a sensitivity analysis without them |
+| Videos with no violence left | 31 more become `unlabelled` (79 total, never clean negatives); clean negatives unchanged at 4,010 |
 | Keep audit | 6 sampled keeps, 0 disagreements under the 2026-10-18 amendment |
 | Artifacts | `benchmark/labels_v3/onset_corrections.{json,csv}`, `benchmark/v3/{events.json,videos.csv}` |
 | Registration v2 / Phase A v3 | Not created / not run |
 | Fold-1 model evaluation | Not run; reserved for the lead |
 
-Known residual noise: the 92 non-flagged events that were not sampled keep their original labels; the control
-sample suggests roughly a third of them would change on review (15/40, binomial 95% CI about 0.23 to 0.54), and
-UBI-Fights source annotations are unreliable in a subset of videos (see the cascade section).
+Known residual noise: 162 eligible events keep an unresolved (`unclear`) original onset; UBI-Fights source
+annotations are unreliable in a subset of videos (see the cascade section); all follow-up, extension and
+reconciliation passes were Claude Sonnet 5.5 sessions, so the two passes are independent sessions of one model.
 
 Review protocol update (2026-10-17): the owner approved a time-budget change. Pass A reviews all 459 original
 visual-review cases and every newly eligible follow-up. Pass B reviews each A verdict that would change a label,
@@ -222,3 +224,16 @@ the boundaries of an episode already confirmed by a reconciler reuse that confir
 event (`ubi/F_160_0_0_1_0` event 14, Pass A `keep`) had a confirmed uncovered store brawl at 486-566 s but only
 one pass. Amended rule: a single-pass correction may add spans when its verdict equals the Pass A verdict and the
 reconciliation carries a `span_audit` record; the onset itself is unchanged.
+
+## Non-flagged extension (2026-10-18, owner decision)
+
+The first release left 92 non-flagged, unsampled events with their original labels, while the 40-event control
+sample implied that about a third of them were wrong. The owner chose to review all of them. They were appended to
+`followup_queue.json` with `review_reason: nonflagged_extension` (they are scanned, originally eligible events, so
+they are kept out of the newly-eligible checks, the seeded control sample and the keep audit, which therefore
+still estimate the scan miss rate and the keep agreement exactly as registered). Pass A reviewed all 92 (25 keep,
+29 later, 22 no_violence, 4 earlier, 12 unclear; 2 with added spans); Pass B reviewed the 55 label-changing ones
+and agreed on 44; 11 were reconciled. One agreed `later` pair whose mean onset fell 0.1 s past the annotated end
+(`ucf/Robbery107_x264`) was clamped to 54.0 s with a continuation span to the video end ("orchestrator clamp").
+The resulting corrections made 7 more events eligible; they and all later segments of their videos (10 events)
+received two blind passes and 2 reconciliations.

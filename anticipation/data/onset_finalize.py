@@ -156,6 +156,8 @@ def main():
     n_scanned = len(flags)
     followup_path = args.root / 'followup_queue.json'
     followups = json.loads(followup_path.read_text()) if followup_path.exists() else []
+    extension_keys = {(r['video_id'], r['event_index']) for r in followups if r['review_reason'] == 'nonflagged_extension'}
+    followups = [r for r in followups if r['review_reason'] != 'nonflagged_extension']
     if any(r.get('scanned') is not False or r['review_reason'] != 'newly_eligible_followup' for r in followups):
         raise ValueError('Follow-ups must explicitly distinguish direct visual review from Qwen scanning')
     reconciliation_path = args.root / 'reconciliations.json'
@@ -174,14 +176,19 @@ def main():
     followup_keys = {(r['video_id'], r['event_index']) for r in followups}
     if len(followup_keys) != len(followups) or followup_keys & actual:
         raise ValueError('Duplicate or originally eligible follow-up event')
-    expected_a = {(r['video_id'], r['event_index']) for r in queue} | followup_keys
+    queue_keys = {(r['video_id'], r['event_index']) for r in queue}
+    nonflagged = {(r['video_id'], r['event_index']) for r in flags if not (r['early_violence'] or r['no_violence_at_onset'])}
+    if not extension_keys <= nonflagged - queue_keys:
+        raise ValueError('Non-flagged extension must cover only unsampled non-flagged scanned events')
+    expected_a = queue_keys | followup_keys | extension_keys
     if set(review_a) | set(followup_a) != expected_a or set(review_a) & set(followup_a):
         raise ValueError('Pass A review coverage differs from the planned queue')
     review_a.update(followup_a)
     review_b.update(followup_b)
-    if set(followup_a) != followup_keys or set(followup_b) != followup_keys:
+    if (set(followup_a) != followup_keys | extension_keys or not followup_keys <= set(followup_b)
+            or not set(followup_b) <= followup_keys | extension_keys):
         raise ValueError('Every newly eligible follow-up requires both blind reviews')
-    selected_audit = audit_keys({k: review_a[k] for k in expected_a if k in review_a and k not in followup_keys})
+    selected_audit = audit_keys({k: review_a[k] for k in expected_a if k in review_a and k not in followup_keys | extension_keys})
     changing = {key for key, row in review_a.items()
                 if key in actual | followup_keys and
                 (row['verdict'] in {'earlier', 'later', 'no_violence'} or row.get('additional_violence_spans'))}
@@ -215,6 +222,7 @@ def main():
     reviewed_counts = Counter((r['verdict'], r['onset_source']) for r in corrections if r['visually_reviewed'])
     summary = {'n_events': len(corrections), 'n_scanned_events': n_scanned,
                'n_followup_events': len(followups),
+               'n_nonflagged_extension': len(extension_keys),
                'n_retained_without_visual_review': sum(not r['visually_reviewed'] for r in corrections),
                'n_visually_reviewed': len(review_a),
                'n_one_pass': sum(len(r['passes']) == 1 for r in corrections),

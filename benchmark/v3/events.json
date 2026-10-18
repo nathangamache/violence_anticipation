@@ -74,7 +74,7 @@
   },
   "labels_version": 3,
   "onset_corrections": {
-   "sha256": "3a6f21a655d01e7aea93149d5fa974451c71bb4af213eb305e9048698b199d68",
+   "sha256": "93395b245c0b914e395ef51718260a3ab14d093b60ba5d489631a9f224aeded6",
    "path": "benchmark/labels_v3/onset_corrections.json",
    "version": 3
   }
@@ -837,16 +837,16 @@
      16.4
     ],
     [
+     25.5,
+     31.2
+    ],
+    [
      31.2333,
      31.9667
     ],
     [
-     40.9,
+     32.0,
      47.9667
-    ],
-    [
-     112.0,
-     112.9333
     ]
    ],
    "onset_source": "ubi",
@@ -872,35 +872,35 @@
     },
     {
      "index": 1,
-     "onset": 31.2333,
-     "end": 31.9667,
+     "onset": 25.5,
+     "end": 31.2,
      "clear_start": 26.4,
-     "leadin": 4.833300000000001,
+     "leadin": -0.8999999999999986,
      "first_tick": 27.0,
-     "max_lead": 4.2333,
+     "max_lead": -1.5,
      "eligible30": false,
      "eligible60": false
     },
     {
      "index": 2,
-     "onset": 40.9,
-     "end": 47.9667,
-     "clear_start": 41.9667,
-     "leadin": -1.0667000000000044,
+     "onset": 31.2333,
+     "end": 31.9667,
+     "clear_start": 41.2,
+     "leadin": -9.966700000000003,
      "first_tick": 42.0,
-     "max_lead": -1.1000000000000014,
+     "max_lead": -10.7667,
      "eligible30": false,
      "eligible60": false
     },
     {
      "index": 3,
-     "onset": 112.0,
-     "end": 112.9333,
-     "clear_start": 57.9667,
-     "leadin": 54.0333,
-     "first_tick": 58.0,
-     "max_lead": 54.0,
-     "eligible30": true,
+     "onset": 32.0,
+     "end": 47.9667,
+     "clear_start": 41.9667,
+     "leadin": -9.966700000000003,
+     "first_tick": 42.0,
+     "max_lead": -10.0,
+     "eligible30": false,
      "eligible60": false
     }
    ]
@@ -2448,49 +2448,17 @@
    ]
   },
   "ubi/F_12_1_0_0_0": {
-   "segments": [
-    [
-     48.0,
-     48.0667
-    ],
-    [
-     119.2,
-     127.9667
-    ]
-   ],
+   "segments": [],
    "onset_source": "ubi",
    "classes": [
     "fighting"
    ],
    "category": "fight",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 144.0,
-   "events": [
-    {
-     "index": 0,
-     "onset": 48.0,
-     "end": 48.0667,
-     "clear_start": 0.0,
-     "leadin": 48.0,
-     "first_tick": 2.0,
-     "max_lead": 46.0,
-     "eligible30": true,
-     "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 119.2,
-     "end": 127.9667,
-     "clear_start": 58.0667,
-     "leadin": 61.133300000000006,
-     "first_tick": 59.0,
-     "max_lead": 60.2,
-     "eligible30": true,
-     "eligible60": true
-    }
-   ]
+   "events": []
   },
   "ubi/F_130_1_2_0_0": {
    "segments": [
@@ -4205,16 +4173,8 @@
   "ubi/F_154_1_0_1_0": {
    "segments": [
     [
-     32.0,
-     34.1333
-    ],
-    [
      43.8,
      49.0333
-    ],
-    [
-     66.1333,
-     79.9667
     ]
    ],
    "onset_source": "ubi",
@@ -4229,35 +4189,13 @@
    "events": [
     {
      "index": 0,
-     "onset": 32.0,
-     "end": 34.1333,
-     "clear_start": 0.0,
-     "leadin": 32.0,
-     "first_tick": 2.0,
-     "max_lead": 30.0,
-     "eligible30": true,
-     "eligible60": false
-    },
-    {
-     "index": 1,
      "onset": 43.8,
      "end": 49.0333,
-     "clear_start": 44.1333,
-     "leadin": -0.33330000000000126,
-     "first_tick": 45.0,
-     "max_lead": -1.2000000000000028,
-     "eligible30": false,
-     "eligible60": false
-    },
-    {
-     "index": 2,
-     "onset": 66.1333,
-     "end": 79.9667,
-     "clear_start": 59.0333,
-     "leadin": 7.1000000000000085,
-     "first_tick": 60.0,
-     "max_lead": 6.1333000000000055,
-     "eligible30": false,
+     "clear_start": 0.0,
+     "leadin": 43.8,
+     "first_tick": 2.0,
+     "max_lead": 41.8,
+     "eligible30": true,
      "eligible60": false
     }
    ]
@@ -6378,34 +6316,17 @@
    ]
   },
   "ubi/F_17_1_0_0_1": {
-   "segments": [
-    [
-     113.5333,
-     133.0333
-    ]
-   ],
+   "segments": [],
    "onset_source": "ubi",
    "classes": [
     "fighting"
    ],
    "category": "fight",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 176.0,
-   "events": [
-    {
-     "index": 0,
-     "onset": 113.5333,
-     "end": 133.0333,
-     "clear_start": 0.0,
-     "leadin": 113.5333,
-     "first_tick": 2.0,
-     "max_lead": 111.5333,
-     "eligible30": true,
-     "eligible60": true
-    }
-   ]
+   "events": []
   },
   "ubi/F_180_0_0_1_0": {
    "segments": [
@@ -13839,7 +13760,7 @@
      15.9667
     ],
     [
-     64.0,
+     73.5,
      76.7667
     ],
     [
@@ -13885,12 +13806,12 @@
     },
     {
      "index": 2,
-     "onset": 64.0,
+     "onset": 73.5,
      "end": 76.7667,
      "clear_start": 25.9667,
-     "leadin": 38.0333,
+     "leadin": 47.5333,
      "first_tick": 26.0,
-     "max_lead": 38.0,
+     "max_lead": 47.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -24817,34 +24738,17 @@
    ]
   },
   "ucf/Abuse014_x264": {
-   "segments": [
-    [
-     35.133,
-     48.733
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "abuse"
    ],
    "category": "Abuse",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 86.3333,
-   "events": [
-    {
-     "index": 0,
-     "onset": 35.133,
-     "end": 48.733,
-     "clear_start": 0.0,
-     "leadin": 35.133,
-     "first_tick": 2.0,
-     "max_lead": 33.133,
-     "eligible30": true,
-     "eligible60": false
-    }
-   ]
+   "events": []
   },
   "ucf/Abuse015_x264": {
    "segments": [
@@ -28073,7 +27977,7 @@
   "ucf/Arrest043_x264": {
    "segments": [
     [
-     53.4,
+     69.0,
      133.4
     ]
    ],
@@ -28089,14 +27993,14 @@
    "events": [
     {
      "index": 0,
-     "onset": 53.4,
+     "onset": 69.0,
      "end": 133.4,
      "clear_start": 0.0,
-     "leadin": 53.4,
+     "leadin": 69.0,
      "first_tick": 2.0,
-     "max_lead": 51.4,
+     "max_lead": 67.0,
      "eligible30": true,
-     "eligible60": false
+     "eligible60": true
     }
    ]
   },
@@ -28358,10 +28262,6 @@
   "ucf/Arrest050_x264": {
    "segments": [
     [
-     41.275,
-     71.204
-    ],
-    [
      90.357,
      127.961
     ],
@@ -28382,28 +28282,17 @@
    "events": [
     {
      "index": 0,
-     "onset": 41.275,
-     "end": 71.204,
+     "onset": 90.357,
+     "end": 127.961,
      "clear_start": 0.0,
-     "leadin": 41.275,
+     "leadin": 90.357,
      "first_tick": 2.0,
-     "max_lead": 39.275,
+     "max_lead": 88.357,
      "eligible30": true,
-     "eligible60": false
+     "eligible60": true
     },
     {
      "index": 1,
-     "onset": 90.357,
-     "end": 127.961,
-     "clear_start": 81.204,
-     "leadin": 9.153000000000006,
-     "first_tick": 82.0,
-     "max_lead": 8.357,
-     "eligible30": false,
-     "eligible60": false
-    },
-    {
-     "index": 2,
      "onset": 165.432,
      "end": 218.051,
      "clear_start": 137.961,
@@ -36468,34 +36357,17 @@
    ]
   },
   "ucf/Fighting048_x264": {
-   "segments": [
-    [
-     195.433,
-     224.433
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "fighting"
    ],
    "category": "Fighting",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 229.6,
-   "events": [
-    {
-     "index": 0,
-     "onset": 195.433,
-     "end": 224.433,
-     "clear_start": 0.0,
-     "leadin": 195.433,
-     "first_tick": 2.0,
-     "max_lead": 193.433,
-     "eligible30": true,
-     "eligible60": true
-    }
-   ]
+   "events": []
   },
   "ucf/Fighting049_x264": {
    "segments": [
@@ -36650,7 +36522,7 @@
   "ucf/Fighting051_x264": {
    "segments": [
     [
-     38.333,
+     42.5,
      66.167
     ],
     [
@@ -36658,7 +36530,11 @@
      103.667
     ],
     [
-     147.233,
+     103.7,
+     108.0
+    ],
+    [
+     150.2,
      195.533
     ]
    ],
@@ -36674,12 +36550,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 38.333,
+     "onset": 42.5,
      "end": 66.167,
      "clear_start": 0.0,
-     "leadin": 38.333,
+     "leadin": 42.5,
      "first_tick": 2.0,
-     "max_lead": 36.333,
+     "max_lead": 40.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -36696,12 +36572,23 @@
     },
     {
      "index": 2,
-     "onset": 147.233,
-     "end": 195.533,
+     "onset": 103.7,
+     "end": 108.0,
      "clear_start": 113.667,
-     "leadin": 33.566,
+     "leadin": -9.966999999999999,
      "first_tick": 114.0,
-     "max_lead": 33.233000000000004,
+     "max_lead": -10.299999999999997,
+     "eligible30": false,
+     "eligible60": false
+    },
+    {
+     "index": 3,
+     "onset": 150.2,
+     "end": 195.533,
+     "clear_start": 118.0,
+     "leadin": 32.19999999999999,
+     "first_tick": 118.0,
+     "max_lead": 32.19999999999999,
      "eligible30": true,
      "eligible60": false
     }
@@ -51172,34 +51059,17 @@
    ]
   },
   "ucf/Robbery010_x264": {
-   "segments": [
-    [
-     41.8,
-     66.4
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "robbery"
    ],
    "category": "Robbery",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 102.0333,
-   "events": [
-    {
-     "index": 0,
-     "onset": 41.8,
-     "end": 66.4,
-     "clear_start": 0.0,
-     "leadin": 41.8,
-     "first_tick": 2.0,
-     "max_lead": 39.8,
-     "eligible30": true,
-     "eligible60": false
-    }
-   ]
+   "events": []
   },
   "ucf/Robbery011_x264": {
    "segments": [
@@ -51309,7 +51179,7 @@
   "ucf/Robbery014_x264": {
    "segments": [
     [
-     122.633,
+     129.0,
      133.067
     ],
     [
@@ -51329,12 +51199,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 122.633,
+     "onset": 129.0,
      "end": 133.067,
      "clear_start": 0.0,
-     "leadin": 122.633,
+     "leadin": 129.0,
      "first_tick": 2.0,
-     "max_lead": 120.633,
+     "max_lead": 127.0,
      "eligible30": true,
      "eligible60": true
     },
@@ -52221,10 +52091,6 @@
     [
      1.1,
      36.267
-    ],
-    [
-     108.733,
-     148.133
     ]
    ],
    "onset_source": "hivau",
@@ -52247,17 +52113,6 @@
      "max_lead": -0.8999999999999999,
      "eligible30": false,
      "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 108.733,
-     "end": 148.133,
-     "clear_start": 46.267,
-     "leadin": 62.466,
-     "first_tick": 47.0,
-     "max_lead": 61.733000000000004,
-     "eligible30": true,
-     "eligible60": true
     }
    ]
   },
@@ -52268,7 +52123,7 @@
      58.933
     ],
     [
-     170.7,
+     183.5,
      207.633
     ]
    ],
@@ -52295,12 +52150,12 @@
     },
     {
      "index": 1,
-     "onset": 170.7,
+     "onset": 183.5,
      "end": 207.633,
      "clear_start": 68.93299999999999,
-     "leadin": 101.767,
+     "leadin": 114.56700000000001,
      "first_tick": 69.0,
-     "max_lead": 101.69999999999999,
+     "max_lead": 114.5,
      "eligible30": true,
      "eligible60": true
     }
@@ -53460,10 +53315,6 @@
     [
      6.167,
      29.767
-    ],
-    [
-     88.0,
-     127.667
     ]
    ],
    "onset_source": "hivau",
@@ -53485,17 +53336,6 @@
      "first_tick": 2.0,
      "max_lead": 4.167,
      "eligible30": false,
-     "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 88.0,
-     "end": 127.667,
-     "clear_start": 39.766999999999996,
-     "leadin": 48.233000000000004,
-     "first_tick": 40.0,
-     "max_lead": 48.0,
-     "eligible30": true,
      "eligible60": false
     }
    ]
@@ -54826,49 +54666,17 @@
    ]
   },
   "ucf/Robbery101_x264": {
-   "segments": [
-    [
-     34.8,
-     57.4
-    ],
-    [
-     66.8,
-     81.633
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "robbery"
    ],
    "category": "Robbery",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 111.4333,
-   "events": [
-    {
-     "index": 0,
-     "onset": 34.8,
-     "end": 57.4,
-     "clear_start": 0.0,
-     "leadin": 34.8,
-     "first_tick": 2.0,
-     "max_lead": 32.8,
-     "eligible30": true,
-     "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 66.8,
-     "end": 81.633,
-     "clear_start": 67.4,
-     "leadin": -0.6000000000000085,
-     "first_tick": 68.0,
-     "max_lead": -1.2000000000000028,
-     "eligible30": false,
-     "eligible60": false
-    }
-   ]
+   "events": []
   },
   "ucf/Robbery102_x264": {
    "segments": [
@@ -55065,8 +54873,8 @@
   "ucf/Robbery107_x264": {
    "segments": [
     [
-     49.133,
-     54.2
+     54.0,
+     56.1
     ]
    ],
    "onset_source": "hivau",
@@ -55081,12 +54889,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 49.133,
-     "end": 54.2,
+     "onset": 54.0,
+     "end": 56.1,
      "clear_start": 0.0,
-     "leadin": 49.133,
+     "leadin": 54.0,
      "first_tick": 2.0,
-     "max_lead": 47.133,
+     "max_lead": 52.0,
      "eligible30": true,
      "eligible60": false
     }
@@ -57034,7 +56842,7 @@
   "ucf/Shooting009_x264": {
    "segments": [
     [
-     104.433,
+     110.0,
      131.433
     ]
    ],
@@ -57050,12 +56858,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 104.433,
+     "onset": 110.0,
      "end": 131.433,
      "clear_start": 0.0,
-     "leadin": 104.433,
+     "leadin": 110.0,
      "first_tick": 2.0,
-     "max_lead": 102.433,
+     "max_lead": 108.0,
      "eligible30": true,
      "eligible60": true
     }
@@ -88085,7 +87893,7 @@
      15.125
     ],
     [
-     59.833,
+     76.2,
      84.458
     ]
    ],
@@ -88113,12 +87921,12 @@
     },
     {
      "index": 1,
-     "onset": 59.833,
+     "onset": 76.2,
      "end": 84.458,
      "clear_start": 25.125,
-     "leadin": 34.708,
+     "leadin": 51.075,
      "first_tick": 26.0,
-     "max_lead": 33.833,
+     "max_lead": 50.2,
      "eligible30": true,
      "eligible60": false
     }
@@ -88358,7 +88166,7 @@
   "xd/Kingsman.The.Golden.Circle.2017__#01-29-11_01-31-16_label_B2-0-0": {
    "segments": [
     [
-     39.292,
+     44.0,
      61.917
     ],
     [
@@ -88382,12 +88190,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 39.292,
+     "onset": 44.0,
      "end": 61.917,
      "clear_start": 0.0,
-     "leadin": 39.292,
+     "leadin": 44.0,
      "first_tick": 2.0,
-     "max_lead": 37.292,
+     "max_lead": 42.0,
      "eligible30": true,
      "eligible60": false
     },
@@ -88960,7 +88768,7 @@
   "xd/Kingsman.The.Secret.Service.2014__#01-43-40_01-44-50_label_B2-G-0": {
    "segments": [
     [
-     58.0833,
+     55.2,
      59.9167
     ],
     [
@@ -89001,12 +88809,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 58.0833,
+     "onset": 55.2,
      "end": 59.9167,
      "clear_start": 14.875,
-     "leadin": 43.2083,
+     "leadin": 40.325,
      "first_tick": 15.0,
-     "max_lead": 43.0833,
+     "max_lead": 40.2,
      "eligible30": true,
      "eligible60": false
     },
@@ -89355,7 +89163,7 @@
   "xd/Lord.of.War__#00-06-20_00-07-20_label_B2-0-0": {
    "segments": [
     [
-     43.75,
+     53.5,
      60.0417
     ]
    ],
@@ -89371,12 +89179,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 43.75,
+     "onset": 53.5,
      "end": 60.0417,
      "clear_start": 0.0,
-     "leadin": 43.75,
+     "leadin": 53.5,
      "first_tick": 2.0,
-     "max_lead": 41.75,
+     "max_lead": 51.5,
      "eligible30": true,
      "eligible60": false
     }
@@ -90559,7 +90367,7 @@
      37.667
     ],
     [
-     113.375,
+     128.0,
      169.292
     ]
    ],
@@ -90587,12 +90395,12 @@
     },
     {
      "index": 1,
-     "onset": 113.375,
+     "onset": 128.0,
      "end": 169.292,
      "clear_start": 47.667,
-     "leadin": 65.708,
+     "leadin": 80.333,
      "first_tick": 48.0,
-     "max_lead": 65.375,
+     "max_lead": 80.0,
      "eligible30": true,
      "eligible60": true
     }
@@ -97694,11 +97502,11 @@
   "xd/Quantum.Of.Solace.2008__#00-00-44_00-03-45_label_B2-B6-0": {
    "segments": [
     [
-     99.375,
-     111.542
+     27.0,
+     39.5
     ],
     [
-     117.75,
+     121.5,
      149.167
     ],
     [
@@ -97719,25 +97527,25 @@
    "events": [
     {
      "index": 0,
-     "onset": 99.375,
-     "end": 111.542,
+     "onset": 27.0,
+     "end": 39.5,
      "clear_start": 0.0,
-     "leadin": 99.375,
+     "leadin": 27.0,
      "first_tick": 2.0,
-     "max_lead": 97.375,
-     "eligible30": true,
-     "eligible60": true
+     "max_lead": 25.0,
+     "eligible30": false,
+     "eligible60": false
     },
     {
      "index": 1,
-     "onset": 117.75,
+     "onset": 121.5,
      "end": 149.167,
-     "clear_start": 121.542,
-     "leadin": -3.7920000000000016,
-     "first_tick": 122.0,
-     "max_lead": -4.25,
-     "eligible30": false,
-     "eligible60": false
+     "clear_start": 49.5,
+     "leadin": 72.0,
+     "first_tick": 50.0,
+     "max_lead": 71.5,
+     "eligible30": true,
+     "eligible60": true
     },
     {
      "index": 2,
@@ -110061,15 +109869,16 @@
    "duration_sec": 80.0417,
    "mask_spans": [
     [
-     68.875,
+     74.0,
      80.042
     ]
-   ]
+   ],
+   "events": []
   },
   "xd/Taken.3.2014__#01-21-19_01-24-00_label_B2-0-0": {
    "segments": [
     [
-     119.875,
+     125.0,
      160.958
     ]
    ],
@@ -110085,12 +109894,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 119.875,
+     "onset": 125.0,
      "end": 160.958,
      "clear_start": 0.0,
-     "leadin": 119.875,
+     "leadin": 125.0,
      "first_tick": 2.0,
-     "max_lead": 117.875,
+     "max_lead": 123.0,
      "eligible30": true,
      "eligible60": true
     }
@@ -111954,15 +111763,16 @@
    "duration_sec": 381.0417,
    "mask_spans": [
     [
-     370.875,
+     375.5,
      381.042
     ]
-   ]
+   ],
+   "events": []
   },
   "xd/The.Bourne.Identity.2002__#0-42-20_0-46-42_label_B1-B2-0": {
    "segments": [
     [
-     107.875,
+     112.5,
      203.375
     ]
    ],
@@ -111979,12 +111789,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 107.875,
+     "onset": 112.5,
      "end": 203.375,
      "clear_start": 0.0,
-     "leadin": 107.875,
+     "leadin": 112.5,
      "first_tick": 2.0,
-     "max_lead": 105.875,
+     "max_lead": 110.5,
      "eligible30": true,
      "eligible60": true
     }
@@ -113262,7 +113072,7 @@
   "xd/The.Bourne.Supremacy.2004__#0-40-28_0-43-14_label_B1-0-0": {
    "segments": [
     [
-     44.542,
+     41.5,
      49.083
     ],
     [
@@ -113282,12 +113092,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 44.542,
+     "onset": 41.5,
      "end": 49.083,
      "clear_start": 0.0,
-     "leadin": 44.542,
+     "leadin": 41.5,
      "first_tick": 2.0,
-     "max_lead": 42.542,
+     "max_lead": 39.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -113907,7 +113717,7 @@
   "xd/The.Bourne.Ultimatum.2007__#01-06-36_01-09-15_label_B1-B2-0": {
    "segments": [
     [
-     35.708,
+     40.0,
      132.208
     ]
    ],
@@ -113924,12 +113734,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 35.708,
+     "onset": 40.0,
      "end": 132.208,
      "clear_start": 0.0,
-     "leadin": 35.708,
+     "leadin": 40.0,
      "first_tick": 2.0,
-     "max_lead": 33.708,
+     "max_lead": 38.0,
      "eligible30": true,
      "eligible60": false
     }
@@ -117575,49 +117385,17 @@
    "duration_sec": 140.0417
   },
   "xd/Tropa.de.Elite.2.2010__#00-33-25_00-35-30_label_B1-0-0": {
-   "segments": [
-    [
-     33.792,
-     67.417
-    ],
-    [
-     74.458,
-     83.792
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "fighting"
    ],
    "category": "B1",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 125.0,
-   "events": [
-    {
-     "index": 0,
-     "onset": 33.792,
-     "end": 67.417,
-     "clear_start": 0.0,
-     "leadin": 33.792,
-     "first_tick": 2.0,
-     "max_lead": 31.792,
-     "eligible30": true,
-     "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 74.458,
-     "end": 83.792,
-     "clear_start": 77.417,
-     "leadin": -2.959000000000003,
-     "first_tick": 78.0,
-     "max_lead": -3.5420000000000016,
-     "eligible30": false,
-     "eligible60": false
-    }
-   ]
+   "events": []
   },
   "xd/Tropa.de.Elite.2.2010__#00-35-46_00-36-40_label_A": {
    "segments": [],
@@ -117715,7 +117493,7 @@
   "xd/Tropa.de.Elite.2.2010__#00-39-50_00-40-31_label_B2-0-0": {
    "segments": [
     [
-     34.875,
+     32.5,
      39.792
     ]
    ],
@@ -117731,12 +117509,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 34.875,
+     "onset": 32.5,
      "end": 39.792,
      "clear_start": 0.0,
-     "leadin": 34.875,
+     "leadin": 32.5,
      "first_tick": 2.0,
-     "max_lead": 32.875,
+     "max_lead": 30.5,
      "eligible30": true,
      "eligible60": false
     }
@@ -122342,10 +122120,6 @@
     [
      25.208,
      45.917
-    ],
-    [
-     99.667,
-     115.458
     ]
    ],
    "onset_source": "hivau",
@@ -122379,17 +122153,6 @@
      "max_lead": -2.7920000000000016,
      "eligible30": false,
      "eligible60": false
-    },
-    {
-     "index": 2,
-     "onset": 99.667,
-     "end": 115.458,
-     "clear_start": 55.917,
-     "leadin": 43.75,
-     "first_tick": 56.0,
-     "max_lead": 43.667,
-     "eligible30": true,
-     "eligible60": false
     }
    ]
   },
@@ -122408,7 +122171,7 @@
   "xd/v=0W8LohxH9nI__#1_label_B1-0-0": {
    "segments": [
     [
-     38.875,
+     43.0,
      52.0833
     ]
    ],
@@ -122430,12 +122193,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 38.875,
+     "onset": 43.0,
      "end": 52.0833,
      "clear_start": 0.0,
-     "leadin": 38.875,
+     "leadin": 43.0,
      "first_tick": 2.0,
-     "max_lead": 36.875,
+     "max_lead": 41.0,
      "eligible30": true,
      "eligible60": false
     }
@@ -127838,7 +127601,7 @@
      1321.417
     ],
     [
-     1843.417,
+     2425.0,
      2876.292
     ]
    ],
@@ -127876,12 +127639,12 @@
     },
     {
      "index": 2,
-     "onset": 1843.417,
+     "onset": 2425.0,
      "end": 2876.292,
      "clear_start": 1331.417,
-     "leadin": 512.0,
+     "leadin": 1093.583,
      "first_tick": 1332.0,
-     "max_lead": 511.4169999999999,
+     "max_lead": 1093.0,
      "eligible30": true,
      "eligible60": true
     }
@@ -135296,48 +135059,22 @@
    "duration_sec": 420.875
   },
   "xd/v=CLFYvG6MsZU__#00-00-00_00-02-16_label_B2-0-0": {
-   "segments": [
-    [
-     84.417,
-     95.292
-    ],
-    [
-     114.0,
-     133.792
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "shooting"
    ],
    "category": "B2",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": false,
    "duration_sec": 136.0833,
-   "events": [
-    {
-     "index": 0,
-     "onset": 84.417,
-     "end": 95.292,
-     "clear_start": 0.0,
-     "leadin": 84.417,
-     "first_tick": 2.0,
-     "max_lead": 82.417,
-     "eligible30": true,
-     "eligible60": true
-    },
-    {
-     "index": 1,
-     "onset": 114.0,
-     "end": 133.792,
-     "clear_start": 105.292,
-     "leadin": 8.707999999999998,
-     "first_tick": 106.0,
-     "max_lead": 8.0,
-     "eligible30": false,
-     "eligible60": false
-    }
+   "events": [],
+   "mask_spans": [
+    [
+     41.0,
+     136.083
+    ]
    ]
   },
   "xd/v=CLFYvG6MsZU__#00-02-16_00-05-06_label_B2-0-0": {
@@ -135364,12 +135101,6 @@
    "is_violent_video": true,
    "interpersonal": false,
    "duration_sec": 170.125,
-   "mask_spans": [
-    [
-     0.0,
-     7.792
-    ]
-   ],
    "hivau_segments": [
     [
      25.0,
@@ -135389,10 +135120,10 @@
      "index": 0,
      "onset": 25.0,
      "end": 44.1667,
-     "clear_start": 7.792,
-     "leadin": 17.208,
-     "first_tick": 8.0,
-     "max_lead": 17.0,
+     "clear_start": 0.0,
+     "leadin": 25.0,
+     "first_tick": 2.0,
+     "max_lead": 23.0,
      "eligible30": false,
      "eligible60": false
     },
@@ -135401,9 +135132,9 @@
      "onset": 65.7083,
      "end": 84.5833,
      "clear_start": 54.1667,
-     "leadin": 11.5417,
+     "leadin": 11.541599999999995,
      "first_tick": 55.0,
-     "max_lead": 10.7083,
+     "max_lead": 10.708299999999994,
      "eligible30": false,
      "eligible60": false
     },
@@ -135414,7 +135145,7 @@
      "clear_start": 94.5833,
      "leadin": 15.25,
      "first_tick": 95.0,
-     "max_lead": 14.8333,
+     "max_lead": 14.833299999999994,
      "eligible30": false,
      "eligible60": false
     }
@@ -137061,10 +136792,6 @@
     [
      0.0,
      7.0833
-    ],
-    [
-     618.5833,
-     796.5
     ]
    ],
    "onset_source": "official",
@@ -137078,7 +136805,7 @@
    "duration_sec": 816.0833,
    "soft_mask_spans": [
     [
-     806.5,
+     697.208,
      816.083
     ]
    ],
@@ -137103,17 +136830,6 @@
      "max_lead": -2.0,
      "eligible30": false,
      "eligible60": false
-    },
-    {
-     "index": 1,
-     "onset": 618.5833,
-     "end": 796.5,
-     "clear_start": 17.0833,
-     "leadin": 601.5,
-     "first_tick": 18.0,
-     "max_lead": 600.5833,
-     "eligible30": true,
-     "eligible60": true
     }
    ]
   },
@@ -146240,7 +145956,7 @@
   "xd/v=NYnAnri6KTs__#1_label_B4-0-0": {
    "segments": [
     [
-     38.042,
+     50.5,
      66.958
     ],
     [
@@ -146260,12 +145976,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 38.042,
+     "onset": 50.5,
      "end": 66.958,
      "clear_start": 0.0,
-     "leadin": 38.042,
+     "leadin": 50.5,
      "first_tick": 2.0,
-     "max_lead": 36.042,
+     "max_lead": 48.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -150880,7 +150596,7 @@
   "xd/v=Tlx-XRyAgnM__#00-00-00_00-10-06_label_B4-0-0": {
    "segments": [
     [
-     348.958,
+     366.0,
      447.292
     ],
     [
@@ -150906,12 +150622,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 348.958,
+     "onset": 366.0,
      "end": 447.292,
      "clear_start": 0.0,
-     "leadin": 348.958,
+     "leadin": 366.0,
      "first_tick": 2.0,
-     "max_lead": 346.958,
+     "max_lead": 364.0,
      "eligible30": true,
      "eligible60": true
     },
@@ -152738,7 +152454,7 @@
      21.25
     ],
     [
-     142.875,
+     145.0,
      157.333
     ]
    ],
@@ -152765,12 +152481,12 @@
     },
     {
      "index": 1,
-     "onset": 142.875,
+     "onset": 145.0,
      "end": 157.333,
      "clear_start": 31.25,
-     "leadin": 111.625,
+     "leadin": 113.75,
      "first_tick": 32.0,
-     "max_lead": 110.875,
+     "max_lead": 113.0,
      "eligible30": true,
      "eligible60": true
     }
@@ -156149,7 +155865,7 @@
      215.625
     ],
     [
-     271.042,
+     274.5,
      297.083
     ]
    ],
@@ -156198,12 +155914,12 @@
     },
     {
      "index": 3,
-     "onset": 271.042,
+     "onset": 274.5,
      "end": 297.083,
      "clear_start": 225.625,
-     "leadin": 45.41699999999997,
+     "leadin": 48.875,
      "first_tick": 226.0,
-     "max_lead": 45.04199999999997,
+     "max_lead": 48.5,
      "eligible30": true,
      "eligible60": false
     }
@@ -156216,7 +155932,7 @@
      130.5
     ],
     [
-     171.125,
+     180.0,
      189.125
     ]
    ],
@@ -156243,12 +155959,12 @@
     },
     {
      "index": 1,
-     "onset": 171.125,
+     "onset": 180.0,
      "end": 189.125,
      "clear_start": 140.5,
-     "leadin": 30.625,
+     "leadin": 39.5,
      "first_tick": 141.0,
-     "max_lead": 30.125,
+     "max_lead": 39.0,
      "eligible30": true,
      "eligible60": false
     }
@@ -158307,10 +158023,6 @@
     [
      104.208,
      124.417
-    ],
-    [
-     192.667,
-     219.083
     ]
    ],
    "onset_source": "hivau",
@@ -158360,17 +158072,6 @@
      "first_tick": 108.0,
      "max_lead": -3.7920000000000016,
      "eligible30": false,
-     "eligible60": false
-    },
-    {
-     "index": 3,
-     "onset": 192.667,
-     "end": 219.083,
-     "clear_start": 134.417,
-     "leadin": 58.25,
-     "first_tick": 135.0,
-     "max_lead": 57.667,
-     "eligible30": true,
      "eligible60": false
     }
    ]
@@ -161010,7 +160711,7 @@
   "xd/v=eXjd7GkHKfU__#00-00-00_00-01-58_label_B4-0-0": {
    "segments": [
     [
-     54.042,
+     62.0,
      71.542
     ],
     [
@@ -161036,14 +160737,14 @@
    "events": [
     {
      "index": 0,
-     "onset": 54.042,
+     "onset": 62.0,
      "end": 71.542,
      "clear_start": 0.0,
-     "leadin": 54.042,
+     "leadin": 62.0,
      "first_tick": 2.0,
-     "max_lead": 52.042,
+     "max_lead": 60.0,
      "eligible30": true,
-     "eligible60": false
+     "eligible60": true
     },
     {
      "index": 1,
@@ -165551,18 +165252,13 @@
    ]
   },
   "xd/v=iegHZ_UWWsA__#00-08-58_00-14-05_label_B4-0-0": {
-   "segments": [
-    [
-     50.0,
-     269.542
-    ]
-   ],
+   "segments": [],
    "onset_source": "hivau",
    "classes": [
     "riot"
    ],
    "category": "B4",
-   "role": "violent",
+   "role": "unlabelled",
    "is_violent_video": true,
    "interpersonal": true,
    "duration_sec": 307.125,
@@ -165570,27 +165266,13 @@
     [
      0.0,
      10.083
-    ]
-   ],
-   "soft_mask_spans": [
+    ],
     [
-     279.542,
+     233.167,
      307.125
     ]
    ],
-   "events": [
-    {
-     "index": 0,
-     "onset": 50.0,
-     "end": 269.542,
-     "clear_start": 10.083,
-     "leadin": 39.917,
-     "first_tick": 11.0,
-     "max_lead": 39.0,
-     "eligible30": true,
-     "eligible60": false
-    }
-   ]
+   "events": []
   },
   "xd/v=iegHZ_UWWsA__#00-14-05_00-20-33_label_B4-0-0": {
    "segments": [
@@ -167328,7 +167010,7 @@
   "xd/v=k_cvJa1kNaM__#1_label_B4-0-0": {
    "segments": [
     [
-     37.5,
+     48.5,
      187.7083
     ],
     [
@@ -167358,12 +167040,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 37.5,
+     "onset": 48.5,
      "end": 187.7083,
      "clear_start": 0.0,
-     "leadin": 37.5,
+     "leadin": 48.5,
      "first_tick": 2.0,
-     "max_lead": 35.5,
+     "max_lead": 46.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -168325,7 +168007,7 @@
      815.167
     ],
     [
-     960.583,
+     1068.5,
      1136.625
     ]
    ],
@@ -168374,12 +168056,12 @@
     },
     {
      "index": 3,
-     "onset": 960.583,
+     "onset": 1068.5,
      "end": 1136.625,
      "clear_start": 825.167,
-     "leadin": 135.41599999999994,
+     "leadin": 243.33299999999997,
      "first_tick": 826.0,
-     "max_lead": 134.58299999999997,
+     "max_lead": 242.5,
      "eligible30": true,
      "eligible60": true
     }
@@ -171367,7 +171049,7 @@
      265.0
     ],
     [
-     310.8333,
+     330.0,
      483.3333
     ],
     [
@@ -171427,12 +171109,12 @@
     },
     {
      "index": 2,
-     "onset": 310.8333,
+     "onset": 330.0,
      "end": 483.3333,
      "clear_start": 275.0,
-     "leadin": 35.83330000000001,
+     "leadin": 55.0,
      "first_tick": 275.0,
-     "max_lead": 35.83330000000001,
+     "max_lead": 55.0,
      "eligible30": true,
      "eligible60": false
     },
@@ -171456,7 +171138,7 @@
      316.833
     ],
     [
-     362.458,
+     370.0,
      492.25
     ],
     [
@@ -171503,12 +171185,12 @@
     },
     {
      "index": 1,
-     "onset": 362.458,
+     "onset": 370.0,
      "end": 492.25,
      "clear_start": 326.833,
-     "leadin": 35.625,
+     "leadin": 43.16699999999997,
      "first_tick": 327.0,
-     "max_lead": 35.45800000000003,
+     "max_lead": 43.0,
      "eligible30": true,
      "eligible60": false
     },
@@ -171640,7 +171322,7 @@
      150.542
     ],
     [
-     387.333,
+     400.5,
      569.083
     ]
    ],
@@ -171679,12 +171361,12 @@
     },
     {
      "index": 1,
-     "onset": 387.333,
+     "onset": 400.5,
      "end": 569.083,
      "clear_start": 160.542,
-     "leadin": 226.79100000000003,
+     "leadin": 239.958,
      "first_tick": 161.0,
-     "max_lead": 226.33300000000003,
+     "max_lead": 239.5,
      "eligible30": true,
      "eligible60": true
     }
@@ -174787,7 +174469,7 @@
   "xd/v=rZ1TjA-2vXw__#1_label_B1-0-0": {
    "segments": [
     [
-     54.5,
+     59.5,
      93.417
     ],
     [
@@ -174807,12 +174489,12 @@
    "events": [
     {
      "index": 0,
-     "onset": 54.5,
+     "onset": 59.5,
      "end": 93.417,
      "clear_start": 0.0,
-     "leadin": 54.5,
+     "leadin": 59.5,
      "first_tick": 2.0,
-     "max_lead": 52.5,
+     "max_lead": 57.5,
      "eligible30": true,
      "eligible60": false
     },
@@ -181410,7 +181092,7 @@
      73.417
     ],
     [
-     117.417,
+     122.0,
      135.9167
     ]
    ],
@@ -181459,12 +181141,12 @@
     },
     {
      "index": 3,
-     "onset": 117.417,
+     "onset": 122.0,
      "end": 135.9167,
      "clear_start": 83.417,
-     "leadin": 34.0,
+     "leadin": 38.583,
      "first_tick": 84.0,
-     "max_lead": 33.417,
+     "max_lead": 38.0,
      "eligible30": true,
      "eligible60": false
     }
@@ -183247,10 +182929,6 @@
      49.875
     ],
     [
-     145.6667,
-     154.5833
-    ],
-    [
      156.875,
      162.9167
     ]
@@ -183292,25 +182970,14 @@
     },
     {
      "index": 1,
-     "onset": 145.6667,
-     "end": 154.5833,
-     "clear_start": 59.875,
-     "leadin": 85.79169999999999,
-     "first_tick": 60.0,
-     "max_lead": 85.66669999999999,
-     "eligible30": true,
-     "eligible60": true
-    },
-    {
-     "index": 2,
      "onset": 156.875,
      "end": 162.9167,
-     "clear_start": 164.5833,
-     "leadin": -7.708300000000008,
-     "first_tick": 165.0,
-     "max_lead": -8.125,
-     "eligible30": false,
-     "eligible60": false
+     "clear_start": 59.875,
+     "leadin": 97.0,
+     "first_tick": 60.0,
+     "max_lead": 96.875,
+     "eligible30": true,
+     "eligible60": true
     }
    ]
   },
