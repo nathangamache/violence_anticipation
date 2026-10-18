@@ -9,7 +9,8 @@ import numpy as np
 from anticipation.data.catalog import REPO_ROOT, file_sha256
 
 PREREG_PATH = os.path.join(REPO_ROOT, "benchmark", "screens", "screen_set_v1.json")
-PINNED_SHA256 = {"screen_set_v1.json": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b"}
+PINNED_SHA256 = {"screen_set_v1.json": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
+                 "screen_set_v2.json": "25bf720b688c5fe4475da25d2b4ba1de52a0a140678649073d08ba7586e52dbb"}
 REGISTRATIONS = {name: os.path.join(REPO_ROOT, "benchmark", "screens", f"screen_set_{name}.json")
                  for name in ("v1", "v2")}
 
