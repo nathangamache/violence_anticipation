@@ -1,6 +1,6 @@
 # VA30 onset correction (labels v3)
 
-Status (updated 2026-10-17, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
+Status (updated 2026-10-18, America/Detroit): **IN PROGRESS; confirmation remains frozen.**
 
 | Item | Value |
 |---|---|
@@ -8,7 +8,7 @@ Status (updated 2026-10-17, America/Detroit): **IN PROGRESS; confirmation remain
 | Scan | Complete: 551 events, 44,132 frames, 1.86 tracked GPU-hours |
 | Initial review queue | 419 flagged + 40 random non-flagged = 459 events |
 | Newly eligible follow-ups | 1 queued; both passes complete and reconciliation recorded |
-| Visual review / corrected labels | Pass A 60/459 original cases; Pass B 53 originals + 1 follow-up; 37 paired, 19 reconciled, 0 paired pending |
+| Visual review / corrected labels | Pass A 69/459 original cases; Pass B 55 originals + 1 follow-up; 39 paired, 19 reconciled, 0 paired pending |
 | Corrections by verdict and onset source | Pending visual review |
 | Median shift / scan miss rate | Pending visual review |
 | New eligible30 counts per fold | Pending corrected labels |
@@ -25,7 +25,7 @@ requires agreement or a documented reconciliation. A single-pass keep remains a 
 sampled A keeps exceeds 15%, stop label release and report the rate. Final one-pass/two-pass counts and the keep
 audit rate will be recorded here and per event in `onset_corrections.json` before labels are released.
 
-Current pass accounting (2026-10-17): 37 original cases have both A and B; 23 have A only so far; 16 pre-change B
+Current pass accounting (2026-10-18): 39 original cases have both A and B; 30 have A only so far; 16 pre-change B
 reviews have not yet been paired with A. The one newly eligible follow-up has both passes. Nineteen paired cases
 have been reconciled and no paired disagreement is currently open. These are checkpoint counts, not final totals.
 
