@@ -89,7 +89,7 @@ shapes in [codebase/data_and_labels.md](codebase/data_and_labels.md) sections 1 
 | `processed/optical_flow/xd_violence/` | Farneback flow, `[F,22]` per raw frame with exact frame indices (772 videos). | The most reusable non-VLM feature. |
 | `processed/audio_features/xd_violence/`, `processed/pose_features/xd_violence/` | 91-d hand-crafted audio, 540-d YOLOv8m-pose vectors. | Extracted on the wrong clock (71.6 % zero audio rows, 70 % clamped pose rows). Re-extract. |
 | `processed/{graphs,tracks,actions,scenes,audio,labels}/` | Gen-1 graph pipeline outputs on 40 s windowed clips. | `audio/` is all zeros; `scenes/` leaks post-event frames. Low value. |
-| `windowed/` | 40 s ffmpeg trims around the (buggy) metadata onset. | Inherits the XD metadata bug. |
+| `windowed/` | Deleted 2026-10-18: 40 s ffmpeg trims around the (buggy) metadata onset, only read by the gen-1 graph pipeline in `legacy/`. | Regenerate from `raw_videos/` if that pipeline is ever re-run. |
 
 Pretrained weights: `models/Qwen2.5-VL-7B-Instruct` (16 GB). `yolov8m-pose.pt` in the repo root (pose fallback).
 
