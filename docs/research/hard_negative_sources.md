@@ -107,3 +107,14 @@ Note on curation: the local curated set was built from LSTM pseudo-labels and is
 4. DeEscalWild: inspect Dataverse for video links, reuse its channel list for YouTube near-miss curation.
 5. Hand-curated YouTube near misses and 24/7 city webcam recordings: the only practical source for kind 2.
 6. Skip as too short for 30 s anticipation: UCSD, UMN, RWF-2000, RLVS, SCVD, Hockey, Movies, AIRTLab, Kinetics (10 s).
+
+## Decision (2026-10-18): near-miss set dropped
+
+A YouTube near-miss curation pass searched 1,220 candidates over about 79 queries, downloaded 146 and screened
+127 on contact sheets: 4 ACCEPT (0.37 h), 9 REJECT_VIOLENCE, 114 REJECT_OTHER. Most bodycam and road-rage uploads
+are edited (commentator picture-in-picture, captions, compilations, reactions), calm traffic stops show no real
+confrontation, and unedited argument footage is rare or vertical and short. Downloads also needed
+`--extractor-args "youtube:player_client=android"` (default clients returned HTTP 403; max 360p). The owner chose
+to drop the near-miss set and rely on MEVA (long multi-person fixed-camera footage, false alarms per hour) plus
+the registered H1p cohort of people-focused non-violent incidents for specificity. Candidate metadata and the 4
+accepted clips stay under `data/annotation/near_miss/` and `data/raw_videos/near_miss/` (not part of any benchmark).
