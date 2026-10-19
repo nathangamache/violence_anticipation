@@ -37,9 +37,9 @@ How to read the evidence:
    MVBench 74.4, against 73.3 and 72.0 for Qwen3-VL-30B-A3B (**paper**). Use `Qwen/Qwen3.6-27B` or
    `Qwen/Qwen3-Omni-30B-A3B-Instruct` (audio + video) only as offline teachers on subsets. InternVL3.5-8B,
    VideoLLaMA3, LLaVA-Video and Gemma 3 are weaker on video or cost more tokens per frame.
-4. **vLLM can be installed, but only in a separate venv, and the host's NVML is broken.** `nvidia-smi` fails with
-   "Driver/library version mismatch" (kernel module 580.159, user library 580.178; **measured**). vLLM's
-   platform detection uses NVML and may refuse to start until an admin reloads the nvidia modules or reboots.
+4. **vLLM can be installed, but only in a separate venv, and the development host's NVML was broken.** `nvidia-smi` failed with
+   "Driver/library version mismatch" (**measured**). vLLM's
+   platform detection uses NVML and may refuse to start until the nvidia modules are reloaded or the host reboots.
    The HF transformers path works now. Estimated throughput for an 8-frame query: about 5 queries/s with vLLM
    against about 1 to 1.5 queries/s with HF batched generate (**est.**). The legacy teacher pipeline measured
    about 6 s per frame.
@@ -107,11 +107,11 @@ Checked locally (CPU only, no GPU jobs):
 
 | Source kind | Resolution (videos) | Real audio | Person box height (px, p10 / p50 / p90) | Face width (px, about 1.3 x ear-to-ear) |
 |---|---|---|---|---|
-| `ucf` (CCTV) | 320x240 (all 1,879) | 490 of 1,879 | Fighting003: 54 / 75 / 99; Normal_150: 62 / 88 / 144 | about 14 and 11 |
+| `ucf` (CCTV) | 320x240 (all 1,879) | 490 of 1,879 | UCF fighting clip: 54 / 75 / 99; UCF normal clip: 62 / 88 / 144 | about 14 and 11 |
 | `ubi` (CCTV) | 640x360 (all 973) | none | not measured | not measured |
 | `xd_movie` | 640x266 to 640x360 (letterboxed) | all | not measured | not measured |
-| `xd_youtube` | 640x360 (2,163), 480x360, 320x240 | all but 4 | XD street fight: 100 / 172 / 229 | about 22 |
-| `yt` (curated hold-out) | 640x360 (80 of 92) | 90 of 92 | yt/holdout_072 (news): 98 / 259 / 288 | about 92 |
+| `xd_youtube` | 640x360 (2,163), 480x360, 320x240 | all but 4 | XD fight clip: 100 / 172 / 229 | about 22 |
+| `yt` (curated hold-out) | 640x360 (80 of 92) | 90 of 92 | curated news-style clip: 98 / 259 / 288 | about 92 |
 
 Sources: `benchmark/videos.csv` and `FEATURE_ROOT/pose_raw/*/*.npz` (high-confidence detections). The person and
 face sizes come from only 4 videos with people, so treat them as indicative.
@@ -388,18 +388,18 @@ The ratings matter most on the violent videos and on clean negatives with people
 
 | Check | Finding |
 |---|---|
-| Driver | kernel module 580.159 (`/proc/driver/nvidia/version`). The 580 branch supports CUDA 13.0 user space. |
+| Driver | the 580 driver branch supports CUDA 13.0 user space. |
 | vLLM wheels | vLLM 0.30.x / 0.31 (Sep to Oct 2026) ship CUDA 13.0 wheels on PyPI and CUDA 12.9 wheels as release assets (**secondary**). They pin their own torch (much newer than 2.5.1), so they **cannot share the repo venv**. |
-| Disk | `/data1` has 198 GB free; a vLLM venv is about 10-15 GB. |
+| Disk | a vLLM venv is about 10-15 GB. |
 | Python | 3.10 in the repo venv. Recent vLLM supports 3.10+, but confirm in the release notes of the chosen version. |
-| **Blocker** | `nvidia-smi` fails: "Failed to initialize NVML: Driver/library version mismatch" (NVML library 580.178 vs kernel 580.159). torch CUDA works (README section 7), but vLLM's CUDA platform detection calls NVML and can fail with "Failed to infer device type" (vllm issue #13946). The standard fix is reloading the nvidia kernel modules or rebooting. That needs an admin and stops all GPU jobs. |
+| **Blocker** | `nvidia-smi` failed: "Failed to initialize NVML: Driver/library version mismatch" (user library newer than the kernel module). torch CUDA works (README section 7), but vLLM's CUDA platform detection calls NVML and can fail with "Failed to infer device type" (vllm issue #13946). The standard fix is reloading the nvidia kernel modules or rebooting. That needs administrator rights and stops all GPU jobs. |
 
 Plan:
 1. Create `.venv-vllm` with `python -m venv`.
 2. `pip install vllm==<a release at least 2 weeks old>`.
 3. Run a 5-minute smoke test (`vllm.LLM("Qwen/Qwen3-VL-8B-Instruct")` on one clip).
 
-If it fails at platform detection, ask for the module reload and keep the HF path meanwhile. SGLang and LMDeploy
+If it fails at platform detection, request the module reload and keep the HF path meanwhile. SGLang and LMDeploy
 would probably hit the same NVML problem (**inference**). The same venv can hold transformers 5.x for
 PE-A-Frame (5.5) and Qwen3.5.
 

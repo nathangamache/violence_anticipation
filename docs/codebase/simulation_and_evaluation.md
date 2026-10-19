@@ -77,7 +77,7 @@ simulation files were built). Anything not directly verified is marked **(inferr
   {2, 5, 10, 20, 30, 60, 120} s, and 0 otherwise.
 - **Row = -1 (all columns) when the row lies inside a violence segment.**
 - Example row-max pattern for a test clip (`p` = 1, `V` = -1, `.` = 0):
-  `Braveheart…label_B1-0-0: ppppppppppppppppppppppppppp VVVVV…VVVV .........`
+  `<xd test clip>: ppppppppppppppppppppppppppp VVVVV…VVVV .........`
 - Correct per-row signals, which no script in this area uses:
   - violence active: `(L == -1).all(1)`
   - "onset within 30 s": `L[:, 4] == 1`

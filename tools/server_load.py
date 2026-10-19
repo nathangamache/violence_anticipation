@@ -1,4 +1,4 @@
-"""Report instantaneous load on the shared server so jobs can respect the 60% budget (see CLAUDE.md).
+"""Report instantaneous CPU, RAM and GPU load so long jobs can keep within a resource budget.
 
 Usage:
     python tools/server_load.py            # one sample over 3 s

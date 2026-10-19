@@ -20,7 +20,7 @@ Claims marked **(inferred)** are reasoned but not directly verified.
 
 - **Only one deployment path works end to end: `realtime/rtsp_inference.py`.** It runs RTSP capture (1 fps), then Qwen2.5-VL-7B
   frame embeddings (3584-d) on `cuda:0`, then a BiLSTM+attention classifier over the last 32 embeddings on `cuda:1`, then a threshold alert.
-  It ran live twice (Feb 26 and Mar 2, 2026) against a stream named `macbook`. It keeps up in real time: about 0.35 s per VLM embedding and about 2 ms per LSTM call.
+  It ran live twice (Feb 26 and Mar 2, 2026) against a webcam stream. It keeps up in real time: about 0.35 s per VLM embedding and about 2 ms per LSTM call.
 - **`scripts/analyze_youtube.py`** is the offline equivalent for a YouTube URL or local file. It produced `probe_clip_01_embeddings.npy`,
   `probe_clip_01_scores.npy` and `analysis_probe_clip_01.png`. **Verified:** the scores were produced by
   `outputs/outputs_temporal/best_temporal_model.pt`. Rerunning it on CPU from the saved embeddings matches to a max abs diff of 2.5e-5.
@@ -51,7 +51,7 @@ Claims marked **(inferred)** are reasoned but not directly verified.
 | `probe_clip_01_embeddings.npy` | float32 (197, 3584), rows L2-normalised (norm = 1.0) | QwenTeacher embeddings of YouTube video `probe_clip_01` at nominal 1 fps | Reused by `continuation/lda_calibration_complete.py`, `continuation/domain_adaptation.py` |
 | `probe_clip_01_scores.npy` | float32 (197,), range 0.5148 to 0.7674, mean 0.661 | Per-second scores from `outputs/outputs_temporal/best_temporal_model.pt` | Evidence |
 | `analysis_probe_clip_01.png` | 2100x900 PNG | Plot of the scores with threshold 0.65 (Section 7.3) | Evidence |
-| `mediamtx.yml` | 8 lines | Config for the MediaMTX RTSP server: path `macbook`, port 554, placeholder creds | Superseded (Section 8) |
+| `mediamtx.yml` | 8 lines | Config for the MediaMTX RTSP server: path `cam`, port 554, placeholder creds | Superseded (Section 8) |
 | `progress.sh` | 8 lines | Counts `vlm_emb_violence` vs `vlm_emb` npz files and `vlm_labels_violence` vs `vlm_labels` jsonl files | Utility |
 | `requirements.txt` | 6 packages | Minimal deps for rtsp_inference only | Incomplete (Section 9) |
 | `test_video.mp4` | 416.96 s, 640x360 H.264 29.97 fps + AAC 44.1 kHz stereo, 20.8 MB | Not referenced by any code. Brand `mp42`, creation_time 2023-06-10, so probably a YouTube download (inferred) | Orphan test asset. Deleted in the 2026-10 cleanup as a byte-identical duplicate of `data/anticipation_curation/videos/holdout_025.mp4` |
@@ -101,10 +101,10 @@ outputs logits). See Section 6.
 ### 2.2 How to run
 
 ```bash
-# 1) An RTSP server must be publishing the camera. Past runs used rtsp://127.0.0.1:8554/macbook (MediaMTX default port).
+# 1) An RTSP server must be publishing the camera. Past runs used rtsp://127.0.0.1:8554/cam (MediaMTX default port).
 # 2) Run from the repo root (the log file is created in the CWD at import time):
 .venv/bin/python realtime/rtsp_inference.py \
-    --rtsp rtsp://127.0.0.1:8554/macbook \
+    --rtsp rtsp://127.0.0.1:8554/cam \
     --vlm_checkpoint models/Qwen2.5-VL-7B-Instruct \
     --lstm_checkpoint outputs/outputs_temporal/best_temporal_model.pt \
     --fps 1.0 --sequence_length 30 --threshold 0.5 --alert_cooldown 30 --frame_size 448 --snapshot_dir snapshots
@@ -301,12 +301,12 @@ Consequences:
 ### 7.2 What each live session shows
 
 **No ground truth exists for any RTSP session.** The repo has no annotations and no notes about what happened on camera. The stream path
-`macbook` suggests a laptop webcam pushed to an RTSP server, likely a staged or benign desk scene (inferred). So false-alarm and miss
+The stream path `cam` suggests a laptop webcam pushed to an RTSP server, likely a staged or benign desk scene (inferred). So false-alarm and miss
 rates **cannot** be computed. What can be read:
 
-- **`logs/inference_20260226_151941.log`**: URL `rtsp://username:password@127.0.0.1:554/macbook` (matches `mediamtx.yml`). "Failed to
+- **`logs/inference_20260226_151941.log`**: URL `rtsp://username:password@127.0.0.1:554/cam` (matches `mediamtx.yml`). "Failed to
   open stream" 6 times, Ctrl+C after 30 s, 0 inferences. The setup was then switched to port 8554 without auth.
-- **`inference_20260226_225311.log`** (22:53:11-23:08:03, about 14 min, `rtsp://127.0.0.1:8554/macbook`):
+- **`inference_20260226_225311.log`** (22:53:11-23:08:03, about 14 min, `rtsp://127.0.0.1:8554/cam`):
   - 825 inferences. Scores ranged 0.116-0.504, mean 0.208, median 0.186, 95th percentile 0.393.
   - There were two bumps: 22:55:17-22:56:22, rising to 0.504, and 22:57:00-22:57:21, peaking at 0.33. Otherwise scores stayed at 0.12-0.25.
   - 4 inferences reached 0.5 or more (0.5044, 0.5012, 0.5011, 0.5008, at 22:55:38-22:55:51). Only **1 alert** fired (22:55:37); the 30 s cooldown suppressed the rest.
@@ -330,7 +330,7 @@ Takeaways:
 ### 7.3 YouTube video `probe_clip_01` (the only deployment-style run with ground truth)
 
 Ground truth, from `YT_LABELS` in `continuation/lda_calibration_complete.py`: 0-6 s safe, 7-36 s anticipation, 37-45 s violence,
-46 s onward post-violence (people dispersing).
+46 s onward post-violence.
 
 `probe_clip_01_scores.npy` has 197 frames at nominal 1 fps from `outputs/outputs_temporal/best_temporal_model.pt` (provenance verified).
 Measured on CPU from the saved arrays:
@@ -340,7 +340,7 @@ Measured on CPU from the saved arrays:
 - Every one of the 197 scores is at least 0.515. At the script's default threshold of 0.3, or at 0.5, **100% of frames are flagged**.
 - The PNG used threshold 0.65:
   - The first alert came at t = 16 s, which is **21 s before violence onset** (37 s).
-  - The score peaked at 0.741 at t = 43 s, during the fight.
+  - The score peaked at 0.741 at t = 43 s, during the labelled violence.
   - 55 of 151 post-violence seconds were also flagged (alert regions 16-71 s, 86-93 s, about 97 s, and 177-197 s).
   - The **global maximum (0.767) is at t = 196 s, well after the event**.
 
@@ -363,19 +363,18 @@ Caveats:
 
 ## 8. Misc root files
 
-- **`mediamtx.yml`**: `rtsp: yes`, `rtspAddress: :554`, path `macbook` with `publishUser/publishPass/readUser/readPass` set to
-  `username`/`password`. Port 554 requires root, and the only run that used it failed. Later runs used `rtsp://127.0.0.1:8554/macbook`
-  without auth (MediaMTX defaults). No `mediamtx` binary exists on this server (`which mediamtx` is empty, nothing within depth 4 of `/`).
-  The server ran elsewhere or was removed, or port 8554 was SSH-forwarded from the MacBook (inferred). The publisher was presumably
-  something like `ffmpeg -f avfoundation -i 0 -f rtsp rtsp://<host>:8554/macbook` on the Mac (inferred).
+- **`mediamtx.yml`**: `rtsp: yes`, `rtspAddress: :554`, path `cam` with `publishUser/publishPass/readUser/readPass` set to
+  `username`/`password`. Port 554 requires root, and the only run that used it failed. Later runs used `rtsp://127.0.0.1:8554/cam`
+  without auth (MediaMTX defaults). No `mediamtx` binary exists on the development machine.
+  The server ran elsewhere or was removed, or port 8554 was forwarded from the laptop (inferred). The publisher was presumably
+  something like `ffmpeg -f avfoundation -i 0 -f rtsp rtsp://<host>:8554/cam` on the laptop (inferred).
 - **`progress.sh`**: run it from the repo root. It currently prints "Embeddings Progress: 1721 / 1813 (94.9%)" and "Labels Progress: 1721 / 1721 (100.0%)".
   The denominator `vlm_emb` now includes 92 `curated` files that `vlm_emb_violence` never got, so 100% is unreachable.
 - **`requirements.txt`**: torch>=2.1.0, torchvision>=0.16.0, transformers>=4.37.0, accelerate>=0.26.0, opencv-python>=4.8.0, Pillow>=10.0.0,
   and a commented-out `av`. This covers rtsp_inference.py only. `Qwen2_5_VLForConditionalGeneration` needs transformers 4.49 or later
   (inferred from the release history), and rtsp_inference's `dtype=` kwarg needs a recent version. numpy is not listed.
-- **`.env`**: contains a single key, `YOUTUBE_API_KEY`, used by `setup/curate_youtube.py` via python-dotenv. **`youtube_cookies.txt`**
-  holds YouTube cookies for `setup/kinetics_download_relevant.py`; the 2026-10 cleanup moved it out of the repo to
-  `<cookies file outside the repo>` (directory mode 700, file mode 600). Both are secrets, both are gitignored, and their contents were not read.
+- **`.env`** (a YouTube Data API key for `setup/curate_youtube.py`) and a YouTube cookies file (for
+  `setup/kinetics_download_relevant.py`) are secrets: both are gitignored, kept outside the published tree, and not read.
 - **`test_video.mp4`** (deleted in the 2026-10 cleanup as a duplicate; the same clip is `data/anticipation_curation/videos/holdout_025.mp4`):
   6:57 at 640x360, 29.97 fps, with stereo AAC audio. Usable as a quick smoke-test input for analyze_youtube
   (`--video data/anticipation_curation/videos/holdout_025.mp4`) and for audio pipelines. Its content and labels are unknown.

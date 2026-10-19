@@ -59,7 +59,7 @@ reviewer using 0.5 s sheets for disagreements. Each new record's `annotation_rev
 the reconciliation decisions and sheet paths; newly rendered sheets are in `fine_A/`, `fine_B/` and `fine_R/`
 under the existing video sheet directories. Cut/onset times are sampled estimates at 0.5 s resolution.
 
-The additions contribute 16 labeled occurrences across three videos: one parking-lot police-force occurrence,
+The additions contribute 16 labeled occurrences across three videos: one police-force occurrence,
 six arrest occurrences in edited bodycam footage, and nine CCTV shove/grab occurrences. These counts include
 replays and continuations of the same events. Nine of these occurrences have `left_censored: true` because contact is
 already underway when the clip becomes visible; their timestamps mark visible clip entry, not the original

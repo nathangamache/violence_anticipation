@@ -287,7 +287,7 @@ empty folders were deleted.
   - Key `metrics.json` fields: `val/test_metrics_oracle`, `test_metrics_at_val_threshold`, `anticipation_video_stats_at_val_threshold.{val,test}` (first alert in [onset−horizon, onset+grace], early-false, late-or-miss, negative-video FA, lead mean/median/p10/p90 in seconds from metadata), `history`, `split_videos`.
 - `vlm_eval*` (4 folders, Feb 2): `scripts/eval_vlm_teacher.py`. Contains `summary.json`, `per_video.csv` (vid_id, source, n_samples, best_threshold_global, f1/precision/recall_at_best_th, roc_auc, pr_auc, mean_score, pos_rate_gt, …) and PNGs.
 - `contrastive_results/` (Feb 23): producer **not in the repo**. No `.py` contains `bottleneck_dim`, `dimension_importance` or `projection_model.pt`; it is probably an earlier version of `tuning/contrastive_projection.py` **(inferred)**. args.json: attention architecture, 256-d projection, temperature 0.07, XD only. Contains `projection_model.pt`, `dimension_importance.json` (keys `violence_dims`, `non_violence_dims`, `all_attention_diff`), PNGs, and `projected_emb/xd_violence/<vid>.npz` (**772 files, `emb [E,256] float16`, 23 MB**).
-- `xd_investigation/` (Mar 16): `experiments/xd_violence_investigation.py`. Contains `investigation_stats.json` and `best_anticipation_videos.txt` (ranked list, minimum 5 pre-violence frames; top entries Burglary005, Black.Hawk.Down, Explosion043, Shooting046).
+- `xd_investigation/` (Mar 16): `experiments/xd_violence_investigation.py`. Contains `investigation_stats.json` and `best_anticipation_videos.txt` (ranked list, minimum 5 pre-violence frames; top entries are two UCF clips and two XD clips).
 - `algorithm_comparison.csv`, `ema_results.csv`, `prompt_engineering.csv`, `ucf_crime_results.csv` (Mar 16): `experiments/run_all_experiments.sh` steps 1–4. `baseline_comparison.csv` (step 6) **was never produced**.
 - `lda_calibration_results.txt` (Mar 16): `continuation/lda_calibration_complete.py`.
 - `transformer_model.pt` (3.0 MB, Mar 16): `experiments/algorithm_variations.py` saves `{"model": <whole nn.Module>, "scaler_mean", "scaler_scale"}`. Unpickling requires the class definition from that script.
@@ -331,7 +331,7 @@ empty folders were deleted.
 - `inference_20260226_151941.log`: `realtime/rtsp_inference.py` could not open the RTSP stream; 0 alerts.
 
 ### Root-level logs and files
-- `inference_20260226_225311.log`: `rtsp_inference.py` on `rtsp://127.0.0.1:8554/macbook` for about 15 min. 825 LSTM inferences, scores mostly 0.17–0.21, **1 alert** (score 0.5044). No ground truth.
+- `inference_20260226_225311.log`: `rtsp_inference.py` on `rtsp://127.0.0.1:8554/cam` for about 15 min. 825 LSTM inferences, scores mostly 0.17–0.21, **1 alert** (score 0.5044). No ground truth.
 - `inference_20260302_185137.log`: about 2 min, 75 inferences, scores 0.21–0.54, 1 alert (0.5059). No ground truth.
 - These are **live demos without labels and carry no accuracy information**. Both used `sequence_length 32`, 1 fps, θ 0.5 and a 30 s cooldown.
 - `snapshots/`: empty (alert snapshot directory of `rtsp_inference.py --snapshot_dir`).
@@ -354,7 +354,7 @@ indices 0/3/6(/9)): 3584-d Qwen2.5-VL embedding in, one logit out. They are not 
 All were produced on 2026-03-02 (saved 10:33 to 13:35) by inline `python -c` sessions, never by a repo script.
 - `synthetic_anticipation_mlp.pt` (Adam lr 1e-4, weight decay 1e-3, 30 epochs, cuda:1) and
   `best_synthetic_anticipation.pt` (Adam lr 5e-5, 50 epochs; the saved checkpoint is the epoch with the best AUC on
-  the held-out 20 %, i.e. selected on the test split, D5) came from two sessions preserved in `~/.bash_history`.
+  the held-out 20 %, i.e. selected on the test split, D5) came from two sessions preserved in the shell history.
   They are extracted verbatim to `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/`. The sessions take a
   violent segment from `vlm_emb` + `labels_multih` with `labels.max(axis=1) > 0` and `labels[:len(emb)]` (D1, D2;
   really the 120 s pre-onset window). In front of it they splice a random 30 to 60 step non-violent lead-up cut

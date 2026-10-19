@@ -65,8 +65,8 @@ Repo root: `.`. Layout after the 2026-10 cleanup (section 8).
 | `data` -> `data/` | Symlink to videos, metadata, features and `archive/` (outside git). |
 | `models` -> `models/` | Symlink to pretrained weights. |
 | `.venv/` | Python 3.10 environment (ignored). |
-| `CLAUDE.md`, `README.md`, `requirements.txt`, `.gitignore` | Agent instructions, short project pointer, dependency list of the kept code, ignore rules. |
-| `.env` | `YOUTUBE_API_KEY` for `setup/curate_youtube.py` (ignored, mode 600). |
+| `README.md`, `requirements.txt`, `.gitignore` | Short project pointer, dependency list of the kept code, ignore rules. The project's agent notes are not published. |
+| `.env` | Local YouTube Data API key for `setup/curate_youtube.py` (ignored, not published). |
 | `yolov8m-pose.pt` | Fallback pose weight hard-coded in `anticipation/features/pose.py` (ignored). |
 
 ---
@@ -158,8 +158,7 @@ Legacy entry points run from `legacy/` (cwd=`legacy`, see `legacy/README.md`). "
   kept code (`anticipation/`, `baselines/`, `setup/`, `tools/`, `tests/`) with the venv's installed versions;
   `legacy/` needs more (see [realtime_and_misc.md](codebase/realtime_and_misc.md) section 9).
 - New code runs from the repo root; legacy code runs from `legacy/` (see `legacy/README.md`).
-- GPUs: two data-centre GPUs. `nvidia-smi` is broken by a driver mismatch, but torch CUDA works. Many scripts
-  default to `cuda:1`; pass `--device` explicitly.
+- GPUs: torch CUDA is used for all GPU work. Many scripts default to `cuda:1`; pass `--device` explicitly.
 - New evaluation code must follow [BASELINE.md](BASELINE.md) section 6. Do not reuse the archived
   `simulation_data/*.npz`, the removed `sim/comprehensive_eval.py` event metrics, or `legacy/*_index.json` as a benchmark.
 
@@ -192,5 +191,4 @@ there). The working tree without `.venv/` and `.git/` went from about 6.0 GB to 
   `data/anticipation_curation/videos/holdout_025.mp4`), the 11 `final/*/scores.npy` byte-identical to the archived
   `final/smoothing_sweep/scores.npy`, the empty `.part`/`.ytdl` download stubs, empty folders (`snapshots/`, `.locks/`,
   `lora_finetuned/worker_*`, three empty `final/` runs) and `__pycache__`/`.pytest_cache`.
-- **Secrets**: `.env` is mode 600; `youtube_cookies.txt` moved out of the repo to `<cookies file outside the repo>`
-  (directory 700, file 600).
+- **Secrets**: `.env` and any YouTube cookies file are gitignored and kept outside the published tree.

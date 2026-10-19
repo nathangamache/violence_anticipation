@@ -2,17 +2,33 @@
 
 **Lawrence Technological University (LTU) — Senior Capstone Report**
 
-**Author(s): [PLACEHOLDER: student names]**
+> **DRAFT.** The introduction, related work, data and evaluation protocol are drafted. The method, results and
+> conclusion sections predate the October 2026 experiments and are being rewritten. Until then, the measured results
+> are in [docs/RESULTS_V3.md](../docs/RESULTS_V3.md) and summarised in the abstract below.
 
-**Program, course, and advisor: [PLACEHOLDER]**
 
-**Submission date: [PLACEHOLDER]**
+**Author: Nathan Gamache** (solo project)
+
+**Program and advisor:** Lawrence Technological University senior capstone, advised by Dr. Eric Martinson (fall 2025 to May 2026; reworked October 2026)
+
+**Status:** draft, not submitted in this form
 
 Draft scope: the related work, problem definition, data, historical analysis, and evaluation protocol are drafted below. The new model, experiments, and conclusions about its performance remain explicitly marked placeholders. The original benchmark and historical account use the October 14, 2026 snapshot at commit `9f14b92`. This October 15 revision incorporates [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md) and [YOUTUBE_HOLDOUT.md](../docs/YOUTUBE_HOLDOUT.md), read at commit `ae96a14`. The modality decision and screening plan supersede earlier extractor recommendations; the hold-out v1 artifacts supersede preliminary annotation counts. VA30 v2 remains the frozen primary benchmark, with screening and secondary measurement changes identified separately. External references were opened and checked on October 14, 2026; verification details and corrections are in [CITATION_AUDIT.md](CITATION_AUDIT.md).
 
 ## Abstract
 
-**[PLACEHOLDER — write after the new experiments are complete.]** State the problem of warning at least 30 seconds before physical violence, the evaluated data and onset sources, the causal model, and the evaluation protocol. Insert measured Success@30, actual test false alarms per hour, confidence intervals, and comparison with position controls. End with the supported conclusion and principal limitation. Do not substitute detection accuracy for anticipation or describe an unrun model as successful.
+This project asks whether ordinary real-world video (CCTV, body-worn cameras, phone footage) carries enough
+evidence to warn about interpersonal violence before it starts. The data combine XD-Violence, UCF-Crime and
+UBI-Fights with onsets corrected by blind visual review (labels v3), evaluated with the VA30 protocol: 1 Hz causal
+scores, source-grouped folds, clean negative videos, validation-chosen thresholds at fixed false alarms per hour,
+and position-only null policies. A pre-registered screen of nine feature streams selected linear probes on SigLIP 2
+prompt scores for an early-warning head (30 to 120 s ahead) and an imminent head (10 s). On a single held-out
+confirmation fold (75 events, 30.7 clean hours), the early head warned at least 30 s ahead for 36.0% of fights at
+2.64 false alarms per hour (threshold-aware 95% CI 25.0 to 51.8%; position null 8.6%), and the imminent head
+warned at least 10 s ahead for 45.3% at 3.23 per hour (CI 27.5 to 58.6%; null 11.7%). Both passed their
+pre-registered rules. The scores are nearly flat over the two minutes before onset, so most of the warning comes
+from recognising the kind of footage and setting rather than a visible build-up; movie clips dominate both hits
+and false alarms, and the labels were reviewed by language models rather than people.
 
 ## 1. Introduction and Motivation
 
@@ -28,7 +44,7 @@ The report addresses three questions:
 2. Does its performance exceed controls that know only the footage source and elapsed clip time, and remain informative after matching those factors?
 3. How do results change across real-world and movie footage, interpersonal classes, audio availability, and annotation sources?
 
-The report contributes a synthesis of relevant research, an accountable account of prior failures, and a reproducible evaluation plan using the repository's implemented VA30 v2 benchmark. **[PLACEHOLDER: add the new model's actual contribution after implementation and evaluation.]**
+The report contributes a synthesis of relevant research, an accountable account of prior failures, and a reproducible evaluation plan using the repository's implemented VA30 v2 benchmark. The measured contribution is summarised in the abstract and detailed in [RESULTS_V3.md](../docs/RESULTS_V3.md).
 
 ## 2. Related Work
 
@@ -254,11 +270,11 @@ The recurring lesson is that more modalities, a temporal head, or additional smo
 
 ## 6. Methods: New Model
 
-The methodology follows the evidence-based modality screen in [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md), sections 3–8, which makes inclusion depend on measured signal, specificity, and gain beyond source/scene controls. **[PLACEHOLDER — the final model, completed screening decisions, training configuration, and new-model performance remain unreported.]** The following is the prescribed experiment, not a claim that its prerequisites or gates have been executed.
+The methodology follows the evidence-based modality screen in [MODALITY_PLAN.md](../docs/MODALITY_PLAN.md), sections 3–8, which makes inclusion depend on measured signal, specificity, and gain beyond source/scene controls. *(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)* The following is the prescribed experiment, not a claim that its prerequisites or gates have been executed.
 
 ### 6.1. Causal Feature Extraction
 
-**[PLACEHOLDER: identify the actual video, frame, pose/tracking, audio, and speech extractors used; checkpoint revisions; frozen versus trainable parameters; preprocessing; output dimensions; and presence/confidence masks.]**
+*(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)*
 
 The primary long-lead candidate is vision-based conflict-state semantics, using no-context aggression ratings as a reference and trained probes on video-LLM hidden states and cue log-probabilities as hypotheses. The plan identifies an existing far-window aggression signal but also a scene prior and concentration in a minority of events; it has not established that the proposed probe improves event warnings. Context-carrying decoded verdicts are excluded as input features. Prompts and model versions must be frozen and hashed.
 
@@ -270,11 +286,11 @@ Each feature timestamp must describe media ending at or before the scored tick. 
 
 The proposed two-stage formulation separates `P(conflict active)` from the conditional hazard of physical onset. A conflict-state head can represent sustained engagement even without increasing motion or arousal. The hazard stage considers engagement duration, contact, challenge, audience, asymmetry, intervention, and separation history. Intervention and retreat are state variables with effects to learn, not fixed evidence of safety. Features need source and scene controls because a stable score can otherwise be a stable collection prior.
 
-Candidate fusion uses per-stream normalization, presence masks, and modality dropout. Causal history up to 300 seconds and random history truncation are proposed to reduce dependence on clip start; long memory remains exploratory because only 54 first-segment VA30 events, 45 in screening folds, have at least 120 seconds of usable lead. Slopes are retained as a pre-registered ablation, rather than assuming that all useful cues ramp upward. **[PLACEHOLDER: specify the selected architecture, actual history, projections, fusion rule, and parameter count after the screen.]**
+Candidate fusion uses per-stream normalization, presence masks, and modality dropout. Causal history up to 300 seconds and random history truncation are proposed to reduce dependence on clip start; long memory remains exploratory because only 54 first-segment VA30 events, 45 in screening folds, have at least 120 seconds of usable lead. Slopes are retained as a pre-registered ablation, rather than assuming that all useful cues ramp upward. *(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)*
 
 ### 6.3. Objectives and Optimization
 
-**[PLACEHOLDER: specify the actual target and loss, sampling/weighting, optimizer, learning-rate schedule, regularization, seeds, and checkpoint-selection rule.]**
+*(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)*
 
 The plan keeps a censored discrete-time hazard formulation and proposes extending the original bins through `(60,90]`, `(90,120]`, `(120,180]`, and `(180,300]` seconds. Horizon risk remains `1 - product(1 - hazard_j)` over the relevant bins. A separate band head estimates onset in `(30,120]`, avoiding a target dominated by the last few seconds before violence.
 
@@ -308,7 +324,7 @@ An anticipation block must pass G1 and G3, with G2 not failed. A provisional blo
 
 The fixed VA30 acceptance window cannot credit an alarm starting more than 120 seconds before onset. To test a sustained conflict-state warning separately, the plan specifies `Success_sus@L` for eligible leads `L` of 60, 90, or 120 seconds: an episode starts between `max(clear_start, 2)` and `t0 - L` and stays active through `t0 - 30`. Its operating points are 1%, 2%, and 5% of clean time under alarm, with its own recomputed position null. The proposed watch tier uses up to 5% alarm time; the alarm tier uses Success@30 at 1 FA/h. A persistent watch is not a VA30 alarm success unless it also meets that metric's episode-start rule. These secondary analyses must retain their own evaluator version, denominators, validation policy, and outputs; no sustained-warning result is supplied here.
 
-**[PLACEHOLDER: record completed prerequisites, registration artifact/hash, gate outcomes, selected blocks, fold-1 confirmation, model configurations, measured throughput, and exact commands.]** Compare blocks only on shared coverage, keep all preprocessing within training folds, and label results from the four selection folds as post-selection. Record exclusions and actual alarm burden. If no block survives, report that 30-second anticipation at low FA/h is unsupported by these data, or unresolved where power is insufficient. Preserve the failure finding rather than selecting a favorable metric. Short-horizon and sustained-warning results remain separately labeled measurements.
+*(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)* Compare blocks only on shared coverage, keep all preprocessing within training folds, and label results from the four selection folds as post-selection. Record exclusions and actual alarm burden. If no block survives, report that 30-second anticipation at low FA/h is unsupported by these data, or unresolved where power is insufficient. Preserve the failure finding rather than selecting a favorable metric. Short-horizon and sustained-warning results remain separately labeled measurements.
 
 ## 7. Evaluation Protocol
 
@@ -398,49 +414,38 @@ The final interpretation must require consistent evidence from matched frame ran
 
 ## 8. Results
 
-**[PLACEHOLDER — no new model results are available in this report. Every PENDING entry is reserved for the final comparison and is not zero, chance performance, or an estimate.]** Import existing control results with their exact coverage and benchmark snapshot. Historical diagnostics belong to Section 5 and are not interchangeable with these VA30 v2 results.
+All numbers are copied from committed reports; [RESULTS_V3.md](../docs/RESULTS_V3.md) names each source file and adds the screen and per-source breakdowns.
 
-### 8.1. Main VA30 Comparison
+### 8.1. Development folds (post-selection)
 
-Each cell must include the metric and its 95% confidence interval where applicable. Use identical coverage for compared rows; report official-onset co-primary results in a companion table. Learned-model rows additionally need the mean and standard deviation over three seeds. Identify the screening-fold, confirmation-fold, and post-selection pooled populations separately; the primary alarm-tier readout is at validation target 1 FA/h, alongside the 2 and 5 FA/h comparisons below.
+| Head | Target | Test FA/h | Success | Threshold-aware CI | Position null |
+|---|---|---|---|---|---|
+| Early (Success@30) | 1 / h | 1.16 | 20.6% | [15.0, 30.6]% | 7.3% |
+| Early (Success@30) | 2 / h | 2.12 | 31.4% | [23.9, 37.8]% | 9.5% |
+| Early (Success@30) | 5 / h | 4.99 | 39.0% | [33.8, 45.9]% | 16.1% |
+| Imminent (Success@10) | 1 / h | 1.20 | 25.9% | [17.3, 34.2]% | 8.9% |
+| Imminent (Success@10) | 2 / h | 2.15 | 33.4% | [25.8, 41.6]% | 11.2% |
+| Imminent (Success@10) | 5 / h | 4.71 | 48.3% | [38.9, 55.9]% | 17.7% |
 
-| Model / control | Coverage and onset set | Far AUROC | Matched far AUROC | AP@30 / tick prevalence | Success@30 at validation target 1 FA/h | Actual test FA/h | Clean alarm-time fraction |
-|---|---|---|---|---|---|---|---|
-| B-prior | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| B-time-source | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| B-scene0 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| B-teacher, matched subset | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| B0, retrained StudentMLP | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| New model | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
+### 8.2. Fold-1 confirmation (single run)
 
-### 8.2. Operating Points and Warning Lead
+| Head | AUROC | Event-level AUROC (M8) | Gain over scene-only (M8) | Rule | Confirmed |
+|---|---|---|---|---|---|
+| Early | 0.905 [0.848, 0.948] | 0.906 | +0.155 [0.081, 0.226] | M1 lower bound > 0.50 and positive M8 gain | yes |
+| Imminent | 0.893 [0.843, 0.938] | 0.919 | +0.136 [0.057, 0.206] | M1-near lower bound > 0.60 and Success@10 above the position null at 2 FA/h | yes |
 
-| Validation FA/h target | Actual test FA/h | Eligible event count | Success@30 | Late-event Success@30 | Position null / late null | Poisson reference | Median lead / IQR / mean lead |
-|---:|---|---|---|---|---|---|---|
-| 1 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| 2 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| 5 | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-
-**[PLACEHOLDER: include Success@10, Success@20, Success@0, eligible60/Success@60, separately labeled detection, matched band AUROC, horizon AUROC/AP, Brier score, reliability, fixed-threshold and threshold-aware intervals, and AMOC/lead-distribution figures from the final evaluator outputs. Add separately labeled sustained Success@60 / @90 with actual clean alarm-time fraction and their own position nulls.]**
-
-### 8.3. Ablations and Breakdowns
-
-| Experiment or breakdown | Videos / eligible events / clean hours | Matched far AUROC | Success@30 / actual test FA/h | Interpretation |
-|---|---|---|---|---|
-| Visual-only versus interaction features | PENDING | PENDING | PENDING | PENDING |
-| Addition of usable audio and speech | PENDING | PENDING | PENDING | PENDING |
-| History length and training objective | PENDING | PENDING | PENDING | PENDING |
-| Official versus HIVAU versus UBI onsets | PENDING | PENDING | PENDING | PENDING |
-| Interpersonal classes; first versus later events | PENDING | PENDING | PENDING | PENDING |
-| Real-world sources versus movie footage | PENDING | PENDING | PENDING | PENDING |
-| Audio present versus absent | PENDING | PENDING | PENDING | PENDING |
-| Reconciled AI-annotated curated subset, clip-aware evaluation | PENDING | PENDING | PENDING | PENDING |
-
-**[PLACEHOLDER: add the registered screen's per-block G1/G2/G3 outcomes, paired nuisance-model gains, provisional/inconclusive classifications, and single fold-1 confirmation.]** The annotated subset's 36 long-lead onsets in 14 videos are data statistics; no model Success@30, calibration, or false-alarm result on that subset is supplied here.
+| Head | Target | Fold-1 FA/h | Success | Threshold-aware CI | Position null |
+|---|---|---|---|---|---|
+| Early (Success@30) | 1 / h | 0.33 | 16.0% | [1.9, 30.6]% | 3.4% |
+| Early (Success@30) | 2 / h | 0.72 | 22.7% | [13.7, 38.8]% | 4.3% |
+| Early (Success@30) | 5 / h | 2.64 | 36.0% | [25.0, 51.8]% | 8.6% |
+| Imminent (Success@10) | 1 / h | 0.42 | 10.7% | [1.6, 22.4]% | 4.0% |
+| Imminent (Success@10) | 2 / h | 0.85 | 20.0% | [10.2, 39.2]% | 5.4% |
+| Imminent (Success@10) | 5 / h | 3.23 | 45.3% | [27.5, 58.6]% | 11.7% |
 
 ## 9. Discussion
 
-**[PLACEHOLDER — complete from measured results.]** Determine whether any improvement persists after source/time matching, exceeds the position null at the same observed FA/h, and is supported on official-onset and real-world interpersonal subsets. Explain uncertainty, missing coverage, annotation sensitivity, and disagreement between frame-level and event-level metrics. Inspect false alarms, misses, earliest accepted alarms, and high-scoring artifact frames using representative examples selected by a stated rule. Report a negative finding if the new model fails to support the 30-second target.
+*(Pending rewrite; see [RESULTS_V3.md](../docs/RESULTS_V3.md) for the measured results.)* Determine whether any improvement persists after source/time matching, exceeds the position null at the same observed FA/h, and is supported on official-onset and real-world interpersonal subsets. Explain uncertainty, missing coverage, annotation sensitivity, and disagreement between frame-level and event-level metrics. Inspect false alarms, misses, earliest accepted alarms, and high-scoring artifact frames using representative examples selected by a stated rule. Report a negative finding if the new model fails to support the 30-second target.
 
 ## 10. Limitations and Ethics
 
@@ -478,7 +483,7 @@ Third, collect genuinely continuous footage with long benign exposure and suffic
 
 ## 12. Conclusion
 
-**[PLACEHOLDER — finalize after Section 8.]** State the measured answer to the research questions, whether the 30-second target was supported at the stated alarm burden, and the limits of that conclusion. The current defensible statement is that the repository has an implemented evaluation framework and documented historical failures; it has not yet established reliable real-world interpersonal-violence anticipation 30 seconds before onset.
+The October 2026 experiments support a modest, real early-warning signal: on a held-out fold, warnings at least 30 s ahead for about a fifth to a third of eligible fights at under 3 false alarms per hour, well above source-and-time controls. They do not support the stronger claim that the model sees violence building up: the score is nearly flat before onset and is driven mostly by the type of footage. The principal limitations are the small confirmation sample (75 events), AI-reviewed onset labels, a single seed with linear probes, and the dominance of movie footage in both hits and false alarms. The output is a risk estimate for human review, not a deployable safety system.
 
 ## References
 

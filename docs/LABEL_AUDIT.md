@@ -25,7 +25,7 @@ order of the audited rows in the CSV) and `data/annotation/label_audit/uca/<vide
   step, tile 192 px) plus a second sheet around the peak frame when it lay before `onset - 60` (12 events).
   Classes: (a) non-violent contact or posturing, (b) violence already under way before the onset (label noise),
   (c) teacher false positive or unclear. Classification was made by eye from the sheets; (b) calls for
-  `Fighting024` and `Kill.Bill` are low confidence.
+  one UCF clip and one XD movie clip are low confidence.
 
 ### Counts (27 audited events)
 
@@ -41,13 +41,12 @@ By source kind: (a) 5 xd_movie; (b) 10 ucf, 1 xd_movie, 2 xd_youtube; (c) 4 ucf,
 
 ### Examples
 
-- (a): `City.of.God` boys posing with pistols before the shooting; `Shoot.Em.Up` and `The.Hurt.Locker` gun standoffs;
-  `Death.Proof` menacing driver before the crash. All five are movie clips.
-- (b): `Fighting036` (man beaten on the ground from 23 s, onset 82.8); `Fighting050` (shop fight from 605 s, onset
-  717.2); `Robbery100` (choke and struggle at 29 s, onset 134.5); `Arrest049` (restraint on the ground from 163 s,
-  onset 256.2); two news montages (`v=7zEFHKKBA0g`, `v=uprb6aBzymw`) that show real clash footage in the intro.
-- (c): `Shooting047` (title card text mentions a shooting); `Fighting048` (empty street); `v=251___mEwZA` (hockey
-  gloves and commentators after an earlier fight); Hunger Games aftermath of a death; `Death.Proof` crash aftermath.
+- (a): five movie clips (including posing with pistols before a shooting, gun standoffs and a menacing driver
+  before a crash).
+- (b): four UCF clips in which violence was visible 60 to 112 s before the annotated onset, and two news montages
+  that show real clash footage in the intro.
+- (c): one UCF clip with a title card, one with an empty street, a sports clip with commentators after an earlier
+  fight, and two movie aftermath scenes.
 
 ### Reading
 
@@ -66,8 +65,8 @@ clips (posed or staged), none is real-world footage. The 10 HIVAU (b) rows are a
   when no strike verb is present.
 - Keep captions with `end <= onset - 10 s`, `start >= clear_start - 0.5` and not inside an annotated segment
   (captions earlier than `clear_start` describe violence that already ends the lead-in).
-- Hand review of the 38 candidate strike events removed four false positives (`Arrest006` car hit a flagpole,
-  `Abuse018` a kick at a bag, `Assault002` a man pulled away, `Assault041` "kicked out of the shop").
+- Hand review of the 38 candidate strike events removed four false positives (a car hitting a pole,
+  a kick at a bag, a person pulled away, a figurative "kicked out").
 - Mask = `[max(first caption start, clear_start), onset]`, one `uca_strike` entry and, separately, one
   `uca_weapon_only` entry per event.
 - Negation: 12 caption hits contain a negation word; those read were all genuine violence ("did not stop and hit").
@@ -85,7 +84,7 @@ clips (posed or staged), none is real-world footage. The 10 HIVAU (b) rows are a
 
 ### Visual spot check (15 sheets, 1.5 s step)
 
-Confirmed 6 (`Abuse004`, `Abuse012`, `Abuse043`, `Assault027`, `Robbery088`, `Robbery124` gun), plausible 1
+Confirmed 6 (`Abuse004`, `Abuse012`, `Abuse043`, `Assault027`, `Robbery088`, `Robbery124`), plausible 1
 (`Abuse040`), inconclusive or not visible 8 (`Arrest008`, `Arrest047`, `Fighting031`, `Fighting034`,
 `Fighting043`, `Fighting048`, `Assault037`, `Robbery128`). None is contradicted outright, but in `Arrest047` and
 `Robbery128` nothing is visible in the caption window, so UCA time spans are loose (a few seconds, sometimes more)

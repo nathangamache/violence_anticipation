@@ -22,7 +22,7 @@ passed their pre-registered rules.
 | Head | AUROC (95% CI) | Threshold tuned for | False alarms per hour on fold 1 | Fights warned in time | Threshold-aware CI | Position null |
 |---|---|---|---|---|---|---|
 | Early, warned 30 s+ ahead | 0.905 [0.848, 0.948] (30-120 s window) | 2 / h | 0.72 | 22.7% | [13.7, 38.8]% | 4.3% |
-| Early, warned 30 s+ ahead | | 5 / h | 2.64 | 36.0% | [23.8, 48.0]% (bootstrap) | 8.6% |
+| Early, warned 30 s+ ahead | | 5 / h | 2.64 | 36.0% | [25.0, 51.8]% | 8.6% |
 | Imminent, warned 10 s+ ahead | 0.893 [0.843, 0.938] (last 10 s) | 2 / h | 0.85 | 20.0% | [10.2, 39.2]% | 5.4% |
 | Imminent, warned 10 s+ ahead | | 5 / h | 3.23 | 45.3% | [27.5, 58.6]% | 11.7% |
 
@@ -110,11 +110,11 @@ PYTHONPATH=. .venv/bin/python -m anticipation.eval.va30 \
   --folds benchmark/results/fusion_v2/events/folds_without_confirmation.json \
   --horizons benchmark/extract_manifest_v1.csv --restrict_to_scored \
   --threshold_bootstrap 200 --n_boot 1000 --fa_targets 1,2,5 --cluster split_group \
-  --out_dir /tmp/va30_repro
-diff <(grep -v Generated /tmp/va30_repro/report.md) <(grep -v Generated benchmark/results/fusion_v2/events/va30_fa125/report.md)
+  --out_dir /tmp/va30_repro/va30_fa125
+diff <(grep -v Generated /tmp/va30_repro/va30_fa125/report.md) <(grep -v Generated benchmark/results/fusion_v2/events/va30_fa125/report.md)
 ```
 
-The diff should show only the provenance lines. Retraining the heads, the screen
+The only difference should be the hash of `extract_manifest_v1.csv`, which is the published (redacted) manifest; every number matches. Retraining the heads, the screen
 (`python -m anticipation.screen.run`), fusion (`python -m anticipation.screen.fusion`) and the confirmation
 (`python -m anticipation.screen.confirm`) need the datasets and extracted features: see [DATA.md](DATA.md),
 [docs/FEATURES.md](docs/FEATURES.md) and [docs/FUSION.md](docs/FUSION.md). The full environment is in

@@ -49,7 +49,7 @@ Only raw videos, the purpose-specific Qwen scan and visual inspection may inform
 `benchmark/results/`, existing feature arrays, prompt scores or fusion outputs are read during curation. The
 requested audit documents describe known failure modes; their model rankings are not used to select events.
 Every original eligible30 event is scanned, including fold 1. Original benchmark and registration files remain
-unchanged. Work happens in the separate `~/projects/va_onsets` checkout.
+unchanged. Work happens in a separate checkout.
 
 The onset definition is the first physical aggression against a person, including a shove, grab, punch, slap,
 kick, object strike, discharge toward a person, object thrown at a person, vehicle used as a weapon or police
@@ -206,7 +206,7 @@ the two passes are independent sessions of the same model; the main rounds also 
 Pass A). The cascade was driven almost entirely by UBI-Fights: of 115 reviewed UBI events, 50 were judged
 `no_violence` against 38 of 259 for XD. The UBI per-frame annotation length matches the video frame count
 (30 fps) in the checked videos, so this is annotation quality in the source dataset, not a conversion bug: in
-several videos (e.g. `F_152`, `F_159`) no annotated segment shows aggression, and in `F_13` and `F_3` the actual
+several videos no annotated segment shows aggression, and in two others the actual
 fight sits between annotated segments.
 
 **Lead-in span audit.** Several reviewers described unannotated violence before the target onset in their
@@ -221,7 +221,7 @@ the boundaries of an episode already confirmed by a reconciler reuse that confir
 "orchestrator carry-over").
 
 **Single-pass span exception.** `apply_corrections` requires two blind passes for any label change. One audited
-event (`ubi/F_160_0_0_1_0` event 14, Pass A `keep`) had a confirmed uncovered store brawl at 486-566 s but only
+event (one UBI event, Pass A `keep`) had a confirmed uncovered violent span about 80 s long but only
 one pass. Amended rule: a single-pass correction may add spans when its verdict equals the Pass A verdict and the
 reconciliation carries a `span_audit` record; the onset itself is unchanged.
 

@@ -366,8 +366,8 @@ run `--rescore` on the cached embeddings; no video decoding is needed.
 ### 4.3 Data: the only route to minute-scale leads and to the audio question
 
 - **Long-form domain-matched set** (new; kept channel-disjoint from the 92-video hold-out).
-  - Sources: unedited department bodycam releases ("full unedited bodycam", "critical incident video full",
-    "raw body camera footage released"), uncut dashcam, and livestream VODs.
+  - Sources: unedited police-agency bodycam releases (queries for full, unedited footage), uncut dashcam, and
+    livestream VODs.
   - Duration: 300 to 5,400 s.
   - Labelling: a VA30-trained violence-now head proposes onsets; humans verify only the onset and `t_conflict`.
   - Target: at least 200 events with 60 s or more of lead-in, all with diegetic audio.
@@ -378,7 +378,7 @@ run `--rescore` on the cached embeddings; no video decoding is needed.
 - **NTU CCTV-Fights:** requested on 2026-10-14, awaiting approval
   ([DATA_ACQUISITION.md](DATA_ACQUISITION.md) section 5). Its long untrimmed CCTV is what the long-window pose
   features need.
-- **DVD:** the authors were emailed on 2026-10-14. The ABAW route needs the faculty advisor as lead researcher with
+- **DVD:** access requested, not received (the authors were emailed on 2026-10-14). The ABAW route needs the faculty advisor as lead researcher with
   a signed EULA (DATA_ACQUISITION section 6). Ask the advisor.
 - **CamNuvem** (486 robbery CCTV videos with long approach phases). Check the licence and onset quality before use.
 - **H2, confrontation negatives** (at least 100): arguments that end without contact, police stops without force,
@@ -863,8 +863,8 @@ shortcut analysis, and the sustained-warning results.
 4. **Power.**
    - Long-lead (100 events) and audio (86, fewer after the diegetic filter) analyses are small. Expect INCONCLUSIVE.
    - The confirmation fold (59 events) can confirm direction, not significance.
-5. **Narration, music and burned-in text.** Speech features and the VLM can read the outcome from a narrator or a
-   chyron. Mitigations: audio-type filtering, results with news and compilation clips excluded, and an ablation with
+5. **Narration, music and burned-in text.** Speech features and the VLM can read the outcome from a narrator or burned-in
+   headline text. Mitigations: audio-type filtering, results with news and compilation clips excluded, and an ablation with
    burned-in text masked.
 6. **VLM pretraining contamination** with UCF-Crime, UCA, HIVAU or XD. The contamination probe tests it; UBI and new
    data are the cleaner checks.
@@ -927,7 +927,7 @@ shortcut analysis, and the sustained-warning results.
 | Status message counted 489 events (1) | Accepted | 551 (VA30 v2) used throughout |
 | Re-anchor onsets with a violence-now head and relabel the conflict phase (2) | Partly rejected | Machine re-anchoring with a head trained on the same noisy onsets is circular, and UCF HIVAU errors go the other way. Instead: a human-verified `t_strike` secondary onset (4.2); VA30 v2 stays the frozen primary benchmark |
 | No plan for long-lead domain data (2) | Accepted | Section 4.3 |
-| NTU CCTV-Fights "never submitted" (2) | Rejected as a fact | DATA_ACQUISITION.md section 5: submitted 2026-10-14, awaiting approval. DVD authors emailed the same day |
+| NTU CCTV-Fights "never submitted" (2) | Rejected as a fact | DATA_ACQUISITION.md section 5: submitted 2026-10-14, awaiting approval. DVD access requested the same day, not received |
 | Use the hold-out's 125 non-violent escalation clips (2) | Accepted, read-only | A specificity readout, never a decision input |
 | The VLM design drops what STCH credits; long-window query and forecast column (2) | Partly accepted | Arm C and the forecast column added at matched cost. STCH's ablation is unverifiable and its memory is a learned module, not a long prompt, so the long query is a test, not a premise |
 | Dyad modelling: ReID, backward tracking, same-frame negatives, camera-wearer cues, crops (2) | Accepted, staged | Camera-wearer cues as rank 8 (domain models only); ReID, backward tracking and crops in phase 2 for UCF and UBI, given track fragmentation on XD |

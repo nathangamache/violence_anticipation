@@ -13,7 +13,7 @@ Goal: remove the leftovers of abandoned strategies (gen-1 graph transformer, BiL
 
 Three things must happen before anything else (details in section 5, steps 0 and 1):
 
-1. **Save the only producer of two root MLPs today.** `~/.bash_history` is at its 2000-line cap (`HISTFILESIZE=2000`),
+1. **Save the only producer of two root MLPs today.** the shell history file is at its 2000-line cap,
    and the two `python -c` sessions that trained `synthetic_anticipation_mlp.pt` and `best_synthetic_anticipation.pt`
    sit at lines 20-207 and 209-386. Lines 1-18 have already started rolling off, so a few more shell sessions will
    erase them.
@@ -38,10 +38,9 @@ Amendments from the owner and lead, applied during execution:
    the 11 duplicate `final/*/scores.npy` (md5 `dfa2ce21fb8bb904ce3bd6ec2be9c638`, same as the archived
    `final/smoothing_sweep/scores.npy`), the empty `.part`/`.ytdl` stubs, empty folders (`lora_finetuned/worker_{0,1}`,
    `snapshots/`, `.locks/`, three empty `final/` runs) and `__pycache__`/`.pytest_cache`.
-2. **`youtube_cookies.txt` was not deleted.** It moved to `<cookies file outside the repo>` (directory mode 700,
-   file mode 600, md5 checked); [DATA_ACQUISITION.md](DATA_ACQUISITION.md) section 2 records the path.
-3. **No chmod on data directories.** The "mode 777" reading below came from `ls -l` on the symlink
-   `~/data` (symlinks always show `lrwxrwxrwx`). Its target `<data volume> is
+2. **The YouTube cookies file was not deleted.** It moved outside the repository to a private location (md5 checked).
+3. **No chmod on data directories.** The "mode 777" reading below came from `ls -l` on the `data`
+   symlink (symlinks always show `lrwxrwxrwx`). Its target is
    755, and `archive/`, `archive/repo_legacy/` and `archive/baseline_weights/` are 755 with `go-w` on their contents.
 4. **Grace period 90 days: purge date 2027-01-12**, recorded in `archive/repo_legacy/README.md` (that file replaces
    the plan's `README.txt`), in [README.md](README.md) section 8, in `legacy/README.md` and in the `docs/codebase/` banners.
@@ -54,7 +53,7 @@ What happened, with sizes:
 
 | Action | Files | Size | Where |
 |---|---|---|---|
-| Synthetic-MLP sessions extracted from `~/.bash_history` (lines 20-207, 209-386, unchanged) | 2 | 12 KB | `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/` (mode 600) |
+| Synthetic-MLP sessions extracted from the shell history (lines 20-207, 209-386, unchanged) | 2 | 12 KB | `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/` (mode 600) |
 | Trusted weights backed up | 4 | 26 MB | `archive/baseline_weights/` (+ `MD5SUMS`) |
 | KEEP relocated with `git mv` | 93 tracked + 4 ignored `best.pt` | 9.4 MB + 26 MB | `baselines/` (train_student_original.py, 8 reference runs) |
 | `curate_anticipation_dataset.py` renamed | 1 | 28 KB | `setup/curate_youtube.py` |
@@ -91,7 +90,7 @@ total_frames match `benchmark/videos.csv` for all 798 clips. `legacy/README.md` 
 | **Total** | **115** | | | |
 
 Effect: the working tree without `.venv/` and `.git/` shrinks from 6.0 GB to about 0.11 GB. About 4.47 GB moves to
-`data/archive/repo_legacy/` on `/data2` (358 GB free). About 1.7 GB is deleted.
+`data/archive/repo_legacy/` on a second volume. About 1.7 GB is deleted.
 Nothing the new pipeline or the B0 baseline reads is touched. Verified by grep: `anticipation/`, `benchmark/`,
 `setup/download_*`, `setup/build_hivau_onsets.py`, `tests/test_va30*.py` and the four kept tools import no legacy
 module. Their only links to legacy material are `data/metadata/*.json`, `data/processed/vlm_labels*`,
@@ -106,8 +105,8 @@ module. Their only links to legacy material are `data/metadata/*.json`, `data/pr
 | `experiments/README.md` | LEGACY vs REMOVE | **REMOVE**: it documents only the removed Mar 16 scripts and never mentions `fast_analyze_curation.py`. |
 | Root `train/val/test_index.json` | `legacy/splits/` | **`legacy/` root.** `training/evaluate.py` opens `val_index.json` relative to the CWD. If that file is missing, it silently evaluates on an index built from ALL graphs. |
 | `scripts/build_anticipation_labels.py` | REMOVE | **LEGACY**: it is the only producer of `labels_future_h*`, the labels behind the cited teacher number 0.772 (`vlm_eval_future_h30`). |
-| `youtube_cookies.txt` | KEEP ("probably expired") | **DELETE**: it holds live Google session cookies (expiry 2026-11/12) with mode 664 on a shared server, and its only consumer (Kinetics downloader) is removed. Never archive it. |
-| `.env` | KEEP | KEEP + `chmod 600` (now 664, readable by every user). |
+| YouTube cookies file | KEEP ("probably expired") | **DELETE**: it holds live session cookies and was readable by every user of the machine, and its only consumer (Kinetics downloader) is removed. Never archive it. |
+| `.env` | KEEP | KEEP + `chmod 600` (it was readable by every user). |
 | Synthetic root MLPs | document in prose | First extract the two `python -c` blocks verbatim into the archive, then document. |
 | `outputs/outputs_temporal/{args.json,final_metrics.json}` | git rm with the group | Copy them into the archive next to the archived checkpoint, then git rm. They are the only record of how to rebuild that model. |
 | Recovery pointer in docs | commit 2164ca4 | Tag `pre-cleanup` (the commit that adds the new pipeline). 86 `.py` files changed after 2164ca4, and `docs/` did not exist then. |
@@ -138,11 +137,11 @@ violence_anticipation/
   data -> data/   videos, metadata, features, archive/ (symlink, ignored)
   models -> models/               pretrained weights (symlink, ignored)
   .venv/               Python 3.10 environment (ignored)
-  CLAUDE.md            Agent instructions
+  (agent notes)        not published
   README.md            Short pointer to docs/ with the honest status
   requirements.txt     Dependency list (to be regenerated, see open questions)
   .gitignore
-  .env                 YOUTUBE_API_KEY (ignored, chmod 600)
+  .env                 YouTube API key (ignored, chmod 600)
   yolov8m-pose.pt      Fallback pose weight hard-coded in anticipation/features/pose.py (ignored)
 ```
 
@@ -181,7 +180,7 @@ Abbreviations: T = tracked, U = untracked/ignored, M = mixed. "Readers" = code o
 | `benchmark/` | 19 MB | U | VA30 catalog, events, folds, baseline results; `videos.csv` is the only in-repo list of the 92 curated hold-out videos. Commit in step 1. |
 | `docs/` | 756 KB | M | Central documentation. Commit `DATA_ACQUISITION.md`, `FEATURES.md`, `VA30.md` in step 1; path updates in step 11. |
 | `setup/{__init__.py, download_*.py, download_*.sh, build_hivau_onsets.py}` | 156 KB | M | New data acquisition (XD train, UBI-Fights, HIVAU-70k onsets). Untracked except `__init__.py`: commit in step 1. |
-| `tools/{server_load.py, contact_sheet.py, check_comment_only_diff.py, cpu_governor.sh}` | 16 KB | T | Required by CLAUDE.md (server etiquette, comment rule). |
+| `tools/{server_load.py, contact_sheet.py, check_comment_only_diff.py, cpu_governor.sh}` | 16 KB | T | Required by the project's agent notes (not published): server etiquette, comment rule. |
 | `tests/{__init__.py, test_va30.py, test_va30_fixes.py}` | 48 KB | M | VA30 tests (import only `anticipation.*`). Commit the two test files in step 1. |
 | `training/train_student_original.py` -> `baselines/train_student_original.py` | 72 KB | T | The only correctly aligned trainer and the B0 reproduction path (BASELINE.md 2.5). Standalone (stdlib/numpy/torch). Its CWD-relative `data/...` defaults still work from the repo root. |
 | `runs/student_fix1`, `runs/student_fix2`, `outputs/student_mlp`, `results/anticipation_prboost_v3` -> `baselines/reference_runs/<name>/` | 34 MB (72 tracked files 7.7 MB + 4 ignored `best.pt` 26 MB) | M | The four TRUSTED movie-grouped runs (test AUC 0.562-0.622), the numbers to beat. `splits_manifest.json` (identical in all 4, md5 `faac9ae5...`) is the only exact record of the B0 split. Move whole directories so `best.pt` travels along, verify md5, and back up the 4 `best.pt` to `archive/baseline_weights/`. |
@@ -189,10 +188,10 @@ Abbreviations: T = tracked, U = untracked/ignored, M = mixed. "Readers" = code o
 | `curate_anticipation_dataset.py` -> `setup/curate_youtube.py` | 28 KB | T | Provenance and re-download tool for `data/anticipation_curation/` (92 videos, the planned real-world hold-out). `load_dotenv()` walks up from the script's directory, so it still finds the root `.env`. Its `analyze`/`export` subcommands lazily import `vlm.qwen_teacher` and need `PYTHONPATH=legacy`. They are circular pseudo-labellers and should not be used for ground truth. |
 | `yolov8m-pose.pt` | 51 MB | U | Hard-coded `FALLBACK_WEIGHTS` in `anticipation/features/pose.py:89` (absolute repo-root path). Public Ultralytics weight. Moving it is optional (open question 5). |
 | `README.md` | 8 KB | T | Stale (describes a never-built system). Keep, and rewrite in step 11 as a short pointer to `docs/`. |
-| `CLAUDE.md` | 12 KB | T | Agent instructions. Update the codebase map and pitfalls in step 11. |
+| Agent notes | 12 KB | T | Agent instructions (not published). Update the codebase map and pitfalls in step 11. |
 | `requirements.txt` | 4 KB | T | Incomplete (covers only `rtsp_inference.py`). Regenerating it is a follow-up. |
 | `.gitignore` | 4 KB | T | Extend in step 11. Keep the now-dead `checkpoints/`, `simulation_data/`, `lora_finetuned*/` lines: they also guard `legacy/` runs. |
-| `.env` | 4 KB | U | Holds `YOUTUBE_API_KEY` for the curation script. Never in git history. `chmod 600` in step 2. Never archive it. |
+| `.env` | 4 KB | U | Holds the YouTube API key for the curation script. Never in git history. `chmod 600` in step 2. Never archive it. |
 | `data`, `models` (symlinks) | links | U | External storage used everywhere. |
 | `.venv/` | 8.7 GB | U | The project interpreter (BASELINE.md 2.5 uses it). Exclude from every sweep. |
 | `.git/` | 42 MB | - | Repository. |
@@ -221,7 +220,7 @@ Root files:
 
 | Path | Size | T | Reason / readers |
 |---|---|---|---|
-| `analysis_probe_clip_01.png` | 72 KB | T | Plot from the n=1 YouTube probe. Its numbers (frame AUC 0.718, all scores at least 0.515, max 0.767 after the fight) are in EXPERIMENT_HISTORY 2.14 and results_inventory 3H. No code reads it. |
+| `analysis_probe_clip_01.png` | 72 KB | T | Plot from the n=1 YouTube probe. Its numbers (frame AUC 0.718, all scores at least 0.515, max 0.767 after the labelled violence) are in EXPERIMENT_HISTORY 2.14 and results_inventory 3H. No code reads it. |
 | `eval_index.json` | 32 KB | T | Byte-identical to `test_index.json` (cmp). Written by `training/evaluate.py` and `tools/make_nonoverlap_splits.py`; read only by the removed `tools/check_split_overlap.py`. |
 | `inference_20260226_225311.log`, `inference_20260302_185137.log` | 140 KB | T | RTSP demo logs, no ground truth. Facts (825 and 75 inferences, 1 alert each at 0.5044 / 0.5059, about 0.4 s per VLM embedding, 2 ms per LSTM call) are recorded in results_inventory and EXPERIMENT_HISTORY 2.14. They contain emoji markers. |
 | `progress.sh` | 4 KB | T | One-off monitor for the finished Feb 20 VLM extraction (realtime_and_misc.md 8). |
@@ -308,7 +307,7 @@ Code (all superseded, broken or documented as invalid; facts in docs/codebase/*.
 |---|---|---|---|
 | `test_video.mp4` | 20 MB | U | yt-dlp test download, byte-identical (md5 `6f23c7b6...`) to `data/anticipation_curation/videos/holdout_025.mp4`. Docs that use it as a smoke-test clip should point to the curated copy. |
 | `test_holdout_025.mp4.part`, `test_holdout_025.mp4.ytdl` | 50 B | U | Empty partial download and resume stub from the failed first attempt. |
-| `youtube_cookies.txt` | 1.2 KB | U | Live Google session cookies (expiry 2026-11/12), mode 664 on a shared server. Its only consumer is removed. Never archive it. If future yt-dlp work needs cookies, export fresh ones into a `chmod 600` file outside the repo. **Amended (section 0): moved to `<cookies file outside the repo>`, not deleted.** |
+| YouTube cookies file | 1.2 KB | U | Live session cookies, readable by every user of the machine. Its only consumer is removed. Never archive it. If future yt-dlp work needs cookies, export fresh ones into a `chmod 600` file outside the repo. **Amended (section 0): moved outside the repo, not deleted.** |
 | `lora_finetuned_v2/checkpoint_epoch{1..5}/` | 455 MB | U | Per-epoch adapters of a collapsed run (val acc 0.4925 every epoch). `checkpoint_epoch1`'s adapter files are byte-identical to `best_model`'s (`best_model` also carries the tokenizer/processor files; archived). |
 | `lora_finetuned/checkpoint_epoch{1,2,3}/`, `lora_finetuned/worker_0/`, `worker_1/` | 29 MB | U | Intermediate v1 adapters (documented in vlm_and_llm.md 5); `worker_*` are empty. |
 | `final/{final_evaluation_student_mlp, late_fusion_optimization, smoothing_w3_t0.3}/` | 0 | U | Empty dirs from failed runs. |
@@ -321,7 +320,7 @@ Code (all superseded, broken or documented as invalid; facts in docs/codebase/*.
 
 | # | Path | Size | T | Removal | Reason |
 |---|---|---|---|---|---|
-| D1 | `synthetic_anticipation_mlp.pt`, `best_synthetic_anticipation.pt` | 10.9 MB | U | archive (with A1) | Producer found only in `~/.bash_history`. Extract it verbatim, correct the docs' "no producer script" and the inferred widths, then archive. |
+| D1 | `synthetic_anticipation_mlp.pt`, `best_synthetic_anticipation.pt` | 10.9 MB | U | archive (with A1) | Producer found only in the shell history. Extract it verbatim, correct the docs' "no producer script" and the inferred widths, then archive. |
 | D2 | `checkpoints/model_epoch{1..9,11..59}.pt` (58 files) | 691 MB | U | `rm` | Intermediate epochs of a leaky, non-causal run; never evaluated or cited. Only their timing is worth recording. |
 | D3 | `best_checkpoints/model_epoch{1..39}.pt` (39 files) | 464 MB | U | `rm` | Same, for the earlier 40-epoch run. |
 | D4 | `final/high_sensitivity/scores.npy` + 10 `final/smoothing_w*/scores.npy` | 2.1 MB | U | `rm` | All 11 byte-identical (md5 `dfa2ce21fb8bb904ce3bd6ec2be9c638`) to the archived `final/smoothing_sweep/scores.npy`. results_inventory 7 cites `high_sensitivity/scores.npy`. |
@@ -356,7 +355,7 @@ and the table with:
 > All were produced on 2026-03-02 (saved 10:33 to 13:35) by inline `python -c` sessions, never by a repo script.
 > - `synthetic_anticipation_mlp.pt` (Adam lr 1e-4, weight decay 1e-3, 30 epochs, cuda:1) and
 >   `best_synthetic_anticipation.pt` (Adam lr 5e-5, 50 epochs; the saved checkpoint is the epoch with the best AUC on
->   the held-out 20 %, i.e. selected on the test split, D5) came from two sessions preserved in `~/.bash_history`.
+>   the held-out 20 %, i.e. selected on the test split, D5) came from two sessions preserved in the shell history.
 >   They are extracted verbatim to `archive/repo_legacy/synthetic_mlp_sessions_2026-03-02/`. The sessions take a
 >   violent segment from `vlm_emb` + `labels_multih` with `labels.max(axis=1) > 0` and `labels[:len(emb)]` (D1, D2;
 >   really the 120 s pre-onset window). In front of it they splice a random 30 to 60 step non-violent lead-up cut
@@ -472,8 +471,7 @@ Also update `docs/codebase/results_inventory.md` sections 0 and 5, which cite `f
 ## 5. Execution steps
 
 Run in **bash**, from the repo root, in this order. Each step lists its checks; stop at the first failed check.
-Steps marked **IRREVERSIBLE** destroy data that exists nowhere else. Commit messages follow CLAUDE.md (no AI
-attribution trailer).
+Steps marked **IRREVERSIBLE** destroy data that exists nowhere else. Commit messages follow the project's agent notes (not published).
 
 ```bash
 REPO=.
@@ -487,7 +485,7 @@ cd "$REPO"
 ```bash
 install -d -m 755 data/archive "$ARCH" "$ARCH/synthetic_mlp_sessions_2026-03-02"
 S="$ARCH/synthetic_mlp_sessions_2026-03-02/bash_history_snapshot.txt"
-(umask 077; cp ~/.bash_history "$S")                       # freezes the line numbers
+(umask 077; cp "$HISTFILE" "$S")                       # freezes the line numbers
 grep -n '^python -c "$\|^"$' "$S" | head -6                 # 2026-10-14: 18:" 20:python -c " 207:" 209:python -c " 386:"
 grep -n 'synthetic_anticipation_mlp.pt\|best_synthetic_anticipation.pt' "$S"   # 2026-10-14: 3, 194, 347, 353
 # If the numbers moved, adjust the two ranges so block 1 contains the 'synthetic_anticipation_mlp.pt' save and
@@ -495,7 +493,7 @@ grep -n 'synthetic_anticipation_mlp.pt\|best_synthetic_anticipation.pt' "$S"   #
 (umask 077; sed -n '20,207p'  "$S" > "$ARCH/synthetic_mlp_sessions_2026-03-02/session1_synthetic_anticipation_mlp.py.txt")
 (umask 077; sed -n '209,386p' "$S" > "$ARCH/synthetic_mlp_sessions_2026-03-02/session2_best_synthetic_anticipation.py.txt")
 grep -inE 'key|token|passw|secret|cookie' "$ARCH"/synthetic_mlp_sessions_2026-03-02/session*.txt   # expect no output
-rm "$S"                                                    # the snapshot was only a copy of ~/.bash_history
+rm "$S"                                                    # the snapshot was only a copy of the shell history
 ```
 
 ### Step 1. Safety net: commit the new pipeline, tag, push
@@ -511,13 +509,10 @@ git tag -a pre-cleanup -m "State before the 2026-10 repo cleanup; recover remove
 git push origin master && git push origin pre-cleanup
 ```
 
-### Step 2. Secrets (the cookie deletion is IRREVERSIBLE, by intent)
+### Step 2. Secrets (the cookies-file deletion is IRREVERSIBLE, by intent)
 
 ```bash
-chmod 600 .env
-rm youtube_cookies.txt
-# Alternative if yt-dlp with an account is planned (open question 2):
-#   install -d -m 700 ~/.secrets && mv youtube_cookies.txt ~/.secrets/ && chmod 600 ~/.secrets/youtube_cookies.txt
+# Move any local credential files out of the working tree and keep them private (mode 600).
 ```
 
 ### Step 3. Back up the four trusted weights (they are ignored, so git does not protect them)
@@ -640,7 +635,7 @@ EOF
 # Sanity: every entry must be untracked (expect no output) and must exist (expect no 'missing' lines)
 xargs -a "$ARCH/ARCHIVE_LIST.txt" -d '\n' git ls-files --
 while read -r p; do [ -e "$p" ] || echo "missing: $p"; done < "$ARCH/ARCHIVE_LIST.txt"
-# Copy, preserving relative paths (about 4.47 GB, /data1 -> /data2). -r is needed explicitly with --files-from.
+# Copy, preserving relative paths (about 4.47 GB, to a second volume). -r is needed explicitly with --files-from.
 nice -n 10 ionice -c2 -n7 rsync -a -r -R --files-from="$ARCH/ARCHIVE_LIST.txt" ./ "$ARCH/"
 # Copy-only: tracked files that document the archived default BiLSTM (they are git rm'd in step 9)
 rsync -aR outputs/outputs_temporal/args.json outputs/outputs_temporal/final_metrics.json "$ARCH/"
@@ -756,7 +751,7 @@ sed -i -e 's#training/train_student_original\.py#baselines/train_student_origina
        -e 's#results/anticipation_prboost_v3#baselines/reference_runs/anticipation_prboost_v3#g' \
        -e 's#results/vlm_eval#baselines/reference_runs/vlm_eval#g' \
        -e 's#curate_anticipation_dataset\.py#setup/curate_youtube.py#g' \
-    CLAUDE.md docs/README.md docs/BASELINE.md docs/EXPERIMENT_HISTORY.md docs/codebase/*.md docs/research/*.md
+    docs/README.md docs/BASELINE.md docs/EXPERIMENT_HISTORY.md docs/codebase/*.md docs/research/*.md
 grep -rn 'student_mlp_repro' docs/BASELINE.md     # change that --out_dir to runs/b0_repro by hand
 ```
 
@@ -785,7 +780,7 @@ Hand edits:
 4. **`docs/codebase/results_inventory.md`:** the scope line; section 2 (sims now archived); section 4 (folders
    removed, recoverable via the tag); section 7 "Reusable assets" (drop the leaky entries; point weights to the archive).
 5. **`docs/EXPERIMENT_HISTORY.md`:** 2.2 (checkpoints are archived), 2.11 (LoRA adapters archived), 2.13 (sims archived).
-6. **`CLAUDE.md`:**
+6. **Agent notes (not published):**
    - Codebase map: rows for `anticipation/`, `benchmark/`, `baselines/`, `setup/`, `tools/`, `tests/`, `legacy/`,
      `docs/`.
    - Key facts, line 71: the "python -m training.train style" note becomes "new code from the repo root; legacy code
@@ -793,7 +788,7 @@ Hand edits:
    - Honest baseline, line 86: new paths.
    - Pitfalls, line 104: "`legacy/*_index.json` leak by source movie".
    - Pitfalls, line 107: "Never run `legacy/training/train.py` unmodified: it overwrites `legacy/train_index.json`".
-   - Line 10: drop `youtube_cookies.txt` from the secrets example, or keep it as a generic pattern.
+   - Line 10: drop the cookies file from the secrets example, or keep it as a generic pattern.
 7. **Root `README.md`:** rewrite to about 20 lines: the goal, the honest status (test AUC 0.58 to 0.62, XD-only at
    chance, no 30 s anticipation yet), a pointer to `docs/README.md`, and the top-level table from section 2.
 8. Optional: in `anticipation/features/pose.py:41`, reword "(scripts/pose_feature_extraction.py)" to
@@ -864,11 +859,11 @@ the owner wants. Never delete `archive/baseline_weights/`.
 1. **Grace period.** Is 90 days right for `archive/repo_legacy/` (4.47 GB)? At the end, should anything small
    survive permanently, such as the `probe_clip_01` arrays, `good_video_indices.npy`, the 8-hour sim (BASELINE 3.1
    continuity) or the extracted synthetic-MLP sessions?
-2. **`youtube_cookies.txt`.** Delete it (planned), or move it to a `chmod 600` file outside the repo for future
-   yt-dlp work, for example re-downloading curated or age-restricted videos? It held live Google session cookies and
+2. **YouTube cookies file.** Delete it (planned), or move it to a `chmod 600` file outside the repo for future
+   yt-dlp work, for example re-downloading curated or age-restricted videos? It held live session cookies and
    was readable by every user for 11 months. Consider signing that account out of other sessions.
-3. **Resolved, no action needed.** The "mode 777" reading came from the symlink `~/data`; its
-   target `<data volume> is 755 (section 0, amendment 3).
+3. **Resolved, no action needed.** The "mode 777" reading came from the `data` symlink; its
+   target is 755 (section 0, amendment 3).
 4. **Reference-run location.** The plan moves the honest runs and the teacher evals to `baselines/reference_runs/`
    (cleaner root, about 60 path rewrites done by `sed`). The alternative is to leave `runs/`, `outputs/` and
    `results/` in place with only the honest folders, which needs fewer doc edits but keeps three confusing top-level
@@ -879,12 +874,12 @@ the owner wants. Never delete `archive/baseline_weights/`.
 6. **`curate_anticipation_dataset.py` -> `setup/curate_youtube.py`.** OK to rename? Its `analyze`/`export`
    subcommands will need `PYTHONPATH=legacy`.
 7. **Gen-1 intermediate epochs (1.16 GB) and LoRA epoch adapters (484 MB).** Delete them outright (planned) or
-   archive them too? There is space on `/data2`, but nothing has ever read them.
+   archive them too? There is space on the second volume, but nothing has ever read them.
 8. **LoRA best/final adapters (244 MB)** are archived only as provenance of a documented failure. Delete them now
    instead?
 9. **`benchmark/results/*/scores.parquet`** (about 1 MB each, 12 MB folder) will be committed in step 1, as
    `benchmark/README.md` intends ("when under 5 MB"). Or add `*.parquet` to `.gitignore`?
-10. **Push.** CLAUDE.md mandates pushing to `origin master`. Confirm that the removal commits, plus a pushed
+10. **Push.** The project's agent notes mandate pushing to `origin master`. Confirm that the removal commits, plus a pushed
     `pre-cleanup` tag as the public recovery point, are wanted on GitHub.
 11. **`docs/codebase/`.** Keep it in place with the "pre-cleanup tree" banner (planned), or move it to
     `docs/legacy_codebase/` so its old paths are not mistaken for current ones?

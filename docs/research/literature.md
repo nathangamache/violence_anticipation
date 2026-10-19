@@ -116,7 +116,7 @@ The repo goal (30 s+ before onset) is anticipation at the far end of anything pu
   coarse box geometry. Whole-frame context >= person crops.
 - Controls: truncating normal videos to the pre-onset length distribution reduced XD CTX retention from
   98 % to 70 % (clip length itself was a cue). Inspection found **title cards and platform watermarks** in
-  pre-onset windows (e.g. a 39 s watermark-only pre-onset window in Assault006) that never appear in the
+  pre-onset windows (e.g. a 39 s watermark-only pre-onset window in one UCF clip) that never appear in the
   CCTV normals.
 - Recommendations from the paper: pre-onset-only scoring, length control, provenance audit,
   cluster-bootstrap CIs by video. No code.

@@ -258,11 +258,11 @@ Conventions:
 ### 2.14 Live RTSP demo and YouTube probe (Feb 26 to Mar 2)
 
 - **What:** `realtime/rtsp_inference.py` (Qwen embedding at 1 fps on cuda:0, BiLSTM on cuda:1) ran twice
-  on a MacBook stream; `scripts/analyze_youtube.py` scored YouTube video `probe_clip_01`.
+  on a laptop webcam stream; `scripts/analyze_youtube.py` scored YouTube video `probe_clip_01`.
 - **Outcome:** real-time capable (0.35 s per VLM embedding, 2 ms per LSTM call). Each live session fired one
   borderline alert (score 0.504 and 0.540); no ground truth exists. On `probe_clip_01` (hand labels: violence
   37 to 45 s), frame AUC is 0.718, every score is at least 0.515, and the global maximum (0.767) is at
-  196 s, after the fight.
+  196 s, after the labelled violence.
 - **Why it underperforms:** train/serve skew (ReLU instead of GELU, different prompt and pooling, 1 s
   sampling versus about 3 to 6.6 s training steps, window 32 versus 30) on top of a model with val AUC 0.58.
 - The ten root MLP state dicts of Mar 2 are orphaned. Two of them (`synthetic_anticipation_mlp.pt`,

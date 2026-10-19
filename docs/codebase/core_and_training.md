@@ -471,7 +471,7 @@ Scripts:
 
 * Relative paths everywhere (`configs/*.yaml`, `data/processed/...`, `yolov8n.pt`, `train_index.json`, `checkpoints/`),
   so you must run from the repo root.
-* `scripts/preprocess_anticipation.py`: `BASE = ~/projects/violence_anticipation/data`. On this machine that
+* `scripts/preprocess_anticipation.py`: `BASE` is a hard-coded home-relative path that
   resolves to the repo's `data` symlink.
 * `scripts/quick_inspect.py`: `data`.
 * `core/utils.get_device()`: `VA_GPU` env, default `"1"` (a removed code comment wrongly said GPU 0).

@@ -37,9 +37,9 @@ participants' speech is not.
 - Calibration set (24 videos, transcripts read by hand): 20 agree. Rules were tuned here, so this is optimistic.
 - Fresh set (12 videos labelled after the rules were frozen): 9 agree. Misses: a sports clip with music called music,
   a re-enactment with narration called narration, a streamer talking called mixed.
-- Frame checks (6): a talk-show studio and a local news reporter confirmed as narration; bike camera, city
-  council meeting and restaurant CCTV confirmed as diegetic; one vlogger talking head was labelled diegetic by text
-  but it is the vlogger's own monologue about another event, not scene audio.
+- Frame checks (6): a studio talk show and a news reporter confirmed as narration; a body-worn camera, a public
+  meeting and restaurant CCTV confirmed as diegetic; one talking head was labelled diegetic by text
+  but it is the speaker's own monologue about another event, not scene audio.
 - Weakest boundary: diegetic versus mixed (streamer talk, reaction videos, scripted clips on YouTube). Expect the
   true diegetic count to be somewhat below the number reported here.
 
@@ -65,17 +65,16 @@ Hold-out videos use pseudo-labels (not ground truth) and are not part of S_audio
 
 **Diegetic S_audio events: 25 at best, of which 12 have intelligible speech (Phase B sample size) and 13 are
 ambient only** (little or no transcribed speech; the speech block is empty for them). After removing the
-streamer and talk-show look-alikes found in the spot checks (for example the vlogger above), the realistic usable
+streamer and talk-show look-alikes found in the spot checks (for example the monologue above), the realistic usable
 number is about 8 to 10 speech events. 27 of 86 candidates are narration or commentary (mostly sports play-by-play
 and news segments) and 13 more are silent in the pre-onset window (UCF digital silence).
 
 Examples (see the json for evidence per video):
-- Narration: `yt/holdout_086` (talk-show studio), `xd/v=7zEFHKKBA0g__#1_label_B4-0-0` (local news reporter),
-  `xd/v=Rve00ZElOO8__#1_label_B1-0-0` (hockey play-by-play), `yt/holdout_027` (true-crime voice-over).
-- Diegetic: `yt/holdout_059` (bike camera, participants), `xd/v=NYnAnri6KTs__#1_label_B4-0-0` (city council meeting),
-  `ucf/Robbery125_x264` (Chinese conversation), `ucf/Fighting050_x264` (Russian conversation).
-- Music: `ucf/Robbery059_x264`, `xd/v=VaQpmWUfmn0__#1_label_B1-0-0` (soundtrack over a clip).
-- Mixed: `yt/holdout_011` (911 audio plus commentary), all XD movies.
+- Narration: a studio talk show, a news reporter, sports play-by-play and a voice-over (two curated videos and
+  two XD videos).
+- Diegetic: a body-worn camera with participants, a public meeting, and two UCF clips with non-English conversation.
+- Music: one UCF clip and one XD clip with a soundtrack over the footage.
+- Mixed: an emergency-call recording with commentary, and all XD movies.
 
 ## 5. Recommendation
 

@@ -1,5 +1,7 @@
 # Fusion: two-head forward selection and one-shot fold-1 confirmation
 
+> Superseded: these are interim results on v1 labels. Current results (labels v3, screen_set_v2, fusion_v2, fold-1 confirmation): see docs/RESULTS_V3.md.
+
 Status 2026-10-15: **interim results on v1 labels** (screen_set_v1, folds_v2). Onset labels are being corrected (v3) and a
 new registration will follow, so every number below is to be re-run (section 7). P2 (GRU) was **not** run on real data
 in this interim pass; the P1 results stand as the selected models by default of the rule. Fold 1 was never read.

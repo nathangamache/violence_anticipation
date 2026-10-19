@@ -16,7 +16,7 @@ Repo root: `.` (paths below are relative to it).
 
 ## 0. TL;DR
 
-* **Qwen2.5-VL-7B-Instruct** (local copy: `models/Qwen2.5-VL-7B-Instruct`, 16 GB, bf16; also in `~/.cache/huggingface/hub`)
+* **Qwen2.5-VL-7B-Instruct** (local copy: `models/Qwen2.5-VL-7B-Instruct`, 16 GB, bf16; also in the local Hugging Face cache)
   is used in four ways:
   1. **Teacher labeller**: it reads one frame at a time and writes a JSON verdict (`violent.label/score`, people count, actions, weapons, scene and so on).
      Script: `scripts/vlm_label_dataset.py`. Output: `data/processed/vlm_labels*/<source>/<vid>.jsonl`.

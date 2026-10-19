@@ -76,7 +76,7 @@ Known channels and compilations (names from general knowledge; UNVERIFIED, check
 
 | Type | Examples | Why useful |
 |---|---|---|
-| Police bodycam archive channels | Official police department channels and city transparency portals (e.g. Chicago COPA releases, Pasadena PD) are the sources behind EgoPolice (V) | Long, minimally edited, includes routine contacts |
+| Police bodycam archive channels | Official police department channels and city transparency portals are the sources behind EgoPolice (V) | Long, minimally edited, includes routine contacts |
 | Bodycam compilation channels | PoliceActivity, Audit the Audit, LA Video, Lemonade Stand (U) | Many tense-but-nonviolent encounters; compilations are edited, prefer full-length uploads |
 | Road-rage and dashcam channels | Dashcam compilation channels such as Dash Cam Owners Australia, Road Rage USA (U) | Standoffs where drivers do not fight; edited compilations contain violence too, so filter |
 | Live webcams and streams | EarthCam, Explore.org, Times Square and Shibuya crossing 24/7 streams, YouTube "live city cam" (U) | Hours of crowded never-violent footage with no editing; ideal for FA/h; check terms before recording a stream |

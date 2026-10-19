@@ -262,9 +262,8 @@ Violent vs time-matched normal, % of event windows. **Bold** = CI of the differe
 
 - **Earlier violence before HIVAU onsets.** In 22 of 378 UCF violent videos, a UCA caption with a strike word ends
   at least 10 s before the benchmark onset. All 22 have HIVAU onsets; none of the 43 official-onset videos do.
-  Reading them, about 19 describe real violence, for example "the teacher twisted their ears and dragged the two
-  children to the wall" 108 s before onset (`Abuse013`), or "a man in blue rushed ... with a knife and stabbed"
-  265 s before onset (`Fighting008`). The other 3 are false matches (a car hitting a flagpole, a smashed screen,
+  Reading them, about 19 describe real violence, in some cases more than 100 s before onset (the earliest are
+  108 s and 265 s). The other 3 are false matches (a car hitting a pole, a smashed screen,
   and one unclear). These lead-ins contain unannotated violence: a detector would "anticipate" them by detecting.
 - **Onset agreement with UCA.** Counting strike and weapon words, the first UCA violence caption starts within 5 s
   of the onset for 74 % of official-onset events (n = 31) but only 35 % of HIVAU-onset events (n = 258); it starts
@@ -466,8 +465,8 @@ Other facts:
 - **Escalation without violence is common.** Of 206 raw clips with a visible escalation start, 81 (39 %) contain
   violence. The 125 clips with escalation but no violence show a median of 10.3 s of escalation (16.2 s and 25 %
   at least 30 s when not left-censored). Some may continue past a cut.
-- **Longest visible build-ups are civilian road-rage and argument shoves.** Examples: 174.5 s of arguing before a
-  shove (`holdout_059`), 53.4 s (`holdout_069`), 35.6 s before a punch (`holdout_051`). Police force follows a
+- **Longest visible build-ups are civilian road-rage and argument shoves.** The three longest are 174.5 s of
+  arguing before a shove, 53.4 s, and 35.6 s before a punch. Police force follows a
   shorter visible build-up (at most 33 s).
 - **Cues in the notes.** Over the 207 raw clips with an escalation start (56 records), notes mention vehicles in
   55 %, verbal conflict (argue, yell, swear, threat) in 36 %, approach in 29 %, gestures in 23 %, face-off in 18 %

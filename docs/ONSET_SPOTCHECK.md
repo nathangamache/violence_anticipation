@@ -56,12 +56,12 @@ Corrected onsets (corrected minus marked, seconds; negative means the mark is af
 
 ## Examples
 
-- Early (HIVAU, ice hockey): play continues for 6 s after the mark; the fight starts at 132.5 s vs mark 126.2 s.
-- Early (HIVAU, CCTV arrest): officer works at a pole for about 10 s after the mark; the struggle starts near 100.5 s.
-- Late (HIVAU, store robbery CCTV): robber is already over the counter attacking the clerk at -2 s.
-- Late (HIVAU, street CCTV): vehicles already ramming police cars at -10 s.
-- Wrong (HIVAU): pixel-art video game, a news talking head, shooting-range practice, calm shop and street CCTV.
-- Early (official, basketball): mark falls during play; brawl starts about 5 s later.
+- Early (HIVAU, sports broadcast): play continues for 6 s after the mark; the fight starts at 132.5 s vs mark 126.2 s.
+- Early (HIVAU, CCTV): calm activity continues for about 10 s after the mark; the struggle starts near 100.5 s.
+- Late (HIVAU, CCTV): violence is already under way at -2 s.
+- Late (HIVAU, CCTV): violence is already under way at -10 s.
+- Wrong (HIVAU): video-game footage, a news talking head, range practice, calm CCTV scenes.
+- Early (official, sports broadcast): mark falls during play; the brawl starts about 5 s later.
 
 ## Implications for VA30
 

@@ -56,7 +56,7 @@ non-CCTV 55). Eligible60: 41.
   rate 1000 fps). All webm were re-encoded to constant-frame-rate mp4 (crf 16, timestamps preserved); the originals are in
   `raw_videos/cctv_fights/videos_original/`. After that, decord duration equals the groundtruth duration (max(1 s, 2 %)) for
   997 of 1,000 videos.
-- **Three label-unreliable videos** (`label_reliable = False`): `fight_0142`, `fight_0146`, `fight_0520`; the annotations do not
+- **Three label-unreliable videos** (`label_reliable = False`): three videos; the annotations do not
   belong to the file we have (durations 351.5 vs 344.2 s, 121.5 vs 108.0 s, 43.7 vs 80.4 s). Excluded from the evaluation set.
 - **Audio.** 868 videos have a non-silent audio stream (`io.is_digital_silence`); the 132 without it are mostly CCTV. Audio is a YouTube re-encode of unknown content (speech, crowd noise, music).
 - **Overlap.** See section 5.
@@ -115,7 +115,7 @@ Status (finished 2026-10-15 19:15, wall 3 h 38 min, cuda:0 only, 4 processes at 
 | audio_dsp | 868 | 0 |
 | speech_tox | 868 | 0 |
 
-The one failure: `pose` on `fight_0142` (one of the three label-unreliable videos) raised a decord EOF error ("takes too long to retrieve
+The one failure: `pose` on one of the three label-unreliable videos raised a decord EOF error ("takes too long to retrieve
 last few frames", `DECORD_EOF_RETRY_MAX=10240`); the other lanes decoded it. It was re-run with `DECORD_EOF_RETRY_MAX=1000000` and
 succeeded; pose_state and scene0p were then completed for it. The 132 videos without real audio have no audio-lane files by design (a
 missing audio file means "no real audio", as in the main catalog). The number of ticks equals floor(decoded duration) in every

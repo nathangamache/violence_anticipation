@@ -138,7 +138,7 @@ The bulk run of 2026-10-14 uses the queue in [Bulk extraction run v1](#bulk-extr
 commands below; they remain valid for one-off runs.
 
 Long runs must be detached, logged and resumable; re-running the same command after a crash continues.
-Expected wall time for the current manifest (352 h), measured on a shared machine: pose about 5.2 h (68x
+Expected wall time for the current manifest (352 h), measured under CPU contention: pose about 5.2 h (68x
 aggregate with 6 processes on 2 GPUs), motion about 3.7 h (94x with 8 CPU processes). The runner has no
 per-video timeout: a native crash or hang in decord / ffmpeg kills or stalls that shard without a
 `failures.jsonl` entry, so check the shard logs and re-run the same command (it resumes; `--skip_failed`
@@ -334,16 +334,15 @@ Videos, saved (version 2) under `FEATURE_ROOT/{vjepa2_l,siglip2,siglip2_prompts}
 | video_id | Length | Resolution | Note |
 |---|---|---|---|
 | `xd/v=pL2HjXvWuPc__#1_label_B1-0-0` | 201.5 s | 640x360 | fight onset at 45.4 s (annotations.txt) |
-| `ucf/Fighting003_x264` | 103.4 s | 320x240 | onset at 60.7 s |
+| `ucf/Fighting003_x264` | 103.4 s | 320x240 | onset at 60.7 s (grainy CCTV) |
 | `ucf/Normal_Videos_641_x264` | 120.0 s | 320x240 | normal |
-| `yt/holdout_004` | 253.9 s | 640x360 | convenience-store confrontation |
+| `yt/holdout_004` | 253.9 s | 640x360 | curated hold-out video |
 
 The first smoke run saved the curated video as `curated/holdout_004` (version 1). Those three files are stale and
 not at a canonical id; nothing reads them, and they can be deleted.
 
 Version 2 checks on all four videos. The scripts are not in the repo: `smoke_fix.py` and a proposed pytest file
-`test_visual_features.py` (CPU only, 9 tests) are in the visual fixer's scratchpad
-`<scratch>/fix_visual/`.
+`test_visual_features.py` (CPU only, 9 tests) were kept in a temporary scratch directory (not preserved).
 The in-repo check is `--check-processor`. Results:
 - T = floor(duration), every tick valid, all three files `version` 2.
 - `extract_visual` (one decode) is bitwise identical to `vjepa.extract`, `siglip.extract` and `prompts.extract`.
@@ -374,7 +373,7 @@ machine idle):
   video-second, about 1.6 TFLOP per clip).
 - Decoding runs in a background thread (decord releases the GIL) and costs about 100 to 180 video-s/s at
   360p with 4 threads. All local sources are 640x360 or smaller.
-- With the machine loaded (load average 30 on 16 cores, other tracks running), the same runs measured about
+- With the machine loaded (load average 30, other tracks running), the same runs measured about
   half these speeds (`vjepa2_l` 26, `siglip2` 54, `extract_visual` 38 video-s/s). Budget for that.
 - Version 2 moves the resize to the CPU decode thread. That costs about 0.7 ms per 360p frame and
   about 3.5 ms per video-second. An A/B run in one process at load average 39 measured `extract_visual`
@@ -422,7 +421,7 @@ Prompt scores around onsets (version 2; mean cosine over onset-45 to -35 s, onse
 - Versions: `vjepa2_l` 2, `siglip2` 2 and `siglip2_prompts` 2 (2026-10-14). Version 1 files used a float
   GPU resize (see Preprocessing) and bf16-rounded logit constants; they must not be mixed with version 2. The
   runner skips existing outputs, so pass `--overwrite` (or delete version-1 files) before a bulk run.
-- The weights are in the HF cache (`~/.cache/huggingface/hub`): V-JEPA 2-L 1.3 GB, SigLIP 2 4.5 GB.
+- The weights are in the HF cache (the local Hugging Face cache): V-JEPA 2-L 1.3 GB, SigLIP 2 4.5 GB.
 - `prompts.rescore_all` rewrites a prompts file when it is missing or stale: a different `prompt_set_hash`,
   prompts `VERSION`, or `backbone_version` than the `siglip2` file it is computed from. `--force` rewrites all
   of them. It warns about `siglip2` files older than `siglip.VERSION`, because those must be re-extracted from
@@ -499,7 +498,7 @@ fewer than 3 points).
   windows (all defaults) every tick of such a track is invalid, so for the VA30 breakdown it counts as
   audio-absent, like `digital_silence`. Treat `ok` as the only "audio present" status.
 - Why -65 dBFS (added in v1.1 after review): encoder-noise tracks pass the peak test but are inaudible
-  (UCF Robbery056 -88 dBFS, Explosion042 -75, Arrest033 -70 RMS). Before v1.1 they were valid on every tick,
+  (three UCF clips at -88, -75 and -70 dBFS RMS). Before v1.1 they were valid on every tick,
   and `voice.py` normalises each window to unit variance, so the SER heads produced confident arousal values
   on silence (a dither file gave arousal 0.58 with `speech_frac` 0). In 130 random XD and curated videos,
   2.7 % of 3-s windows are below -80 dBFS (digital-silence stretches, already invalid before) and only
@@ -564,7 +563,7 @@ Every column at tick t is a pure function of the audio in `[max(0, t - W), t]`, 
   effects broke this in v1.0, and both are now fixed:
   - `ast_fbank` ran one GPU fbank per 300 s chunk, and the last chunk's length depended on the track length.
     cuFFT then changed frames by about 1e-6, which the fp16 AST pass amplified to 0.011, so `ast_emb` failed
-    `io.check_causal` (tolerance 1e-2) on The.Hurt.Locker at cuts 61.5, 64.5, 66.5 and 70.2 s. Every chunk is
+    `io.check_causal` (tolerance 1e-2) on a 5.1 XD movie clip at cuts 61.5, 64.5, 66.5 and 70.2 s. Every chunk is
     now zero-padded to exactly 300 s + 240 samples, and the extra frames are cut off. Frames are independent,
     so values are unchanged.
   - The last GPU batch of a truncated video was smaller. In fp16, AST with batch 1 versus 64 differs by
@@ -632,7 +631,7 @@ Four videos. Outputs went to a scratch `FEATURE_ROOT`, round-tripped through `io
 |---|---|---|---|---|
 | `xd/v=FW_qbiPH7UA__#1_label_B1-0-0` (fight, onset 68.9 s) | 136 | ok | 1.00 | pass, all 6 (60 s) |
 | `xd/v=1202rYvw7go__#1_label_A` (normal) | 164 | ok | 1.00 | pass, all 6 (60 s) |
-| `curated/holdout_044` (bus altercation, YouTube) | 308 | ok | 1.00 | pass, all 6 (90 s) |
+| `curated/holdout_044` (YouTube) | 308 | ok | 1.00 | pass, all 6 (90 s) |
 | `ucf/Fighting003_x264` | 103 | digital_silence | 0.00 | pass, all 6 (40 s) |
 
 The smoke run also passed through `run_extract.py` (dotted-module path for `audio_dsp`) and through both
@@ -641,15 +640,14 @@ The smoke run also passed through `run_extract.py` (dotted-module path for `audi
 **Re-check after the v1.1 fix pass** (`final_check.py` in the fixer's scratchpad; log
 `data/logs/audio_fix_check.log`). Eight videos, all six outputs,
 round trip through `io` into a scratch root, tick grid equal to `io.tick_times`, no NaN, invalid rows all zero.
-`io.check_causal` (fp16 defaults) was run at 9 cuts: The.Hurt.Locker (5.1, offset -21 ms) at 61.5 and 66.5 s,
-curated holdout_004 at 97.3 s, the four videos above, UCF Robbery056 (near-silent) at 40 s, and a synthetic
+`io.check_causal` (fp16 defaults) was run at 9 cuts: the 5.1 XD movie clip (offset -21 ms) at 61.5 and 66.5 s,
+curated holdout_004 at 97.3 s, the four videos above, one near-silent UCF clip at 40 s, and a synthetic
 40 s video with audio 0.5 s late at 20.5 s. **All 54 checks give max |diff| 0.0 with identical `valid`
-masks** (v1.0: `ast_emb` 0.0112 = fail on The.Hurt.Locker; `ast_events` 0.0078; voice 0.001). The Hurt
-Locker is `ok` with 6 channels. holdout_004 is `digital_silence`. Robbery056 is `near_silence`, so all six
-outputs are invalid (v1.0: valid on every tick). Other UCF: Arrest049 (-93 dBFS), Explosion042 (-75) and
-Arrest033 (-70) are `near_silence`. Explosion043, RoadAccidents039 and Abuse015 (-64 to -54 dBFS RMS, with
-audible blocks) stay `ok`. The reviewer's dither file is `near_silence` with 0 valid `voice_affect` ticks.
-Duration fallback on the XD Desperado clip with decord disabled: 67.04 s (container 1340.3 s), 67 ticks.
+masks** (v1.0: `ast_emb` 0.0112 = fail on the 5.1 clip; `ast_events` 0.0078; voice 0.001). The 5.1
+clip is `ok` with 6 channels. holdout_004 is `digital_silence`. The near-silent UCF clip is `near_silence`, so all six
+outputs are invalid (v1.0: valid on every tick). Three other UCF clips (-93, -75 and -70 dBFS) are `near_silence`.
+Three UCF clips at -64 to -54 dBFS RMS, with audible blocks, stay `ok`. The reviewer's dither file is `near_silence` with 0 valid `voice_affect` ticks.
+Duration fallback on an XD movie clip with decord disabled: 67.04 s (container 1340.3 s), 67 ticks.
 
 Warm throughput re-measured after v1.1 on the same 20.5 min track (machine less loaded, load average 3):
 AST 422x, CLAP 863x and voice 211x realtime, DSP 14.6x per core, so v1.1 is no slower on long tracks.
@@ -662,8 +660,8 @@ Reference checks against the official preprocessing:
 - audEERING A/V/D versus the model-card path (`Wav2Vec2FeatureExtractor` + mean pool + head): max |diff| 1e-4.
 - emotion2vec+ posteriors versus `funasr` `generate()`: 7e-5 (fp32) and 5e-4 (fp16).
 
-Warm throughput: models loaded, a 20.5 min track, one GPU, machine shared with other jobs (load average
-about 11 on 16 cores).
+Warm throughput: models loaded, a 20.5 min track, one GPU, machine busy with other jobs (load average
+about 11).
 
 | Stage | x realtime | Cost for 200 h of audio |
 |---|---|---|
@@ -726,11 +724,11 @@ Reading:
 
 ### Gotchas
 
-- Weights live in the HF cache (`~/.cache/huggingface/hub`): AST 0.35 GB, audEERING 0.66 GB, CLAP 0.78 GB,
+- Weights live in the HF cache (the local Hugging Face cache): AST 0.35 GB, audEERING 0.66 GB, CLAP 0.78 GB,
   emotion2vec+ 1.9 GB.
 - Duration fallback: if decord cannot open a file, `audio_dsp.video_duration` uses the ffprobe video-stream
   duration, then the audio-stream duration, and only then `format=duration`. XD movie clips carry a
-  chapter/data stream as long as the whole film, so the container duration is wrong for them (Desperado clip:
+  chapter/data stream as long as the whole film, so the container duration is wrong for them (one such clip:
   1340.3 s container versus 67.04 s video). Using it would create about 1270 spurious all-invalid ticks.
   `speech.video_duration` (speech track) still has the container-only fallback.
 - `io.load_audio` itself is unchanged (it is shared). The A/V alignment lives in `audio_dsp.load_track`, so
@@ -896,7 +894,7 @@ a `transcript_path` argument, `extract()` puts the same list into `meta["transcr
 
 - `valid[t]` is decided from (t-12, t] only (step 2 of the pipeline). Version 1 decided digital silence on
   the whole track, so a track that was silent until after t was valid at t only because sound came later
-  (reviewer's case; 7 UCF videos are silent for their first 30 s or more, e.g. Arrest039 for 69 s). Invalid
+  (reviewer's case; 7 UCF videos are silent for their first 30 s or more, one for 69 s). Invalid
   rows are zero.
 - At tick t every ASR, text, rolling and validity column uses audio in [t - 42 s, t] (`meta["window_sec"]` =
   42 = 12 s window + 30 s rolling/language horizon). The Silero VAD state runs from the start of the track
@@ -953,16 +951,16 @@ s, once per process) is excluded. Format asserts on every video: dtypes, shape `
 
 | Video | Src | T | valid | windows / Whisper / text | Language | Wall (x realtime) |
 |---|---|---|---|---|---|---|
-| The.Bourne.Identity.2002 (B1, onset 80.5 s) | xd | 115 | 114 | 57 / 46 / 43 | en | 5.2 s (22.0x) |
-| v=96N4XAJ7FKM (B1 hockey fight, onset 38.4 s) | xd | 202 | 201 | 101 / 101 / 99 | en | 9.8 s (20.6x) |
-| Tropa.de.Elite.2.2010 (B2, onset 32.4 s) | xd | 60 | 59 | 30 / 30 / 30, all translated | pt | 8.5 s (7.1x) |
-| A.Beautiful.Mind.2001 (normal) | xd | 240 | 239 | 120 / 95 / 88 | en | 8.5 s (28.1x) |
-| holdout_003 (bodycam, neighbour fight) | yt | 575 | 574 | 287 / 279 / 277 | en | 27.3 s (21.1x) |
-| holdout_072 (road-rage news report) | yt | 276 | 275 | 138 / 138 / 137 | en | 15.2 s (18.2x) |
-| Assault001_x264 | ucf | 82 | 0 | digital silence, no models | - | 0.3 s |
+| XD movie clip 1 (B1, onset 80.5 s) | xd | 115 | 114 | 57 / 46 / 43 | en | 5.2 s (22.0x) |
+| v=96N4XAJ7FKM (B1, sports broadcast, onset 38.4 s) | xd | 202 | 201 | 101 / 101 / 99 | en | 9.8 s (20.6x) |
+| XD movie clip 2 (B2, onset 32.4 s) | xd | 60 | 59 | 30 / 30 / 30, all translated | pt | 8.5 s (7.1x) |
+| XD movie clip 3 (normal) | xd | 240 | 239 | 120 / 95 / 88 | en | 8.5 s (28.1x) |
+| holdout_003 (bodycam-style) | yt | 575 | 574 | 287 / 279 / 277 | en | 27.3 s (21.1x) |
+| holdout_072 (news-style report) | yt | 276 | 275 | 138 / 138 / 137 | en | 15.2 s (18.2x) |
+| UCF clip (digital silence) | ucf | 82 | 0 | digital silence, no models | - | 0.3 s |
 
 - These 7 videos: **1471 s of audio in 75 s = 19.7x realtime** (version 1: 12.0x at load 26 to 43).
-  All-Portuguese Tropa runs at 7x instead of 3.5x because text MT replaced Whisper's second (translate)
+  The all-Portuguese clip runs at 7x instead of 3.5x because text MT replaced Whisper's second (translate)
   decode. The 14 review clips below: 1904 s in 87 s = 21.8x (non-English clips 7 to 14x, music clips up to
   99x).
 - Random sample as in the review (12 xd/yt videos with audio, `random.seed(7)`, current manifest, so not the
@@ -982,15 +980,15 @@ s, once per process) is excluded. Format asserts on every video: dtypes, shape `
   243 accepted non-English windows went through MT; 1 translation was rejected (`mt_trivial`: "你" ->
   "You"). The language prior changed 26 windows.
 - **Causality** (full vs ffmpeg stream-copy truncation; ticks <= cut - 1; `feat`, `valid` and every transcript
-  field compared): max |diff| = **0.0**, `valid` equal and 0 transcript differences on all 7 checks: Tropa cut
-  40 s (19 windows, all translated), City of God cut 30 s (pt, 13 translated), Yellow Sea cut 37 s (zh, 18
-  translated), Bourne cut 70 s, UCF Arrest039 cut 100 s (silent until 69 s: 30 valid ticks in both), hockey
-  with 0 to 40 s zeroed cut at 30 s (0 valid ticks in both; version 1 gave 29 valid ticks on the full copy),
+  field compared): max |diff| = **0.0**, `valid` equal and 0 transcript differences on all 7 checks: a
+  Portuguese clip cut at 40 s (19 windows, all translated), another Portuguese clip cut at 30 s (13 translated), a
+  Chinese clip cut at 37 s (18 translated), an English clip cut at 70 s, a UCF clip cut at 100 s (silent until 69 s: 30
+  valid ticks in both), a sports clip with 0 to 40 s zeroed cut at 30 s (0 valid ticks in both; version 1 gave 29 valid ticks on the full copy),
   bodycam cut 200 s (91 windows).
 - MT row invariance: the same texts in different batch compositions, orders and next to a long row gave
   identical translations.
-- Runner integration (`run_extract --extractor speech_tox --feature_root <scratch>`): City of God and UCF
-  Normal_Videos011 ok, a random-bytes `.mp4` failed with "cannot determine the duration" and was logged in
+- Runner integration (`run_extract --extractor speech_tox --feature_root <scratch>`): a Portuguese XD clip and a UCF
+  normal clip ok, a random-bytes `.mp4` failed with "cannot determine the duration" and was logged in
   `failures.jsonl` (nothing saved); the rerun skipped the 2 good files (version check via `OUTPUT_VERSIONS`)
   and retried the corrupt one. `io.load_features` and `speech.load_transcripts` / `windows_until` read the
   outputs.
@@ -998,31 +996,27 @@ s, once per process) is excluded. Format asserts on every video: dtypes, shape `
   shouted repetitions kept, the weak-gate short rule, censored words, 8 translation checks, 25 calm and 20
   hostile keyword sentences).
 
-Transcripts around onsets (version 2, from the sidecar JSON):
-- **Bourne Identity** (onset 80.5 s): [60, 72] "You! Red bag! The red bag! Stop right there! Put your hands
-  up!" (`kw_command` = 2, toxicity 0.19), 8.5 to 20 s before onset.
-- **Tropa de Elite 2** (Portuguese, onset 32.4 s): [0, 12] "Nada, porra. Tá dando cu agora? ..." -> MT
-  "Nothing, fuck. Are you fucking now? ..." (toxicity 0.99); [24, 36] contains "Quem foi que disse que a
-  comunidade é tua?" (a challenge, not caught by the English keyword list).
-- **City of God** (pt): version 1 produced "I'll kill you! I'll kill you! I'll kill you!" (toxicity 0.99) and
-  repeated "Give me the money!" with no source text. Version 2: [4, 16] "Caminhão aí! Sai, meu irmão! Desce!
-  Não, cara, desce! Não, dinheiro não! Desce!" -> "Truck here! Get out, brother! Get down! No, man, get down!
-  No, no money! Get down!" (`kw_command` = 4); [34, 46] "A polícia, mano! A polícia!" -> "The police, man! The
-  police!".
-- **Yellow Sea** (zh): version 1 translated "你还敢打我 来吧 来吧" as "I'll kill you! Wait! What?" (0.96); version 2
-  gives "You dare hit me? Come on, come on." (toxicity 0.38, `kw_challenge` = 1).
-- **Young and Dangerous** (zh): windows ending 64 to 68 were dropped in version 1 (compression ratio of a
-  looping translation). Version 2 keeps "你去死吧 你大吉小好 你去死吧 你去死吧" (`repeats` = 2) -> "Go die, you big
-  fool, go die, go die." (toxicity 0.999, threat 0.93).
-- **The Intouchables** (label A): version 1 forced Russian on French windows and accepted "СПОКОЙНАЯ МУЗЫКА";
-  version 2 decodes them as French ("Ça y est, les voilà. Bon, Philippe, on se réveille un peu ...").
-  The first 10 s still give a Whisper hallucination "Сигарство" (VAD gate, logprob -0.8 to -1.0) -> "Cigarette.".
-- **Music-only XD clips** (v=jltJrNKnrNQ, v=tT-SrQC6Ddw) and UCF Normal_Videos011: every "Музыка" / "Music" /
-  "Música" / "¡Hola!" window is rejected (`sound_caption`, `stock_phrase`); 0 text windows on the music clip.
-- **Bodycam holdout_003**: [156, 168] "You all get out! Get out of here! [speech removed]
-  [speech removed] ..." (toxicity 0.99, `kw_command` = 2). **UCF Arrest039** (eligible, onset 240.5 s): silent until 69 s (invalid), then hostage
-  negotiation from about 120 s: [speech removed] (toxicity 0.99).
-- **Hockey v=96N4XAJ7FKM**: TV commentary; **holdout_072**: news-anchor narration throughout (see Gotchas).
+Transcripts around onsets (version 2, from the sidecar JSON; transcript text is not reproduced here):
+- **English movie clip** (onset 80.5 s): the window 8.5 to 20 s before onset holds shouted commands
+  (`kw_command` = 2, toxicity 0.19).
+- **Portuguese movie clip** (onset 32.4 s): the window [0, 12] is profane after MT (toxicity 0.99); a window at
+  [24, 36] contains a verbal challenge that the English keyword list does not catch.
+- **Portuguese movie clip, hold-up scene**: version 1 produced a threat with toxicity 0.99 and a repeated demand
+  with no source text. Version 2 gives a faithful translation of shouted commands (`kw_command` = 4) and a
+  separate window naming the police.
+- **Chinese movie clip, fight scene**: version 1 translated a taunt as a threat (0.96); version 2 gives a
+  faithful translation (toxicity 0.38, `kw_challenge` = 1).
+- **Chinese movie clip, repeated insults**: windows ending 64 to 68 were dropped in version 1 (compression ratio
+  of a looping translation). Version 2 keeps them (`repeats` = 2; toxicity 0.999, threat 0.93).
+- **French comedy clip** (label A): version 1 forced Russian on French windows and accepted a Russian
+  music caption; version 2 decodes them as French. The first 10 s still give a Whisper hallucination (VAD gate,
+  logprob -0.8 to -1.0).
+- **Music-only XD clips** and a UCF normal clip: every music-caption or stock-phrase window is rejected
+  (`sound_caption`, `stock_phrase`); 0 text windows on the music clip.
+- **Bodycam-style holdout_003**: a shouted-commands window at [156, 168] (toxicity 0.99, `kw_command` = 2).
+  **One eligible UCF arrest clip** (onset 240.5 s) is silent until 69 s (invalid), then has a tense
+  conversation from about 120 s (toxicity 0.99).
+- **Sports clip v=96N4XAJ7FKM**: TV commentary; **holdout_072**: news-anchor narration throughout (see Gotchas).
 
 ### Review fixes (v2)
 
@@ -1045,55 +1039,53 @@ An independent review of version 1 reported ten issues; all were reproduced and 
 
 - **large-v3, not turbo**: turbo hallucinates more on noisy audio (research/backbones.md section 5).
 - **Timestamp-mode decoding**: in `<|notimestamps|>` mode large-v3 often stops early and returns only a
-  fragment of a full 12 s window ("the emotion of", "second time"). Measured on two XD clips: windows with
+  fragment of a full 12 s window (two or three words). Measured on two XD clips: windows with
   fewer than 1 word per VAD-speech second dropped from 13 to 17 % to 0 to 1.5 %, at the same speed.
-- **Weak gate instead of a pure VAD gate**: Silero under-detects shouting in noisy footage. In the bodycam
-  video `holdout_003` it scored "[speech removed]" windows at 0.35 to 0.6 s of speech, and a
+- **Weak gate instead of a pure VAD gate**: Silero under-detects shouting in noisy footage. In the bodycam-style
+  video `holdout_003` it scored shouted-speech windows at 0.35 to 0.6 s of speech, and a
   shouting stretch at max prob 0.45. Whisper transcribes these correctly. The weak gate (max prob >= 0.15)
   recovers them, while music-only spans (max prob about 0.03) stay skipped. Because weak-gate windows are
-  also where caption hallucinations ("Музыка", "Kampung Kampung") appear, v2 adds the 3-word minimum
-  (waived when VAD was confident, max prob >= 0.9, so "Hold it." survives).
+  also where caption hallucinations (music captions, repeated nonsense words) appear, v2 adds the 3-word minimum
+  (waived when VAD was confident, max prob >= 0.9, so a short command survives).
 - **No words-per-VAD-second filter**: an early version rejected windows with > 8 words per VAD-speech second;
-  it removed 24 windows of genuine shouting ("You f***ing animals!", "I hate you") in one video.
-- **Collapse repeats instead of rejecting on compression ratio** (v2): the 2.4 rule rejected "Stop
-  resisting!" x 6 (ratio 3.52), "Get on the ground!" x 5 and "Stop!" x 8, i.e. the escalation cue itself,
+  it removed 24 windows of genuine shouting in one video.
+- **Collapse repeats instead of rejecting on compression ratio** (v2): the 2.4 rule rejected repeated
+  commands (a phrase repeated 5 to 8 times, ratio up to 3.52), i.e. the escalation cue itself,
   and threw away the real prefix of decoder loops. Temperature fallback (OpenAI) was not used because it
   needs sampling, which breaks bit-exact causality checks.
 - **Text MT instead of Whisper's translate task** (v2): Whisper translation is a second free-running decode
-  of the audio and invented hostile content with no source: "O que é isso? A polícia! A polícia!" became
-  "I'll kill you! I'll kill you! I'll kill you!" (toxicity 0.99, logprob -0.74, so no score gate catches it),
-  "Give me the money!" appeared in 5 City of God windows without any source text, "你还敢打我 来吧 来吧" became
-  "I'll kill you! Wait! What?". Translating the accepted native transcript keeps the English grounded in what
+  of the audio and invented hostile content with no source: a neutral Portuguese line became a repeated death threat
+  (toxicity 0.99, logprob -0.74, so no score gate catches it), a demand for money appeared in 5 windows of one
+  clip without any source text, and a Chinese taunt became a threat. Translating the accepted native transcript keeps the English grounded in what
   was transcribed. Qwen2.5-7B-Instruct was chosen over 1.5B / 3B after a side-by-side on 26 review lines: 1.5B
-  refused profanity and sanitised it ("Nada, porra" -> "No, bro"), 3B invented an insult for Korean noise
-  ("Your gay, retard."); 7B as a few-shot completion was faithful on all lines (chat mode refused "我操 你去死"
-  and sometimes echoed the source, hence completion mode). NLLB-200 / M2M100 / opus-mt ship only pickle
+  refused profanity and sanitised it, 3B invented an insult for Korean noise; 7B as a few-shot completion was
+  faithful on all lines (chat mode refused some profane lines and sometimes echoed the source, hence completion
+  mode). NLLB-200 / M2M100 / opus-mt ship only pickle
   `.bin` weights, which transformers 4.57 refuses to load with torch 2.5.
-- **mtox masked outside its languages** (v2): detoxify-multilingual gave 0.0003 toxicity on "他媽的"; a 0 that
+- **mtox masked outside its languages** (v2): detoxify-multilingual gave 0.0003 toxicity on a Chinese expletive; a 0 that
   means "unsupported" must not look like "calm".
 - **Language prior only breaks near-ties** (v2): v1 summed up to 14 overlapping earlier windows against
-  2 x the current one, so a few hallucinated windows forced the language: The Intouchables windows with raw
-  `fr` were decoded as `ru` (p = 0.007) and produced "СПОКОЙНАЯ МУЗЫКА" instead of the French dialogue.
-  The near-tie threshold is 0.6 (at 0.5, Yellow Sea's "你还敢打我 来吧 来吧" window, p(ko) between 0.5 and 0.6 and
-  p(zh) 0.14, stayed Korean and came out as "아, 까맣다! 탐마! 비하시! 군!");
+  2 x the current one, so a few hallucinated windows forced the language: French windows with raw
+  `fr` were decoded as `ru` (p = 0.007) and produced a Russian music caption instead of the French dialogue.
+  The near-tie threshold is 0.6 (at 0.5, a Chinese window with p(ko) between 0.5 and 0.6 and
+  p(zh) 0.14 stayed Korean and came out as gibberish);
   in the smoke set the prior changed 26 of 1289 windows.
 - **Streaming VAD, not segment-reset VAD**: a batched GPU variant that reset the state every 30 s (with 10 s
-  warm-up) agreed with streaming on 98 % of frames of movie dialogue, but marked only 3 % of a bodycam shouting
+  warm-up) agreed with streaming on 98 % of frames of movie dialogue, but marked only 3 % of a bodycam-style shouting
   stretch as speech versus 45 % for streaming. Silero adapts to the background over tens of seconds.
-- **Keyword patterns tightened** (v2): v1 fired on "We're going to hit the road", "You want some cake?",
-  "Hit me up", "Stop by the store", "Drop the kids off", "Dick Cheney" and narration ("trying to stop her").
-  Threat patterns now need a violent verb with a person object; utterance commands ("Stop!", "Turn around!",
-  "Get back!") must stand alone between punctuation; bare "come on", "punk", "dick" were dropped. The
+- **Keyword patterns tightened** (v2): v1 fired on benign idioms ("hit the road", "hit me up", "stop by the store"), a politician's surname and narration.
+  Threat patterns now need a violent verb with a person object; utterance commands ("Stop!", "Turn around!")
+  must stand alone between punctuation; bare "come on" and ambiguous slang were dropped. The
   self-test holds 25 calm and 20 hostile sentences (0 false positives, 0 misses). These remain heuristics with
   unknown precision on real transcripts; the planned LLM escalation rating over the sidecar should supersede
-  them. Implicit threats ("Touch her again and you won't walk out of here") are covered only by a few
+  them. Implicit threats are covered only by a few
   patterns, and detoxify scores them low (0.04).
-- **CUDA graph decoder**: on this shared machine (load average 20 to 28) the HF decoder spent about 60 ms of
+- **CUDA graph decoder**: under heavy CPU load (load average 20 to 28) the HF decoder spent about 60 ms of
   CPU launch overhead per token for 8 to 19 ms of GPU work. The graph makes the decoder GPU-bound (reading the
   cross-attention KV over all 1500 encoder positions dominates). Decoder batch 16 is as fast per window as 64
   and wastes less padding on short clips.
 - **Detoxify via the pip package** (GitHub release checkpoints `toxic_debiased-c7548aa0.ckpt`,
-  `multilingual_debiased-0b549669.ckpt`, cached in `~/.cache/torch/hub/checkpoints`): the HF copies
+  `multilingual_debiased-0b549669.ckpt`, cached in the torch hub checkpoint cache): the HF copies
   (`unitary/unbiased-toxic-roberta`, `unitary/multilingual-toxic-xlm-roberta`) are pickle `.bin` only, which
   transformers 4.57 refuses to load with torch 2.5.
 
@@ -1104,17 +1096,16 @@ An independent review of version 1 reported ten issues; all were reproduced and 
   for CUDA devices; any new script that calls `io.Video` before touching torch must do the same.
 - `import silero_vad` calls `torch.set_num_threads(1)` process-wide; `speech.get_models` restores it.
 - Write and read the transcript JSON with `encoding="utf-8"`: the default locale here is ASCII.
-- **Translated text is lower precision than native English.** MT keeps profanity ("Caralho!" -> "Fuck!"),
+- **Translated text is lower precision than native English.** MT keeps profanity,
   so `tox_*` on translated windows runs hotter than on comparable English, and Whisper's own errors on noisy
-  non-English audio pass through ("Não para de fazer o sentimento bala" -> "the bullet feeling"). Use
+  non-English audio pass through (a mistranscribed phrase becomes a nonsense English phrase). Use
   `non_english` as an interaction, and report non-English videos separately.
 - Keyword lists are English-only; for non-English windows they run on the translation. Escalation phrased
-  indirectly ("Who said the community is yours?") is not caught.
-- Speech on curated YouTube news videos is often a **narrator** describing the incident ("police were not
-  expecting this scene"), not the participants. That is a provenance shortcut risk (news narration precedes
+  indirectly is not caught.
+- Speech on curated YouTube news videos is often a **narrator** describing the incident, not the participants. That is a provenance shortcut risk (news narration precedes
   footage of violence). Report the curated set separately and audit narration-heavy videos.
 - **Narration leaks outcomes.** News-style curated videos (e.g. `holdout_072`) and sports broadcasts (XD
-  hockey clips) contain a narrator who announces the violence before it is shown. Text features can then
+  sports clips) contain a narrator who announces the violence before it is shown. Text features can then
   "anticipate" through narration rather than the participants' escalation. Flag narrated videos (high
   `words_per_sec` with calm `tox_*`, anchor phrases) and report them separately; never tune on them.
 - XD movie clips mix dialogue, score and dubbed languages. Sung lyrics marked with music symbols are dropped
@@ -1378,12 +1369,12 @@ versions only, not configs, so a config variant written to the real root would b
 
 Saved under the real `FEATURE_ROOT` (`pose_raw`, `pose_interact`, `motion`; all version 2, regenerated
 after the review fixes). The five videos:
-- `xd/v=pL2HjXvWuPc__#1_label_B1-0-0`: street fight, onset 45.4 s. T = 201, `pose_interact` valid 0.97,
+- `xd/v=pL2HjXvWuPc__#1_label_B1-0-0`: fight, onset 45.4 s. T = 201, `pose_interact` valid 0.97,
   9,476 saved detections.
 - `ucf/Fighting003_x264`: onset 60.7 s. T = 103, valid 1.0.
 - `ucf/Normal_Videos_050_x264`: empty highway. 0 people, `valid` all False, as expected.
 - `ucf/Normal_Videos_150_x264`: normal footage with people, 2.9 persons per frame. T = 28, valid 1.0.
-- `yt/holdout_072`: news report on a road-rage shooting. T = 276, valid 0.85.
+- `yt/holdout_072`: curated news-style video. T = 276, valid 0.85.
 
 Checks on these files:
 - No GMC failures (`frame_gmc_ok` all True).
@@ -1397,7 +1388,7 @@ file is lost entirely, because decord cannot open it; salvaging the decodable pr
 `io.Video`.
 
 Throughput, in video-seconds per wall-second, including decoding and model loading. Other tracks were running,
-with load average 15 to 24 on 16 cores.
+with load average 15 to 24.
 
 | Configuration | Speed | Note |
 |---|---|---|
@@ -1411,7 +1402,7 @@ with load average 15 to 24 on 16 cores.
 These numbers are for version 1. Version 2 changes nothing on the GPU path; the 5-video smoke rerun gave 19.6x
 in one process including model load. Estimate: **the current 352 h manifest takes about 5.2 h on 2 GPUs with
 6 processes.** With ByteTrack, or on an idle machine, expect roughly 1.5x faster. More than 3 processes per GPU
-does not help while the CPU is shared.
+does not help while the CPU is contended.
 
 ### Sanity: do the cues move around real onsets?
 
@@ -1532,7 +1523,7 @@ Pipeline:
   - an 8-bin magnitude-weighted direction entropy of the residual flow.
 - **Shot cuts:** a pair is a cut when the HSV histogram Bhattacharyya distance is > 0.45 **and** the mean
   grey difference is > 0.06. The second test rejects flashing police lights, which pass the histogram test
-  alone (seen on `yt/holdout_072`). Eight random flagged pairs from the rapidly edited Braveheart battle
+  alone (seen on `yt/holdout_072`). Eight random flagged pairs from a rapidly edited movie battle
   clip were all real cuts. **Flow and difference statistics skip cut pairs**; the cut columns report them.
 - Columns:
 
@@ -1748,8 +1739,7 @@ ETA, measured after the restart (aggregate of the per-process speeds in the shar
 
 ### Lanes
 
-All processes run under `nice -n 10`, pinned to cores 0-11 by `taskset`, so the 75 % cap does not depend on
-`tools/cpu_governor.sh` running. Threads are capped with `OMP/MKL/OPENBLAS/NUMEXPR/NUMBA_NUM_THREADS` and
+All processes run under `nice -n 10`, pinned to a fixed subset of cores by `taskset`. Threads are capped with `OMP/MKL/OPENBLAS/NUMEXPR/NUMBA_NUM_THREADS` and
 `--cpu_threads` (2 per GPU process, 1 per CPU process). The visual decoders keep their own 4 decord threads.
 
 | Lane | Steps, in order | Processes | Videos | Speed (x realtime, aggregate) | ETA |
@@ -1765,9 +1755,9 @@ All processes run under `nice -n 10`, pinned to cores 0-11 by `taskset`, so the 
 Planned rates come from the extractor sections and from the queue smoke test (one video per shard). `status`
 replaces them with measured rates once a step is running.
 
-Measured 7 minutes after launch, with the repo-cleanup jobs of another session also running:
+Measured 7 minutes after launch, with other jobs also running:
 - Speeds as in the table.
-- The queue used 7.9 cores (instantaneous `top`); the machine was 58 to 66 % busy over all users.
+- The queue used 7.9 cores (instantaneous `top`); the machine was 58 to 66 % busy overall.
 - GPU memory: cuda:0 10.6 GB, cuda:1 10.4 GB.
 - 0 failures.
 - Each visual process runs at about 17x and each pose process at about 14x.

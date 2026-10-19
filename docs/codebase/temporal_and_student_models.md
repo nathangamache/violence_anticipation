@@ -22,8 +22,7 @@ violence about 30 s before it starts.
 
 Run every script from the repo root (`.`)
 with `.venv/bin/python`. Defaults are relative paths such as `data/processed/...` and
-`train_index.json`. Most scripts default to `--device cuda:1`. `nvidia-smi` is broken on this box, but
-torch CUDA works.
+`train_index.json`. Most scripts default to `--device cuda:1`. torch CUDA works.
 
 ---
 

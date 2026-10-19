@@ -90,9 +90,8 @@ Repo-root data-ish files: `train_index.json` (1438 items), `val_index.json` (180
 `good_video_indices.npy` and all features/videos are not in git.
 
 Hard-coded paths: almost all setup/preprocessing scripts use
-`os.path.expanduser("~/projects/violence_anticipation/data")`. On this machine the repo lives at
-`.`; this works only if `~/projects` resolves
-to it (inferred: home is `/data1~` or a symlink exists). `scripts/quick_inspect.py`
+a hard-coded home-relative path to the project's `data` directory; this works only if that path resolves to
+the repo's `data` symlink. `scripts/quick_inspect.py`
 hard-codes `data`. Newer scripts use relative
 `data/...` defaults and must be run from the repo root.
 
@@ -160,8 +159,8 @@ Audio: 862/1000 files have an audio stream, but a random sample of 16 showed 14 
 
 ### 2.4 Curated YouTube escalation set (`anticipation_curation/`)
 
-* Produced by `setup/curate_youtube.py search` + `download` (YouTube Data API key read from
-  `.env` `YOUTUBE_API_KEY`, or yt-dlp search fallback), then analyzed by
+* Produced by `setup/curate_youtube.py search` + `download` (YouTube Data API key read from the
+  environment or a local `.env`, or yt-dlp search fallback), then analyzed by
   `experiments/fast_analyze_curation.py` (NOT by `setup/curate_youtube.py analyze`; the stored
   timeline schema `{frame,timestamp,stage,score,raw_score}` and stage names `ramp_up`/`aftermath`
   only exist in `fast_analyze_curation.py`).
@@ -438,7 +437,7 @@ So almost all >= 30 s examples are in train; val/test can not measure 30 s antic
 |---|---|---|---|---|
 | `build_ucf_crime_metadata.py` | UCF metadata | `raw_videos/ucf_crime/videos/*.mp4` + temporal annotation txt -> `metadata/ucf_crime.json` | `python setup/build_ucf_crime_metadata.py` | label=1 only for annotated test videos; uses first segment start only |
 | `build_xdviolence_metadata.py` | XD metadata | `raw_videos/xd_violence/{videos,annotations.txt}` -> `metadata/xd_violence.json` | same | **bug**: subtracts `HH-MM-SS` movie offset from clip-relative frames; does not strip `.mp4` from annotation ids (274 violent clips lost) |
-| `kinetics_download_relevant.py` | download K700 violent classes with yt-dlp (`youtube_cookies.txt`) | `kinetics/{train,val}.csv` -> `kinetics/videos/`, `metadata/kinetics.json` | needs network | most class names do not exist in K700 |
+| `kinetics_download_relevant.py` | download K700 violent classes with yt-dlp (optional cookies file) | `kinetics/{train,val}.csv` -> `kinetics/videos/`, `metadata/kinetics.json` | needs network | most class names do not exist in K700 |
 | `kinetics_list_labels.py` | list K700 classes | `train.csv` -> `metadata/kinetics_labels.txt` | - | - |
 | `enrich_kinetics_metadata.py` | add fps/frames, synthetic midpoint event, label=1 | `metadata/kinetics.json` (in place) | - | destroys class names |
 | `preprocess_kinetics_actions.py` | YOLO+VideoMAE per-person pooled clip features | -> `processed/kinetics_actions/{features,labels}.npy, info.json` | `python -m setup.preprocess_kinetics_actions` | outputs not on disk (never completed or overwritten); labels would all be `1` |

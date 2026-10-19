@@ -17,7 +17,7 @@ All paths below are relative to `data/` = `data/` unless absolute.
 | Dataset | Source used | Size | Local path | Status (2026-10-14 19:10 EDT) | License / terms |
 |---|---|---|---|---|---|
 | XD-Violence **train** (official list: **3,954** videos, audio) | HF mirror `jherng/xd-violence`, pinned commit `8eba22ca` (3,950 of them) | 74.64 GB | `raw_videos/xd_violence_train/videos/` | **3,950/3,950 mirror files** sha256-verified against the mirror's LFS hashes (re-hashed with `--verify-only`); 188.9 h; every file has an audio stream. Took 18 min at 40 to 67.6 MB/s. The mirror lacks **4 official train videos** (section 3.2) | No explicit license; research use; cite Wu et al. ECCV 2020. Mirror card says only `license: mit`; the videos are the authors' release |
-| XD-Violence train, the 4 clips the mirror lacks | HIVAU-70k video tar `backseollgi/HIVAU-70k_XD-Violence` (pinned `f92e63ab`), members fetched with HTTP Range reads | 429 MB (3 files) | `raw_videos/xd_violence_train/recovered_videos/` | **3 of 4 recovered** (NBA, Saving Private Ryan (violent), `v=9eME1y6V-T4`), every video packet readable, NBA frame count = HIVAU's 45,482. **`v=8cTqh9tMz_I__#1_label_A` is truncated in the tar** (no moov atom), so it was rejected and no usable copy is known. Coverage of the official list: **3,953/3,954** | as above |
+| XD-Violence train, the 4 clips the mirror lacks | HIVAU-70k video tar `backseollgi/HIVAU-70k_XD-Violence` (pinned `f92e63ab`), members fetched with HTTP Range reads | 429 MB (3 files) | `raw_videos/xd_violence_train/recovered_videos/` | **3 of 4 recovered** (a basketball clip, a war-movie clip (violent), `v=9eME1y6V-T4`), every video packet readable, basketball frame count = HIVAU's 45,482. **`v=8cTqh9tMz_I__#1_label_A` is truncated in the tar** (no moov atom), so it was rejected and no usable copy is known. Coverage of the official list: **3,953/3,954** | as above |
 | XD-Violence test, 2 clips missing locally | same mirror (`data/video/test_videos/`) | 31 MB | `raw_videos/xd_violence_train/missing_test_videos/` | Done (sha256-verified) | as above |
 | UBI-Fights (1,000 videos, no audio) | `https://socia-lab.di.ubi.pt/EventDetection/UBI_FIGHTS.zip` | 8.12 GB zip, 8.27 GB extracted | `raw_videos/ubi_fights/` | **Complete.** 2,001/2,001 zip members CRC-checked and extracted (216 fight + 784 normal videos, 1,000 label CSVs); 79.0 h; archive deleted afterwards. sha256 of every file now recorded in `manifest.json`. CRC = transfer consistency only, not authenticity (TLS unverified; section 4.1). Took 33 min (0.8 to 8.5 MB/s) | No license stated; cite Degardin and Proenca, IJCB 2020 |
 | NTU CCTV-Fights | rose1.ntu.edu.sg | 6.6 GB (original formats) | **received 2026-10-15**, external test set | access granted (section 5) | Academic, non-commercial, no redistribution or derived datasets without permission |
@@ -25,7 +25,7 @@ All paths below are relative to `data/` = `data/` unless absolute.
 
 Logs: `logs/xd_train_download.log`, `logs/ubi_fights_download.log` (both end with `DONE`),
 `logs/xd_recover.log` (tar index and recovery), full XD ffprobe audit in `logs/xd_train_ffprobe.json` / `.log`. Disk use: XD train 70 GB (74.6 GB decimal) + 0.43 GB
-recovered, UBI 7.8 GB; `/data2` had about 359 GB free afterwards.
+recovered, UBI 7.8 GB; about 359 GB of disk remained free afterwards.
 
 ---
 
@@ -82,11 +82,9 @@ nohup setsid .venv/bin/python -u setup/download_xd_recover.py index \
 If a run dies (network, reboot), rerun the same launcher. XD resumes partial files with a Range request and
 skips files already in `verified.jsonl`; UBI fetches only the chunks missing from `UBI_FIGHTS.zip.chunks`.
 
-YouTube downloads: the account cookies live outside the repo at `<cookies file outside the repo>` (directory
-mode 700, file mode 600; moved there from the repo root in the 2026-10 cleanup). No script reads them by default
-(`setup/curate_youtube.py` calls `yt-dlp` without cookies); for age-restricted or rate-limited videos pass
-`yt-dlp --cookies <cookies file outside the repo>`. Never copy them into the repo or `data/`. They expire around 2026-11/12; export fresh ones into the same file. `YOUTUBE_API_KEY` stays in
-the repo-root `.env` (mode 600, gitignored).
+YouTube downloads: `setup/curate_youtube.py` calls `yt-dlp` without cookies. For age-restricted or rate-limited
+videos pass `yt-dlp --cookies <cookies file>`. Keep any cookies file and API key outside the repository and out of
+`data/`, and never commit them.
 
 ---
 
@@ -131,7 +129,7 @@ the repo-root `.env` (mode 600, gitignored).
 
 - An earlier version of this document said "3,950 is what the authors actually released" because HIVAU-70k's
   `xd_database_train.json` also has 3,950 entries. That was wrong: the HIVAU set is a different 3,950 (it has
-  the NBA clip and lacks `Yellow.Sea.2010__#00-15-34_00-16-47_label_A` and the other 3 above). The equal
+  the basketball clip and lacks `Yellow.Sea.2010__#00-15-34_00-16-47_label_A` and the other 3 above). The equal
   counts are a coincidence. The sha256 checks of `download_xd_train.py` only prove that files match the
   **mirror's** manifest, so they could never catch the gap; `--verify-only` now also prints completeness
   against the official list.
@@ -213,7 +211,7 @@ them, move them into `raw_videos/xd_violence/videos/` by hand.
 
 ### 3.5 Gotchas
 - Every filename contains `#` (all 3,954 official), many contain `=` (2,137 YouTube clips) and four contain
-  `@` (the NBA segments; three in the mirror, one recovered); there are no spaces. URL-quote names when
+  `@` (the basketball game segments; three in the mirror, one recovered); there are no spaces. URL-quote names when
   building URLs (an unquoted `#` truncates the URL to a fragment) and quote paths in shell commands.
 - The mirror's loader script (`xd-violence.py`) uses `x.rstrip(".mp4")`, which strips trailing `m`, `p`, `4`
   and `.` characters, not the suffix. Do not reuse it; strip the suffix with `name[:-4]`.
@@ -349,9 +347,9 @@ training, folds or the modality screen. Full description, counts and protocol: d
   durations for 997 of 1,000 files (within max(1 s, 2 %)); `transcoded.json` records the per-file command and the
   decord fps and frame count before. The mp4 files are untouched.
 - **Three label-unreliable videos** (`label_reliable = False` in `videos.csv`, excluded from the evaluation set):
-  `fight_0142` (decoded 351.5 s vs groundtruth 344.2 s), `fight_0146` (121.5 s vs 108.0 s) and `fight_0520`
-  (43.7 s vs 80.4 s, both annotated fights at 45 to 55 s lie past the end of the file). The annotations belong to a
-  different cut of the video.
+  three videos whose annotations do not match the file (decoded 351.5 s vs groundtruth 344.2 s; 121.5 s vs 108.0 s;
+  43.7 s vs 80.4 s, where both annotated fights at 45 to 55 s lie past the end of the file). The annotations
+  belong to a different cut of the video.
 - **Groundtruth:** `segment` in seconds (this is the only unit used), `subset` (training / validation / testing),
   `source` CCTV (280) / Mobile (707) / Other (9) / Car (4). `nb_frames` is on a 15 fps grid, not the video frame rate, so
   it is ignored. `domain` in our catalog is `cctv` or `non_cctv`; the original value is kept in `gt_source`.
@@ -363,7 +361,7 @@ training, folds or the modality screen. Full description, counts and protocol: d
 
 ## 6. DVD (Kollias et al., arXiv 2506.05372): not publicly released; authors emailed 2026-10-14
 
-Status: the owner emailed the authors on 2026-10-14 asking for research access; awaiting a reply.
+Status: access requested, not received. The authors were emailed on 2026-10-14 asking for research access; awaiting a reply.
 
 - arXiv still has only v1 (2025-05-29). The paper states "DVD will be publicly released upon acceptance".
   No release was found in GitHub or Hugging Face searches on 2026-10-14.
@@ -405,7 +403,7 @@ Status: the owner emailed the authors on 2026-10-14 asking for research access; 
 | Downloader self-tests (`setup/download_selftest.py`) | **7/7 passed** in about 10 s (disk budget, read-only verify, UBI central-directory repair in 1 and 2 rounds, UBI sha256 manifest, tar walking across part boundaries, truncated-mp4 rejection, official-list parsing) |
 | **XD train final** ffprobe `--all` (`logs/xd_train_ffprobe.json`) | 3,950/3,950 probed, 0 errors, **3,950 with an audio stream**; all 24 fps; 188.9 h total (YouTube 2,135 clips / 133.9 h, other 1,815 / 55.0 h); median 110 s, max 10,816 s (`v=WpxJJFcWM8s__#1_label_A`); 2,992 clips at least 60 s, 142 at least 10 min; 1,318 containers inflated by the data stream (section 3.5). Audio (all AAC): 2,029 44.1 kHz stereo, 1,710 48 kHz 5.1 (6 ch), 110 44.1 kHz mono, 71 48 kHz stereo, 16 48 kHz 7.1 (8 ch), 14 48 kHz 7 ch (sum 3,950) |
 | **UBI final** extraction + `segments.csv` | 2,001/2,001 members CRC-verified; 216 fight + 784 normal videos + 1,000 CSVs + `test_videos.csv`; label rows equal video frames (+-1) for **1,000/1,000**; 0 videos with audio; 79.0 h (fight 7.5 h, median 80 s, max 1,200 s; normal 71.5 h, median 64 s, max 6,416 s) |
-| UBI lead-in (from `segments.csv`) | 215 fight videos with an onset (`F_113_1_2_0_0` has no positive frame), median onset 6.8 s, **45 at least 30 s**, 16 at least 60 s, 5 at least 120 s; 170 fight videos have more than one violent segment; no normal video has a positive frame. Official test split: 40 fight + 27 normal. Matches research/datasets.md |
+| UBI lead-in (from `segments.csv`) | 215 fight videos with an onset (one video has no positive frame), median onset 6.8 s, **45 at least 30 s**, 16 at least 60 s, 5 at least 120 s; 170 fight videos have more than one violent segment; no normal video has a positive frame. Official test split: 40 fight + 27 normal. Matches research/datasets.md |
 
 Re-run the checks at any time:
 
@@ -431,8 +429,8 @@ D=data
   mixes XD train and test videos must group on the `__#` prefix over the pooled set (BASELINE 6.3), for
   YouTube clips as much as for movies, and never reuse the official train/test boundary as if it were
   group-disjoint.
-- XD train has 6 `NewAdd.*` clips in the official list (4 NBA game segments, `NewAdd.Dream.Team.8`,
-  `NewAdd.xidianuniversity`; the mirror has 5, the 4th NBA segment is recovered) that are neither movies nor
+- XD train has 6 `NewAdd.*` clips in the official list (4 basketball game segments, `NewAdd.Dream.Team.8`,
+  `NewAdd.xidianuniversity`; the mirror has 5, the 4th game segment is recovered) that are neither movies nor
   `v=` YouTube ids; treat each prefix as its own group.
 - XD train in the catalog: 3,953 files (3,950 mirror + 3 recovered, all in `verified.jsonl`). The truncated
   `v=8cTqh9tMz_I__#1_label_A` is not under `raw_videos/` and is not catalogued. `docs/VA30.md` still says 3,950.

@@ -1,5 +1,7 @@
 # SCREEN_RESULTS: Phase A modality screen, results and post-hoc audit
 
+> Superseded: these are interim results on v1 labels. Current results (labels v3, screen_set_v2, fusion_v2, fold-1 confirmation): see docs/RESULTS_V3.md.
+
 Run date 2026-10-15. Pre-registration `benchmark/screens/screen_set_v1.json` (sha256 `8831e16e...`) plus amendments 01 to 03.
 Harness and protocol: [SCREEN.md](SCREEN.md); plan: [MODALITY_PLAN.md](MODALITY_PLAN.md) section 6. Raw outputs:
 `benchmark/results/cue_screen/` (`results_phase_A.md`, `decisions_phase_A.json`, one folder per block). Everything under
@@ -161,16 +163,16 @@ first-segment positives with time to onset in (30, 120]. One tick per video avoi
 | siglip2, clean | - | - | 22 | 8 | - | - |
 
 Examples (prompts v2, positives band): a sports title card (t=1, 39 s before onset; provenance);
-Kill Bill swordfight, Operation Red Sea shootout, a custodial-setting struggle (UBI CCTV clip)
+a movie swordfight, a movie shootout, a custodial-setting struggle (CCTV clip)
 and a riot with smoke and shields, all with violence visible 32 to 72 s before the annotated onset
-(under way: label noise or earlier unlabelled violence); news-chyron cases (broadcast headline graphics) count as provenance; a City of God scene in which a man is restrained, a movie
-armed standoff and a UBI street group around parked cars (conflict). Clean top ticks: Ip Man 2 and Ip Man 3 dramatic
-scenes and a boxing bout labelled normal, a hockey scuffle, a Bullet in the Head clip with a rifle aimed at a wounded woman
-(fight-like content in a "clean" clip), news broadcasts, a basketball broadcast with scoreboard.
+(under way: label noise or earlier unlabelled violence); news-graphics cases (broadcast headline graphics) count as provenance; a movie scene in which a man is restrained, a movie
+armed standoff and a street group around parked cars (conflict). Clean top ticks: dramatic movie
+scenes and a boxing bout labelled normal, a sports scuffle, a movie clip with a rifle aimed at a wounded person
+(fight-like content in a "clean" clip), news broadcasts, a sports broadcast with scoreboard.
 Examples (siglip2): clean top ticks are almost all title cards (show and episode title cards),
-news and sports-interview graphics, "NBA Playoffs" idents and a UCF "Normal" camera info screen; positive top ticks are
+news and sports-interview graphics, sports-broadcast idents and a UCF "Normal" camera info screen; positive top ticks are
 outlet watermarks, CCTV timestamp overlays, pillarboxed phone video and title
-cards ("a named-person vs. venue caption").
+cards (a caption naming people and a venue).
 
 Findings:
 
@@ -225,9 +227,9 @@ For the 61 ramp clips (onset at least 90 s in), the tick-2 score of prompts v2 i
 
 | First frame shows | Clips |
 |---|---|
-| a conflict or violence already visible (a person down with officers over him, a riot with fire, an armed group of men) | 3 |
+| a conflict or violence already visible (a person restrained by officers, a riot, an armed group) | 3 |
 | a group of people in a street or lobby (possible confrontation, not clearly one) | 6 |
-| provenance: title card or news graphic (3), LiveLeak watermark (2) | 5 |
+| provenance: title card or news graphic (3), outlet watermark (2) | 5 |
 | a CCTV or camera look with nothing visible (empty room, a single person, a shop) | 7 |
 | movie look without conflict | 4 |
 
