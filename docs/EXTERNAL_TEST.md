@@ -134,3 +134,24 @@ on the 868).
   reconciliation, and annotators' boundaries are not audited here (compare with the onset label audit, docs/LABEL_AUDIT.md).
 - Licence: academic, non-commercial, no redistribution. Only the derived annotation tables are in git; videos, transcodes and features
   are not. Acknowledgement and citation text in docs/DATA_ACQUISITION.md section 5.
+
+## MEVA clean negatives (added 2026-10-19)
+
+Never-violent multi-person footage for the false-alarm side of the external test (plan:
+`benchmark/external/external_test_plan_v1.md`; results: `benchmark/results/external_v1/`).
+
+- **Source:** the public MEVA bucket (`s3://mevadata-public-01/`, no account) and the activity annotations from Kitware's
+  `meva-data-repo`. 355 five-minute visible-light clips (IR dropped), 29.6 h, 22 cameras, 7 days (2018-03-05 to 03-15),
+  10:00 to 17:00. By site: school 227, bus 62, hospital 55, admin 11; 197 indoor, 158 outdoor. H.264 AVI, 30 fps,
+  1920x1080, no audio.
+- **Selection:** annotated clips only (an unannotated clip cannot be called non-violent), at least 290 s long and at
+  least 15 person-activity annotations, then a greedy spread over camera and date-hour under a size cap. The frozen list
+  and its sha256 are in `benchmark/results/external_v1/meva_list.json`.
+- **Non-violence:** MEVA's 37 activity types contain no fighting, hitting or pushing type. The 5 clips with
+  `person_steals_object` or `person_abandons_package` were excluded. `person_embraces_person` and
+  `hand_interacts_with_person` were kept as benign contact; the latter could in principle include a shove. The clips
+  were not watched; non-violence is inferred from the annotation vocabulary. MEVA is scripted activity by actors at a
+  training facility.
+- **Features:** siglip2, siglip2_prompts (v1 and v2), siglip2_scene0p, pose_raw, pose_interact and motion for all 355
+  clips, source tag `meva`, ids `meva/<stem>`. The external test froze its list on the prompt features before the
+  motion stream existed, so MEVA shot-cut flags were zero in that run (documented in its report).
