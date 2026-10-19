@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-from anticipation.data.catalog import REPO_ROOT, file_sha256
+from anticipation.data.catalog import REPO_ROOT, file_sha256, original_sha256
 
 PREREG_PATH = os.path.join(REPO_ROOT, "benchmark", "screens", "screen_set_v1.json")
 PINNED_SHA256 = {"screen_set_v1.json": "8831e16e664c895271b9cd77e0bab68733ca85a47655708998ab51d5e625797b",
@@ -104,9 +104,9 @@ def verify_inputs(pr, bench, plan_path=os.path.join(REPO_ROOT, "docs", "MODALITY
     prov, got = pr.data["provenance"], bench.provenance
     fatal, notes = [], []
     for key in ("folds_content_sha256", "videos_csv_sha256", "events_json_sha256"):
-        if prov.get(key) != got.get(key):
+        if prov.get(key) not in (got.get(key), original_sha256(got.get(key) or "")):
             fatal.append(f"{key}: registered {prov.get(key)} live {got.get(key)}")
-    if os.path.isfile(plan_path) and prov.get("plan_sha256") != file_sha256(plan_path):
+    if os.path.isfile(plan_path) and prov.get("plan_sha256") != original_sha256(file_sha256(plan_path)):
         notes.append("plan_sha256 differs from the live docs/MODALITY_PLAN.md (the plan was edited after registration)")
     for f in pr.screen_folds:
         for split in ("train", "val", "test"):

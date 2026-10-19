@@ -79,7 +79,7 @@ import requests
 import urllib3
 
 URL = "https://socia-lab.di.ubi.pt/EventDetection/UBI_FIGHTS.zip"
-DATA_ROOT = "data"
+DATA_ROOT = os.environ.get("VA_DATA_ROOT", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"))
 DEFAULT_ARCHIVE_DIR = os.path.join(DATA_ROOT, "downloads", "ubi_fights")
 DEFAULT_DEST = os.path.join(DATA_ROOT, "raw_videos", "ubi_fights")
 ZIP_PREFIX = "UBI_FIGHTS/"

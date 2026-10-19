@@ -1,0 +1,3009 @@
+{
+ "meta": {
+  "version": "audio_type_v1",
+  "created": "2026-10-15",
+  "window": "per video, first eligible30 event: [clear_start, onset] seconds (S_audio candidates: 0 to first onset); holdout: 0 to first onset or whole clip when no onset",
+  "scope": {
+   "n_videos": 346,
+   "eligible30_audio_folds_0234": 256,
+   "holdout_with_audio": 90,
+   "fold1_eligible30_audio_videos_not_used": 57,
+   "s_audio_candidate_events": 86
+  },
+  "types": [
+   "diegetic",
+   "narration",
+   "music",
+   "mixed",
+   "silent_absent"
+  ],
+  "rules": {
+   "features": {
+    "valid": "AST/audio_dsp valid ticks inside window",
+    "music_frac": "fraction of valid seconds with AST Music sigmoid > 0.5",
+    "vad_frac": "mean voice_affect speech_frac",
+    "words": "words in non-overlapping (every 6th) accepted Whisper windows (text_en)",
+    "news": "per-100-words hits of reporting/studio/channel regex",
+    "sport": "per-100-words hits of sports play-by-play regex",
+    "I_rate": "per-100-words first-person singular pronouns",
+    "prof": "per-100-words profanity",
+    "rms_mean/std": "audio_dsp rms_db_mean mean and std over window"
+   },
+   "order": [
+    "silent_absent: fewer than 5 valid seconds or valid fraction < 0.4 (conf 0.95 / 0.8); or rms_mean < -50 dB with vad < 0.05 and music < 0.3",
+    "no or little speech (words < 15 or vad_frac < 0.15): music if music_frac >= 0.5 (conf 0.65-0.8), mixed if 0.25-0.5, else diegetic ambient (conf 0.55; 0.4 when AST speech-like > 0.5 but nothing transcribed)",
+    "xd_movie: scripted soundtrack, never diegetic; music if music >= 0.5 and vad < 0.4 else mixed",
+    "speech with music >= 0.5 and vad < 0.4: music",
+    "diegetic: prof >= 1.0 or I_rate >= 8 (conf 0.7)",
+    "narration: I_rate <= 3.5 and prof < 0.5 (conf 0.8 if news >= 1.5 or sport >= 2.5 or (vad >= 0.6 and rms_std < 6), else 0.65)",
+    "else mixed (conf 0.5)"
+   ],
+   "music_bed": "music >= 0.5 with vad >= 0.4 does not force music; flagged in evidence"
+  },
+  "thresholds": {
+   "valid_frac_min": 0.4,
+   "valid_sec_min": 5,
+   "near_silent_db": -50,
+   "ast_music_prob": 0.5,
+   "music_dominant_frac": 0.5,
+   "little_speech_words": 15,
+   "little_speech_vad": 0.15,
+   "diegetic_I": 8,
+   "diegetic_prof": 1.0,
+   "narration_I": 3.5,
+   "narration_prof": 0.5
+  },
+  "counts_by_source_kind": {
+   "ucf": {
+    "diegetic": 11,
+    "mixed": 1,
+    "music": 3,
+    "narration": 2,
+    "silent_absent": 18
+   },
+   "xd_movie": {
+    "diegetic": 0,
+    "mixed": 96,
+    "music": 16,
+    "narration": 0,
+    "silent_absent": 0
+   },
+   "xd_youtube": {
+    "diegetic": 23,
+    "mixed": 19,
+    "music": 6,
+    "narration": 60,
+    "silent_absent": 1
+   },
+   "yt": {
+    "diegetic": 19,
+    "mixed": 24,
+    "music": 0,
+    "narration": 47,
+    "silent_absent": 0
+   }
+  },
+  "counts_total": {
+   "mixed": 140,
+   "narration": 109,
+   "diegetic": 53,
+   "music": 25,
+   "silent_absent": 19
+  },
+  "counts_s_audio_candidates": {
+   "narration": 27,
+   "diegetic": 25,
+   "silent_absent": 13,
+   "mixed": 13,
+   "music": 8
+  },
+  "s_audio_diegetic": {
+   "total": 25,
+   "with_intelligible_speech": 12,
+   "ambient_only": 13
+  },
+  "spot_check": {
+   "calibration_set": {
+    "n": 24,
+    "agree": 20,
+    "note": "[redacted for public release]"
+   },
+   "fresh_set": {
+    "n": 12,
+    "agree": 9,
+    "note": "[redacted for public release]"
+   },
+   "frame_checks": {
+    "n": 6,
+    "agree": 5,
+    "note": "[redacted for public release]"
+   }
+  },
+  "caveats": [
+   "Lexical rules are crude; diegetic vs mixed is the weakest boundary, talking-head vlogger monologues and streamer talk look diegetic by text",
+   "AST Narration class almost never fires (max sigmoid mean < 0.1) so it is not used",
+   "Labels are for the pre-onset window only",
+   "transcripts have language mix; non-English windows use the MT English text"
+  ]
+ },
+ "videos": {
+  "ucf/Abuse004_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Abuse014_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Abuse015_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Abuse017_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "ucf/Abuse020_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Abuse027_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Abuse030_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "ucf/Abuse036_x264": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Abuse040_x264": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Abuse043_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Arrest007_x264": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Arrest020_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Arrest021_x264": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Arrest033_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Arrest049_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Assault002_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false,
+   "subtype": "ambient"
+  },
+  "ucf/Assault040_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Fighting004_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Fighting015_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Fighting021_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Fighting027_x264": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Fighting043_x264": {
+   "type": "music",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Fighting048_x264": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "ucf/Fighting050_x264": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Robbery005_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Robbery059_x264": {
+   "type": "music",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Robbery065_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false
+  },
+  "ucf/Robbery098_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Robbery100_x264": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Robbery101_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Robbery124_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Robbery125_x264": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Robbery128_x264": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "ucf/Robbery141_x264": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "ucf/Robbery150_x264": {
+   "type": "silent_absent",
+   "confidence": 0.95,
+   "evidence": "[redacted for public release]",
+   "source_kind": "ucf",
+   "s_audio_candidate": true
+  },
+  "xd/Bad.Boys.1995__#01-44-40_01-49-20_label_B2-G-B6": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bad.Boys.II.2003__#00-27-29_00-30-13_label_B6-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Bad.Boys.II.2003__#02-07-07_02-12-05_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Brick.Mansions.2014__#01-15-01_01-16-45_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#00-10-30_00-11-45_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Bullet.in.the.Head.1990__#00-36-00_00-37-14_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#00-39-01_00-41-00_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#01-01-11_01-04-01_label_G-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#01-07-01_01-10-00_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Bullet.in.the.Head.1990__#01-19-10_01-21-30_label_B2-B5-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#01-21-37_01-25-26_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Bullet.in.the.Head.1990__#01-28-30_01-33-00_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/City.Of.Men.2007__#00-24-29_00-25-30_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/City.Of.Men.2007__#00-51-50_00-53-31_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/City.of.God.2002__#01-52-20_01-54-32_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/City.of.God.2002__#02-00-11_02-01-40_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Crank.Dircut.2006__#01-01-10_01-02-01_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Crank.Dircut.2006__#01-20-35_01-23-33_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Deadpool.2016__#0-10-14_0-12-16_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Death.Proof.2007__#00-45-05_00-47-36_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Death.Proof.2007__#01-48-30_01-49-26_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Fast.Furious.2009__#01-29-10_01-29-55_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Fast.Furious.6.2013__#01-44-00_01-46-40_label_B1-B2-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Fury.2014__#00-23-40_00-24-42_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Fury.2014__#00-46-02_00-48-53_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Fury.2014__#01-18-45_01-24-14_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Fury.2014__#01-48-19_01-56-29_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Gladiator.2000__#01-55-09_01-59-36_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Gladiator.2000__#02-35-38_02-38-52_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/God.Bless.America.2011__#00-52-07_00-53-55_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/God.Bless.America.2011__#01-13-20_01-15-05_label_B2-B6-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Hot.Fuzz.2007__#01-33-10_01-38-50_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/IP.Man.2.2010__#00-42-46_00-45-40_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "Yes yes"
+  },
+  "xd/IP.Man.2.2010__#01-29-35_01-33-35_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/IP.Man.2.2010__#01-35-55_01-39-11_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Ip.Man.2008__#00-05-39_00-07-10_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "Master."
+  },
+  "xd/Ip.Man.2008__#00-56-49_01-00-39_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Ip.Man.2008__#01-34-52_01-39-12_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Ip.Man.3.2015__#00-46-08_00-54-20_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Ip.Man.3.2015__#01-02-20_01-05-33_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Ip.Man.3.2015__#01-32-19_01-40-50_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kill.Bill.Vol.1.2003__#01-17-20_01-20-20_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kill.Bill.Vol.1.2003__#01-21-39_01-26-55_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Kill.Bill.Vol.1.2003__#01-31-04_01-34-11_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kill.Bill.Vol.2.2004__#0-25-20_0-26-20_label_B2-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kill.Bill.Vol.2.2004__#0-31-20_0-32-00_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kill.Bill.Vol.2.2004__#01-19-18_01-21-10_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Kingsman.The.Golden.Circle.2017__#00-01-40_00-04-51_label_B1-B2-B6": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Golden.Circle.2017__#00-05-38_00-07-20_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Golden.Circle.2017__#01-29-11_01-31-16_label_B2-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Golden.Circle.2017__#01-52-11_01-55-03_label_B1-B2-G": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Golden.Circle.2017__#01-55-34_01-57-36_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Kingsman.The.Secret.Service.2014__#00-20-40_00-21-40_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Secret.Service.2014__#01-18-20_01-19-23_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Kingsman.The.Secret.Service.2014__#01-43-40_01-44-50_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Lord.of.War__#00-06-20_00-07-20_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Love.Death.and.Robots.S01E04__#00-06-28_00-10-33_label_G-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Love.Death.and.Robots.S01E10__#0-09-01_0-11-52_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Love.Death.and.Robots.S01E13__#0-07-49_0-11-46_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.Fallout.2018__#00-08-20_00-10-50_label_B2-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.Fallout.2018__#00-28-59_00-30-07_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.Ghost.Protocol.2011__#00-42-50_00-44-10_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.II.2000__#01-15-10_01-16-32_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.II.2000__#01-49-35_01-51-52_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Mission.Impossible.II.2000__#01-52-05_01-54-05_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Mission.Impossible.III.2006__#01-47-33_01-49-14_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Mission.Impossible.V.Rogue.Nation.2015__#00-35-24_00-36-24_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Operation.Red.Sea.2018__#0-05-27_0-07-35_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Operation.Red.Sea.2018__#0-36-25_0-38-01_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Operation.Red.Sea.2018__#0-38-02_0-43-05_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Operation.Red.Sea.2018__#01-20-58_01-22-00_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Rush.Hour.1998.BluRay__#00-02-23_00-04-02_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Rush.Hour.1998.BluRay__#01-22-19_01-24-06_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Shoot.Em.Up.2007__#00-02-08_00-05-45_label_B2-0-0": {
+   "type": "music",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Shoot.Em.Up.2007__#00-53-25_00-56-47_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Shoot.Em.Up.2007__#00-59-28_01-01-20_label_B2-B6-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/Sin.City.2005__#0-07-40_0-08-40_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Sin.City.2005__#0-52-13_0-53-23_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Sin.City.2005__#01-13-58_01-15-00_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Sin.City.2005__#01-30-07_01-31-45_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Sin.City.2005__#01-50-47_01-51-55_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Taken.2.UNRATED.EXTENDED.2012__#00-12-25_00-13-25_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "Sébastien?"
+  },
+  "xd/Taken.2.UNRATED.EXTENDED.2012__#01-19-00_01-21-20_label_B2-B1-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Taken.3.2014__#01-21-19_01-24-00_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Taken.Extended.Cut.2008__#00-47-30_00-48-36_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Identity.2002__#0-19-53_0-21-48_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Identity.2002__#0-42-20_0-46-42_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Legacy.2012__#0-44-41_0-47-56_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Legacy.2012__#0-59-18_01-01-52_label_B2-B1-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/The.Bourne.Legacy.2012__#01-36-45_01-38-16_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Supremacy.2004__#0-40-28_0-43-14_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Supremacy.2004__#01-01-23_01-02-25_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Supremacy.2004__#01-28-07_01-33-16_label_B6-B2-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/The.Bourne.Ultimatum.2007__#0-24-51_0-26-35_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Ultimatum.2007__#0-36-52_0-39-16_label_B2-B1-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Bourne.Ultimatum.2007__#01-06-36_01-09-15_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true
+  },
+  "xd/The.Hurt.Locker.2008__#0-19-22_0-22-32_label_B2-B1-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/The.Hurt.Locker.2008__#0-54-57_0-56-57_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-02-10_00-03-45_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-10-02_00-13-15_label_B4-B2-B1": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-13-41_00-14-56_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-18-00_00-20-00_label_B4-B2-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-33-25_00-35-30_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-39-50_00-40-31_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Tropa.de.Elite.2.2010__#00-42-00_00-43-00_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Young.And.Dangerous.I.1996__#0-02-12_0-03-32_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Young.And.Dangerous.III.1996__#0-00-48_0-02-44_label_B5-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Young.And.Dangerous.III.1996__#00-23-00_00-25-54_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/Young.And.Dangerous.III.1996__#01-30-12_01-31-00_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/sportsviolence__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=-boWwzJqEhQ__#1_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=0N5-9mps6z4__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=0yHBkMBE8r4__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=36VcW5DWJyI__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=3y2OOc6WTrg__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=4FzhVu2PR8Y__#1_label_B1": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=4xBNjEbLekg__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=5Ef6_XODxHg__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=5gCHS7CsjsE__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=6KQFxxHmVMc__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=78u9uBJBqIw__#1_label_B4-B5-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=7WO1qIXLan4__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=7zEFHKKBA0g__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=8lvtYiOiCQU__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=96N4XAJ7FKM__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=CLFYvG6MsZU__#00-00-00_00-02-16_label_B2-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=CvLPZjcxvCI__#1_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=D8MZwMzs9rA__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "ambient"
+  },
+  "xd/v=DOMwKUIvcFw__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Dh-3BlhAOnE__#00-00-00_00-13-36_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=DrhRopvkCDg__#1_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=FHzT8e5kR2Y__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=FW_qbiPH7UA__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=H9Hta84rfGw__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=I6lFieHFSgw__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=I9wujEB6x2o__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Iaon8hM2UbM__#00-00-00_00-30-06_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=KUeUxbsBO6s__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=KksmTloMKuQ__#00-00-00_00-03-06_label_B2-G-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=KsjzuLCuV9U__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=KwJRY2W4GbI__#1_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true
+  },
+  "xd/v=LxWWnIuUaMY__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=MX_UU8fOYPo__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=MeDcqvFz3l4__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=MfgGJY_eZ4Q__#00-00-57_00-08-06_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=MqrNCb2N5to__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=NYnAnri6KTs__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=PHgxRABwgfA__#1_label_B4-B5-B1": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=PQnFFCyJ3Eo__#00-08-57_00-12-13_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "ambient"
+  },
+  "xd/v=PQnFFCyJ3Eo__#00-12-13_00-16-48_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Rve00ZElOO8__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Tlx-XRyAgnM__#00-00-00_00-10-06_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=V-87Zz7xbSA__#1_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=VaQpmWUfmn0__#1_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true
+  },
+  "xd/v=W7FVRlyw6Dg__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=WO7xbZEsKvc__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=WQjp06C3-y4__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Wwu20e9pfxg__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=X6BLBhPt9Oc__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=XxVp3LWqZVk__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Y1hxr1MWLjM__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Y5v7A4hUM-E__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=YKtw6uLEGps__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=Z1h1h8WmP0E__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZC0rczrqn5s__#00-00-00_00-04-57_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZC0rczrqn5s__#00-04-57_00-08-06_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZCjNPgNu42g__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZnFlL84K7HE__#00-00-00_00-09-22_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZnFlL84K7HE__#00-09-22_00-15-08_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZnFlL84K7HE__#00-15-08_00-22-53_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ZnFlL84K7HE__#00-22-53_00-27-53_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=_BvlwaTU16c__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=_Z_ijjCZnBg__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "xd/v=aQ3qMpgZjwg__#00-05-18_00-09-13_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=aWPWHU8x6kE__#1_label_B4-0-0": {
+   "type": "music",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "I love you."
+  },
+  "xd/v=aaFoHfBfv_8__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=ad1blksyhyM__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=cK8jk8dMuJs__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=cuUK-3MNqtw__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=eXjd7GkHKfU__#00-00-00_00-01-58_label_B4-0-0": {
+   "type": "silent_absent",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true
+  },
+  "xd/v=gQf40mPOzVE__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=h4DJWJs4mDw__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=idBwMN0E9Qg__#00-05-30_00-10-39_label_B4-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=jW8kD79pqOY__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=kdub1GS6CbI__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "xd/v=lrwKV07iQLE__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=lxpWeUrO9k8__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=m8EkFsaGPzU__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "ambient"
+  },
+  "xd/v=mhZ_PC0CLec__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=mr0LHzZz2m8__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=oAQtabmrV7Q__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pFamvR9CpYw__#00-06-36_00-15-20_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pFamvR9CpYw__#00-15-20_00-25-20_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pFamvR9CpYw__#00-25-20_00-35-20_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pFamvR9CpYw__#00-45-20_00-55-20_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pFamvR9CpYw__#00-55-20_01-05-45_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=pL2HjXvWuPc__#1_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true
+  },
+  "xd/v=pz_gOHgMgvA__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=q1tQa14sUWw__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=qQCTvJq83_s__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=qYGIqrHVxMc__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=rR-F1X08BYQ__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=rVZxrx_qxgA__#00-00-00_00-06-32_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=rVZxrx_qxgA__#00-09-55_00-17-35_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "subtype": "ambient"
+  },
+  "xd/v=rXWOpZ7W2fA__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=rZ1TjA-2vXw__#1_label_B1-0-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=rldjZyZwUEM__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=s1AZ_zUxzD4__#1_label_G-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=tb4KREvKYBA__#00-00-00_00-13-30_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=tb4KREvKYBA__#00-13-30_00-23-20_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=txpfvf01Ojc__#00-00-00_00-04-07_label_B1-0-0": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=uO9coydHA3k__#1_label_B1-B2-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=vS_RKwCYcl8__#1_label_B4-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "xd/v=wG-2t0M8CPc__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=wXjRmA91RGo__#1_label_B1-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=weOhgv-3OhM__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=xGN2-m_qqBc__#1_label_B1-0-0": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": true,
+   "subtype": "ambient"
+  },
+  "xd/v=yvnj5VIDsNI__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/v=zQNIOEOp63k__#1_label_B4-0-0": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_youtube",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/wangted.2008__#0-14-01_0-20-25_label_B2-B6-0": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "xd/wangted.2008__#01-14-14_01-18-27_label_B1-B2-B6": {
+   "type": "music",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "xd_movie",
+   "s_audio_candidate": false,
+   "scripted_movie": true,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_001": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_002": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_003": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_005": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_006": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_007": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_008": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_009": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_010": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_011": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_012": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_013": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_014": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_015": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_016": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_017": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_018": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_019": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_020": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_021": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_022": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_023": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_024": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_025": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_026": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_027": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_028": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_029": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_030": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_031": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_032": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_033": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_034": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_035": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_036": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_037": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_038": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_039": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_040": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_041": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_042": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_043": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_044": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_045": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_046": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_047": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_048": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_049": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_050": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_051": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_052": {
+   "type": "diegetic",
+   "confidence": 0.4,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_053": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_054": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_055": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_056": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_057": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_058": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_059": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_060": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_061": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_062": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_063": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_064": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_065": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_066": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_067": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_068": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_069": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_070": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_071": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_072": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_073": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_074": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_075": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_076": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_077": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_078": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_079": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_080": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_082": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_083": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_084": {
+   "type": "diegetic",
+   "confidence": 0.55,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "ambient",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_085": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_086": {
+   "type": "narration",
+   "confidence": 0.65,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_087": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_088": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_089": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_090": {
+   "type": "narration",
+   "confidence": 0.8,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_091": {
+   "type": "diegetic",
+   "confidence": 0.7,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "subtype": "speech",
+   "transcript_snippet": "[redacted for public release]"
+  },
+  "yt/holdout_092": {
+   "type": "mixed",
+   "confidence": 0.5,
+   "evidence": "[redacted for public release]",
+   "source_kind": "yt",
+   "s_audio_candidate": false,
+   "transcript_snippet": "[redacted for public release]"
+  }
+ }
+}

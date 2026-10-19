@@ -1,0 +1,5889 @@
+{
+ "method": "Single AI visual pass on blind first-frame sheets; coarse nonviolence check, not human ground truth",
+ "reviews": {
+  "c0001": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0002": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0003": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0004": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0005": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0006": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0007": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0008": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0009": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0010": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0011": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0012": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0013": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0014": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0015": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0016": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0017": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0018": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0019": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0020": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0021": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0022": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0023": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0024": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0025": {
+   "calm_verified": false,
+   "reason": "active fire"
+  },
+  "c0026": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0027": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0028": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0029": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0030": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0031": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0032": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0033": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0034": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0035": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0036": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0037": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0038": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0039": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0040": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0041": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0042": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0043": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0044": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0045": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0046": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0047": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0048": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0049": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0050": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0051": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0052": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0053": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0054": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0055": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0056": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0057": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0058": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0059": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0060": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0061": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0062": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0063": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0064": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0065": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0066": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0067": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0068": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0069": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0070": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0071": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0072": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0073": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0074": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0075": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0076": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0077": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0078": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0079": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0080": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0081": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0082": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0083": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0084": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0085": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0086": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0087": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0088": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0089": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0090": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0091": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0092": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0093": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0094": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0095": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0096": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0097": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0098": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0099": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0100": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0101": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0102": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0103": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0104": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0105": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0106": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0107": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0108": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0109": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0110": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0111": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0112": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0113": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0114": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0115": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0116": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0117": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0118": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0119": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0120": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0121": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0122": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0123": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0124": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0125": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0126": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0127": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0128": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0129": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0130": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0131": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0132": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0133": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0134": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0135": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0136": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0137": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0138": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0139": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0140": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0141": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0142": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0143": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0144": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0145": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0146": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0147": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0148": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0149": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0150": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0151": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0152": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0153": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0154": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0155": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0156": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0157": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0158": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0159": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0160": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0161": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0162": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0163": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0164": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0165": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0166": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0167": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0168": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0169": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0170": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0171": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0172": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0173": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0174": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0175": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0176": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0177": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0178": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0179": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0180": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0181": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0182": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0183": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0184": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0185": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0186": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0187": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0188": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0189": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0190": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0191": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0192": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0193": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0194": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0195": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0196": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0197": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0198": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0199": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0200": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0201": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0202": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0203": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0204": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0205": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0206": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0207": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0208": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0209": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0210": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0211": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0212": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0213": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0214": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0215": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0216": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0217": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0218": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0219": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0220": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0221": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0222": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0223": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0224": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0225": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0226": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0227": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0228": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0229": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0230": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0231": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0232": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0233": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0234": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0235": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0236": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0237": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0238": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0239": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0240": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0241": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0242": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0243": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0244": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0245": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0246": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0247": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0248": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0249": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0250": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0251": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0252": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0253": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0254": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0255": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0256": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0257": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0258": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0259": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0260": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0261": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0262": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0263": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0264": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0265": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0266": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0267": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0268": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0269": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0270": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0271": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0272": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0273": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0274": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0275": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0276": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0277": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0278": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0279": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0280": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0281": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0282": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0283": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0284": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0285": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0286": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0287": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0288": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0289": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0290": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0291": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0292": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0293": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0294": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0295": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0296": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0297": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0298": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0299": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0300": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0301": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0302": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0303": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0304": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0305": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0306": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0307": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0308": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0309": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0310": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0311": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0312": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0313": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0314": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0315": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0316": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0317": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0318": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0319": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0320": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0321": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0322": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0323": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0324": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0325": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0326": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0327": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0328": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0329": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0330": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0331": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0332": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0333": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0334": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0335": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0336": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0337": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0338": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0339": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0340": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0341": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0342": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0343": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0344": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0345": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0346": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0347": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0348": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0349": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0350": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0351": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0352": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0353": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0354": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0355": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0356": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0357": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0358": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0359": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0360": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0361": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0362": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0363": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0364": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0365": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0366": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0367": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0368": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0369": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0370": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0371": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0372": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0373": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0374": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0375": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0376": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0377": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0378": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0379": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0380": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0381": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0382": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0383": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0384": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0385": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0386": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0387": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0388": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0389": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0390": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0391": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0392": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0393": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0394": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0395": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0396": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0397": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0398": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0399": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0400": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0401": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0402": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0403": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0404": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0405": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0406": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0407": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0408": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0409": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0410": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0411": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0412": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0413": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0414": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0415": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0416": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0417": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0418": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0419": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0420": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0421": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0422": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0423": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0424": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0425": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0426": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0427": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0428": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0429": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0430": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0431": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0432": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0433": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0434": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0435": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0436": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0437": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0438": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0439": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0440": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0441": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0442": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0443": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0444": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0445": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0446": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0447": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0448": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0449": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0450": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0451": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0452": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0453": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0454": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0455": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0456": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0457": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0458": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0459": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0460": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0461": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0462": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0463": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0464": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0465": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0466": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0467": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0468": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0469": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0470": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0471": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0472": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0473": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0474": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0475": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0476": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0477": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0478": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0479": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0480": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0481": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0482": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0483": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0484": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0485": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0486": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0487": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0488": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0489": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0490": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0491": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0492": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0493": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0494": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0495": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0496": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0497": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0498": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0499": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0500": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0501": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0502": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0503": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0504": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0505": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0506": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0507": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0508": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0509": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0510": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0511": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0512": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0513": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0514": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0515": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0516": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0517": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0518": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0519": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0520": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0521": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0522": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0523": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0524": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0525": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0526": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0527": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0528": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0529": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0530": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0531": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0532": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0533": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0534": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0535": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0536": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0537": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0538": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0539": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0540": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0541": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0542": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0543": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0544": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0545": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0546": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0547": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0548": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0549": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0550": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0551": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0552": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0553": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0554": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0555": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0556": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0557": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0558": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0559": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0560": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0561": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0562": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0563": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0564": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0565": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0566": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0567": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0568": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0569": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0570": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0571": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0572": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0573": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0574": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0575": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0576": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0577": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0578": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0579": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0580": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0581": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0582": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0583": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0584": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0585": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0586": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0587": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0588": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0589": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0590": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0591": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0592": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0593": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0594": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0595": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0596": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0597": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0598": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0599": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0600": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0601": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0602": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0603": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0604": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0605": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0606": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0607": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0608": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0609": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0610": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0611": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0612": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0613": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0614": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0615": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0616": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0617": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0618": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0619": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0620": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0621": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0622": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0623": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0624": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0625": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0626": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0627": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0628": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0629": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0630": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0631": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0632": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0633": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0634": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0635": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0636": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0637": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0638": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0639": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0640": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0641": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0642": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0643": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0644": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0645": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0646": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0647": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0648": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0649": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0650": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0651": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0652": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0653": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0654": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0655": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0656": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0657": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0658": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0659": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0660": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0661": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0662": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0663": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0664": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0665": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0666": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0667": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0668": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0669": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0670": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0671": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0672": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0673": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0674": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0675": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0676": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0677": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0678": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0679": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0680": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0681": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0682": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0683": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0684": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0685": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0686": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0687": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0688": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0689": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0690": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0691": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0692": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0693": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0694": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0695": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0696": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0697": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0698": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0699": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0700": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0701": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0702": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0703": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0704": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0705": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0706": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0707": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0708": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0709": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0710": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0711": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0712": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0713": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0714": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0715": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0716": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0717": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0718": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0719": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0720": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0721": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0722": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0723": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0724": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0725": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0726": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0727": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0728": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0729": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0730": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0731": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0732": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0733": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0734": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0735": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0736": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0737": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0738": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0739": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0740": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0741": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0742": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0743": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0744": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0745": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0746": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0747": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0748": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0749": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0750": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0751": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0752": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0753": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0754": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0755": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0756": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0757": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0758": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0759": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0760": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0761": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0762": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0763": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0764": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0765": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0766": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0767": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0768": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0769": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0770": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0771": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0772": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0773": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0774": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0775": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0776": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0777": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0778": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0779": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0780": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0781": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0782": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0783": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0784": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0785": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0786": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0787": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0788": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0789": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0790": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0791": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0792": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0793": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0794": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0795": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0796": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0797": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0798": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0799": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0800": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0801": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0802": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0803": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0804": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0805": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0806": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0807": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0808": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0809": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0810": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0811": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0812": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0813": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0814": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0815": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0816": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0817": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0818": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0819": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0820": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0821": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0822": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0823": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0824": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0825": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0826": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0827": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0828": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0829": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0830": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0831": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0832": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0833": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0834": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0835": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0836": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0837": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0838": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0839": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0840": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0841": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0842": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0843": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0844": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0845": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0846": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0847": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0848": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0849": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0850": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0851": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0852": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0853": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0854": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0855": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0856": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0857": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0858": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0859": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0860": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0861": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0862": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0863": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0864": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0865": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0866": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0867": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0868": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0869": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0870": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0871": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0872": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0873": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0874": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0875": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0876": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0877": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0878": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0879": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0880": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0881": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0882": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0883": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0884": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0885": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0886": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0887": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0888": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0889": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0890": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0891": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0892": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0893": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0894": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0895": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0896": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0897": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0898": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0899": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0900": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0901": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0902": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0903": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0904": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0905": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0906": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0907": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0908": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0909": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0910": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0911": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0912": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0913": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0914": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0915": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0916": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0917": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0918": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0919": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0920": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0921": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0922": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0923": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0924": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0925": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0926": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0927": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0928": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0929": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0930": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0931": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0932": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0933": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0934": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0935": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0936": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0937": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0938": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0939": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0940": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0941": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0942": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0943": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0944": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0945": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0946": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0947": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0948": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0949": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0950": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0951": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0952": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0953": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0954": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0955": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0956": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0957": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0958": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0959": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0960": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0961": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0962": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0963": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0964": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0965": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0966": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0967": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c0968": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0969": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0970": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0971": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0972": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0973": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0974": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0975": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c0976": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0977": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0978": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c0979": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0980": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0981": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0982": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0983": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0984": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0985": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0986": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c0987": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0988": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0989": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0990": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0991": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c0992": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0993": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0994": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0995": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0996": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0997": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0998": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c0999": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1000": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1001": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1002": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1003": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1004": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1005": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1006": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1007": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1008": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1009": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1010": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1011": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1012": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1013": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1014": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1015": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1016": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1017": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1018": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1019": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1020": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1021": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1022": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1023": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1024": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1025": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1026": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1027": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1028": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1029": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1030": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c1031": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1032": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1033": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1034": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1035": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1036": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1037": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1038": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1039": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1040": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1041": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1042": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1043": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1044": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1045": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1046": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1047": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1048": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1049": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1050": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1051": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1052": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1053": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1054": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1055": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1056": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1057": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1058": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1059": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1060": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1061": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1062": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1063": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1064": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1065": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1066": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1067": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1068": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1069": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1070": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1071": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1072": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1073": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1074": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1075": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1076": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1077": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1078": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1079": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1080": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1081": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1082": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1083": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1084": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1085": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1086": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1087": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1088": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1089": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1090": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1091": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1092": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1093": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1094": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1095": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1096": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1097": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1098": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1099": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1100": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1101": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1102": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1103": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1104": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1105": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1106": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1107": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1108": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1109": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1110": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1111": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1112": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1113": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1114": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1115": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1116": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1117": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1118": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1119": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1120": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1121": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c1122": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1123": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1124": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1125": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1126": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1127": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1128": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1129": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1130": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1131": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1132": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1133": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1134": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1135": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1136": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1137": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1138": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1139": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1140": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1141": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1142": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1143": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1144": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1145": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1146": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1147": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1148": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1149": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1150": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1151": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1152": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1153": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1154": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1155": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1156": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1157": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1158": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1159": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1160": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c1161": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1162": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1163": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1164": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1165": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1166": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1167": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1168": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1169": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1170": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1171": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1172": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1173": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1174": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1175": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1176": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1177": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1178": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1179": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1180": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1181": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1182": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1183": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1184": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1185": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1186": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1187": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1188": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1189": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1190": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1191": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1192": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1193": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1194": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1195": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1196": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1197": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1198": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1199": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1200": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1201": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1202": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1203": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1204": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1205": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1206": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1207": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1208": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1209": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1210": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1211": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1212": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c1213": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1214": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1215": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1216": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1217": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1218": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1219": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1220": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1221": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c1222": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1223": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1224": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1225": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1226": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1227": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1228": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1229": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1230": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1231": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1232": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1233": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1234": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1235": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1236": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1237": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1238": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1239": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1240": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1241": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1242": {
+   "calm_verified": false,
+   "reason": "title card"
+  },
+  "c1243": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1244": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1245": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1246": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1247": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1248": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1249": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1250": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1251": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1252": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1253": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1254": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1255": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1256": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1257": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1258": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1259": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1260": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1261": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1262": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1263": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1264": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1265": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1266": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1267": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1268": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1269": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1270": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1271": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1272": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1273": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1274": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1275": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1276": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1277": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1278": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1279": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1280": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1281": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1282": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1283": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1284": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1285": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1286": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1287": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1288": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1289": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1290": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1291": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1292": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1293": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1294": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1295": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1296": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1297": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1298": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1299": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1300": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1301": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1302": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1303": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1304": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1305": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1306": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1307": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1308": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1309": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1310": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1311": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1312": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1313": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1314": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1315": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1316": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1317": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1318": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1319": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1320": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1321": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1322": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1323": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1324": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1325": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1326": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1327": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1328": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1329": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1330": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1331": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1332": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1333": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1334": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1335": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1336": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1337": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1338": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1339": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1340": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1341": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1342": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1343": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1344": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1345": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1346": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1347": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1348": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1349": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1350": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1351": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1352": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1353": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1354": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1355": {
+   "calm_verified": false,
+   "reason": "logo/title"
+  },
+  "c1356": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1357": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1358": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1359": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1360": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1361": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1362": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1363": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1364": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1365": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1366": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1367": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1368": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1369": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1370": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1371": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1372": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1373": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1374": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1375": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1376": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1377": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1378": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1379": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1380": {
+   "calm_verified": false,
+   "reason": "gray frame"
+  },
+  "c1381": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1382": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1383": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1384": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1385": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1386": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1387": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1388": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1389": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1390": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1391": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1392": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1393": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1394": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1395": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1396": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1397": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1398": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1399": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1400": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1401": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1402": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1403": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1404": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1405": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1406": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1407": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1408": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1409": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1410": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1411": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1412": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1413": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1414": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1415": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1416": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1417": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1418": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1419": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1420": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1421": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1422": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1423": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1424": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1425": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1426": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1427": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1428": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1429": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1430": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1431": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1432": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1433": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1434": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1435": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1436": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1437": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1438": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1439": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1440": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1441": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1442": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1443": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1444": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1445": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1446": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1447": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1448": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1449": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1450": {
+   "calm_verified": false,
+   "reason": "black frame"
+  },
+  "c1451": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1452": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1453": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1454": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1455": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1456": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1457": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1458": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1459": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1460": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1461": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1462": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1463": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1464": {
+   "calm_verified": false,
+   "reason": "[redacted for public release]"
+  },
+  "c1465": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1466": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1467": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1468": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1469": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1470": {
+   "calm_verified": true,
+   "reason": "[redacted for public release]"
+  },
+  "c1471": {
+   "calm_verified": false,
+   "reason": "black frame"
+  }
+ }
+}

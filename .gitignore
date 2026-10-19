@@ -63,3 +63,5 @@ benchmark/results/cue_screen_v*/**/*.parquet
 benchmark/results/single_block/**/*.parquet
 benchmark/results/fusion_v2/**/*.parquet
 benchmark/results/confirmation_replay/*.pkl
+!benchmark/results/fusion_v2/events/va30_scores.parquet
+CLAUDE.md

@@ -1,0 +1,296 @@
+{
+ "status": "PROPOSAL_NOT_APPLIED",
+ "reviewer": "Assistant visual interpretation; not final human adjudication",
+ "events": {
+  "V001": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 35.8,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V002": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 1.3,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V003": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 5.0,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V004": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V005": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V006": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 1.9,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V007": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 35.333,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V008": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 41.767,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V009": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V010": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V011": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 59.3,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V012": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V013": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V014": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 84.5,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V015": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 18.6,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V016": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V017": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 16.433,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V018": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V019": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V020": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V021": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V022": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V023": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V024": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V025": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 31.4,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V026": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V027": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V028": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V029": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V030": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 23.2,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V031": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V032": {
+   "classification": "a",
+   "confidence": "low",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V033": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V034": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V035": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V036": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V037": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V038": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V039": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V040": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 0.0,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V041": {
+   "classification": "a",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V042": {
+   "classification": "b",
+   "confidence": "low",
+   "mask_start_proposal_sec": 14.6,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V043": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V044": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V045": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V046": {
+   "classification": "c",
+   "confidence": "medium",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V047": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V048": {
+   "classification": "a",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V049": {
+   "classification": "b",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 3.958,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V050": {
+   "classification": "c",
+   "confidence": "high",
+   "suspected_fiction_under_youtube_source": true,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V051": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 5.583,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V052": {
+   "classification": "b",
+   "confidence": "high",
+   "mask_start_proposal_sec": 61.75,
+   "suspected_fiction_under_youtube_source": true,
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V053": {
+   "classification": "c",
+   "confidence": "high",
+   "visual_evidence": "[redacted for public release]"
+  },
+  "V054": {
+   "classification": "a",
+   "confidence": "high",
+   "suspected_fiction_under_youtube_source": true,
+   "visual_evidence": "[redacted for public release]"
+  }
+ }
+}

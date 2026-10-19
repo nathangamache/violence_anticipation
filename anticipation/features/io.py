@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-FEATURE_ROOT = "data/features"
+FEATURE_ROOT = os.path.join(os.environ.get("VA_DATA_ROOT", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data")), "features")
 
 
 def feature_path(extractor, video_id):

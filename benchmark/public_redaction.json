@@ -1,0 +1,130 @@
+{
+ "note": "Files changed for the public release. original_sha256 is the hash pinned by the registrations, fold files and sidecars at the time of the experiments; redacted_sha256 is the hash of the published file. Row counts, timestamps, labels and every aggregate are unchanged; only identifiers of the curated YouTube hold-out, local paths and free-text reviewer evidence differ. anticipation.data.catalog.original_sha256 maps a published hash back to the pinned one so the registered checks still pass.",
+ "files": {
+  "anticipation/features/vlm_escalation.py": {
+   "original_sha256": "a6d13c3d689127eefc21f5df219a5702cf32d6f0f99415793cc1d82a760ea349",
+   "redacted_sha256": "50fec5b186a9acf03844e0b30c689dbd6467f97acea633dbbc34432e8f045dc6",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/audits/audio_type_v1.json": {
+   "original_sha256": "cd9c455d33486cb0f2e85caad1ec6a6819b3f2145a572de059dae95a3070eb02",
+   "redacted_sha256": "b2b1a5bf43e6a62d1045fd5d9004a6323146d219219a4d87cc3e6c244ce516e5",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/label_audit_v1.csv": {
+   "original_sha256": "a37968219fa1ab5671f4a20529af718ce46b925912ab809a055d60a84dccc250",
+   "redacted_sha256": "cd3869da1fe4bf54b5c8271884ccbe223096942ff3ada90571a0b62962d6adf4",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/onset_spotcheck_hivau_v1.csv": {
+   "original_sha256": "bc743f97e9d5c1449345be64def8d8b77a5b8694404b25a1c235711952569133",
+   "redacted_sha256": "dd6f19849feee67cc573ff7076009dfcc6f74e140e6e3811d750950d740cacc8",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/onset_spotcheck_official_v1.csv": {
+   "original_sha256": "28ad60093750732108f0b72b3b433903ba60204e0a22db6200800e9b5b0bc904",
+   "redacted_sha256": "93d4c2a051883c0c077528a6618293f28e31d20fb54278702bef809c3b070f05",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/phase0_nocontext_v1/early_frames_proposal.csv": {
+   "original_sha256": "d0b80fcc33ff1e9582c289fc6db269e2dd01d04d2f09267ceaf82bf129945ebb",
+   "redacted_sha256": "5ec5c5fb4e6acd4c4c4244b9c87d324df2df0dcf15a228b4fc5cb381629ed399",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/phase0_nocontext_v1/early_frames_proposal.json": {
+   "original_sha256": "647ad8443c8c5c9facfc95150026225b930e49d3d28ba47facdce30fdbbec70c",
+   "redacted_sha256": "05db6dfc35b3adeb3d7e2928fa77f78c2c57f804e9f1f2169030ca1413fb7c31",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/audits/phase0_nocontext_v1/visual_reviews.json": {
+   "original_sha256": "ed2df9fae4bc703a8f4fde10074df816f86b6d6d12e57566930610a0fa97bdcb",
+   "redacted_sha256": "3feac9f1a8de6fa476ae2df8b4c75b9dd03b2c8f98577f9eae677c7dde4f8c0c",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/events.json": {
+   "original_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+   "redacted_sha256": "faf2ea2a04587449b7ff4f950904ae3215734cce70d9886a263d56cba4b6e14e",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/extract_manifest_v1.csv": {
+   "original_sha256": "f531a43df4c06a7395f49cd5ef40b64bd24976b113d7343682f594a316c3b62a",
+   "redacted_sha256": "b1eda12b1eb83b2120b21ea407d37682aa357c24669dad635e0fd675c20bc525",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/extract_manifest_v2.csv": {
+   "original_sha256": "6f6ae759329b98509c86913cbb0135678237f247d8b1a31a5afd2dbf3de5289a",
+   "redacted_sha256": "3913758c91e9e0abbb9ae7bfd83e10d7ab1d3215192c9131b4679b7f703175a5",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/labels_v3/onset_corrections.csv": {
+   "original_sha256": "d5223d53c2898d35d377bc7df13651769054fc619e928f56989c0f9bbe78e758",
+   "redacted_sha256": "d4a8352229414f256148a8250e7b761a2d83853f89d5b35bb66469ab0b748be0",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/labels_v3/onset_corrections.json": {
+   "original_sha256": "93395b245c0b914e395ef51718260a3ab14d093b60ba5d489631a9f224aeded6",
+   "redacted_sha256": "4ca155c2ea0ad6a9466e7fbb109744ab17122a7d498b9d3616d8fdf5f3eb7ab1",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/results/b0_student_mlp/shortcut_audit.json": {
+   "original_sha256": "dff5f7e9be9e9ae48380f2695003769ebfa11ee2ecf98a0bbe5329ad67aaaa08",
+   "redacted_sha256": "f8d11e339f6ff343ca995ab3da0e0510f0dcad46a26172b10fe6aa8246e563c6",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/contamination_candidates.csv": {
+   "original_sha256": "d6de527bddc88daff5467c362116aa6ed7b46eb7cbae6760ab8112537cbbc458",
+   "redacted_sha256": "592c1145dede98e63c8c4318b44ac7972bf102b29698d2f19d11de5194060acf",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/contamination_queries.csv": {
+   "original_sha256": "67787efaeeddec26a6f436c0c1162dfca22e1978c5bed760571ca5225f902603",
+   "redacted_sha256": "574e84544b88d7c75150d000620c0dc03b841b5c167c148c7e78c3cec0f5d104",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/contamination_reviews.json": {
+   "original_sha256": "c3193843e0fc2ad41010a6c88312a63a6286ce42fff24e4ace84d6e31bf4143f",
+   "redacted_sha256": "6b29181d67db0942f0ff2b47000bd66a305e5e6ca3490e773a1b9d6795350648",
+   "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/pilot_P.csv": {
+   "original_sha256": "0253dad83600c9aa98cff304d313f7d0284975e0da97b245d4cb9de7d21d96da",
+   "redacted_sha256": "37dbf5a90b4ee498adf175b499b536d45da94e4d5b3a8ffdd20f527287338675",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/rest_S.csv": {
+   "original_sha256": "9784cbc80ee0bf91e067439d781aacc4da4dc568605fbe1ecfca96c1e9b2467f",
+   "redacted_sha256": "96ca6a14d5c6b04a79b1a5e966c42527ced5d774b12e77f6e7493df8b30f3163",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/screen_S.csv": {
+   "original_sha256": "84049870ca9e0696045eeb6b301e4b96441908abed8d2fe94b34b85e76d55886",
+   "redacted_sha256": "39fcdb6e37c0ec7770d59eb0193bcc99f9c00452d54b45d8d4ac193832878aa4",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/results/vlm_escalation_smoke_protocol/timing_queries.csv": {
+   "original_sha256": "42ad9de4a299152d6afac6ed9af3cfea330b1873b87a174b1cda712234818d30",
+   "redacted_sha256": "46155fcd16dd6d4b3a971c24398e2210e28d31169fc2f21e6e766a54df4f25c3",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/v3/events.json": {
+   "original_sha256": "5dfc0fd492cc5352d272f2336e00697377c1919a0f774d10253941f49f32158b",
+   "redacted_sha256": "988efb2e0d2b6857e283be83b3c0d6d0ce29e0c9cbf897b1723a66fb626318bf",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/v3/videos.csv": {
+   "original_sha256": "eed1f922003df96996f2bbca381d3e395f404c972897fb60865116e5b930f842",
+   "redacted_sha256": "62f57de0599a37ba71229c47725b7ff4a4c0e1abf53f6cb1243c240f3ceff9e1",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "benchmark/videos.csv": {
+   "original_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+   "redacted_sha256": "1b185d5c00d1d88aa4ea42601798a27dcc20c7e862c233505ebac47c0d4efb85",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  },
+  "docs/MODALITY_PLAN.md": {
+   "original_sha256": "7bf394b1a0b9f2e4cfc5c55d95992665c5df52141f613f08df464c118b4258c5",
+   "redacted_sha256": "36d26f20d2eb058427bf750d8c384dc1198f087935f1b30fcc19ed082c8a0145",
+   "change": "curated YouTube hold-out ids replaced by holdout_NNN; local absolute paths made relative; hardware names generalised"
+  }
+ }
+}

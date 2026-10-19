@@ -1,0 +1,1460 @@
+{
+ "selection": "Seed 0, test fold only. Literal top-20 tick rankings, descending score then video_id/tick; clean negatives unmasked with >=60 seconds remaining, pre-onset unmasked before the first annotated anomaly and with a future onset. Diverse companion sheets keep the highest tick per video. No labels changed.",
+ "renderer": "tools/contact_sheet.py render_sheets, one sampled tick per tile, four decoder threads, 320px tiles",
+ "audio": "Neither model consumes audio; no music or speech audit was performed.",
+ "sheets": {
+  "clean_top20_ticks": [
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 54.0,
+    "score": 0.9969876408576965,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 1,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 55.0,
+    "score": 0.9969876408576965,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 56.0,
+    "score": 0.9969876408576965,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 64.0,
+    "score": 0.9853264093399048,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 65.0,
+    "score": 0.9853264093399048,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 5,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 66.0,
+    "score": 0.9853264093399048,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 6,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#01-17-22_01-18-53_label_A",
+    "t_sec": 10.0,
+    "score": 0.9805958271026611,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#01-17-22_01-18-53_label_A.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Two people walking/talking; no visible escalation."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#01-17-22_01-18-53_label_A",
+    "t_sec": 11.0,
+    "score": 0.9805958271026611,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#01-17-22_01-18-53_label_A.mp4",
+    "rank": 8,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Two people walking/talking; no visible escalation."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#01-17-22_01-18-53_label_A",
+    "t_sec": 12.0,
+    "score": 0.9768805503845215,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#01-17-22_01-18-53_label_A.mp4",
+    "rank": 9,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Two people walking/talking; no visible escalation."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#01-17-22_01-18-53_label_A",
+    "t_sec": 13.0,
+    "score": 0.9768805503845215,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#01-17-22_01-18-53_label_A.mp4",
+    "rank": 10,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Two people walking/talking; no visible escalation."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 57.0,
+    "score": 0.9767954349517822,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 11,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 58.0,
+    "score": 0.9767954349517822,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 12,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 59.0,
+    "score": 0.9767954349517822,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 13,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 60.0,
+    "score": 0.9767954349517822,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 14,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/The.Intouchables.2011__#00-04-20_00-05-35_label_A",
+    "t_sec": 1.0,
+    "score": 0.974658727645874,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Intouchables.2011__#00-04-20_00-05-35_label_A.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Gesturing conversation; single images do not establish escalation."
+   },
+   {
+    "video_id": "xd/The.Intouchables.2011__#00-04-20_00-05-35_label_A",
+    "t_sec": 2.0,
+    "score": 0.974658727645874,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Intouchables.2011__#00-04-20_00-05-35_label_A.mp4",
+    "rank": 16,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Gesturing conversation; single images do not establish escalation."
+   },
+   {
+    "video_id": "xd/The.Intouchables.2011__#00-04-20_00-05-35_label_A",
+    "t_sec": 3.0,
+    "score": 0.974658727645874,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Intouchables.2011__#00-04-20_00-05-35_label_A.mp4",
+    "rank": 17,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Gesturing conversation; single images do not establish escalation."
+   },
+   {
+    "video_id": "xd/Desperado.1995__#00-19-00_00-20-31_label_A",
+    "t_sec": 10.0,
+    "score": 0.9691015481948853,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Desperado.1995__#00-19-00_00-20-31_label_A.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Face close-up; no visible interaction escalation."
+   },
+   {
+    "video_id": "xd/Desperado.1995__#00-19-00_00-20-31_label_A",
+    "t_sec": 11.0,
+    "score": 0.9691015481948853,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Desperado.1995__#00-19-00_00-20-31_label_A.mp4",
+    "rank": 19,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Face close-up; no visible interaction escalation."
+   },
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 26.0,
+    "score": 0.968639612197876,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 20,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   }
+  ],
+  "preonset_top20_ticks": [
+   {
+    "video_id": "xd/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "t_sec": 4.0,
+    "score": 0.999887228012085,
+    "time_to_onset": 6.875,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0.mp4",
+    "rank": 1,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance",
+     "visible injury"
+    ],
+    "escalation_assessment": "An already injured person and armed background figures; onset timing may lag visible violence, lead under 9 seconds."
+   },
+   {
+    "video_id": "xd/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "t_sec": 5.0,
+    "score": 0.999887228012085,
+    "time_to_onset": 5.875,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance",
+     "visible injury"
+    ],
+    "escalation_assessment": "An already injured person and armed background figures; onset timing may lag visible violence, lead under 9 seconds."
+   },
+   {
+    "video_id": "xd/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "t_sec": 2.0,
+    "score": 0.999834418296814,
+    "time_to_onset": 8.875,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance",
+     "visible injury"
+    ],
+    "escalation_assessment": "An already injured person and armed background figures; onset timing may lag visible violence, lead under 9 seconds."
+   },
+   {
+    "video_id": "xd/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "t_sec": 3.0,
+    "score": 0.999834418296814,
+    "time_to_onset": 7.875,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance",
+     "visible injury"
+    ],
+    "escalation_assessment": "An already injured person and armed background figures; onset timing may lag visible violence, lead under 9 seconds."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 9.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 33.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 10.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 32.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 6,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 11.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 31.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 7,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 12.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 30.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 8,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 13.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 29.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 9,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 14.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 28.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 10,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 15.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 27.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 11,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 16.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 26.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 12,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "ucf/Arrest015_x264",
+    "t_sec": 1.0,
+    "score": 0.9997604489326477,
+    "time_to_onset": 4.2,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest015_x264.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "publisher logo"
+    ],
+    "escalation_assessment": "No people or behavior: publisher branding only."
+   },
+   {
+    "video_id": "ucf/Arrest015_x264",
+    "t_sec": 2.0,
+    "score": 0.9997604489326477,
+    "time_to_onset": 3.2,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest015_x264.mp4",
+    "rank": 14,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "publisher logo"
+    ],
+    "escalation_assessment": "No people or behavior: publisher branding only."
+   },
+   {
+    "video_id": "ucf/Arrest042_x264",
+    "t_sec": 5.0,
+    "score": 0.9997497200965881,
+    "time_to_onset": 5.567,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest042_x264.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Approaching pair/stance may be imminent confrontation; observed leads only 2.6-5.6 seconds."
+   },
+   {
+    "video_id": "ucf/Arrest042_x264",
+    "t_sec": 8.0,
+    "score": 0.9996651411056519,
+    "time_to_onset": 2.567,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest042_x264.mp4",
+    "rank": 16,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Approaching pair/stance may be imminent confrontation; observed leads only 2.6-5.6 seconds."
+   },
+   {
+    "video_id": "ucf/Arrest042_x264",
+    "t_sec": 7.0,
+    "score": 0.999472439289093,
+    "time_to_onset": 3.567,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest042_x264.mp4",
+    "rank": 17,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Approaching pair/stance may be imminent confrontation; observed leads only 2.6-5.6 seconds."
+   },
+   {
+    "video_id": "ucf/Shooting046_x264",
+    "t_sec": 4.0,
+    "score": 0.9994706511497498,
+    "time_to_onset": 129.5,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Shooting046_x264.mp4",
+    "rank": 5,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2",
+    "visible_cues": [
+     "title card",
+     "descriptive text",
+     "watermark"
+    ],
+    "escalation_assessment": "Text describes a shooting roughly 129 seconds before annotated onset; content/provenance leakage cue."
+   },
+   {
+    "video_id": "ucf/Shooting046_x264",
+    "t_sec": 5.0,
+    "score": 0.9994706511497498,
+    "time_to_onset": 128.5,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Shooting046_x264.mp4",
+    "rank": 19,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2",
+    "visible_cues": [
+     "title card",
+     "descriptive text",
+     "watermark"
+    ],
+    "escalation_assessment": "Text describes a shooting roughly 129 seconds before annotated onset; content/provenance leakage cue."
+   },
+   {
+    "video_id": "ucf/Shooting046_x264",
+    "t_sec": 6.0,
+    "score": 0.9994706511497498,
+    "time_to_onset": 127.5,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Shooting046_x264.mp4",
+    "rank": 20,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2",
+    "visible_cues": [
+     "title card",
+     "descriptive text",
+     "watermark"
+    ],
+    "escalation_assessment": "Text describes a shooting roughly 129 seconds before annotated onset; content/provenance leakage cue."
+   }
+  ],
+  "clean_diverse20": [
+   {
+    "video_id": "xd/v=2JJ9d97sd64__#1_label_A",
+    "t_sec": 54.0,
+    "score": 0.9969876408576965,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=2JJ9d97sd64__#1_label_A.mp4",
+    "rank": 1,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "letterboxing",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Hockey contact and gameplay in a nominal clean negative; not a 30-second escalation cue."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#01-17-22_01-18-53_label_A",
+    "t_sec": 10.0,
+    "score": 0.9805958271026611,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#01-17-22_01-18-53_label_A.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Two people walking/talking; no visible escalation."
+   },
+   {
+    "video_id": "xd/The.Intouchables.2011__#00-04-20_00-05-35_label_A",
+    "t_sec": 1.0,
+    "score": 0.974658727645874,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Intouchables.2011__#00-04-20_00-05-35_label_A.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Gesturing conversation; single images do not establish escalation."
+   },
+   {
+    "video_id": "xd/Desperado.1995__#00-19-00_00-20-31_label_A",
+    "t_sec": 10.0,
+    "score": 0.9691015481948853,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Desperado.1995__#00-19-00_00-20-31_label_A.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Face close-up; no visible interaction escalation."
+   },
+   {
+    "video_id": "xd/The.Intouchables.2011__#00-58-18_01-02-30_label_A",
+    "t_sec": 59.0,
+    "score": 0.9686088562011719,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Intouchables.2011__#00-58-18_01-02-30_label_A.mp4",
+    "rank": 5,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Standing/gesturing person; no visible escalation."
+   },
+   {
+    "video_id": "xd/v=Wc2QW06H48M__#1_label_A",
+    "t_sec": 2.0,
+    "score": 0.9667999744415283,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=Wc2QW06H48M__#1_label_A.mp4",
+    "rank": 6,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "monochrome",
+     "watermark"
+    ],
+    "escalation_assessment": "Crowd and marching; no visible interpersonal escalation."
+   },
+   {
+    "video_id": "xd/The.Fast.and.the.Furious.2001__#01-38-50_01-39-59_label_A",
+    "t_sec": 5.0,
+    "score": 0.96562260389328,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Fast.and.the.Furious.2001__#01-38-50_01-39-59_label_A.mp4",
+    "rank": 7,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Pair talking with folded arms; no visible escalation."
+   },
+   {
+    "video_id": "xd/The.Secret.Life.of.Walter.Mitty.2013__#01-23-00_01-29-08_label_A",
+    "t_sec": 253.0,
+    "score": 0.9632400274276733,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Secret.Life.of.Walter.Mitty.2013__#01-23-00_01-29-08_label_A.mp4",
+    "rank": 8,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2 distant",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Landscape and distant tents; no visible interpersonal cue."
+   },
+   {
+    "video_id": "xd/Ip.Man.2008__#01-04-27_01-06-22_label_A",
+    "t_sec": 1.0,
+    "score": 0.9609336853027344,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Ip.Man.2008__#01-04-27_01-06-22_label_A.mp4",
+    "rank": 9,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1+",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Dim period street; escalation uncertain from this frame."
+   },
+   {
+    "video_id": "xd/v=bU86SW6L7Tc__#1_label_A",
+    "t_sec": 46.0,
+    "score": 0.9601260423660278,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=bU86SW6L7Tc__#1_label_A.mp4",
+    "rank": 10,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "score graphic",
+     "sports broadcast"
+    ],
+    "escalation_assessment": "Players and audience; no clear escalation."
+   },
+   {
+    "video_id": "xd/Salt.2010__#00-13-45_00-16-10_label_A",
+    "t_sec": 58.0,
+    "score": 0.9540696740150452,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Salt.2010__#00-13-45_00-16-10_label_A.mp4",
+    "rank": 11,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "People in control room; no clear escalation."
+   },
+   {
+    "video_id": "xd/IP.Man.2.2010__#00-54-00_00-57-12_label_A",
+    "t_sec": 25.0,
+    "score": 0.9532471299171448,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/IP.Man.2.2010__#00-54-00_00-57-12_label_A.mp4",
+    "rank": 12,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Gesturing person; no clear escalation."
+   },
+   {
+    "video_id": "xd/v=Yr41_8QOTF8__#00-21-00_00-24-00_label_A",
+    "t_sec": 34.0,
+    "score": 0.9523344039916992,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=Yr41_8QOTF8__#00-21-00_00-24-00_label_A.mp4",
+    "rank": 13,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "instructional text",
+     "logo"
+    ],
+    "escalation_assessment": "Exercise and tutorial framing; no interpersonal escalation."
+   },
+   {
+    "video_id": "xd/Good.Will.Hunting.1997__#00-58-18_01-02-30_label_A",
+    "t_sec": 184.0,
+    "score": 0.9477183818817139,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Good.Will.Hunting.1997__#00-58-18_01-02-30_label_A.mp4",
+    "rank": 14,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Racing dogs; no interpersonal cue."
+   },
+   {
+    "video_id": "xd/Election.2005__#00-03-35_00-05-05_label_A",
+    "t_sec": 1.0,
+    "score": 0.9448139071464539,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/Election.2005__#00-03-35_00-05-05_label_A.mp4",
+    "rank": 15,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1 visible",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Close-up in conversation; no clear escalation."
+   },
+   {
+    "video_id": "xd/The.Secret.Life.of.Walter.Mitty.2013__#00-36-52_00-41-00_label_A",
+    "t_sec": 151.0,
+    "score": 0.9383749961853027,
+    "time_to_onset": null,
+    "source_kind": "xd_movie",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/The.Secret.Life.of.Walter.Mitty.2013__#00-36-52_00-41-00_label_A.mp4",
+    "rank": 16,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2 distant",
+    "visible_cues": [
+     "movie appearance"
+    ],
+    "escalation_assessment": "Street/car scene; no visible interaction escalation."
+   },
+   {
+    "video_id": "xd/v=QBfO3qfo7zg__#1_label_A",
+    "t_sec": 39.0,
+    "score": 0.9348183870315552,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=QBfO3qfo7zg__#1_label_A.mp4",
+    "rank": 17,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "subscribe text",
+     "logo"
+    ],
+    "escalation_assessment": "Crowd scene with promotional overlay; no clear escalation."
+   },
+   {
+    "video_id": "xd/v=3MUqt3OkxIo__#1_label_A",
+    "t_sec": 15.0,
+    "score": 0.9322288036346436,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=3MUqt3OkxIo__#1_label_A.mp4",
+    "rank": 18,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1 foreground",
+    "visible_cues": [
+     "video inset",
+     "title graphic"
+    ],
+    "escalation_assessment": "Presenter and hockey inset; edited provenance cue."
+   },
+   {
+    "video_id": "ucf/Normal_Videos_478_x264",
+    "t_sec": 10.0,
+    "score": 0.9300365447998047,
+    "time_to_onset": null,
+    "source_kind": "ucf",
+    "role": "clean_negative",
+    "path": "data/raw_videos/ucf_crime/videos/Normal_Videos_478_x264.mp4",
+    "rank": 19,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2 distant",
+    "visible_cues": [
+     "CCTV timestamp",
+     "watermark"
+    ],
+    "escalation_assessment": "Road traffic; no visible interpersonal interaction."
+   },
+   {
+    "video_id": "xd/v=SmFpAAHmoII__#1_label_A",
+    "t_sec": 28.0,
+    "score": 0.9289080500602722,
+    "time_to_onset": null,
+    "source_kind": "xd_youtube",
+    "role": "clean_negative",
+    "path": "data/raw_videos/xd_violence/videos/v=SmFpAAHmoII__#1_label_A.mp4",
+    "rank": 20,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "sports broadcast",
+     "logo"
+    ],
+    "escalation_assessment": "Ordinary gameplay; no clear escalation."
+   }
+  ],
+  "preonset_diverse20": [
+   {
+    "video_id": "xd/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0",
+    "t_sec": 4.0,
+    "score": 0.999887228012085,
+    "time_to_onset": 6.875,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Casino.Royale.2006__#00-18-30_00-19-20_label_G-B2-0.mp4",
+    "rank": 1,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "3-5",
+    "visible_cues": [
+     "movie appearance",
+     "visible injury"
+    ],
+    "escalation_assessment": "An already injured person and armed background figures; onset timing may lag visible violence, lead under 9 seconds."
+   },
+   {
+    "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+    "t_sec": 9.0,
+    "score": 0.9997900128364563,
+    "time_to_onset": 33.125,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+    "rank": 2,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "movie appearance",
+     "weapons",
+     "battle scene"
+    ],
+    "escalation_assessment": "Armed crowd/cavalry supplies strong violence content, but this is fictional combat rather than real-world escalation."
+   },
+   {
+    "video_id": "ucf/Arrest015_x264",
+    "t_sec": 1.0,
+    "score": 0.9997604489326477,
+    "time_to_onset": 4.2,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest015_x264.mp4",
+    "rank": 3,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "publisher logo"
+    ],
+    "escalation_assessment": "No people or behavior: publisher branding only."
+   },
+   {
+    "video_id": "ucf/Arrest042_x264",
+    "t_sec": 5.0,
+    "score": 0.9997497200965881,
+    "time_to_onset": 5.567,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest042_x264.mp4",
+    "rank": 4,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Approaching pair/stance may be imminent confrontation; observed leads only 2.6-5.6 seconds."
+   },
+   {
+    "video_id": "ucf/Shooting046_x264",
+    "t_sec": 4.0,
+    "score": 0.9994706511497498,
+    "time_to_onset": 129.5,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Shooting046_x264.mp4",
+    "rank": 5,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2",
+    "visible_cues": [
+     "title card",
+     "descriptive text",
+     "watermark"
+    ],
+    "escalation_assessment": "Text describes a shooting roughly 129 seconds before annotated onset; content/provenance leakage cue."
+   },
+   {
+    "video_id": "ucf/Arrest041_x264",
+    "t_sec": 7.0,
+    "score": 0.9992327690124512,
+    "time_to_onset": 3.4000000000000004,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest041_x264.mp4",
+    "rank": 6,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1-2",
+    "visible_cues": [
+     "descriptive text",
+     "watermark",
+     "graphic content warning"
+    ],
+    "escalation_assessment": "Graphic-content/robbery caption names the incident; only 3.4 seconds lead."
+   },
+   {
+    "video_id": "ucf/Assault037_x264",
+    "t_sec": 8.0,
+    "score": 0.9988306164741516,
+    "time_to_onset": 34.867,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Assault037_x264.mp4",
+    "rank": 7,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "6+",
+    "visible_cues": [
+     "monochrome CCTV"
+    ],
+    "escalation_assessment": "Crowd near tables; no definite escalation from one still, although lead is 34.9 seconds."
+   },
+   {
+    "video_id": "ucf/Robbery084_x264",
+    "t_sec": 3.0,
+    "score": 0.9983609318733215,
+    "time_to_onset": 13.832999999999998,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Robbery084_x264.mp4",
+    "rank": 8,
+    "scene_type": "shop CCTV",
+    "people_count_visual": "1",
+    "visible_cues": [
+     "watermark",
+     "letterboxing"
+    ],
+    "escalation_assessment": "Shop entrance; no definite interpersonal escalation in the still."
+   },
+   {
+    "video_id": "ucf/Assault003_x264",
+    "t_sec": 29.0,
+    "score": 0.9982722997665405,
+    "time_to_onset": 5.966999999999999,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Assault003_x264.mp4",
+    "rank": 9,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "watermark",
+     "camera overlay"
+    ],
+    "escalation_assessment": "Close approach/contact may be imminent or already active; lead only 6 seconds."
+   },
+   {
+    "video_id": "ucf/Robbery134_x264",
+    "t_sec": 4.0,
+    "score": 0.9976842403411865,
+    "time_to_onset": 7.367000000000001,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Robbery134_x264.mp4",
+    "rank": 10,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-3",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Close counter interaction; escalation uncertain, lead only 7.4 seconds."
+   },
+   {
+    "video_id": "ucf/Arrest024_x264",
+    "t_sec": 11.0,
+    "score": 0.9966841340065002,
+    "time_to_onset": 22.5,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest024_x264.mp4",
+    "rank": 11,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2+ distant",
+    "visible_cues": [
+     "watermark",
+     "letterboxing"
+    ],
+    "escalation_assessment": "Traffic and distant people; no clear behavioral escalation from this still."
+   },
+   {
+    "video_id": "ucf/Robbery055_x264",
+    "t_sec": 1.0,
+    "score": 0.9964158535003662,
+    "time_to_onset": 22.533,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Robbery055_x264.mp4",
+    "rank": 12,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "descriptive text"
+    ],
+    "escalation_assessment": "Title explicitly announces armed robbery; no behavioral evidence."
+   },
+   {
+    "video_id": "ucf/Arrest006_x264",
+    "t_sec": 1.0,
+    "score": 0.9959052801132202,
+    "time_to_onset": 39.1,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest006_x264.mp4",
+    "rank": 13,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2 distant",
+    "visible_cues": [
+     "CCTV framing"
+    ],
+    "escalation_assessment": "Distant road traffic, not an identifiable escalation cue; 39 seconds lead."
+   },
+   {
+    "video_id": "ucf/Shooting004_x264",
+    "t_sec": 1.0,
+    "score": 0.9951916933059692,
+    "time_to_onset": 15.666699999999999,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Shooting004_x264.mp4",
+    "rank": 14,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "violence warning"
+    ],
+    "escalation_assessment": "Warning explicitly advertises violence; no people or behavior."
+   },
+   {
+    "video_id": "ucf/Robbery087_x264",
+    "t_sec": 5.0,
+    "score": 0.9941723942756653,
+    "time_to_onset": 2.4669999999999996,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Robbery087_x264.mp4",
+    "rank": 15,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "1 foreground",
+    "visible_cues": [
+     "police logo",
+     "website watermark"
+    ],
+    "escalation_assessment": "Hooded customer at counter; violence imminent or annotation delayed, lead 2.5 seconds."
+   },
+   {
+    "video_id": "xd/Spectre.2015__#02-02-57_02-03-27_label_B1-B2-0",
+    "t_sec": 12.0,
+    "score": 0.9931394457817078,
+    "time_to_onset": 4.0,
+    "source_kind": "xd_movie",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/Spectre.2015__#02-02-57_02-03-27_label_B1-B2-0.mp4",
+    "rank": 16,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2",
+    "visible_cues": [
+     "movie appearance",
+     "close physical contact"
+    ],
+    "escalation_assessment": "Close contact appears underway; lead only 4 seconds, possible onset delay."
+   },
+   {
+    "video_id": "xd/v=OE9t3XImErk__#1_label_B1-0-0",
+    "t_sec": 1.0,
+    "score": 0.9928378462791443,
+    "time_to_onset": 7.0417000000000005,
+    "source_kind": "xd_youtube",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/v=OE9t3XImErk__#1_label_B1-0-0.mp4",
+    "rank": 17,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "violence warning"
+    ],
+    "escalation_assessment": "Warning/branding only, no people or escalation."
+   },
+   {
+    "video_id": "ucf/Assault027_x264",
+    "t_sec": 1.0,
+    "score": 0.992807149887085,
+    "time_to_onset": 131.967,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Assault027_x264.mp4",
+    "rank": 18,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0",
+    "visible_cues": [
+     "title card",
+     "website text"
+    ],
+    "escalation_assessment": "Website/provenance statement roughly 132 seconds before annotated onset."
+   },
+   {
+    "video_id": "xd/v=tivXK3PGByk__#1_label_B1-0-0",
+    "t_sec": 23.0,
+    "score": 0.9924282431602478,
+    "time_to_onset": 20.2083,
+    "source_kind": "xd_youtube",
+    "role": "violent",
+    "path": "data/raw_videos/xd_violence/videos/v=tivXK3PGByk__#1_label_B1-0-0.mp4",
+    "rank": 19,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "2-6+",
+    "visible_cues": [
+     "sports broadcast",
+     "score graphic",
+     "logo"
+    ],
+    "escalation_assessment": "Sporting confrontation may already be underway; lead 20 seconds and no demonstrated 30-second escalation."
+   },
+   {
+    "video_id": "ucf/Arrest008_x264",
+    "t_sec": 54.0,
+    "score": 0.991493821144104,
+    "time_to_onset": 71.2,
+    "source_kind": "ucf",
+    "role": "violent",
+    "path": "data/raw_videos/ucf_crime/videos/Arrest008_x264.mp4",
+    "rank": 20,
+    "scene_type": "[redacted for public release]",
+    "people_count_visual": "0-2 distant",
+    "visible_cues": [
+     "CCTV framing",
+     "logo"
+    ],
+    "escalation_assessment": "Cars and distant figures; no clear escalation from one still, lead 71 seconds."
+   }
+  ]
+ },
+ "summary": {
+  "clean_top20_ticks": {
+   "unique_videos": 4,
+   "by_source_kind": {
+    "xd_youtube": 11,
+    "xd_movie": 9
+   },
+   "cues_per_tick_nonexclusive": {
+    "letterboxing": 11,
+    "sports broadcast": 11,
+    "movie appearance": 9
+   },
+   "onset_within_30s": 0,
+   "onset_30_to_60s": 0,
+   "onset_beyond_120s": 0
+  },
+  "preonset_top20_ticks": {
+   "unique_videos": 5,
+   "by_source_kind": {
+    "xd_movie": 12,
+    "ucf": 8
+   },
+   "cues_per_tick_nonexclusive": {
+    "movie appearance": 12,
+    "visible injury": 4,
+    "weapons": 8,
+    "battle scene": 8,
+    "title card": 5,
+    "publisher logo": 2,
+    "CCTV framing": 3,
+    "descriptive text": 3,
+    "watermark": 3
+   },
+   "onset_within_30s": 13,
+   "onset_30_to_60s": 4,
+   "onset_beyond_120s": 3
+  },
+  "clean_diverse20": {
+   "unique_videos": 20,
+   "by_source_kind": {
+    "xd_youtube": 7,
+    "xd_movie": 12,
+    "ucf": 1
+   },
+   "cues_per_tick_nonexclusive": {
+    "letterboxing": 1,
+    "sports broadcast": 3,
+    "movie appearance": 12,
+    "monochrome": 1,
+    "watermark": 2,
+    "score graphic": 1,
+    "instructional text": 1,
+    "logo": 3,
+    "subscribe text": 1,
+    "video inset": 1,
+    "title graphic": 1,
+    "CCTV timestamp": 1
+   },
+   "onset_within_30s": 0,
+   "onset_30_to_60s": 0,
+   "onset_beyond_120s": 0
+  },
+  "preonset_diverse20": {
+   "unique_videos": 20,
+   "by_source_kind": {
+    "xd_movie": 3,
+    "ucf": 15,
+    "xd_youtube": 2
+   },
+   "cues_per_tick_nonexclusive": {
+    "movie appearance": 3,
+    "visible injury": 1,
+    "weapons": 1,
+    "battle scene": 1,
+    "title card": 6,
+    "publisher logo": 1,
+    "CCTV framing": 4,
+    "descriptive text": 3,
+    "watermark": 5,
+    "graphic content warning": 1,
+    "monochrome CCTV": 1,
+    "letterboxing": 2,
+    "camera overlay": 1,
+    "violence warning": 2,
+    "police logo": 1,
+    "website watermark": 1,
+    "close physical contact": 1,
+    "website text": 1,
+    "sports broadcast": 1,
+    "score graphic": 1,
+    "logo": 2
+   },
+   "onset_within_30s": 14,
+   "onset_30_to_60s": 3,
+   "onset_beyond_120s": 2
+  }
+ },
+ "annotation_note": "[redacted for public release]"
+}

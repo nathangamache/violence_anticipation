@@ -1,0 +1,2940 @@
+{
+ "status": "PROPOSAL_NOT_APPLIED",
+ "selection": "No-context violent.score>=0.8 at raw_frame_idx/catalogue_fps; unmasked pre-violence records with 30<tte<=120; one first event per video. Eligibility reported rather than silently filtering record-time cases.",
+ "documented_expected_events": 53,
+ "actual_events": 54,
+ "reference_input": {
+  "files": 1720,
+  "records": 78207,
+  "skipped": {},
+  "input_sha256": "1cad7c5bc6938319f5f86f2c3ce0731af00a3724168b1ad3538accbc5d188bab"
+ },
+ "catalog_sha256": "5a8f4ad2c38b8dea6a2b1cf3c8060cdc59951aad62d3464730d0239b0f329edb",
+ "events_sha256": "bc869f8b831c149a59020630b49bc58a3329131b0f7b874724b3ad6547284646",
+ "comparison_to_existing_aggression_audit": {
+  "aggression_all_eligible_events": 51,
+  "aggression_events_with_clear_window_frame": 27,
+  "aggression_events_earlier_annotated_or_excluded": 24
+ },
+ "events": [
+  {
+   "video_id": "ucf/Abuse008_x264",
+   "event_index": 0,
+   "onset_sec": 130.667,
+   "end_sec": 175.467,
+   "eligible30": true,
+   "max_lead": 128.667,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse008_x264.mp4",
+   "peak_time_sec": 38.8,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    19.866666666666667,
+    29.333333333333332,
+    38.8,
+    48.266666666666666,
+    86.13333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V001",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 35.8,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V001.jpg",
+   "sheet_sha256": "b9c9ca4df4298bc5c247be52f2e835d40efbf815b8987847621ef65b57e6b9c4",
+   "sheet_times_sec": [
+    35.8,
+    37.8,
+    38.8,
+    39.8,
+    41.8,
+    128.667,
+    130.667,
+    132.667,
+    135.667
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Abuse013_x264",
+   "event_index": 0,
+   "onset_sec": 114.467,
+   "end_sec": 129.2,
+   "eligible30": true,
+   "max_lead": 112.467,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse013_x264.mp4",
+   "peak_time_sec": 0.26666666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.26666666666666666,
+    2.966666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V002",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 1.3,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V002.jpg",
+   "sheet_sha256": "632d47d5b210dbbc601eab3e81cfdaf3b77f68af0c45acd962f52d98c284f2ad",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.26666666666666666,
+    1.2666666666666666,
+    3.2666666666666666,
+    112.467,
+    114.467,
+    116.467,
+    119.467
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Abuse017_x264",
+   "event_index": 0,
+   "onset_sec": 36.167,
+   "end_sec": 45.867,
+   "eligible30": true,
+   "max_lead": 34.167,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse017_x264.mp4",
+   "peak_time_sec": 6.0,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    6.0
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V003",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 5.0,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V003.jpg",
+   "sheet_sha256": "40a795cf2994f15597dcc615dbb3b481abbb14f29de5e2249599197948ec7266",
+   "sheet_times_sec": [
+    3.0,
+    5.0,
+    6.0,
+    7.0,
+    9.0,
+    34.167,
+    36.167,
+    38.167,
+    41.167
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Abuse018_x264",
+   "event_index": 0,
+   "onset_sec": 55.9,
+   "end_sec": 62.133,
+   "eligible30": true,
+   "max_lead": 53.9,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse018_x264.mp4",
+   "peak_time_sec": 9.566666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    9.566666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V004",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V004.jpg",
+   "sheet_sha256": "54a84e1c258f651ed13863c83939a15af9d41bd1a683683410db25daead4cd33",
+   "sheet_times_sec": [
+    6.566666666666666,
+    8.566666666666666,
+    9.566666666666666,
+    10.566666666666666,
+    12.566666666666666,
+    53.9,
+    55.9,
+    57.9,
+    60.9
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Abuse039_x264",
+   "event_index": 0,
+   "onset_sec": 348.433,
+   "end_sec": 455.133,
+   "eligible30": true,
+   "max_lead": 346.433,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse039_x264.mp4",
+   "peak_time_sec": 238.9,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    238.9,
+    246.83333333333334,
+    254.76666666666668,
+    262.73333333333335,
+    278.6
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V005",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V005.jpg",
+   "sheet_sha256": "a7660b639c7f411df00e35b38be6f7fd44f4bec7fcf070d2049779c104c38662",
+   "sheet_times_sec": [
+    235.9,
+    237.9,
+    238.9,
+    239.9,
+    241.9,
+    346.433,
+    348.433,
+    350.433,
+    353.433
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Abuse047_x264",
+   "event_index": 0,
+   "onset_sec": 38.967,
+   "end_sec": 47.333,
+   "eligible30": true,
+   "max_lead": 36.967,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Abuse047_x264.mp4",
+   "peak_time_sec": 0.1,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.1,
+    2.433333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V006",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 1.9,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V006.jpg",
+   "sheet_sha256": "add4575bedc610a4ec50e2ac940732c06a0445fa796de9b76ae6e6dd9594d929",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.1,
+    1.1,
+    3.1,
+    36.967,
+    38.967,
+    40.967,
+    43.967
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Arrest012_x264",
+   "event_index": 0,
+   "onset_sec": 131.0,
+   "end_sec": 332.867,
+   "eligible30": true,
+   "max_lead": 129.0,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Arrest012_x264.mp4",
+   "peak_time_sec": 38.333333333333336,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    19.633333333333333,
+    29.0,
+    38.333333333333336,
+    47.7,
+    57.03333333333333,
+    66.4,
+    75.76666666666667,
+    85.1,
+    94.46666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V007",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 35.333,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V007.jpg",
+   "sheet_sha256": "1e9d6431ae876c699f9cbcecc2f5c38f27b30d37399825c66d41f4cdc7d31c8d",
+   "sheet_times_sec": [
+    35.333333333333336,
+    37.333333333333336,
+    38.333333333333336,
+    39.333333333333336,
+    41.333333333333336,
+    129.0,
+    131.0,
+    133.0,
+    136.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Arrest016_x264",
+   "event_index": 0,
+   "onset_sec": 156.533,
+   "end_sec": 168.167,
+   "eligible30": true,
+   "max_lead": 154.533,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Arrest016_x264.mp4",
+   "peak_time_sec": 41.766666666666666,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    41.766666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V008",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 41.767,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V008.jpg",
+   "sheet_sha256": "230124f8540f91f4923f5f1f958c54d99f2c14f650cb416d0c133359703f35ce",
+   "sheet_times_sec": [
+    38.766666666666666,
+    40.766666666666666,
+    41.766666666666666,
+    42.766666666666666,
+    44.766666666666666,
+    154.533,
+    156.533,
+    158.533,
+    161.533
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Arrest030_x264",
+   "event_index": 0,
+   "onset_sec": 184.5,
+   "end_sec": 240.0,
+   "eligible30": true,
+   "max_lead": 182.5,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Arrest030_x264.mp4",
+   "peak_time_sec": 88.7,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.9,
+   "high_frame_times_sec": [
+    88.7,
+    107.56666666666666,
+    120.13333333333334,
+    151.56666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "grabbing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V009",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V009.jpg",
+   "sheet_sha256": "87261b8d32efa0dd04b71d763272658e571d279ceb66d4f6461a40e0cb17a2cc",
+   "sheet_times_sec": [
+    85.7,
+    87.7,
+    88.7,
+    89.7,
+    91.7,
+    182.5,
+    184.5,
+    186.5,
+    189.5
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting003_x264",
+   "event_index": 0,
+   "onset_sec": 60.6667,
+   "end_sec": 103.4,
+   "eligible30": true,
+   "max_lead": 58.6667,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting003_x264.mp4",
+   "peak_time_sec": 1.9,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    1.9,
+    5.333333333333333,
+    10.466666666666667,
+    15.633333333333333,
+    19.066666666666666,
+    20.766666666666666,
+    25.933333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V010",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V010.jpg",
+   "sheet_sha256": "16c45b9bbdf1e8d4ec4b01071d3ec03755653c6c98be26da993e1d99cdc0a192",
+   "sheet_times_sec": [
+    0.0,
+    0.8999999999999999,
+    1.9,
+    2.9,
+    4.9,
+    58.6667,
+    60.6667,
+    62.6667,
+    65.66669999999999
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting008_x264",
+   "event_index": 0,
+   "onset_sec": 332.667,
+   "end_sec": 428.233,
+   "eligible30": true,
+   "max_lead": 330.667,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting008_x264.mp4",
+   "peak_time_sec": 216.66666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    216.66666666666666,
+    224.1,
+    231.56666666666666,
+    239.0,
+    268.8,
+    291.1333333333333,
+    298.56666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "raised fists",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V011",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 59.3,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V011.jpg",
+   "sheet_sha256": "c8acc10cc0cfee3d0a183fcc8308edc9764319128092dbbe7ebdf9e58458a378",
+   "sheet_times_sec": [
+    213.66666666666666,
+    215.66666666666666,
+    216.66666666666666,
+    217.66666666666666,
+    219.66666666666666,
+    330.667,
+    332.667,
+    334.667,
+    337.667
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting009_x264",
+   "event_index": 0,
+   "onset_sec": 55.433,
+   "end_sec": 68.133,
+   "eligible30": true,
+   "max_lead": 53.433,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting009_x264.mp4",
+   "peak_time_sec": 0.13333333333333333,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.13333333333333333,
+    3.7666666666666666,
+    4.966666666666667,
+    6.2,
+    7.4,
+    11.033333333333333,
+    12.233333333333333,
+    15.9,
+    21.966666666666665
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V012",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V012.jpg",
+   "sheet_sha256": "485f2ac77a2843d9409c932250cf259ab02b8bf6bd09879e180c16285c8d36f6",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.13333333333333333,
+    1.1333333333333333,
+    3.1333333333333333,
+    53.433,
+    55.433,
+    57.433,
+    60.433
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting011_x264",
+   "event_index": 0,
+   "onset_sec": 55.5,
+   "end_sec": 119.4,
+   "eligible30": true,
+   "max_lead": 53.5,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting011_x264.mp4",
+   "peak_time_sec": 0.4666666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.4666666666666667,
+    5.066666666666666,
+    9.633333333333333,
+    14.233333333333333,
+    18.833333333333332,
+    23.433333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V013",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V013.jpg",
+   "sheet_sha256": "0fafaa51e19532d780f522af2c8b18c7b899139756520ceee3853b0eb408f6c1",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.4666666666666667,
+    1.4666666666666668,
+    3.466666666666667,
+    53.5,
+    55.5,
+    57.5,
+    60.5
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting015_x264",
+   "event_index": 0,
+   "onset_sec": 243.3,
+   "end_sec": 327.033,
+   "eligible30": true,
+   "max_lead": 241.3,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting015_x264.mp4",
+   "peak_time_sec": 170.93333333333334,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    170.93333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "running away",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "broken glass",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V014",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 84.5,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V014.jpg",
+   "sheet_sha256": "3e3f539491853160354bc75604268f1b53eea3c4fbeb79c96723ddabf8e8d07f",
+   "sheet_times_sec": [
+    167.93333333333334,
+    169.93333333333334,
+    170.93333333333334,
+    171.93333333333334,
+    173.93333333333334,
+    241.3,
+    243.3,
+    245.3,
+    248.3
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting027_x264",
+   "event_index": 0,
+   "onset_sec": 82.3,
+   "end_sec": 103.9,
+   "eligible30": true,
+   "max_lead": 80.3,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting027_x264.mp4",
+   "peak_time_sec": 21.6,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    21.6,
+    25.9,
+    28.033333333333335
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V015",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 18.6,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V015.jpg",
+   "sheet_sha256": "d1d8b7bec9e28fffe6852e4ed3e2c142ae1978a54d717af7a4c8db53dc997727",
+   "sheet_times_sec": [
+    18.6,
+    20.6,
+    21.6,
+    22.6,
+    24.6,
+    80.3,
+    82.3,
+    84.3,
+    87.3
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting041_x264",
+   "event_index": 0,
+   "onset_sec": 507.233,
+   "end_sec": 640.467,
+   "eligible30": true,
+   "max_lead": 505.233,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting041_x264.mp4",
+   "peak_time_sec": 401.7,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    401.7
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing",
+     "pushing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V016",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V016.jpg",
+   "sheet_sha256": "004ad7e61ccb13f15d60a1be0169fef3812fb517e7b227e8099610ee208cffee",
+   "sheet_times_sec": [
+    398.7,
+    400.7,
+    401.7,
+    402.7,
+    404.7,
+    505.233,
+    507.233,
+    509.233,
+    512.233
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting043_x264",
+   "event_index": 0,
+   "onset_sec": 58.9,
+   "end_sec": 75.833,
+   "eligible30": true,
+   "max_lead": 56.9,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting043_x264.mp4",
+   "peak_time_sec": 16.433333333333334,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    16.433333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "pushing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V017",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 16.433,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V017.jpg",
+   "sheet_sha256": "37391739c19db30e4508fb7c12e43a600f6d927a8ecc668ad7fe58b954d1c4d7",
+   "sheet_times_sec": [
+    13.433333333333334,
+    15.433333333333334,
+    16.433333333333334,
+    17.433333333333334,
+    19.433333333333334,
+    56.9,
+    58.9,
+    60.9,
+    63.9
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting048_x264",
+   "event_index": 0,
+   "onset_sec": 83.0,
+   "end_sec": 130.733,
+   "eligible30": true,
+   "max_lead": 81.0,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting048_x264.mp4",
+   "peak_time_sec": 24.866666666666667,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    1.2,
+    24.866666666666667,
+    48.53333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V018",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V018.jpg",
+   "sheet_sha256": "b3885288bea4c4667bfbf8507d64b34df9496942dc9b6623ea9800e4e92d4627",
+   "sheet_times_sec": [
+    21.866666666666667,
+    23.866666666666667,
+    24.866666666666667,
+    25.866666666666667,
+    27.866666666666667,
+    81.0,
+    83.0,
+    85.0,
+    88.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Fighting050_x264",
+   "event_index": 0,
+   "onset_sec": 236.7,
+   "end_sec": 325.733,
+   "eligible30": true,
+   "max_lead": 234.7,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Fighting050_x264.mp4",
+   "peak_time_sec": 142.4,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    142.4
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V019",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V019.jpg",
+   "sheet_sha256": "9ff227bbe112e932d6e0fa62a61620edf4cabb53aa540019e325888e4a100f5b",
+   "sheet_times_sec": [
+    139.4,
+    141.4,
+    142.4,
+    143.4,
+    145.4,
+    234.7,
+    236.7,
+    238.7,
+    241.7
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery017_x264",
+   "event_index": 0,
+   "onset_sec": 87.8,
+   "end_sec": 123.433,
+   "eligible30": true,
+   "max_lead": 85.8,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery017_x264.mp4",
+   "peak_time_sec": 50.96666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    50.96666666666667,
+    53.766666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V020",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V020.jpg",
+   "sheet_sha256": "245200817911a8f443fd417b240ee006bfa9cbdd96664b0ede77f7e9f3f5fef7",
+   "sheet_times_sec": [
+    47.96666666666667,
+    49.96666666666667,
+    50.96666666666667,
+    51.96666666666667,
+    53.96666666666667,
+    85.8,
+    87.8,
+    89.8,
+    92.8
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery020_x264",
+   "event_index": 0,
+   "onset_sec": 77.467,
+   "end_sec": 86.3,
+   "eligible30": true,
+   "max_lead": 75.467,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery020_x264.mp4",
+   "peak_time_sec": 38.06666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    38.06666666666667,
+    45.63333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing",
+     "pushing"
+    ],
+    "body_language": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "grabbing"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V021",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V021.jpg",
+   "sheet_sha256": "608d5b1ad6a7b6a6bd797adc725ce1e84d6d93f2dfabdb633a3e4be2f7130478",
+   "sheet_times_sec": [
+    35.06666666666667,
+    37.06666666666667,
+    38.06666666666667,
+    39.06666666666667,
+    41.06666666666667,
+    75.467,
+    77.467,
+    79.467,
+    82.467
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery027_x264",
+   "event_index": 0,
+   "onset_sec": 129.167,
+   "end_sec": 147.6,
+   "eligible30": true,
+   "max_lead": 127.167,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery027_x264.mp4",
+   "peak_time_sec": 93.3,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    93.3,
+    96.3
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V022",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V022.jpg",
+   "sheet_sha256": "507959768d84da26ec830b8474d20aa06221ad3068ffa3e476f4a297105146eb",
+   "sheet_times_sec": [
+    90.3,
+    92.3,
+    93.3,
+    94.3,
+    96.3,
+    127.167,
+    129.167,
+    131.167,
+    134.167
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery035_x264",
+   "event_index": 0,
+   "onset_sec": 105.467,
+   "end_sec": 117.6,
+   "eligible30": true,
+   "max_lead": 103.467,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery035_x264.mp4",
+   "peak_time_sec": 0.7333333333333333,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.9,
+   "high_frame_times_sec": [
+    0.7333333333333333,
+    8.133333333333333,
+    15.533333333333333,
+    22.933333333333334,
+    30.333333333333332,
+    37.733333333333334,
+    45.13333333333333,
+    52.53333333333333,
+    59.93333333333333,
+    67.33333333333333,
+    74.73333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V023",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V023.jpg",
+   "sheet_sha256": "f938bdeed52ab937bd11a9ce7b837c35ba93eaaf33907959903e7af652de6c56",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.7333333333333333,
+    1.7333333333333334,
+    3.7333333333333334,
+    103.467,
+    105.467,
+    107.467,
+    110.467
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery057_x264",
+   "event_index": 0,
+   "onset_sec": 45.233,
+   "end_sec": 61.467,
+   "eligible30": true,
+   "max_lead": 43.233,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery057_x264.mp4",
+   "peak_time_sec": 4.266666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    4.266666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V024",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V024.jpg",
+   "sheet_sha256": "936c4b01c037f242c9ee116c72a025e90b3bb9dc25a6941250a4f806069bb9e7",
+   "sheet_times_sec": [
+    1.2666666666666666,
+    3.2666666666666666,
+    4.266666666666667,
+    5.266666666666667,
+    7.266666666666667,
+    43.233,
+    45.233,
+    47.233,
+    50.233
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery100_x264",
+   "event_index": 0,
+   "onset_sec": 134.5,
+   "end_sec": 146.3,
+   "eligible30": true,
+   "max_lead": 132.5,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery100_x264.mp4",
+   "peak_time_sec": 34.4,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    29.133333333333333,
+    34.4,
+    37.0,
+    39.63333333333333,
+    42.266666666666666,
+    44.9,
+    47.5,
+    50.13333333333333,
+    52.766666666666666,
+    55.4,
+    58.0,
+    60.63333333333333,
+    63.266666666666666,
+    68.5,
+    73.76666666666667,
+    76.4,
+    81.63333333333334,
+    86.9,
+    89.53333333333333,
+    92.13333333333334,
+    94.76666666666667,
+    97.4
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "grabbing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V025",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 31.4,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V025.jpg",
+   "sheet_sha256": "20d20a6f406a91d9a34e43268e447658823e3da5d6270899f3b5ad3b09012a84",
+   "sheet_times_sec": [
+    31.4,
+    33.4,
+    34.4,
+    35.4,
+    37.4,
+    132.5,
+    134.5,
+    136.5,
+    139.5
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery105_x264",
+   "event_index": 0,
+   "onset_sec": 31.333,
+   "end_sec": 39.767,
+   "eligible30": false,
+   "max_lead": 29.333,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery105_x264.mp4",
+   "peak_time_sec": 0.13333333333333333,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.9,
+   "high_frame_times_sec": [
+    0.13333333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V026",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V026.jpg",
+   "sheet_sha256": "489557c816c1422919d2f3e17f9db40839f4fe2ad17c411bcfe80e090e60bf42",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.13333333333333333,
+    1.1333333333333333,
+    3.1333333333333333,
+    29.333,
+    31.333,
+    33.333,
+    36.333
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery111_x264",
+   "event_index": 0,
+   "onset_sec": 90.933,
+   "end_sec": 157.833,
+   "eligible30": true,
+   "max_lead": 88.933,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery111_x264.mp4",
+   "peak_time_sec": 25.7,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    25.7,
+    35.2,
+    38.36666666666667,
+    41.53333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "grabbing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V027",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V027.jpg",
+   "sheet_sha256": "e12827f5b0f6b4930c2b666deb71d7c6217565c861305d4b9193526412376a7a",
+   "sheet_times_sec": [
+    22.7,
+    24.7,
+    25.7,
+    26.7,
+    28.7,
+    88.933,
+    90.933,
+    92.933,
+    95.933
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery124_x264",
+   "event_index": 0,
+   "onset_sec": 161.933,
+   "end_sec": 201.067,
+   "eligible30": true,
+   "max_lead": 159.933,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery124_x264.mp4",
+   "peak_time_sec": 80.26666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    80.26666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "pushing",
+     "grabbing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V028",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V028.jpg",
+   "sheet_sha256": "f44d9df5911d46650f467b8ae75002b7f7444753327630dac4e681d058ee2988",
+   "sheet_times_sec": [
+    77.26666666666667,
+    79.26666666666667,
+    80.26666666666667,
+    81.26666666666667,
+    83.26666666666667,
+    159.933,
+    161.933,
+    163.933,
+    166.933
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery125_x264",
+   "event_index": 0,
+   "onset_sec": 153.4,
+   "end_sec": 199.7,
+   "eligible30": true,
+   "max_lead": 151.4,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery125_x264.mp4",
+   "peak_time_sec": 35.8,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    35.8
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V029",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V029.jpg",
+   "sheet_sha256": "b2dd5f5928bb7dd4c50581c8c4415ea3c88bd1e47393a0678b08ed861a9a3b77",
+   "sheet_times_sec": [
+    32.8,
+    34.8,
+    35.8,
+    36.8,
+    38.8,
+    151.4,
+    153.4,
+    155.4,
+    158.4
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Robbery141_x264",
+   "event_index": 0,
+   "onset_sec": 74.633,
+   "end_sec": 86.233,
+   "eligible30": true,
+   "max_lead": 72.633,
+   "source_kind": "ucf",
+   "onset_source": "hivau",
+   "path": "data/raw_videos/ucf_crime/videos/Robbery141_x264.mp4",
+   "peak_time_sec": 24.2,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    24.2
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V030",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 23.2,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V030.jpg",
+   "sheet_sha256": "045ea45074f272057dfc071f9b553d3d4916b004afc5bd703b643e25d2f4ff49",
+   "sheet_times_sec": [
+    21.2,
+    23.2,
+    24.2,
+    25.2,
+    27.2,
+    72.633,
+    74.633,
+    76.633,
+    79.633
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Shooting002_x264",
+   "event_index": 0,
+   "onset_sec": 34.0,
+   "end_sec": 36.6667,
+   "eligible30": true,
+   "max_lead": 32.0,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Shooting002_x264.mp4",
+   "peak_time_sec": 0.06666666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.06666666666666667,
+    2.533333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V031",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V031.jpg",
+   "sheet_sha256": "7f0fb10181d467cbaf82bfb8d36b8bb96d10f562b38256ba8353c63a3bbab395",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.06666666666666667,
+    1.0666666666666667,
+    3.066666666666667,
+    32.0,
+    34.0,
+    36.0,
+    39.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Shooting011_x264",
+   "event_index": 0,
+   "onset_sec": 49.3333,
+   "end_sec": 58.3333,
+   "eligible30": true,
+   "max_lead": 47.3333,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Shooting011_x264.mp4",
+   "peak_time_sec": 19.166666666666668,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    19.166666666666668
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V032",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "low",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V032.jpg",
+   "sheet_sha256": "a9d142cabfe13d260664e5ee09fcb8f8f6873433c5e7d25ebd439fe85e63bf2e",
+   "sheet_times_sec": [
+    16.166666666666668,
+    18.166666666666668,
+    19.166666666666668,
+    20.166666666666668,
+    22.166666666666668,
+    47.3333,
+    49.3333,
+    51.3333,
+    54.3333
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Shooting019_x264",
+   "event_index": 0,
+   "onset_sec": 34.0,
+   "end_sec": 48.5,
+   "eligible30": true,
+   "max_lead": 32.0,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Shooting019_x264.mp4",
+   "peak_time_sec": 2.6333333333333333,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    2.6333333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V033",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V033.jpg",
+   "sheet_sha256": "02f9ffdccc818fee167d3d5581ecb25832487aa29924e1b466b75db06b487d6e",
+   "sheet_times_sec": [
+    0.0,
+    1.6333333333333333,
+    2.6333333333333333,
+    3.6333333333333333,
+    5.633333333333333,
+    32.0,
+    34.0,
+    36.0,
+    39.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Shooting046_x264",
+   "event_index": 0,
+   "onset_sec": 133.5,
+   "end_sec": 141.0,
+   "eligible30": true,
+   "max_lead": 131.5,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Shooting046_x264.mp4",
+   "peak_time_sec": 96.86666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    96.86666666666666
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "grabbing"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V034",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V034.jpg",
+   "sheet_sha256": "f21ad731214f9cfd7bef6cc81c3c81d0765817662891bee44aeceee733d8ac39",
+   "sheet_times_sec": [
+    93.86666666666666,
+    95.86666666666666,
+    96.86666666666666,
+    97.86666666666666,
+    99.86666666666666,
+    131.5,
+    133.5,
+    135.5,
+    138.5
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "ucf/Shooting047_x264",
+   "event_index": 0,
+   "onset_sec": 72.0,
+   "end_sec": 130.0,
+   "eligible30": true,
+   "max_lead": 70.0,
+   "source_kind": "ucf",
+   "onset_source": "official",
+   "path": "data/raw_videos/ucf_crime/videos/Shooting047_x264.mp4",
+   "peak_time_sec": 0.9333333333333333,
+   "peak_violent_score": 1.0,
+   "aggression_at_peak": 1.0,
+   "high_frame_times_sec": [
+    0.9333333333333333,
+    10.4
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "shooting"
+    ],
+    "body_language": [],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "gun"
+    ]
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V035",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V035.jpg",
+   "sheet_sha256": "47191ff8484eb770b5444db21ae11c607af7228bb506003ef150b26312205ac6",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.9333333333333333,
+    1.9333333333333333,
+    3.9333333333333336,
+    70.0,
+    72.0,
+    74.0,
+    77.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Bad.Boys.II.2003__#00-06-42_00-10-00_label_B2-G-0",
+   "event_index": 0,
+   "onset_sec": 115.0,
+   "end_sec": 127.5,
+   "eligible30": false,
+   "max_lead": -7.0,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Bad.Boys.II.2003__#00-06-42_00-10-00_label_B2-G-0.mp4",
+   "peak_time_sec": 0.4583333333333333,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    0.4583333333333333,
+    9.583333333333334,
+    14.166666666666666,
+    18.708333333333332,
+    23.291666666666668,
+    27.833333333333332,
+    32.416666666666664,
+    36.958333333333336,
+    41.541666666666664,
+    46.083333333333336,
+    50.666666666666664,
+    59.791666666666664,
+    64.33333333333333,
+    68.91666666666667,
+    73.45833333333333,
+    78.04166666666667,
+    82.58333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pointing gun",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "raised arms"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "gun"
+    ]
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V036",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V036.jpg",
+   "sheet_sha256": "504ff900384ed819caf76f0956ec6b7f7d6086421c9dd159c6780a83a597a4d3",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.4583333333333333,
+    1.4583333333333333,
+    3.4583333333333335,
+    113.0,
+    115.0,
+    117.0,
+    120.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 42.125,
+   "end_sec": 313.125,
+   "eligible30": true,
+   "max_lead": 40.125,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Braveheart.1995__#01-26-50_01-32-30_label_B1-0-0.mp4",
+   "peak_time_sec": 0.7916666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.7916666666666666,
+    8.583333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "swords"
+    ]
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V037",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V037.jpg",
+   "sheet_sha256": "601b616b3f315cbe1f92c960685fb6207d3cb462af6a2661d9e785c62cbae543",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.7916666666666666,
+    1.7916666666666665,
+    3.7916666666666665,
+    40.125,
+    42.125,
+    44.125,
+    47.125
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Death.Proof.2007__#00-45-05_00-47-36_label_B5-0-0",
+   "event_index": 0,
+   "onset_sec": 52.8333,
+   "end_sec": 66.6667,
+   "eligible30": true,
+   "max_lead": 50.8333,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Death.Proof.2007__#00-45-05_00-47-36_label_B5-0-0.mp4",
+   "peak_time_sec": 4.75,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.9,
+   "high_frame_times_sec": [
+    4.75
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V038",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V038.jpg",
+   "sheet_sha256": "7edf47b5f45676acac92bcead91a0400b5ad39be4932c9a6c83bdf53b700b9f3",
+   "sheet_times_sec": [
+    1.75,
+    3.75,
+    4.75,
+    5.75,
+    7.75,
+    50.8333,
+    52.8333,
+    54.8333,
+    57.8333
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Desperado.1995__#01-14-11_01-17-28_label_B2-G-0",
+   "event_index": 0,
+   "onset_sec": 34.9167,
+   "end_sec": 54.1667,
+   "eligible30": true,
+   "max_lead": 32.9167,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Desperado.1995__#01-14-11_01-17-28_label_B2-G-0.mp4",
+   "peak_time_sec": 0.5,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.5
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "raised arm",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V039",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V039.jpg",
+   "sheet_sha256": "b207370c2b7c423c361ac9488a4bb5332e18a88349641285fca6ee44cb17e24a",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.5,
+    1.5,
+    3.5,
+    32.9167,
+    34.9167,
+    36.9167,
+    39.9167
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Fast.Furious.2009__#01-29-10_01-29-55_label_B2-0-0",
+   "event_index": 0,
+   "onset_sec": 36.5417,
+   "end_sec": 44.0833,
+   "eligible30": true,
+   "max_lead": 34.5417,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Fast.Furious.2009__#01-29-10_01-29-55_label_B2-0-0.mp4",
+   "peak_time_sec": 0.125,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    0.125,
+    1.3333333333333333,
+    3.75,
+    4.958333333333333,
+    6.166666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "wrestling"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V040",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 0.0,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V040.jpg",
+   "sheet_sha256": "1d84678432995a46883e26e4d15adcbdf064f79fb7e1a1261d613ded745d7e9e",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.125,
+    1.125,
+    3.125,
+    34.5417,
+    36.5417,
+    38.5417,
+    41.5417
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Ip.Man.3.2015__#00-46-08_00-54-20_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 201.0833,
+   "end_sec": 206.8333,
+   "eligible30": true,
+   "max_lead": 199.0833,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Ip.Man.3.2015__#00-46-08_00-54-20_label_B1-0-0.mp4",
+   "peak_time_sec": 129.41666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    129.41666666666666,
+    140.125
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]",
+     "watching"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "bats"
+    ]
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V041",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V041.jpg",
+   "sheet_sha256": "53b8cd080fd3aaf33169c67c56c21e110c3349590a0e508869f44d877a7fc9ea",
+   "sheet_times_sec": [
+    126.41666666666666,
+    128.41666666666666,
+    129.41666666666666,
+    130.41666666666666,
+    132.41666666666666,
+    199.0833,
+    201.0833,
+    203.0833,
+    206.0833
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Kill.Bill.Vol.1.2003__#01-21-39_01-26-55_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 76.2083,
+   "end_sec": 285.5833,
+   "eligible30": true,
+   "max_lead": 74.2083,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Kill.Bill.Vol.1.2003__#01-21-39_01-26-55_label_B1-0-0.mp4",
+   "peak_time_sec": 15.583333333333334,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    15.583333333333334,
+    23.0,
+    37.833333333333336,
+    45.25
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "fists raised",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "fists raised",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "knife"
+    ]
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V042",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "low",
+   "mask_start_proposal_sec": 14.6,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V042.jpg",
+   "sheet_sha256": "ffa0be03e6d4f1f61b9a8d4ff0c2159e8a45faa9619803b02ab8d20af38f3ad2",
+   "sheet_times_sec": [
+    12.583333333333334,
+    14.583333333333334,
+    15.583333333333334,
+    16.583333333333336,
+    18.583333333333336,
+    74.2083,
+    76.2083,
+    78.2083,
+    81.2083
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Kill.Bill.Vol.2.2004__#0-25-20_0-26-20_label_B2-0-0",
+   "event_index": 0,
+   "onset_sec": 40.4167,
+   "end_sec": 42.0833,
+   "eligible30": true,
+   "max_lead": 38.4167,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Kill.Bill.Vol.2.2004__#0-25-20_0-26-20_label_B2-0-0.mp4",
+   "peak_time_sec": 0.125,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    0.125,
+    1.5833333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V043",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V043.jpg",
+   "sheet_sha256": "8c4e57206e212483661c3cd3ba7319ea2a6546e7a8c9227d9c0b0b97d5b436f4",
+   "sheet_times_sec": [
+    0.0,
+    0.0,
+    0.125,
+    1.125,
+    3.125,
+    38.4167,
+    40.4167,
+    42.4167,
+    45.4167
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Operation.Red.Sea.2018__#01-20-58_01-22-00_label_B5-0-0",
+   "event_index": 0,
+   "onset_sec": 52.9583,
+   "end_sec": 55.6667,
+   "eligible30": true,
+   "max_lead": 50.9583,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Operation.Red.Sea.2018__#01-20-58_01-22-00_label_B5-0-0.mp4",
+   "peak_time_sec": 8.166666666666666,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    8.166666666666666,
+    9.75,
+    11.333333333333334
+   ],
+   "teacher_description_at_peak": {
+    "actions": [],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "bruises",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V044",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V044.jpg",
+   "sheet_sha256": "b5eadbefdbd14b5db3599f44d20a164514d12e7f8935f3b0e5dbe16ed936fa21",
+   "sheet_times_sec": [
+    5.166666666666666,
+    7.166666666666666,
+    8.166666666666666,
+    9.166666666666666,
+    11.166666666666666,
+    50.9583,
+    52.9583,
+    54.9583,
+    57.9583
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/The.Hurt.Locker.2008__#0-19-22_0-22-32_label_B2-B1-0",
+   "event_index": 0,
+   "onset_sec": 87.25,
+   "end_sec": 88.5417,
+   "eligible30": true,
+   "max_lead": 85.25,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/The.Hurt.Locker.2008__#0-19-22_0-22-32_label_B2-B1-0.mp4",
+   "peak_time_sec": 16.541666666666668,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    16.541666666666668,
+    21.875,
+    48.583333333333336
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "running away",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "armed stance",
+     "raised arm"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "gun"
+    ]
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V045",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V045.jpg",
+   "sheet_sha256": "7bf1e7f8faea431cf2140add084a74c959987f2969bc98c0a2653c8438616902",
+   "sheet_times_sec": [
+    13.541666666666668,
+    15.541666666666668,
+    16.541666666666668,
+    17.541666666666668,
+    19.541666666666668,
+    85.25,
+    87.25,
+    89.25,
+    92.25
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/The.World.Is.Not.Enough.1999__#00-07-04_00-07-45_label_G-B2-0",
+   "event_index": 0,
+   "onset_sec": 35.2917,
+   "end_sec": 39.3333,
+   "eligible30": false,
+   "max_lead": 5.291699999999999,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/The.World.Is.Not.Enough.1999__#00-07-04_00-07-45_label_G-B2-0.mp4",
+   "peak_time_sec": 1.9583333333333333,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    1.9583333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "raised fist"
+    ],
+    "threat_indicators": [
+     "raised fist",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V046",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V046.jpg",
+   "sheet_sha256": "862a6ba2f0e6df182a6fd11a2f3d9e2db5a0324e8a04155cc2e47ac5bb53c251",
+   "sheet_times_sec": [
+    0.0,
+    0.9583333333333333,
+    1.9583333333333333,
+    2.958333333333333,
+    4.958333333333333,
+    33.2917,
+    35.2917,
+    37.2917,
+    40.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Tropa.de.Elite.2.2010__#00-42-00_00-43-00_label_B2-0-0",
+   "event_index": 0,
+   "onset_sec": 32.375,
+   "end_sec": 37.5,
+   "eligible30": true,
+   "max_lead": 30.375,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Tropa.de.Elite.2.2010__#00-42-00_00-43-00_label_B2-0-0.mp4",
+   "peak_time_sec": 1.5416666666666667,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    1.5416666666666667
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "gun"
+    ]
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V047",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V047.jpg",
+   "sheet_sha256": "82cdbc3c8d8f47277925cbd994e2251bde9374f67f62f0d8e240c53b6696451e",
+   "sheet_times_sec": [
+    0.0,
+    0.5416666666666667,
+    1.5416666666666667,
+    2.541666666666667,
+    4.541666666666667,
+    30.375,
+    32.375,
+    34.375,
+    37.375
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/Young.And.Dangerous.III.1996__#00-23-00_00-25-54_label_B4-0-0",
+   "event_index": 0,
+   "onset_sec": 104.0417,
+   "end_sec": 127.125,
+   "eligible30": true,
+   "max_lead": 102.0417,
+   "source_kind": "xd_movie",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/Young.And.Dangerous.III.1996__#00-23-00_00-25-54_label_B4-0-0.mp4",
+   "peak_time_sec": 73.5,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    73.5
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V048",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V048.jpg",
+   "sheet_sha256": "dbf3879c92f885269d68a09e521bcacc54fede188e7eed6f65b27efec5dc4e5e",
+   "sheet_times_sec": [
+    70.5,
+    72.5,
+    73.5,
+    74.5,
+    76.5,
+    102.0417,
+    104.0417,
+    106.0417,
+    109.0417
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=7zEFHKKBA0g__#1_label_B4-0-0",
+   "event_index": 0,
+   "onset_sec": 49.6667,
+   "end_sec": 66.6667,
+   "eligible30": true,
+   "max_lead": 47.6667,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=7zEFHKKBA0g__#1_label_B4-0-0.mp4",
+   "peak_time_sec": 6.958333333333333,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    6.958333333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V049",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "medium",
+   "mask_start_proposal_sec": 3.958,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V049.jpg",
+   "sheet_sha256": "a1e9ef2469d7c1ff2e9c5c486ad309ac1a4d4943efd8efa9c4d49da4e0e99e63",
+   "sheet_times_sec": [
+    3.958333333333333,
+    5.958333333333333,
+    6.958333333333333,
+    7.958333333333333,
+    9.958333333333332,
+    47.6667,
+    49.6667,
+    51.6667,
+    54.6667
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=FW_qbiPH7UA__#1_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 68.9167,
+   "end_sec": 86.6667,
+   "eligible30": true,
+   "max_lead": 66.9167,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=FW_qbiPH7UA__#1_label_B1-0-0.mp4",
+   "peak_time_sec": 17.541666666666668,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    17.541666666666668
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "leaning in",
+     "intense gaze"
+    ],
+    "threat_indicators": [
+     "bruised face",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V050",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V050.jpg",
+   "sheet_sha256": "82c4db044f310f9f6f0feae4023cdc0c6ef732239ef431a9fe1f96d6d71af7f3",
+   "sheet_times_sec": [
+    14.541666666666668,
+    16.541666666666668,
+    17.541666666666668,
+    18.541666666666668,
+    20.541666666666668,
+    66.9167,
+    68.9167,
+    70.9167,
+    73.9167
+   ],
+   "suspected_fiction_under_youtube_source": true,
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=Y1hxr1MWLjM__#1_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 80.0,
+   "end_sec": 103.4583,
+   "eligible30": true,
+   "max_lead": 78.0,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=Y1hxr1MWLjM__#1_label_B1-0-0.mp4",
+   "peak_time_sec": 5.583333333333333,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    5.583333333333333,
+    8.25,
+    34.791666666666664
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "pushing",
+     "grabbing"
+    ],
+    "body_language": [
+     "raised fists",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V051",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 5.583,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V051.jpg",
+   "sheet_sha256": "33979fe66efb62d133a20e7baede66cef7ededea1e8e513ae59b4081115ad346",
+   "sheet_times_sec": [
+    2.583333333333333,
+    4.583333333333333,
+    5.583333333333333,
+    6.583333333333333,
+    8.583333333333332,
+    78.0,
+    80.0,
+    82.0,
+    85.0
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=aWPWHU8x6kE__#1_label_B4-0-0",
+   "event_index": 0,
+   "onset_sec": 140.3333,
+   "end_sec": 195.75,
+   "eligible30": true,
+   "max_lead": 138.3333,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=aWPWHU8x6kE__#1_label_B4-0-0.mp4",
+   "peak_time_sec": 64.75,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    64.75,
+    102.20833333333333
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "wrestling",
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": [
+     "knife"
+    ]
+   },
+   "classification": "b",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V052",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "mask_start_proposal_sec": 61.75,
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V052.jpg",
+   "sheet_sha256": "ff4a01e0974dea05d46c4844f2105996002aa19a37b2d82b29cd9dc29f2a36b4",
+   "sheet_times_sec": [
+    61.75,
+    63.75,
+    64.75,
+    65.75,
+    67.75,
+    138.3333,
+    140.3333,
+    142.3333,
+    145.3333
+   ],
+   "suspected_fiction_under_youtube_source": true,
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=cuUK-3MNqtw__#1_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 53.3333,
+   "end_sec": 60.4167,
+   "eligible30": true,
+   "max_lead": 51.3333,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=cuUK-3MNqtw__#1_label_B1-0-0.mp4",
+   "peak_time_sec": 16.208333333333332,
+   "peak_violent_score": 0.8,
+   "aggression_at_peak": 0.7,
+   "high_frame_times_sec": [
+    16.208333333333332
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "body_language": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]",
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "c",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V053",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V053.jpg",
+   "sheet_sha256": "973659fb00d4ebda55ae138320d569a158a904b5a4cf987add38053075e95ab0",
+   "sheet_times_sec": [
+    13.208333333333332,
+    15.208333333333332,
+    16.208333333333332,
+    17.208333333333332,
+    19.208333333333332,
+    51.3333,
+    53.3333,
+    55.3333,
+    58.3333
+   ],
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  },
+  {
+   "video_id": "xd/v=rXWOpZ7W2fA__#1_label_B1-0-0",
+   "event_index": 0,
+   "onset_sec": 62.5,
+   "end_sec": 65.4167,
+   "eligible30": true,
+   "max_lead": 60.5,
+   "source_kind": "xd_youtube",
+   "onset_source": "official",
+   "path": "data/raw_videos/xd_violence/videos/v=rXWOpZ7W2fA__#1_label_B1-0-0.mp4",
+   "peak_time_sec": 31.916666666666668,
+   "peak_violent_score": 0.9,
+   "aggression_at_peak": 0.8,
+   "high_frame_times_sec": [
+    15.875,
+    16.083333333333332,
+    16.25,
+    16.5,
+    16.666666666666668,
+    16.916666666666668,
+    21.25,
+    21.916666666666668,
+    22.083333333333332,
+    22.333333333333332,
+    22.5,
+    24.0,
+    24.166666666666668,
+    24.416666666666668,
+    25.833333333333332,
+    31.041666666666668,
+    31.25,
+    31.458333333333332,
+    31.666666666666668,
+    31.916666666666668,
+    32.125,
+    32.333333333333336
+   ],
+   "teacher_description_at_peak": {
+    "actions": [
+     "grabbing"
+    ],
+    "body_language": [
+     "[redacted for public release]"
+    ],
+    "threat_indicators": [
+     "[redacted for public release]"
+    ],
+    "weapons": []
+   },
+   "classification": "a",
+   "status": "PROPOSAL_NOT_APPLIED",
+   "audit_id": "V054",
+   "visual_evidence": "[redacted for public release]",
+   "confidence": "high",
+   "sheet": "benchmark/audits/phase0_nocontext_v1/sheets/V054.jpg",
+   "sheet_sha256": "038ea2f9cd89cdca764c9200041c4cdcf587dbeb0dc873e5cf93875c9dbce7bf",
+   "sheet_times_sec": [
+    28.916666666666668,
+    30.916666666666668,
+    31.916666666666668,
+    32.91666666666667,
+    34.91666666666667,
+    60.5,
+    62.5,
+    64.5,
+    67.5
+   ],
+   "suspected_fiction_under_youtube_source": true,
+   "review_basis": "Sampled contact sheet; UCA corroboration explicitly stated where used. No labels changed."
+  }
+ ],
+ "summary": {
+  "all_record_time_candidates": {
+   "b": 17,
+   "c": 19,
+   "a": 18
+  },
+  "onset_at_least_32s_candidates": {
+   "b": 17,
+   "c": 18,
+   "a": 18
+  },
+  "va30_eligible30_candidates": {
+   "b": 17,
+   "c": 17,
+   "a": 17
+  },
+  "category_b_confidence": {
+   "medium": 6,
+   "high": 10,
+   "low": 1
+  },
+  "by_source": {
+   "ucf": {
+    "b": 12,
+    "c": 14,
+    "a": 9
+   },
+   "xd_movie": {
+    "a": 8,
+    "b": 2,
+    "c": 3
+   },
+   "xd_youtube": {
+    "b": 3,
+    "c": 2,
+    "a": 1
+   }
+  },
+  "clock_or_clear_history_ineligible": [
+   "V026",
+   "V036",
+   "V046"
+  ],
+  "suspected_fiction_in_youtube_proxy": [
+   "V050",
+   "V052",
+   "V054"
+  ]
+ },
+ "count_reconciliation": "54 raw record-time cases reproduce the score/window rule. Of these, 53 have onset>=32s; Robbery105 has onset 31.333s and only 29.333s maximum alarm lead. Two further mixed-anomaly cases fail clear-history eligibility. All 54 are retained and reviewed; 51 are VA30 eligible30. This is distinct from the existing aggression_level>=.8 all-event audit (51 candidates, 27 clear-window cases).",
+ "interpretation_limits": "Model-selected, nonrepresentative audit; sparse stills cannot exclude unseen earlier violence or establish intention. Non-strike category a includes armed coercion and ordinary holding, not necessarily genuine escalation. Several caption-supported or low-confidence b calls require lead adjudication. Low-confidence masks must not be applied automatically."
+}

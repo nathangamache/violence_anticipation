@@ -86,7 +86,7 @@ import numpy as np
 
 from anticipation.features import io
 
-DATA_ROOT = "data"
+DATA_ROOT = os.environ.get("VA_DATA_ROOT", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data"))
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOG_ROOT = os.path.join(DATA_ROOT, "logs", "extract")
 VIDEO_EXTS = (".mp4", ".avi", ".mkv", ".webm", ".mov", ".m4v", ".mpg", ".mpeg", ".flv")

@@ -27,7 +27,7 @@ sys.path.insert(0, REPO)
 from anticipation.data.folds import FOLDS_DEFAULT, Folds  # noqa: E402
 from anticipation.features import io  # noqa: E402
 
-DATA_ROOT = "data"
+DATA_ROOT = os.environ.get("VA_DATA_ROOT", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"))
 TRUNC_ROOT = os.path.join(DATA_ROOT, "cache", "trunc300")
 ROLES = ("violent", "holdout", "clean_negative")
 CAP_SEC = 300

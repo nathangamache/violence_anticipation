@@ -830,6 +830,16 @@ def file_sha256(path):
     return h.hexdigest()
 
 
+def original_sha256(sha):
+    """The pinned pre-release hash for a file redacted for the public release (benchmark/public_redaction.json), else ``sha``."""
+    try:
+        with open(os.path.join(BENCHMARK_DIR, "public_redaction.json")) as f:
+            files = json.load(f)["files"]
+    except (OSError, KeyError, ValueError):
+        return sha
+    return {v["redacted_sha256"]: v["original_sha256"] for v in files.values()}.get(sha, sha)
+
+
 # ---------------------------------------------------------------------------------------------------------
 # Loading (for downstream code)
 # ---------------------------------------------------------------------------------------------------------

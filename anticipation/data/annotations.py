@@ -23,7 +23,7 @@ import json
 import os
 import re
 
-DATA_ROOT = "data"
+DATA_ROOT = os.environ.get("VA_DATA_ROOT", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data"))
 RAW_ROOT = os.path.join(DATA_ROOT, "raw_videos")
 ANNOT_ROOT = os.path.join(DATA_ROOT, "annotations")
 CACHE_DIR = os.path.join(ANNOT_ROOT, "_cache")
