@@ -11,7 +11,7 @@ _Research note, written 2026-10-14. Scope: public datasets that can help train o
 3. **The two biggest gains are free and need no new videos:**
    - **HIVAU-70k raw annotations** (Holmes-VAU, CVPR 2025) give *human-annotated event start/end timestamps for the UCF-Crime and XD-Violence **training** sets*. These datasets officially ship only video-level labels for training. With these annotations, the number of onset-labelled videos goes from about 640 to about 3,300.
    - **UBI-Fights** can be downloaded directly with no form, has frame-level labels, and 45 of its 215 fight videos have ≥30 s of lead-in. The repo does not use it yet.
-4. **Next tier, needing a request or a wait:** NTU **CCTV-Fights** (1,000 videos, 2,414 fight instances, frame-level, CCTV videos average about 2 min, needs an access request) and **DVD** (2025, 500 long videos up to 20 min including bodycam, doorbell and phone footage, frame-level, about 63% of scenes have event-linked sound, "released upon acceptance").
+4. **Next tier, needing a request or a wait:** NTU **CCTV-Fights** (1,000 videos, 2,414 fight instances, frame-level, CCTV videos average about 2 min, needs an access request).
 5. **Audio:** **XD-Violence is the only large violence dataset with real audio.** UCF-Crime files usually *have* an audio track, but most of it is digital silence: in our sample, 10 of 16 UCF Fighting/Assault files sat at −91 dB. UBI-Fights videos have **no audio stream** (verified with ffprobe). For audio cues, use AudioSet/VGGSound event classes (Shout, Yell, Screaming, Slap, Smash, Gunshot) and speech resources (MuTox toxicity, SSPNet conflict, CREMA-D/MSP-Podcast anger), and transfer the resulting models.
 6. **Trimmed clip datasets** (RWF-2000, RLVS, Hockey, Movies, SCVD, Bus Violence, AIRTLab, Violent-Flows, Surveillance Fight) contain **no lead-in** (clips are 1–7 s). They only help train an *"is violence happening now"* recognizer (for onset labelling and auxiliary heads) and supply hard negatives.
 
@@ -58,7 +58,6 @@ Data lives outside the repo at `data -> data/`.
 
 Not countable yet:
 - **CCTV-Fights:** 1,000 videos and 2,414 fight instances. CCTV videos average 2 min and run up to 12 min. Annotations sit behind an access request, and the yield is likely another 100–200.
-- **DVD:** 500 videos of 15–1,200 s, not released yet.
 
 **What the numbers imply:**
 - The **median** onset is about 6–12 s in every source. Most real-world violence clips are cut close to the action. A 30 s anticipation dataset will therefore be a long-tail subset (≈10–25% of positives), and the class prior inside the "≥30 s" subset changes: UCF test ≥30 s is dominated by Shooting (12), Shoplifting (12) and Explosion (10), not fights.
@@ -80,18 +79,17 @@ Legend: **Lead-in** = are there long non-violent stretches before onset? **Onset
 | 4 | **UBI-Fights** | 1,000 videos / 80 h (216 fight) | Yes (45 with ≥30 s; max 20 min) | Frame-level CSV | **No audio stream** | Direct zip, 8.1 GB | No |
 | 5 | **NTU CCTV-Fights** | 1,000 videos / 17.7 h, 2,414 fights | Likely (CCTV mean 2 min, ≤12 min) | Frame-level start/end | Partial (non-CCTV) | Request form, non-commercial | No |
 | 6 | **UCA** (UCF-Crime Annotation) | 1,854 videos, 23,542 timestamped sentences | Captions cover ~90% of each video, **including pre-event behaviour** | 0.1 s caption timestamps | — | GitHub | No |
-| 7 | **DVD** (2025) | 500 videos, 2.7 M frames, 15–1,200 s | Likely (long, untrimmed) | Frame-level, ≥3/4 annotator agreement | ~63% of scenes have event-linked sound | "Upon acceptance" | No |
-| 8 | Repo YouTube curation | 92 videos | 28 with ≥30 s | VLM-estimated | Yes | Local | Partly |
-| 9 | **MSAD** (NeurIPS 2024) | 720 videos, 14 scenarios, ~500 cameras | Some (untrimmed) | Frame-level test | No | Request form; I3D/Swin features open | No |
-| 10 | **CUVA / ECVA** | 1,000 / 2,240 videos, avg ~117–141 s | Some | Start/end + **cause ("why")** text | Unknown | GitHub / ModelScope | No |
-| 11 | **NWPU Campus** | 547 videos / 16 h, 43 scenes | Yes (anticipation protocol) | Frame-level | No | Google Drive/Baidu, research only | No |
-| 12 | **CamNuvem** | 972 (486 robbery + 486 UCF normal) | Some | Weak (test intervals) | Unknown | GitHub | No |
-| 13 | Kinetics-700 escalation classes | ~600–970 clips/class | No (10 s clips) | Clip label | Yes | YouTube IDs | Yes (700 clips) |
-| 14 | AudioSet / VGGSound violence-sound classes | see §5 | — | 10 s clip labels | **Yes** | YouTube IDs / HF mirrors | No |
-| 15 | MuTox, SSPNet Conflict, CREMA-D/MSP-Podcast | speech | — | utterance/clip | **Yes** | Open / request | No |
-| 16 | RWF-2000, RLVS, SCVD, Bus Violence, Hockey, Movies, Violent-Flows, AIRTLab, Surveillance Fight, VioPeru | 200–2,000 trimmed clips | **No** | Clip label | Mixed | Mostly open | No |
-| 17 | NTU RGB+D 120 (mutual actions), UT-Interaction | 114k / 120 videos | No (staged) | Clip / segment | NTU: no | Request / open | No |
-| 18 | ShanghaiTech, TAD, UCF-Crime-DVS, VSD2014, GTA-Crime, Hawk, RiskCueBench, DeEscalWild, DAD/CCD/DADA | various | various | various | various | various | No |
+| 7 | Repo YouTube curation | 92 videos | 28 with ≥30 s | VLM-estimated | Yes | Local | Partly |
+| 8 | **MSAD** (NeurIPS 2024) | 720 videos, 14 scenarios, ~500 cameras | Some (untrimmed) | Frame-level test | No | Request form; I3D/Swin features open | No |
+| 9 | **CUVA / ECVA** | 1,000 / 2,240 videos, avg ~117–141 s | Some | Start/end + **cause ("why")** text | Unknown | GitHub / ModelScope | No |
+| 10 | **NWPU Campus** | 547 videos / 16 h, 43 scenes | Yes (anticipation protocol) | Frame-level | No | Google Drive/Baidu, research only | No |
+| 11 | **CamNuvem** | 972 (486 robbery + 486 UCF normal) | Some | Weak (test intervals) | Unknown | GitHub | No |
+| 12 | Kinetics-700 escalation classes | ~600–970 clips/class | No (10 s clips) | Clip label | Yes | YouTube IDs | Yes (700 clips) |
+| 13 | AudioSet / VGGSound violence-sound classes | see §5 | — | 10 s clip labels | **Yes** | YouTube IDs / HF mirrors | No |
+| 14 | MuTox, SSPNet Conflict, CREMA-D/MSP-Podcast | speech | — | utterance/clip | **Yes** | Open / request | No |
+| 15 | RWF-2000, RLVS, SCVD, Bus Violence, Hockey, Movies, Violent-Flows, AIRTLab, Surveillance Fight, VioPeru | 200–2,000 trimmed clips | **No** | Clip label | Mixed | Mostly open | No |
+| 16 | NTU RGB+D 120 (mutual actions), UT-Interaction | 114k / 120 videos | No (staged) | Clip / segment | NTU: no | Request / open | No |
+| 17 | ShanghaiTech, TAD, UCF-Crime-DVS, VSD2014, GTA-Crime, Hawk, RiskCueBench, DeEscalWild, DAD/CCD/DADA | various | various | various | various | various | No |
 
 ---
 
@@ -146,13 +144,6 @@ Legend: **Lead-in** = are there long non-violent stretches before onset? **Onset
 - **Lead-in:** Not published. The CCTV subset's long durations and multiple instances per video suggest a meaningful ≥30 s subset. Compute it once the annotations arrive.
 - **Audio:** Not stated by NTU. Many non-CCTV clips are YouTube re-uploads with audio, and AVadCLIP (2025) evaluates audio-visual on it. Verify per file.
 - **Access:** https://rose1.ntu.edu.sg/dataset/cctvFights/. Register, submit the request form, accept the release agreement. Academic non-commercial only. **No redistribution or derived datasets without permission**, so we cannot publish clips we re-cut from it.
-
-#### DVD (Kollias et al., arXiv 2506.05372, 2025): not released yet, watch it
-- **Size:** 500 long videos, 2.7 M frames, 15–1,200 s each, up to 4K. Collected from YouTube with multilingual keywords.
-- **Footage types:** **phone, CCTV, body-cam, dash-cam, doorbell, in-vehicle**. This is the closest public match to this project's target domain.
-- **Annotations:** Frame-level binary violence labels from 4 trained annotators (kept only with ≥3 agreeing) plus a reviewer. "Extended de-escalation" is labelled non-violent, and renewed violence counts as a new instance. Per-scene metadata: number of people, event type (e.g. bar fight, protest), indoor/outdoor, footage type, and **whether sound is linked to the event** (1,263 scenes yes, 737 no). Split 55/15/30.
-- **Collection:** Explicitly targets "actions leading to violence, such as arguments that escalate into fights".
-- **Access:** "Will be publicly released upon acceptance". A subset was used in the ABAW-10 competition (2026). Track: https://arxiv.org/abs/2506.05372
 
 #### Repo's own YouTube curation (`data/anticipation_curation/`)
 - 28 videos with ≥30 s windows, median 70 s. This is the only source built for anticipation, but the labels come from the VLM.
@@ -240,7 +231,7 @@ Legend: **Lead-in** = are there long non-violent stretches before onset? **Onset
 - **Anger and arousal in speech:** CREMA-D (7,442 clips, 91 actors), RAVDESS, IEMOCAP, MSP-Podcast (naturalistic, large). Use these for a raised-voice / anger head.
 - **BERSting at the Screams** (2025): distanced, emotional and **shouted** speech recognition benchmark. Useful for making ASR robust to shouting.
 
-**Practical note:** Whisper (or WhisperX) transcripts plus a toxicity or threat text classifier, combined with a shout/scream/slap audio tagger, is the cheapest audio stack to build. Only XD-Violence, CCTV-Fights (partially), DVD and our YouTube set have usable audio for *in-domain* fine-tuning.
+**Practical note:** Whisper (or WhisperX) transcripts plus a toxicity or threat text classifier, combined with a shout/scream/slap audio tagger, is the cheapest audio stack to build. Only XD-Violence, CCTV-Fights (partially) and our YouTube set have usable audio for *in-domain* fine-tuning.
 
 ### 4.7 Anticipation-adjacent benchmarks and protocols (for evaluation design)
 - **"Can We Anticipate Violence?"** (Univ. Alabama, arXiv 2609.40014, Sep 2026): 443 pre-incident clips curated from XD-Violence. The incident is removed and clips are rated No / Low / Medium / High risk. Clips are ≤ ~4 s (32 frames at 8 fps). Face + pose kinematics + audio spectrogram gives AUC 0.964 and accuracy 91.2%. Face alone is strongest; audio alone gives AUC 0.79. Test set is only 91 clips, and no data release was found. **This is the closest published work, and its horizon is ≤4 s.**
@@ -263,7 +254,7 @@ Legend: **Lead-in** = are there long non-violent stretches before onset? **Onset
 2. **Download the XD-Violence train split** (3,954 videos, audio included). Today only the 800 test videos are local. This is the largest source of ≥30 s audio-visual positives (397 anomalous, 93 fight/abuse).
 3. **Download UBI-Fights** (8.1 GB, direct). It adds 45 fight videos with ≥30 s lead-in and 784 long real-world negatives. Video-only.
 4. **Request NTU CCTV-Fights** (and MSAD). Compute the ≥30 s subset once access is granted.
-5. **Watch for DVD and FS-UCF-Crime** releases. DVD is the best domain match (bodycam, doorbell, phone, with sound).
+5. **Watch for the FS-UCF-Crime** release.
 6. **Build a named benchmark ("VA30")** with these rules:
    - Positives: interpersonal-violence videos with **≥30 s verified pre-onset footage**, about 220 fight-only or about 370 interpersonal across sources. **Hand-verify every test onset.**
    - Negatives: **length-matched** windows from normal videos of the *same source* (UCF normal, XD normal, UBI normal, MSAD normal) plus hard negatives (sports, horseplay, crowds, hugs).
@@ -288,7 +279,6 @@ Legend: **Lead-in** = are there long non-violent stretches before onset? **Onset
 - FS-UCF-Crime (pending): https://zenodo.org/records/21336651
 - UBI-Fights: https://socia-lab.di.ubi.pt/EventDetection/ · code: https://github.com/DegardinBruno/human-self-learning-anomaly
 - NTU CCTV-Fights: https://rose1.ntu.edu.sg/dataset/cctvFights/
-- DVD: https://arxiv.org/abs/2506.05372
 - MSAD: https://msad-dataset.github.io/ · https://github.com/Tom-roujiang/MSAD
 - NWPU Campus: https://campusvad.github.io/ · https://arxiv.org/abs/2305.13611
 - CUVA: https://github.com/fesvhtr/CUVA · ECVA: https://github.com/Dulpy/ECVA

@@ -378,8 +378,6 @@ run `--rescore` on the cached embeddings; no video decoding is needed.
 - **NTU CCTV-Fights:** requested on 2026-10-14, awaiting approval
   ([DATA_ACQUISITION.md](DATA_ACQUISITION.md) section 5). Its long untrimmed CCTV is what the long-window pose
   features need.
-- **DVD:** access requested, not received (the authors were emailed on 2026-10-14). The ABAW route needs the faculty advisor as lead researcher with
-  a signed EULA (DATA_ACQUISITION section 6). Ask the advisor.
 - **CamNuvem** (486 robbery CCTV videos with long approach phases). Check the licence and onset quality before use.
 - **H2, confrontation negatives** (at least 100): arguments that end without contact, police stops without force,
   road disputes, bar quarrels broken up. Annotate them "no contact".
@@ -707,7 +705,6 @@ All under `benchmark/results/cue_screen/`:
    audio and speech lanes.
 3. **Data actions now.**
    - Follow up the NTU CCTV-Fights request.
-   - Ask the advisor about the DVD / ABAW EULA route.
    - Check CamNuvem's licence and onsets.
    - Start the long-form curation pool (new queries, longer `--max_duration`, channel-disjoint from the hold-out).
 4. **Manifest v2 with the 399 H1 videos:** pose, visual, motion, and audio where present (under 1 GPU-h).
@@ -927,7 +924,7 @@ shortcut analysis, and the sustained-warning results.
 | Status message counted 489 events (1) | Accepted | 551 (VA30 v2) used throughout |
 | Re-anchor onsets with a violence-now head and relabel the conflict phase (2) | Partly rejected | Machine re-anchoring with a head trained on the same noisy onsets is circular, and UCF HIVAU errors go the other way. Instead: a human-verified `t_strike` secondary onset (4.2); VA30 v2 stays the frozen primary benchmark |
 | No plan for long-lead domain data (2) | Accepted | Section 4.3 |
-| NTU CCTV-Fights "never submitted" (2) | Rejected as a fact | DATA_ACQUISITION.md section 5: submitted 2026-10-14, awaiting approval. DVD access requested the same day, not received |
+| NTU CCTV-Fights "never submitted" (2) | Rejected as a fact | DATA_ACQUISITION.md section 5: submitted 2026-10-14, awaiting approval. |
 | Use the hold-out's 125 non-violent escalation clips (2) | Accepted, read-only | A specificity readout, never a decision input |
 | The VLM design drops what STCH credits; long-window query and forecast column (2) | Partly accepted | Arm C and the forecast column added at matched cost. STCH's ablation is unverifiable and its memory is a learned module, not a long prompt, so the long query is a test, not a premise |
 | Dyad modelling: ReID, backward tracking, same-frame negatives, camera-wearer cues, crops (2) | Accepted, staged | Camera-wearer cues as rank 8 (domain models only); ReID, backward tracking and crops in phase 2 for UCF and UBI, given track fragmentation on XD |

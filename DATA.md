@@ -29,7 +29,6 @@ their terms.
 | NTU CCTV-Fights (Perez et al., ICASSP 2019) | External test set only | https://rose1.ntu.edu.sg/dataset/cctvFights/ (request form) | Academic, non-commercial; no redistribution and no derived datasets without permission. Nothing derived from it is published here. |
 | MEVA (Kitware) | Never-violent multi-person footage for the external false-alarm test | `s3://mevadata-public-01/` (public, no account) | See the MEVA site (CC BY 4.0 reported, not verified here) |
 | Curated YouTube hold-out | Descriptive hold-out only | Not redistributed | YouTube terms; research use |
-| DVD (Kollias et al., 2025) | Not used | Access requested, not received | Paper CC BY-NC-ND 4.0; data under the authors' EULA |
 
 ## Rebuilding locally
 

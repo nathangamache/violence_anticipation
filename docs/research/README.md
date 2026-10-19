@@ -48,9 +48,8 @@ they appear in the capstone write-up.
 | 5 | **Curated YouTube set** (`data/anticipation_curation/`, 92 videos, on disk) | Best domain match (road rage, bodycam, CCTV confrontations), all with audio | about 28 (from pseudo-labels; unverified) | yes | local | **Hand-annotate onsets**; use as the real-world hold-out test |
 | 6 | **NTU CCTV-Fights** | 1,000 fight videos, 2,414 instances, frame-level, CCTV up to 12 min | likely 100 to 200 (to be computed) | partial | request form, non-commercial | Request access |
 | 7 | **UCA** (UCF-Crime dense captions) | Timestamped captions including pre-event behaviour; precursor-cue supervision and onset checks | n/a | n/a | GitHub, Apache-2.0 | Download (small) |
-| 8 | **DVD** (2025) | Bodycam, doorbell, dashcam, phone; frame-level; long videos; event-linked sound | likely many | yes | "upon acceptance" | Watch for release |
-| 9 | MSAD, CUVA/ECVA, NWPU Campus, AHB-F | Extra untrimmed anomaly video, cause text, anticipation protocols | some | mostly no | forms / GitHub | Secondary evaluation or protocol reference |
-| 10 | AudioSet / VGGSound / FSD50K classes (shout, yell, scream, slap, smash, crowd), MuTox, SSPNet Conflict, CREMA-D | Train or validate audio and speech cue heads | n/a | yes | open / request | Only if a pretrained tagger is not enough |
+| 8 | MSAD, CUVA/ECVA, NWPU Campus, AHB-F | Extra untrimmed anomaly video, cause text, anticipation protocols | some | mostly no | forms / GitHub | Secondary evaluation or protocol reference |
+| 9 | AudioSet / VGGSound / FSD50K classes (shout, yell, scream, slap, smash, crowd), MuTox, SSPNet Conflict, CREMA-D | Train or validate audio and speech cue heads | n/a | yes | open / request | Only if a pretrained tagger is not enough |
 | Skip for anticipation | RWF-2000, RLVS, Hockey, Movies, SCVD, Bus Violence, AIRTLab, Kinetics clips | 1 to 10 s trimmed clips, no lead-in | none | mixed | open | Use only for a "violence now" auxiliary head or hard negatives |
 
 ---

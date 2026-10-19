@@ -21,7 +21,6 @@ All paths below are relative to `data/` = `data/` unless absolute.
 | XD-Violence test, 2 clips missing locally | same mirror (`data/video/test_videos/`) | 31 MB | `raw_videos/xd_violence_train/missing_test_videos/` | Done (sha256-verified) | as above |
 | UBI-Fights (1,000 videos, no audio) | `https://socia-lab.di.ubi.pt/EventDetection/UBI_FIGHTS.zip` | 8.12 GB zip, 8.27 GB extracted | `raw_videos/ubi_fights/` | **Complete.** 2,001/2,001 zip members CRC-checked and extracted (216 fight + 784 normal videos, 1,000 label CSVs); 79.0 h; archive deleted afterwards. sha256 of every file now recorded in `manifest.json`. CRC = transfer consistency only, not authenticity (TLS unverified; section 4.1). Took 33 min (0.8 to 8.5 MB/s) | No license stated; cite Degardin and Proenca, IJCB 2020 |
 | NTU CCTV-Fights | rose1.ntu.edu.sg | 6.6 GB (original formats) | **received 2026-10-15**, external test set | access granted (section 5) | Academic, non-commercial, no redistribution or derived datasets without permission |
-| DVD (2025) | not public | 500 videos | not downloaded | **Not released**; a subset is only available through the ABAW-10 challenge with a faculty-signed EULA (section 6) | Paper is CC BY-NC-ND 4.0; data terms set by the EULA |
 
 Logs: `logs/xd_train_download.log`, `logs/ubi_fights_download.log` (both end with `DONE`),
 `logs/xd_recover.log` (tar index and recovery), full XD ffprobe audit in `logs/xd_train_ffprobe.json` / `.log`. Disk use: XD train 70 GB (74.6 GB decimal) + 0.43 GB
@@ -222,7 +221,7 @@ them, move them into `raw_videos/xd_violence/videos/` by hand.
   `frames / fps` (what `anticipation/features/io.py` `Video` does via decord). `setup/download_verify.py`
   reports the video-stream duration and counts the inflated containers.
 - Movie clips mostly have 6-channel (5.1) 48 kHz AAC, a few 7 or 8 channels; YouTube clips mostly stereo
-  44.1 kHz (full breakdown in section 7). `io.load_audio` downmixes to
+  44.1 kHz (full breakdown in section 6). `io.load_audio` downmixes to
   mono 16 kHz, so this needs no special handling.
 - Resolution varies (640x266 to 640x360 for movies, down to 202x360 or 320x240 for some YouTube clips);
   letterboxing in movie clips is a provenance cue (BASELINE 6.5 B-scene0).
@@ -359,31 +358,7 @@ training, folds or the modality screen. Full description, counts and protocol: d
 
 ---
 
-## 6. DVD (Kollias et al., arXiv 2506.05372): not publicly released; authors emailed 2026-10-14
-
-Status: access requested, not received. The authors were emailed on 2026-10-14 asking for research access; awaiting a reply.
-
-- arXiv still has only v1 (2025-05-29). The paper states "DVD will be publicly released upon acceptance".
-  No release was found in GitHub or Hugging Face searches on 2026-10-14.
-- A **subset** of DVD is the data of the "Fine-Grained Violence Detection" challenge of the 9th (ICCV 2025)
-  and 10th (CVPR 2026) ABAW competitions: https://affective-behavior-analysis-in-the-wild.github.io/10th/ .
-  Access route, as written on that page:
-  1. The **lead researcher** sends an email **from an official institutional address** (personal emails are
-     rejected) to [contact on the dataset page] with subject `10th ABAW Competition: Team Registration`.
-  2. Attach the academic-only EULA, filled in and signed:
-     https://drive.google.com/file/d/1-z7JH5HtsuFeIlT9a6t8QlNbMPkBAI2_/view (the VD challenge requires a team
-     of academics only).
-  3. Include the lead researcher's official academic website; **the lead researcher cannot be a student**
-     (UG, PG, PhD), so the capstone advisor must be the lead.
-  4. List each team member's email on its own line, the team name, and the point of contact.
-  5. The reply grants access to the challenge videos and annotations.
-- The CVPR 2026 competition has ended, so a late registration may be refused. An alternative is to email
-  the first author ([contact on the dataset page]) and ask about research access to the full DVD release. Nothing
-  was submitted by this track.
-
----
-
-## 7. Verification performed and how to repeat it
+## 6. Verification performed and how to repeat it
 
 | Check | Result (2026-10-14) |
 |---|---|
@@ -419,7 +394,7 @@ D=data
 
 ---
 
-## 8. Notes for the feature and benchmark tracks
+## 7. Notes for the feature and benchmark tracks
 - Feature files follow `anticipation/features/io.py`: `video_id` = `<source>/<stem>`. Suggested sources:
   `xd` (test and train share one namespace; no file name occurs in both splits), `ubi`.
 - **Group leakage across the official XD splits:** 184 of the 1,629 mirror train groups (1,630 official)
