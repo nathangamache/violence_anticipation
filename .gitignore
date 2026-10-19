@@ -61,3 +61,4 @@ benchmark/results/cue_screen/**/*.parquet
 benchmark/results/fusion/**/*.parquet
 benchmark/results/cue_screen_v*/**/*.parquet
 benchmark/results/single_block/**/*.parquet
+benchmark/results/fusion_v2/**/*.parquet

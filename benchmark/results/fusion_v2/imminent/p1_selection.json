@@ -1,0 +1,73 @@
+{
+ "selected": [
+  "siglip2_prompts_v2"
+ ],
+ "steps": [
+  {
+   "step": 0,
+   "action": "start",
+   "rule": "best ANTICIPATION block by M8 point estimate (the frozen file does not define 'best')",
+   "chosen": "siglip2_prompts_v2",
+   "candidates": {
+    "siglip2_prompts_v2": {
+     "m1": {
+      "value": 0.8532650418087867,
+      "ci": [
+       0.8154812895897783,
+       0.8851940752728132
+      ],
+      "n_pos": 1860,
+      "n_neg": 226503,
+      "n_pos_videos": 186
+     },
+     "m3p": {
+      "value": 0.6883546528518878,
+      "ci": [
+       0.5943324255044447,
+       0.7756921349227699
+      ],
+      "n_pos": 510,
+      "n_neg": 970,
+      "n_pos_videos": 51
+     },
+     "m8": {
+      "value": 0.8938307049207584,
+      "ci": [
+       0.8713526161254632,
+       0.9138362376605937
+      ],
+      "n_events": 344
+     },
+     "m8_offubi": {
+      "value": 0.8742552010913588,
+      "ci": [
+       0.8307513207656965,
+       0.9117137704186523
+      ],
+      "n_events": 62
+     },
+     "m1_offubi": {
+      "value": 0.8357102469540805,
+      "ci": [
+       0.7883402744739394,
+       0.8793323246770565
+      ],
+      "n_pos": 590,
+      "n_neg": 153327,
+      "n_pos_videos": 59
+     },
+     "C": {
+      "0": 0.001,
+      "2": 0.001,
+      "3": 0.001,
+      "4": 0.001
+     }
+    }
+   }
+  }
+ ],
+ "prereg": {
+  "path": "benchmark/screens/screen_set_v2.json",
+  "sha256": "25bf720b688c5fe4475da25d2b4ba1de52a0a140678649073d08ba7586e52dbb"
+ }
+}

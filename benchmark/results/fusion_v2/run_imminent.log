@@ -1,0 +1,84 @@
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_test', 'frozen': 965, 'computed': 1300, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_106_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0', 'ubi/F_118_1_2_0_0', 'ubi/F_120_1_0_0_0', 'ubi/F_128_0_0_0_0', 'ubi/F_132_1_2_0_0'], 'n_only_computed': 335}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_train', 'frozen': 2293, 'computed': 3201, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_105_1_0_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_122_1_1_0_0'], 'n_only_computed': 908}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold0_val', 'frozen': 343, 'computed': 479, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_110_1_2_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_124_1_2_0_0', 'ubi/F_147_1_0_1_0', 'ubi/F_157_0_0_1_0', 'ubi/F_161_0_0_0_0', 'ubi/F_162_1_0_1_0', 'ubi/F_181_0_0_1_0'], 'n_only_computed': 136}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_test', 'frozen': 972, 'computed': 1322, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_125_0_2_0_0', 'ubi/F_126_1_0_0_0', 'ubi/F_130_1_2_0_0', 'ubi/F_131_1_2_0_0'], 'n_only_computed': 350}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_train', 'frozen': 2321, 'computed': 3213, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_106_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0', 'ubi/F_118_1_2_0_0', 'ubi/F_120_1_0_0_0'], 'n_only_computed': 892}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold2_val', 'frozen': 308, 'computed': 445, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_105_1_0_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_140_0_0_0_0', 'ubi/F_155_0_0_1_0', 'ubi/F_157_0_0_1_0', 'ubi/F_173_0_0_1_0', 'ubi/F_205_0_1_0_0'], 'n_only_computed': 137}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_test', 'frozen': 943, 'computed': 1297, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_10_0_0_0_0', 'ubi/F_111_0_0_0_0', 'ubi/F_119_0_2_0_0', 'ubi/F_133_1_0_0_0', 'ubi/F_138_0_0_0_0', 'ubi/F_147_1_0_1_0', 'ubi/F_155_0_0_1_0', 'ubi/F_161_0_0_0_0'], 'n_only_computed': 354}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_train', 'frozen': 2311, 'computed': 3194, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_106_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_115_1_2_0_0', 'ubi/F_117_0_0_0_0'], 'n_only_computed': 883}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold3_val', 'frozen': 329, 'computed': 471, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_103_1_2_0_0', 'ubi/F_105_1_0_0_0', 'ubi/F_128_0_0_0_0', 'ubi/F_13_1_2_0_0', 'ubi/F_157_0_0_1_0', 'ubi/F_181_0_0_1_0', 'ubi/F_193_0_0_1_0', 'ubi/F_200_0_0_0_1'], 'n_only_computed': 142}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_test', 'frozen': 963, 'computed': 1303, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_105_1_0_0_0', 'ubi/F_114_0_0_0_0', 'ubi/F_122_1_1_0_0', 'ubi/F_123_1_2_0_0', 'ubi/F_124_1_2_0_0', 'ubi/F_127_1_2_0_0', 'ubi/F_139_0_0_0_0', 'ubi/F_142_0_0_0_0'], 'n_only_computed': 340}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_train', 'frozen': 2330, 'computed': 3230, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_102_0_0_0_1', 'ubi/F_103_1_2_0_0', 'ubi/F_106_1_2_0_0', 'ubi/F_107_1_2_0_0', 'ubi/F_109_1_2_0_0', 'ubi/F_10_0_0_0_0', 'ubi/F_110_1_2_0_0', 'ubi/F_111_0_0_0_0'], 'n_only_computed': 900}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'fold4_val', 'frozen': 310, 'computed': 449, 'agree': False, 'only_frozen': [], 'n_only_frozen': 0, 'only_computed': ['ubi/F_130_1_2_0_0', 'ubi/F_13_1_2_0_0', 'ubi/F_172_1_0_1_0', 'ubi/F_173_0_0_1_0', 'ubi/F_175_0_1_0_0', 'ubi/F_188_0_0_1_1', 'ubi/F_209_1_0_0_0', 'ubi/F_213_0_1_0_0'], 'n_only_computed': 139}
+[screen] DISAGREEMENT frozen vs previous computation: {'name': 'scored_ticks_per_video', 'frozen': 3843, 'computed': None, 'agree': False, 'n_differ': 31, 'max_abs_diff': 1}
+[fusion] gates: pose_interact
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] pose_interact: M1 0.6395 M8 0.6912 (204 s)
+[fusion] gates: pose_interact: N1 False N2 False N3 False
+[fusion] gates: pose_state_identity_free
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] pose_state_identity_free: M1 0.5679 M8 0.6019 (463 s)
+[fusion] gates: pose_state_identity_free: N1 False N2 False N3 False
+[fusion] gates: pose_state_pair_identity_ucf_ubi
+[fusion] fold 0: train 952 val 133 test 394
+[fusion] fold 2: train 950 val 138 test 398
+[fusion] fold 3: train 949 val 141 test 390
+[fusion] fold 4: train 954 val 139 test 395
+[fusion] pose_state_pair_identity_ucf_ubi: M1 0.5514 M8 0.5931 (241 s)
+[fusion] gates: pose_state_pair_identity_ucf_ubi: N1 False N2 False N3 False
+[fusion] gates: siglip2_prompts_v1
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] siglip2_prompts_v1: M1 0.8809 M8 0.9166 (131 s)
+[fusion] gates: siglip2_prompts_v1: N1 True N2 False N3 True
+[fusion] gates: siglip2_prompts_v2
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] siglip2_prompts_v2: M1 0.8533 M8 0.8938 (54 s)
+[fusion] gates: siglip2_prompts_v2: N1 True N2 True N3 True
+[fusion] gates: siglip2
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] siglip2: M1 0.8861 M8 0.8995 (37 s)
+[fusion] gates: siglip2: N1 True N2 False N3 True
+[fusion] gates: vjepa2_l
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] vjepa2_l: M1 0.8118 M8 0.8319 (38 s)
+[fusion] gates: vjepa2_l: N1 True N2 False N3 False
+[fusion] gates: motion_no_camera
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] motion_no_camera: M1 0.5598 M8 0.5894 (62 s)
+[fusion] gates: motion_no_camera: N1 False N2 False N3 False
+[fusion] gates: motion_camera_shortcut
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] motion_camera_shortcut: M1 0.6336 M8 0.6827 (16 s)
+[fusion] gates: motion_camera_shortcut: N1 False N2 False N3 True
+[fusion] imminent head passing blocks: ['siglip2_prompts_v2']
+[fusion] fold 0: train 2293 val 343 test 965
+[fusion] fold 2: train 2321 val 308 test 972
+[fusion] fold 3: train 2311 val 329 test 943
+[fusion] fold 4: train 2330 val 310 test 963
+[fusion] siglip2_prompts_v2: M1 0.8533 M8 0.8938 (57 s)
+[fusion] imminent P1 selected: ['siglip2_prompts_v2']
+[fusion] imminent final model: p1 ['siglip2_prompts_v2']
