@@ -35,6 +35,18 @@ and [`benchmark/results/fusion_v2/imminent/report.md`](benchmark/results/fusion_
 | Early (Success@30) | 2.12 | 31.4% | [23.9, 37.8]% | 9.5% | 5.2% |
 | Imminent (Success@10) | 2.15 | 33.4% | [25.8, 41.6]% | 11.2% | 6.4% |
 
+**External test (pre-registered; NTU CCTV-Fights, 985 videos, 145 eligible fights; MEVA, 29.6 never-violent
+hours).** From [`benchmark/results/external_v1/report.md`](benchmark/results/external_v1/report.md), at the 2 FA/h
+threshold:
+
+| Head | MEVA FA/h | Success on CCTV-Fights | AUROC vs MEVA | AUROC vs calm seconds of the same videos |
+|---|---|---|---|---|
+| Early (Success@30) | 0.00 | 24.1% [17.3, 31.5]% | 0.963 [0.942, 0.978] | 0.398 [0.337, 0.459] |
+| Imminent (Success@10) | 0.00 | 28.3% [20.5, 36.6]% | 0.984 [0.978, 0.988] | 0.481 [0.440, 0.524] |
+
+Both heads pass the pre-registered rule, but trivially, because MEVA raised no alarm. The last column is the
+informative control: within fight videos, pre-fight seconds score no higher than calm seconds far from any fight.
+
 Full write-up: [docs/RESULTS_V3.md](docs/RESULTS_V3.md). Per-block screen:
 [`benchmark/results/cue_screen_v2/results_phase_A.md`](benchmark/results/cue_screen_v2/results_phase_A.md).
 Single-stream detail, including the crowd-matched check:
