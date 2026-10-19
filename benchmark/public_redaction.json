@@ -8,7 +8,7 @@
   },
   "benchmark/audits/audio_type_v1.json": {
    "original_sha256": "cd9c455d33486cb0f2e85caad1ec6a6819b3f2145a572de059dae95a3070eb02",
-   "redacted_sha256": "b2b1a5bf43e6a62d1045fd5d9004a6323146d219219a4d87cc3e6c244ce516e5",
+   "redacted_sha256": "815c4bb8475188d73fc2b5342f7a66e365e9be6df382262d9790a234b9e591e6",
    "change": "free-text fields replaced by a redaction marker; hold-out ids and local paths anonymised"
   },
   "benchmark/audits/label_audit_v1.csv": {
