@@ -99,6 +99,12 @@ Single-stream detail, including the crowd-matched check:
   single fold-1 confirmation. The rebuild was carried out with AI coding agents under the owner's direction; every
   decision, amendment and result is recorded under `benchmark/` and `docs/`.
 
+## System overview
+
+![The whole system, from datasets to the two confirmed models](docs/figures/system_overview.svg)
+
+Regenerate with `python tools/make_system_overview.py docs/figures/system_overview.svg`.
+
 ## Repository map
 
 | Path | What it holds |
