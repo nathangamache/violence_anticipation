@@ -1,0 +1,2239 @@
+{
+ "config_sha256": "8e4dc5eb944257c891c30d22b9c1173750d009ad8e965be0480f01bd0007ef41",
+ "check": {
+  "early": {
+   "m1_value": 0.9048178343819818,
+   "m1_committed": 0.9048178343819818,
+   "abs_diff": 0.0,
+   "match_4_decimals": true,
+   "max_abs_score_diff_vs_runner_path": 1.509903313490213e-14,
+   "videos": 1214,
+   "ticks": 138256
+  },
+  "imminent": {
+   "m1_value": 0.8929675625550146,
+   "m1_committed": 0.8929675625550146,
+   "abs_diff": 0.0,
+   "match_4_decimals": true,
+   "max_abs_score_diff_vs_runner_path": 7.105427357601002e-15,
+   "videos": 1214,
+   "ticks": 138256
+  }
+ },
+ "thresholds": {
+  "early": {
+   "fa1": {
+    "target_fa_per_hour": 1,
+    "theta": 4.568188021359099,
+    "val_fa_per_hour": 0.9708653386524604,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.3261965624077908,
+    "fold1_success30": 0.16,
+    "fold1_success10": 0.2,
+    "committed_fold1_test_fa_per_hour": 0.3261965624077908,
+    "fa_matches_committed": true
+   },
+   "fa2": {
+    "target_fa_per_hour": 2,
+    "theta": 3.962661682284109,
+    "val_fa_per_hour": 1.9417306773049208,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.7176324372971399,
+    "fold1_success30": 0.22666666666666666,
+    "fold1_success10": 0.30666666666666664,
+    "committed_fold1_test_fa_per_hour": 0.7176324372971399,
+    "fa_matches_committed": true
+   },
+   "fa5": {
+    "target_fa_per_hour": 5,
+    "theta": 2.8661126433577397,
+    "val_fa_per_hour": 4.993021741641225,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 2.6421921555031056,
+    "fold1_success30": 0.36,
+    "fold1_success10": 0.4533333333333333,
+    "committed_fold1_test_fa_per_hour": 2.6421921555031056,
+    "fa_matches_committed": true
+   }
+  },
+  "imminent": {
+   "fa1": {
+    "target_fa_per_hour": 1,
+    "theta": 4.313394129061464,
+    "val_fa_per_hour": 0.9708653386524604,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.4240555311301281,
+    "fold1_success30": 0.06666666666666667,
+    "fold1_success10": 0.10666666666666667,
+    "committed_fold1_test_fa_per_hour": 0.4240555311301281,
+    "fa_matches_committed": true
+   },
+   "fa2": {
+    "target_fa_per_hour": 2,
+    "theta": 3.613171865488575,
+    "val_fa_per_hour": 1.9417306773049208,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.8481110622602562,
+    "fold1_success30": 0.14666666666666667,
+    "fold1_success10": 0.2,
+    "committed_fold1_test_fa_per_hour": 0.8481110622602562,
+    "fa_matches_committed": true
+   },
+   "fa5": {
+    "target_fa_per_hour": 5,
+    "theta": 2.4901522729031353,
+    "val_fa_per_hour": 4.993021741641225,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 3.2293459678371295,
+    "fold1_success30": 0.30666666666666664,
+    "fold1_success10": 0.4533333333333333,
+    "committed_fold1_test_fa_per_hour": 3.2293459678371295,
+    "fa_matches_committed": true
+   }
+  }
+ },
+ "meva": {
+  "n_clips": 355,
+  "hours": 29.58277777777778,
+  "sha256": "8fce9ffcfe03531a9a1cad936129b41471dc2ee14dda02413a635e013874cd0b",
+  "wait_outcome": "stable"
+ },
+ "alignment": {
+  "ticks_held_to_label_length": 0,
+  "cut_stream_incomplete_videos": {
+   "early": 355,
+   "imminent": 355
+  }
+ },
+ "metrics": {
+  "early": {
+   "counts": {
+    "cctv_videos": 985,
+    "meva_clips": 355,
+    "meva_hours": 29.58277777777778,
+    "eligible30_events": 145,
+    "eligible60_events": 41,
+    "eligible30_by_domain": {
+     "cctv": 90,
+     "non_cctv": 55
+    }
+   },
+   "operating_points": {
+    "fa1": {
+     "theta": 4.568188021359099,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.21951219512195122,
+        "ci": [
+         0.0851063829787234,
+         0.36846978557504867
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 69.9052
+       },
+       "cctv": {
+        "value": 0.25925925925925924,
+        "ci": [
+         0.06656250000000001,
+         0.4583333333333333
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 74.77335
+       },
+       "non_cctv": {
+        "value": 0.14285714285714285,
+        "ci": [
+         0.0,
+         0.3573051948051947
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 61.866699999999994
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.16551724137931034,
+        "ci": [
+         0.10075581395348837,
+         0.2397673594709494
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 31.72
+       },
+       "cctv": {
+        "value": 0.15555555555555556,
+        "ci": [
+         0.07462686567164178,
+         0.25472660762418176
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 32.1305
+       },
+       "non_cctv": {
+        "value": 0.18181818181818182,
+        "ci": [
+         0.08506205673758865,
+         0.2982894736842105
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 31.34
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.25517241379310346,
+        "ci": [
+         0.18181818181818182,
+         0.3333823529411764
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 31.72
+       },
+       "cctv": {
+        "value": 0.24444444444444444,
+        "ci": [
+         0.15660694726959787,
+         0.34618055555555555
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 32.1305
+       },
+       "non_cctv": {
+        "value": 0.2727272727272727,
+        "ci": [
+         0.15994736842105264,
+         0.40008771929824555
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 31.34
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.2827586206896552,
+        "ci": [
+         0.19862892256873602,
+         0.3642426198226512
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 31.72
+       },
+       "cctv": {
+        "value": 0.2777777777777778,
+        "ci": [
+         0.1790911513859275,
+         0.3809740259740259
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 32.1305
+       },
+       "non_cctv": {
+        "value": 0.2909090909090909,
+        "ci": [
+         0.16666666666666666,
+         0.4186395348837209
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 31.34
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 16.879875357867956,
+      "ci": [
+       11.758550824924042,
+       21.565737393691272
+      ],
+      "random_reference": {
+       "L30": 0.3442639173011567,
+       "L10": 0.4029616735659607
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    },
+    "fa2": {
+     "theta": 3.962661682284109,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.21951219512195122,
+        "ci": [
+         0.08565476190476191,
+         0.36594644750795324
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 72.65259999999998
+       },
+       "cctv": {
+        "value": 0.25925925925925924,
+        "ci": [
+         0.08333333333333333,
+         0.45454545454545453
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 83.62
+       },
+       "non_cctv": {
+        "value": 0.14285714285714285,
+        "ci": [
+         0.0,
+         0.3573051948051947
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 46.574149999999996
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.2413793103448276,
+        "ci": [
+         0.17331034482758623,
+         0.3146921975662133
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       },
+       "cctv": {
+        "value": 0.16666666666666666,
+        "ci": [
+         0.09090909090909091,
+         0.25263447079236556
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 38.879999999999995
+       },
+       "non_cctv": {
+        "value": 0.36363636363636365,
+        "ci": [
+         0.23428485576923078,
+         0.5
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.32413793103448274,
+        "ci": [
+         0.24653340788370143,
+         0.40800408163265306
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       },
+       "cctv": {
+        "value": 0.25555555555555554,
+        "ci": [
+         0.17203881048387099,
+         0.34486074270557027
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 38.879999999999995
+       },
+       "non_cctv": {
+        "value": 0.43636363636363634,
+        "ci": [
+         0.2857142857142857,
+         0.5800454545454544
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.3310344827586207,
+        "ci": [
+         0.25,
+         0.41408130787037034
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       },
+       "cctv": {
+        "value": 0.26666666666666666,
+        "ci": [
+         0.17706801470588238,
+         0.36366707616707616
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 38.879999999999995
+       },
+       "non_cctv": {
+        "value": 0.43636363636363634,
+        "ci": [
+         0.2857142857142857,
+         0.5800454545454544
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.602999999999994
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 19.746269286562516,
+      "ci": [
+       14.995598520561641,
+       24.41871715158321
+      ],
+      "random_reference": {
+       "L30": 0.3896097255186072,
+       "L10": 0.45302830741479605
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    },
+    "fa5": {
+     "theta": 2.8661126433577397,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.3902439024390244,
+        "ci": [
+         0.24388595912986155,
+         0.5405405405405406
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 64.97999999999999
+       },
+       "cctv": {
+        "value": 0.25925925925925924,
+        "ci": [
+         0.10526315789473684,
+         0.41181541582150094
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 54.62315000000001
+       },
+       "non_cctv": {
+        "value": 0.6428571428571429,
+        "ci": [
+         0.35714285714285715,
+         0.9166666666666666
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 69.72354999999999
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.3586206896551724,
+        "ci": [
+         0.275395172388143,
+         0.4405702992659514
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 37.8
+       },
+       "cctv": {
+        "value": 0.25555555555555554,
+        "ci": [
+         0.17346938775510204,
+         0.34427642736009045
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 37.480000000000004
+       },
+       "non_cctv": {
+        "value": 0.5272727272727272,
+        "ci": [
+         0.37925381571509326,
+         0.6666666666666666
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 39.24
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.4827586206896552,
+        "ci": [
+         0.39568345323741005,
+         0.5703716744913928
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 37.8
+       },
+       "cctv": {
+        "value": 0.37777777777777777,
+        "ci": [
+         0.279989247311828,
+         0.4838709677419355
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 37.480000000000004
+       },
+       "non_cctv": {
+        "value": 0.6545454545454545,
+        "ci": [
+         0.5,
+         0.8
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 39.24
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.5241379310344828,
+        "ci": [
+         0.4411764705882353,
+         0.6050568114569771
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 37.8
+       },
+       "cctv": {
+        "value": 0.43333333333333335,
+        "ci": [
+         0.34244069495489476,
+         0.5294294826364281
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 37.480000000000004
+       },
+       "non_cctv": {
+        "value": 0.6727272727272727,
+        "ci": [
+         0.5282761578044597,
+         0.8071007259528129
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 39.24
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 18.790804643664327,
+      "ci": [
+       14.682859666872883,
+       23.2524465264016
+      ],
+      "random_reference": {
+       "L30": 0.3748540372372211,
+       "L10": 0.4368242176902465
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    }
+   },
+   "tick_auroc": {
+    "all": {
+     "vs_meva": {
+      "value": 0.962893892023673,
+      "ci": [
+       0.9420577203034198,
+       0.9777392202599815
+      ],
+      "n_pos": 2214,
+      "n_neg": 106498,
+      "n_pos_videos": 102,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.39790265737987424,
+      "ci": [
+       0.3373807134899656,
+       0.4592372074971921
+      ],
+      "n_pos": 2214,
+      "n_neg": 11352,
+      "n_pos_videos": 102,
+      "n_neg_videos": 377
+     }
+    },
+    "cctv": {
+     "vs_meva": {
+      "value": 0.9617209819033413,
+      "ci": [
+       0.9331273455225307,
+       0.9811430839365172
+      ],
+      "n_pos": 1415,
+      "n_neg": 106498,
+      "n_pos_videos": 58,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.4177002074463388,
+      "ci": [
+       0.33254829971279776,
+       0.4998599430968749
+      ],
+      "n_pos": 1415,
+      "n_neg": 7643,
+      "n_pos_videos": 58,
+      "n_neg_videos": 164
+     }
+    },
+    "non_cctv": {
+     "vs_meva": {
+      "value": 0.9649710732755744,
+      "ci": [
+       0.939941630374001,
+       0.985184552911391
+      ],
+      "n_pos": 799,
+      "n_neg": 106498,
+      "n_pos_videos": 44,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.3582825120778163,
+      "ci": [
+       0.28272065016259784,
+       0.44257059722555614
+      ],
+      "n_pos": 799,
+      "n_neg": 3709,
+      "n_pos_videos": 44,
+      "n_neg_videos": 213
+     }
+    }
+   },
+   "score_quantiles": {
+    "meva": {
+     "0.5": -3.4442103573997134,
+     "0.9": -0.061150115994375254,
+     "0.99": 1.760097394815537,
+     "0.999": 2.067729783024032
+    },
+    "cctv_far": {
+     "0.5": 3.2459422951396077,
+     "0.9": 5.587969527491652,
+     "0.99": 7.988557209501523,
+     "0.999": 8.951926688288523
+    },
+    "cctv_pos": {
+     "0.5": 2.4925841471287953,
+     "0.9": 4.596188480172158,
+     "0.99": 5.5725723282680555,
+     "0.999": 6.909953390666799
+    }
+   },
+   "verdict": {
+    "headline_measure": "Success@30 on CCTV-Fights eligible30 at the 2 FA/h threshold",
+    "success_point": 0.2413793103448276,
+    "success_ci": [
+     0.17331034482758623,
+     0.3146921975662133
+    ],
+    "random_reference_at_meva_far": 0.0,
+    "success_ci_lower_gt_random": true,
+    "auroc_vs_meva_point": 0.962893892023673,
+    "auroc_vs_meva_ci": [
+     0.9420577203034198,
+     0.9777392202599815
+    ],
+    "auroc_vs_meva_ci_lower_gt_0.5": true,
+    "transfers": true
+   }
+  },
+  "imminent": {
+   "counts": {
+    "cctv_videos": 985,
+    "meva_clips": 355,
+    "meva_hours": 29.58277777777778,
+    "eligible30_events": 145,
+    "eligible60_events": 41,
+    "eligible30_by_domain": {
+     "cctv": 90,
+     "non_cctv": 55
+    }
+   },
+   "operating_points": {
+    "fa1": {
+     "theta": 4.313394129061464,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.14634146341463414,
+        "ci": [
+         0.05,
+         0.2727272727272727
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 71.32
+       },
+       "cctv": {
+        "value": 0.18518518518518517,
+        "ci": [
+         0.04756493506493507,
+         0.34782608695652173
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 73.24000000000001
+       },
+       "non_cctv": {
+        "value": 0.07142857142857142,
+        "ci": [
+         0.0,
+         0.25
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 21.8348
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.09655172413793103,
+        "ci": [
+         0.05442176870748299,
+         0.1447680560891279
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 39.3215
+       },
+       "cctv": {
+        "value": 0.08888888888888889,
+        "ci": [
+         0.03486390063424947,
+         0.14942528735632185
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 56.288
+       },
+       "non_cctv": {
+        "value": 0.10909090909090909,
+        "ci": [
+         0.030303030303030304,
+         0.2
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 32.72
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.13793103448275862,
+        "ci": [
+         0.08461538461538462,
+         0.19747775562794767
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 39.3215
+       },
+       "cctv": {
+        "value": 0.1111111111111111,
+        "ci": [
+         0.05263157894736842,
+         0.17778538812785388
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 56.288
+       },
+       "non_cctv": {
+        "value": 0.18181818181818182,
+        "ci": [
+         0.0784313725490196,
+         0.3
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 32.72
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.15172413793103448,
+        "ci": [
+         0.0961472602739726,
+         0.21679126794258372
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 39.3215
+       },
+       "cctv": {
+        "value": 0.12222222222222222,
+        "ci": [
+         0.06246811224489796,
+         0.18848288621646617
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 56.288
+       },
+       "non_cctv": {
+        "value": 0.2,
+        "ci": [
+         0.0979920814479638,
+         0.32693181818181816
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 32.72
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 11.465575714778234,
+      "ci": [
+       8.01499663214357,
+       15.690205194652096
+      ],
+      "random_reference": {
+       "L30": 0.2492175824787548,
+       "L10": 0.2955493753262084
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    },
+    "fa2": {
+     "theta": 3.613171865488575,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.21951219512195122,
+        "ci": [
+         0.11535714285714287,
+         0.3617504835589942
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 69.39999999999998
+       },
+       "cctv": {
+        "value": 0.25925925925925924,
+        "ci": [
+         0.1111111111111111,
+         0.4483189655172414
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 73.24000000000001
+       },
+       "non_cctv": {
+        "value": 0.14285714285714285,
+        "ci": [
+         0.0,
+         0.35714285714285715
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 43.68835
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.20689655172413793,
+        "ci": [
+         0.13906317977473776,
+         0.27326035610465116
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "cctv": {
+        "value": 0.17777777777777778,
+        "ci": [
+         0.10713418862690707,
+         0.25588919288645684
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "non_cctv": {
+        "value": 0.2545454545454545,
+        "ci": [
+         0.12238775510204082,
+         0.3818560606060606
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 35.7543
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.2827586206896552,
+        "ci": [
+         0.2052937680421124,
+         0.3658622466506355
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "cctv": {
+        "value": 0.26666666666666666,
+        "ci": [
+         0.17473617560151963,
+         0.3645863970588235
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "non_cctv": {
+        "value": 0.3090909090909091,
+        "ci": [
+         0.16666666666666666,
+         0.4423076923076923
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 35.7543
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.31724137931034485,
+        "ci": [
+         0.23700542005420056,
+         0.4012365984405458
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "cctv": {
+        "value": 0.28888888888888886,
+        "ci": [
+         0.19099785981808454,
+         0.3909301780693533
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.39975
+       },
+       "non_cctv": {
+        "value": 0.36363636363636365,
+        "ci": [
+         0.22641509433962265,
+         0.5098139255702281
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 35.7543
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 20.06475750086191,
+      "ci": [
+       15.573474752450688,
+       25.454248763220203
+      ],
+      "random_reference": {
+       "L30": 0.3944504811132019,
+       "L10": 0.4583253922467512
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    },
+    "fa5": {
+     "theta": 2.4901522729031353,
+     "meva_fa_per_hour": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ],
+      "alarms": 0
+     },
+     "meva_share_clips_with_alarm": {
+      "value": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     },
+     "success": {
+      "L60": {
+       "all": {
+        "value": 0.3902439024390244,
+        "ci": [
+         0.2333139534883721,
+         0.558156634746922
+        ],
+        "n": 41,
+        "median_lead_sec_of_alarmed": 69.9052
+       },
+       "cctv": {
+        "value": 0.4074074074074074,
+        "ci": [
+         0.21047149122807016,
+         0.625
+        ],
+        "n": 27,
+        "median_lead_sec_of_alarmed": 76.29335
+       },
+       "non_cctv": {
+        "value": 0.35714285714285715,
+        "ci": [
+         0.1,
+         0.6365259740259739
+        ],
+        "n": 14,
+        "median_lead_sec_of_alarmed": 63.965999999999994
+       }
+      },
+      "L30": {
+       "all": {
+        "value": 0.3793103448275862,
+        "ci": [
+         0.30146807010475424,
+         0.46296296296296297
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.6333
+       },
+       "cctv": {
+        "value": 0.32222222222222224,
+        "ci": [
+         0.2285533453887884,
+         0.42576567656765674
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.8388
+       },
+       "non_cctv": {
+        "value": 0.4727272727272727,
+        "ci": [
+         0.3448275862068966,
+         0.6041787790697674
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.316649999999996
+       }
+      },
+      "L10": {
+       "all": {
+        "value": 0.503448275862069,
+        "ci": [
+         0.419574780058651,
+         0.5847953216374269
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.6333
+       },
+       "cctv": {
+        "value": 0.4444444444444444,
+        "ci": [
+         0.34520089285714284,
+         0.5517608217168012
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.8388
+       },
+       "non_cctv": {
+        "value": 0.6,
+        "ci": [
+         0.4693551888840643,
+         0.7307692307692307
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.316649999999996
+       }
+      },
+      "L0": {
+       "all": {
+        "value": 0.5448275862068965,
+        "ci": [
+         0.45611615245009074,
+         0.6259699004734757
+        ],
+        "n": 145,
+        "median_lead_sec_of_alarmed": 36.6333
+       },
+       "cctv": {
+        "value": 0.4777777777777778,
+        "ci": [
+         0.37355990783410137,
+         0.5824404761904762
+        ],
+        "n": 90,
+        "median_lead_sec_of_alarmed": 36.8388
+       },
+       "non_cctv": {
+        "value": 0.6545454545454545,
+        "ci": [
+         0.5185019841269841,
+         0.7777777777777778
+        ],
+        "n": 55,
+        "median_lead_sec_of_alarmed": 36.316649999999996
+       }
+      }
+     },
+     "random_reference_at_meva_far": {
+      "L60": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L30": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L10": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      },
+      "L0": {
+       "value": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     },
+     "descriptive_cctv_far_proxy": {
+      "fa_per_hour_outside_event_windows": 26.11603357255042,
+      "ci": [
+       21.357808754959223,
+       31.785734289820184
+      ],
+      "random_reference": {
+       "L30": 0.47946639980078787,
+       "L10": 0.5497669379921799
+      }
+     },
+     "meva_by_camera_group": {
+      "meva:admin.G326": {
+       "clips": 5,
+       "hours": 0.41666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:admin.G329": {
+       "clips": 6,
+       "hours": 0.5005555555555555,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G331": {
+       "clips": 20,
+       "hours": 1.6666666666666663,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G340": {
+       "clips": 10,
+       "hours": 0.8333333333333334,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G505": {
+       "clips": 4,
+       "hours": 0.33388888888888885,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G506": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G508": {
+       "clips": 7,
+       "hours": 0.5833333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:bus.G509": {
+       "clips": 2,
+       "hours": 0.16666666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G341": {
+       "clips": 19,
+       "hours": 1.583333333333333,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:hospital.G436": {
+       "clips": 36,
+       "hours": 3.0000000000000004,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G299": {
+       "clips": 42,
+       "hours": 3.5,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G328": {
+       "clips": 3,
+       "hours": 0.25,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G330": {
+       "clips": 41,
+       "hours": 3.4163888888888887,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G336": {
+       "clips": 22,
+       "hours": 1.831666666666666,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G339": {
+       "clips": 11,
+       "hours": 0.9166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G419": {
+       "clips": 6,
+       "hours": 0.49999999999999994,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G420": {
+       "clips": 13,
+       "hours": 1.083888888888889,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G421": {
+       "clips": 31,
+       "hours": 2.5833333333333344,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G423": {
+       "clips": 26,
+       "hours": 2.166666666666667,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G424": {
+       "clips": 14,
+       "hours": 1.1666666666666665,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G638": {
+       "clips": 12,
+       "hours": 1.0,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      },
+      "meva:school.G639": {
+       "clips": 6,
+       "hours": 0.4997222222222222,
+       "alarms": 0,
+       "fa_per_hour": 0.0
+      }
+     }
+    }
+   },
+   "tick_auroc": {
+    "all": {
+     "vs_meva": {
+      "value": 0.9837258894252249,
+      "ci": [
+       0.9783940093605151,
+       0.9884321073483059
+      ],
+      "n_pos": 4737,
+      "n_neg": 106498,
+      "n_pos_videos": 697,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.48132827977850584,
+      "ci": [
+       0.4402054662388944,
+       0.5239275053234217
+      ],
+      "n_pos": 4737,
+      "n_neg": 11352,
+      "n_pos_videos": 697,
+      "n_neg_videos": 377
+     }
+    },
+    "cctv": {
+     "vs_meva": {
+      "value": 0.9857626594830561,
+      "ci": [
+       0.9796203409311215,
+       0.9910155402455532
+      ],
+      "n_pos": 1901,
+      "n_neg": 106498,
+      "n_pos_videos": 230,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.47694475930535885,
+      "ci": [
+       0.4200241244500394,
+       0.5321170817165851
+      ],
+      "n_pos": 1901,
+      "n_neg": 7643,
+      "n_pos_videos": 230,
+      "n_neg_videos": 164
+     }
+    },
+    "non_cctv": {
+     "vs_meva": {
+      "value": 0.9823606214844854,
+      "ci": [
+       0.9765482149706624,
+       0.9877798308448882
+      ],
+      "n_pos": 2836,
+      "n_neg": 106498,
+      "n_pos_videos": 467,
+      "n_neg_videos": 355
+     },
+     "vs_far_same_videos": {
+      "value": 0.45273076848484667,
+      "ci": [
+       0.398722442306624,
+       0.5091358010183755
+      ],
+      "n_pos": 2836,
+      "n_neg": 3709,
+      "n_pos_videos": 467,
+      "n_neg_videos": 213
+     }
+    }
+   },
+   "score_quantiles": {
+    "meva": {
+     "0.5": -2.5640560063157434,
+     "0.9": -0.6650589644375076,
+     "0.99": 1.060124535038194,
+     "0.999": 1.2461225498959567
+    },
+    "cctv_far": {
+     "0.5": 2.199277091042413,
+     "0.9": 4.0155346586905445,
+     "0.99": 5.755474013915972,
+     "0.999": 6.707807272710037
+    },
+    "cctv_pos": {
+     "0.5": 2.0703898121242936,
+     "0.9": 4.315221586124049,
+     "0.99": 6.587652842221817,
+     "0.999": 7.895621501776281
+    }
+   },
+   "verdict": {
+    "headline_measure": "Success@10 on CCTV-Fights eligible30 at the 2 FA/h threshold",
+    "success_point": 0.2827586206896552,
+    "success_ci": [
+     0.2052937680421124,
+     0.3658622466506355
+    ],
+    "random_reference_at_meva_far": 0.0,
+    "success_ci_lower_gt_random": true,
+    "auroc_vs_meva_point": 0.9837258894252249,
+    "auroc_vs_meva_ci": [
+     0.9783940093605151,
+     0.9884321073483059
+    ],
+    "auroc_vs_meva_ci_lower_gt_0.5": true,
+    "transfers": true
+   }
+  }
+ },
+ "decisions": [
+  "Both heads use the fold-1 thresholds unchanged; external data never enters choose_threshold.",
+  "Scoring runs on the full 1 Hz feature file of each video with no label cut; shot-cut flags come from the motion stream where it exists (CCTV-Fights) and are all-zero for MEVA (no motion stream; fixed cameras).",
+  "MEVA clips are clean negatives with duration equal to the number of feature ticks; no horizon cap and no excluded spans.",
+  "Bootstrap: 1000 resamples, CCTV-Fights videos (by split_group, one per video) and MEVA clips resampled independently; seed 0. A camera-cluster MEVA bootstrap is not used for the headline.",
+  "Success uses the VA30 alarm policy through va30.EventEval with a fixed threshold per head and target; leads and hits are as in VA30 (first alarm episode starting in [t0-120, t0)); hit means lead >= L. Success@60 uses eligible60 events, other L use eligible30.",
+  "Random reference for Success@L is 1 - exp(-FAR*(120-L)/3600) at the observed MEVA FA/h (W = 90 s for L=30, 110 s for L=10).",
+  "Tick AUROC positives: first-segment pre-violence unmasked CCTV-Fights ticks with tte in (30,120] (early) or (0,10] (imminent). Negatives: all MEVA ticks, or unmasked CCTV-Fights ticks with tte > 120 or no onset ahead. Unweighted (no time matching); pooled over ticks.",
+  "CCTV-Fights headline population is the evaluation set (label_reliable and not overlap_main, 985 videos); all 1000 are scored in scores.parquet.",
+  "Success criterion applied to the headline measure of each head (Success@30 early, Success@10 imminent) at the 2 FA/h threshold; AUROC against MEVA uses the head's own positive band over the whole evaluation set."
+ ]
+}

@@ -66,8 +66,12 @@ Single-stream detail, including the crowd-matched check:
 - The v3 onset labels were corrected by AI visual review (blind two-pass review with reconciliation by language
   models), not by human annotators. 162 of the 419 eligible events keep an onset the reviewers could not resolve.
 - Audio was audited but never modelled.
-- An external test on NTU CCTV-Fights plus never-violent MEVA footage is pre-registered
-  ([plan](benchmark/external/external_test_plan_v1.md)) and not yet reported.
+- **External test** ([plan](benchmark/external/external_test_plan_v1.md),
+  [report](benchmark/results/external_v1/report.md)): on NTU CCTV-Fights fights plus 29.6 h of never-violent MEVA
+  footage, both heads pass the pre-registered criterion, but only trivially (MEVA raised zero alarms). Within the same
+  fight videos, the seconds before a fight do not score higher than calm seconds far from any fight (AUROC 0.40 early,
+  0.48 imminent). The model separates fight footage from calm footage; there is no evidence that it sees the
+  build-up inside a video.
 
 ## Two eras
 

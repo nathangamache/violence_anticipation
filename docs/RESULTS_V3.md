@@ -87,11 +87,33 @@ before fold 1 was read.
 The chart data behind the fold-1 ROC curves and confusion matrices comes from a deterministic replay of the
 confirmation that reproduced every committed metric (`benchmark/results/confirmation_replay/`).
 
-## 5. What the results do and do not show
+## 6. External test (CCTV-Fights + MEVA, pre-registered)
+
+Plan: [`benchmark/external/external_test_plan_v1.md`](../benchmark/external/external_test_plan_v1.md), frozen before
+any external score. Results: [`benchmark/results/external_v1/report.md`](../benchmark/results/external_v1/report.md).
+Both frozen heads were applied unchanged with the fold-1 thresholds. The scorer first reproduced the committed
+fold-1 AUROCs exactly (0.9048 early, 0.8930 imminent). Fights: NTU CCTV-Fights evaluation set (985 videos, 145
+eligible events). Clean footage: 355 MEVA clips (29.6 h of scripted multi-person activity, fixed cameras).
+
+| Head | Threshold | MEVA FA/h | Success on CCTV-Fights | AUROC vs MEVA seconds | AUROC vs calm seconds of the same videos |
+|---|---|---|---|---|---|
+| Early (Success@30) | 2 / h | 0.00 | 24.1% [17.3, 31.5]% | 0.963 [0.942, 0.978] | 0.398 [0.337, 0.459] |
+| Imminent (Success@10) | 2 / h | 0.00 | 28.3% [20.5, 36.6]% | 0.984 [0.978, 0.988] | 0.481 [0.440, 0.524] |
+
+Both heads pass the pre-registered criterion, but only trivially. MEVA raised no alarm at all, so the random
+reference is zero. MEVA is also easy to separate from fight footage. The informative control is the last column:
+within the same CCTV-Fights videos, the seconds before a fight do not score higher than calm seconds far from any
+fight, and for the early head they score lower. Counted on those calm seconds, the alarm rate is about 20 per hour,
+and random alarms at that rate would reach Success@30 0.39 and Success@10 0.46, above the observed values. The
+external test therefore confirms that the model separates fight videos from calm footage, and gives no evidence
+that it detects the build-up to a fight inside a video. This matches the flat score-versus-time curve on VA30.
+
+## 7. What the results do and do not show
 
 - Both heads beat source-and-time controls by a wide margin out of sample. This is a real, if modest, warning
   signal at low false-alarm rates.
 - The warning comes mostly from the type of footage and setting: the score is roughly flat over the two minutes
   before onset, and the first frame of a clip is almost as informative as the seconds just before the fight.
 - Movie and YouTube clips carry most hits and most false alarms; real CCTV is quiet but gets fewer early warnings.
+- On an external fight dataset, the score does not separate pre-fight seconds from calm seconds of the same videos.
 - Results use one seed, linear probes only, AI-reviewed onsets and no audio model.

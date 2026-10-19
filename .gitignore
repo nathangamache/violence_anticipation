@@ -65,3 +65,8 @@ benchmark/results/fusion_v2/**/*.parquet
 benchmark/results/confirmation_replay/*.pkl
 !benchmark/results/fusion_v2/events/va30_scores.parquet
 CLAUDE.md
+benchmark/results/external_v1/*.parquet
+
+# Local-only copies of third-party or hold-out tables (never commit)
+benchmark/external/cctv_fights/
+benchmark/youtube_holdout/

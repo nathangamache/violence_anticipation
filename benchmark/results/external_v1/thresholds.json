@@ -1,0 +1,75 @@
+{
+ "config_sha256": "8e4dc5eb944257c891c30d22b9c1173750d009ad8e965be0480f01bd0007ef41",
+ "heads": {
+  "early": {
+   "fa1": {
+    "target_fa_per_hour": 1,
+    "theta": 4.568188021359099,
+    "val_fa_per_hour": 0.9708653386524604,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.3261965624077908,
+    "fold1_success30": 0.16,
+    "fold1_success10": 0.2,
+    "committed_fold1_test_fa_per_hour": 0.3261965624077908,
+    "fa_matches_committed": true
+   },
+   "fa2": {
+    "target_fa_per_hour": 2,
+    "theta": 3.962661682284109,
+    "val_fa_per_hour": 1.9417306773049208,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.7176324372971399,
+    "fold1_success30": 0.22666666666666666,
+    "fold1_success10": 0.30666666666666664,
+    "committed_fold1_test_fa_per_hour": 0.7176324372971399,
+    "fa_matches_committed": true
+   },
+   "fa5": {
+    "target_fa_per_hour": 5,
+    "theta": 2.8661126433577397,
+    "val_fa_per_hour": 4.993021741641225,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 2.6421921555031056,
+    "fold1_success30": 0.36,
+    "fold1_success10": 0.4533333333333333,
+    "committed_fold1_test_fa_per_hour": 2.6421921555031056,
+    "fa_matches_committed": true
+   }
+  },
+  "imminent": {
+   "fa1": {
+    "target_fa_per_hour": 1,
+    "theta": 4.313394129061464,
+    "val_fa_per_hour": 0.9708653386524604,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.4240555311301281,
+    "fold1_success30": 0.06666666666666667,
+    "fold1_success10": 0.10666666666666667,
+    "committed_fold1_test_fa_per_hour": 0.4240555311301281,
+    "fa_matches_committed": true
+   },
+   "fa2": {
+    "target_fa_per_hour": 2,
+    "theta": 3.613171865488575,
+    "val_fa_per_hour": 1.9417306773049208,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 0.8481110622602562,
+    "fold1_success30": 0.14666666666666667,
+    "fold1_success10": 0.2,
+    "committed_fold1_test_fa_per_hour": 0.8481110622602562,
+    "fa_matches_committed": true
+   },
+   "fa5": {
+    "target_fa_per_hour": 5,
+    "theta": 2.4901522729031353,
+    "val_fa_per_hour": 4.993021741641225,
+    "calibration_videos": 481,
+    "fold1_test_fa_per_hour_clean": 3.2293459678371295,
+    "fold1_success30": 0.30666666666666664,
+    "fold1_success10": 0.4533333333333333,
+    "committed_fold1_test_fa_per_hour": 3.2293459678371295,
+    "fa_matches_committed": true
+   }
+  }
+ }
+}
